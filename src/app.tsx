@@ -22,7 +22,7 @@ import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
 import { tile8x16ToChr, tile8x8ToChr } from "./nes/chr";
 import { NES_PALETTE_HEX } from "./nes/palette";
-import { Palette4, Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
+import { Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
 
 // ★ 追加: zustand ストアを利用
 // パスは実際の配置に合わせて調整してください
@@ -51,7 +51,6 @@ export const App: React.FC = () => {
     const [activeIdx, setActiveIdx] = useState<Pixel2bpp>(1);
 
     // ★ zustand の setState で部分更新
-    const setPalette = (p: Palette4) => useProjectState.setState({ palette: p });
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
 
     const setSpriteSize = (size: "8x8" | "8x16") => {
@@ -186,7 +185,7 @@ export const App: React.FC = () => {
 
             <RightPane>
                 <H3>パレット</H3>
-                <PalettePicker onChange={setPalette} />
+                <PalettePicker />
 
                 <div>
                     <H4>現在の4色</H4>
