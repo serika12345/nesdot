@@ -163,6 +163,7 @@ export const App: React.FC = () => {
                     <Spacer />
 
                     <label>描画色:</label>
+                    <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
                     {[1, 2, 3].map((i) => (
                         <ColorButton
                             key={i}
@@ -172,7 +173,6 @@ export const App: React.FC = () => {
                             bg={NES_PALETTE_HEX[palette[i]]}
                         />
                     ))}
-                    <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
                 </Toolbar>
 
                 <PixelCanvas
