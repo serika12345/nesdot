@@ -1,5 +1,22 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import {
+    CanvasActions,
+    ColorButton,
+    Container,
+    CurrentColors,
+    H3,
+    H4,
+    LeftPane,
+    RightPane,
+    SmallNote,
+    Spacer,
+    Swatch,
+    SwatchWrap,
+    Toolbar,
+    ToolButton,
+    TransparentButton,
+} from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
 import { tile8x16ToChr, tile8x8ToChr } from "./nes/chr";
@@ -118,17 +135,9 @@ export const App: React.FC = () => {
     };
 
     return (
-        <div
-            style={{
-                display: "grid",
-                gridTemplateColumns: "1fr minmax(320px, 420px)", // ★ 右ペインを可変幅に
-                gap: 16,
-                padding: 16,
-                fontFamily: "ui-sans-serif, system-ui",
-            }}
-        >
-            <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <Container>
+            <LeftPane>
+                <Toolbar>
                     <label>
                         <input type="radio" checked={state.spriteSize === "8x8"} onChange={() => setSpriteSize("8x8")} />
                         8×8
@@ -137,48 +146,30 @@ export const App: React.FC = () => {
                         <input type="radio" checked={state.spriteSize === "8x16"} onChange={() => setSpriteSize("8x16")} />
                         8×16
                     </label>
-                    <div style={{ width: 24 }} />
-                    <button
-                        onClick={() => setTool("pen")}
-                        style={{ padding: "4px 8px", border: tool === "pen" ? "2px solid #333" : "1px solid #aaa" }}
-                    >
+
+                    <Spacer />
+
+                    <ToolButton onClick={() => setTool("pen")} active={tool === "pen"}>
                         ペン
-                    </button>
-                    <button
-                        onClick={() => setTool("eraser")}
-                        style={{ padding: "4px 8px", border: tool === "eraser" ? "2px solid #333" : "1px solid #aaa" }}
-                    >
+                    </ToolButton>
+                    <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
                         消しゴム
-                    </button>
-                    <div style={{ width: 24 }} />
+                    </ToolButton>
+
+                    <Spacer />
+
                     <label>描画色:</label>
                     {[1, 2, 3].map((i) => (
-                        <button
+                        <ColorButton
                             key={i}
                             onClick={() => setActiveIdx(i as Pixel2bpp)}
                             title={`Palette Slot ${i}`}
-                            style={{
-                                width: 28,
-                                height: 28,
-                                border: activeIdx === i ? "3px solid #333" : "1px solid #aaa",
-                                background: NES_PALETTE_HEX[state.palette[i]],
-                                cursor: "pointer",
-                            }}
+                            active={activeIdx === i}
+                            bg={NES_PALETTE_HEX[state.palette[i]]}
                         />
                     ))}
-                    <button
-                        onClick={() => setActiveIdx(0)}
-                        title="Transparent (erase)"
-                        style={{
-                            width: 28,
-                            height: 28,
-                            cursor: "pointer",
-                            border: activeIdx === 0 ? "3px solid #333" : "1px solid #aaa",
-                            background: "repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%)",
-                            backgroundSize: "8px 8px",
-                        }}
-                    />
-                </div>
+                    <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
+                </Toolbar>
 
                 <PixelCanvas
                     tile={state.tile}
@@ -190,41 +181,31 @@ export const App: React.FC = () => {
                     onChange={setTile}
                 />
 
-                <div style={{ display: "flex", gap: 8 }}>
+                <CanvasActions>
                     <button onClick={exportChr}>CHRエクスポート</button>
                     <button onClick={exportPng}>PNGエクスポート</button>
                     <button onClick={() => setTile(makeEmptyTile(state.spriteSize === "8x8" ? 8 : 16))}>クリア</button>
-                </div>
-            </div>
+                </CanvasActions>
+            </LeftPane>
 
-            <div style={{ display: "grid", gap: 12 }}>
-                <h3 style={{ margin: 0 }}>パレット</h3>
+            <RightPane>
+                <H3>パレット</H3>
                 <PalettePicker palette={state.palette} onChange={setPalette} />
+
                 <div>
-                    <h4 style={{ margin: "8px 0 4px" }}>現在の4色</h4>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <H4>現在の4色</H4>
+                    <CurrentColors>
                         {state.palette.map((idx, i) => (
-                            <div key={i} style={{ textAlign: "center", fontSize: 12 }}>
-                                <div
-                                    style={{
-                                        width: 32,
-                                        height: 32,
-                                        background:
-                                            i === 0 ? "repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%)" : NES_PALETTE_HEX[idx],
-                                        border: "1px solid #00000022",
-                                        backgroundSize: i === 0 ? "8px 8px" : undefined,
-                                    }}
-                                />
+                            <SwatchWrap key={i}>
+                                <Swatch transparent={i === 0} bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]} />
                                 <div>slot{i}</div>
-                            </div>
+                            </SwatchWrap>
                         ))}
-                    </div>
-                    <small style={{ color: "#555" }}>
-                        NESスプライトは「4色パレット（うち1色は透明）」＋各ピクセルは0..3の2bitです。
-                    </small>
+                    </CurrentColors>
+                    <SmallNote>NESスプライトは「4色パレット（うち1色は透明）」＋各ピクセルは0..3の2bitです。</SmallNote>
                 </div>
-            </div>
-        </div>
+            </RightPane>
+        </Container>
     );
 };
 
