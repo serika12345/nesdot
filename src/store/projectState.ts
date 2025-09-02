@@ -1,16 +1,16 @@
 import { create } from "zustand";
 
-type Pixel2bpp = 0 | 1 | 2 | 3;
+export type Pixel2bpp = 0 | 1 | 2 | 3;
 
 // NESパレットのインデックス（0..63）
 type NesColorIndex = number;
 
 // 4色パレット（palette[0]は透過スロット扱い）
-type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
+export type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 
 type SpriteSize = "8x8" | "8x16";
 
-interface SpriteTile {
+export interface SpriteTile {
     width: 8;
     height: 8 | 16;
     // ピクセル値は0..3（=パレット内インデックス）

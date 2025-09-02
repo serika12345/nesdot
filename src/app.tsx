@@ -22,8 +22,7 @@ import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
 import { tile8x16ToChr, tile8x8ToChr } from "./nes/chr";
 import { NES_PALETTE_HEX } from "./nes/palette";
-import { Palette4, Pixel2bpp, SpriteTile } from "./nes/types";
-import { useProjectState } from "./store/projectState";
+import { Palette4, Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
 
 // ★ 追加: zustand ストアを利用
 // パスは実際の配置に合わせて調整してください
