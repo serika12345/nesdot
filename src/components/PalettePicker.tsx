@@ -1,6 +1,6 @@
 import React, { useState } from "react";
+import { NesColorIndex, Palette4 } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
-import { NesColorIndex, Palette4 } from "../nes/types";
 import { ColorCell, Grid, Note, Root, ScrollWrap, SlotButton, SlotRow } from "./PalettePicker.styles";
 
 interface Props {

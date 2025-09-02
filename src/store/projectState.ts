@@ -3,7 +3,7 @@ import { create } from "zustand";
 export type Pixel2bpp = 0 | 1 | 2 | 3;
 
 // NESパレットのインデックス（0..63）
-type NesColorIndex = number;
+export type NesColorIndex = number;
 
 // 4色パレット（palette[0]は透過スロット扱い）
 export type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];

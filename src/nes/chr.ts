@@ -1,4 +1,4 @@
-import { Pixel2bpp, SpriteTile } from "./types";
+import { Pixel2bpp, SpriteTile } from "../../src/store/projectState";
 
 /**
  * 8x8 タイルを 16 バイトCHRに変換（先頭8B: bitplane0, 次の8B: bitplane1）

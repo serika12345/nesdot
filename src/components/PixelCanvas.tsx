@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
+import { Palette4, Pixel2bpp, SpriteTile } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
-import { Palette4, Pixel2bpp, SpriteTile } from "../nes/types";
 
 interface Props {
     tile: SpriteTile;
