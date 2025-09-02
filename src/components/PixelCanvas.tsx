@@ -119,7 +119,7 @@ export const PixelCanvas: React.FC<Props> = ({
     return (
         <canvas
             ref={canvasRef}
-            style={{ border: "1px solid #aaa", touchAction: "none" }}
+            css={{ border: "1px solid #aaa", touchAction: "none" }}
             onPointerDown={(e) => {
                 paintingRef.current = true;
                 (e.target as HTMLElement).setPointerCapture(e.pointerId);
