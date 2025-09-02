@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { Palette4, Pixel2bpp, SpriteTile } from "../nes/types";
 
@@ -21,11 +21,11 @@ export const PixelCanvas: React.FC<Props> = ({
     activeColorIndex,
     onChange,
 }) => {
-    const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const width = tile.width;
     const height = tile.height;
 
-    const drawAll = React.useCallback(() => {
+    const drawAll = useCallback(() => {
         const cvs = canvasRef.current;
         if (!cvs) return;
         const ctx = cvs.getContext("2d");
@@ -92,11 +92,11 @@ export const PixelCanvas: React.FC<Props> = ({
         }
     }, [tile, palette, scale, showGrid, width, height]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         drawAll();
     }, [drawAll]);
 
-    const paintingRef = React.useRef(false);
+    const paintingRef = useRef(false);
 
     const applyAt = (px: number, py: number) => {
         if (px < 0 || py < 0 || px >= width || py >= height) return;

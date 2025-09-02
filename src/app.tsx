@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
     CanvasActions,
@@ -43,9 +43,9 @@ const DEFAULT_STATE: ProjectState = {
 };
 
 export const App: React.FC = () => {
-    const [state, setState] = React.useState<ProjectState>(DEFAULT_STATE);
-    const [tool, setTool] = React.useState<"pen" | "eraser">("pen");
-    const [activeIdx, setActiveIdx] = React.useState<Pixel2bpp>(1);
+    const [state, setState] = useState<ProjectState>(DEFAULT_STATE);
+    const [tool, setTool] = useState<"pen" | "eraser">("pen");
+    const [activeIdx, setActiveIdx] = useState<Pixel2bpp>(1);
 
     const setPalette = (p: Palette4) => setState((s) => ({ ...s, palette: p }));
     const setTile = (t: SpriteTile) => setState((s) => ({ ...s, tile: t }));
