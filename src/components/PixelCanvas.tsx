@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { Palette4, Pixel2bpp, SpriteTile } from "../../src/store/projectState";
+import { Pixel2bpp, SpriteTile, useProjectState } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
 
 interface Props {
     tile: SpriteTile;
-    palette: Palette4;
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";
@@ -12,15 +11,8 @@ interface Props {
     onChange: (next: SpriteTile) => void;
 }
 
-export const PixelCanvas: React.FC<Props> = ({
-    tile,
-    palette,
-    scale = 24,
-    showGrid = true,
-    tool,
-    activeColorIndex,
-    onChange,
-}) => {
+export const PixelCanvas: React.FC<Props> = ({ tile, scale = 24, showGrid = true, tool, activeColorIndex, onChange }) => {
+    const palette = useProjectState((s) => s.palette);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const width = tile.width;
     const height = tile.height;
