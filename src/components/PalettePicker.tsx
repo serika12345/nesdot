@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { NesColorIndex, Palette4 } from "../../src/store/projectState";
+import { NesColorIndex, Palette4, useProjectState } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { ColorCell, Grid, Note, Root, ScrollWrap, SlotButton, SlotRow } from "./PalettePicker.styles";
 
 interface Props {
-    palette: Palette4;
     onChange: (next: Palette4) => void;
 }
 
-export const PalettePicker: React.FC<Props> = ({ palette, onChange }) => {
+export const PalettePicker: React.FC<Props> = ({ onChange }) => {
+    const palette = useProjectState((s) => s.palette);
     const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
 
     const setSlot = (slot: number, idx: NesColorIndex) => {

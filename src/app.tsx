@@ -186,7 +186,7 @@ export const App: React.FC = () => {
 
             <RightPane>
                 <H3>パレット</H3>
-                <PalettePicker palette={palette} onChange={setPalette} />
+                <PalettePicker onChange={setPalette} />
 
                 <div>
                     <H4>現在の4色</H4>
