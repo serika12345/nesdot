@@ -11,8 +11,8 @@ export type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorInd
 type SpriteSize = "8x8" | "8x16";
 
 export interface SpriteTile {
-    width: 8;
-    height: 8 | 16;
+    width: number; // 8の倍数であること
+    height: number; // 8の倍数であること
     // ピクセル値は0..3（=パレット内インデックス）
     pixels: Pixel2bpp[][];
 }

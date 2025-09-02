@@ -24,8 +24,8 @@ import { tile8x16ToChr, tile8x8ToChr } from "./nes/chr";
 import { NES_PALETTE_HEX } from "./nes/palette";
 import { Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
 
-// ★ 追加: zustand ストアを利用
-// パスは実際の配置に合わせて調整してください
+// ★ 追加: 任意サイズ対応ユーティリティ
+import { makeTile, resizeTile } from "./tiles/utils";
 
 declare global {
     interface Window {
@@ -35,14 +35,14 @@ declare global {
     }
 }
 
-function makeEmptyTile(height: 8 | 16): SpriteTile {
-    const pixels: Pixel2bpp[][] = Array.from({ length: height }, () => Array.from({ length: 8 }, () => 0 as Pixel2bpp));
-    return { width: 8, height, pixels };
+// ★ makeEmptyTile は任意サイズ対応（既定8x8）
+function makeEmptyTile(width = 8, height = 8): SpriteTile {
+    return makeTile(width, height, 0);
 }
 
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
-    const spriteSize = useProjectState((s) => s.spriteSize);
+    // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
     const palette = useProjectState((s) => s.palette);
     const tile = useProjectState((s) => s.tile);
 
@@ -53,45 +53,54 @@ export const App: React.FC = () => {
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
 
-    const setSpriteSize = (size: "8x8" | "8x16") => {
-        useProjectState.setState((s) => {
-            if (size === "8x8") {
-                return { ...s, spriteSize: size, tile: makeEmptyTile(8) };
-            } else {
-                return { ...s, spriteSize: size, tile: makeEmptyTile(16) };
-            }
-        });
+    // ★ 幅・高さ入力（8刻み）ハンドラ
+    const setWidth = (nextW: number) => {
+        if (Number.isNaN(nextW) || nextW < 8 || nextW % 8 !== 0) return;
+        setTile(resizeTile(tile, nextW, tile.height, { anchor: "top-left", fill: 0 }));
+    };
+    const setHeight = (nextH: number) => {
+        if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
+        setTile(resizeTile(tile, tile.width, nextH, { anchor: "top-left", fill: 0 }));
     };
 
+    // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
     const exportChr = async () => {
-        if (spriteSize === "8x8") {
-            const bin = tile8x8ToChr({
-                width: 8,
-                height: 8,
-                pixels: tile.pixels.slice(0, 8),
-            });
-            await saveBinary(bin, "sprite_8x8.chr");
-        } else {
-            const top = {
-                width: 8,
-                height: 8,
-                pixels: tile.pixels.slice(0, 8),
-            } as SpriteTile;
-            const bottom = {
-                width: 8,
-                height: 8,
-                pixels: tile.pixels.slice(8, 16),
-            } as SpriteTile;
+        const chunks: Uint8Array[] = [];
+        for (let ty = 0; ty < tile.height; ty += 8) {
+            for (let tx = 0; tx < tile.width; tx += 8) {
+                // 8x8 サブタイルを切り出し
+                const subPixels: Pixel2bpp[][] = [];
+                for (let y = 0; y < 8; y++) {
+                    subPixels.push(tile.pixels[ty + y].slice(tx, tx + 8) as Pixel2bpp[]);
+                }
+                const bin = tile8x8ToChr({ width: 8, height: 8, pixels: subPixels });
+                chunks.push(bin);
+            }
+        }
+        // 8x16 専用が必要なワークフロー向けに、幅==8 && 高さ==16のときだけ最適化（互換維持）
+        if (tile.width === 8 && tile.height === 16) {
+            const top = { width: 8, height: 8, pixels: tile.pixels.slice(0, 8) } as SpriteTile;
+            const bottom = { width: 8, height: 8, pixels: tile.pixels.slice(8, 16) } as SpriteTile;
             const bin = tile8x16ToChr(top, bottom);
             await saveBinary(bin, "sprite_8x16.chr");
+            return;
         }
+
+        const total = chunks.reduce((a, c) => a + c.length, 0);
+        const out = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) {
+            out.set(c, off);
+            off += c.length;
+        }
+        await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`);
     };
 
     const exportPng = async () => {
         // 簡易PNG出力：キャンバスをオフスクリーンで再描画してダウンロード
         const scale = 8;
-        const w = 8 * scale;
-        const h = (spriteSize === "8x8" ? 8 : 16) * scale;
+        const w = tile.width * scale;
+        const h = tile.height * scale;
         const cvs = document.createElement("canvas");
         cvs.width = w;
         cvs.height = h;
@@ -99,8 +108,8 @@ export const App: React.FC = () => {
         ctx.imageSmoothingEnabled = false;
 
         // 透明はalpha=0、他はパレット色
-        for (let y = 0; y < (spriteSize === "8x8" ? 8 : 16); y++) {
-            for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < tile.height; y++) {
+            for (let x = 0; x < tile.width; x++) {
                 const v = tile.pixels[y][x];
                 if (v === 0) {
                     // 透明
@@ -113,7 +122,7 @@ export const App: React.FC = () => {
         }
         cvs.toBlob((blob) => {
             if (!blob) return;
-            downloadBlob(blob, `sprite_${spriteSize}.png`);
+            downloadBlob(blob, `sprite_${tile.width}x${tile.height}.png`);
         }, "image/png");
     };
 
@@ -141,14 +150,28 @@ export const App: React.FC = () => {
         <Container>
             <LeftPane>
                 <Toolbar>
-                    <label>
-                        <input type="radio" checked={spriteSize === "8x8"} onChange={() => setSpriteSize("8x8")} />
-                        8×8
-                    </label>
-                    <label>
-                        <input type="radio" checked={spriteSize === "8x16"} onChange={() => setSpriteSize("8x16")} />
-                        8×16
-                    </label>
+                    {/* ★ 旧: 8x8/8x16 ラジオ -> 新: 幅/高さセレクタ（8刻み） */}
+                    <label>幅</label>
+                    <input
+                        type="number"
+                        value={tile.width}
+                        onChange={(e) => setWidth(parseInt(e.target.value, 10))}
+                        step={8}
+                        min={8}
+                        // 任意で上限（例：128）
+                        max={128}
+                        style={{ width: 80 }}
+                    />
+                    <label>高さ</label>
+                    <input
+                        type="number"
+                        value={tile.height}
+                        onChange={(e) => setHeight(parseInt(e.target.value, 10))}
+                        step={8}
+                        min={8}
+                        max={128}
+                        style={{ width: 80 }}
+                    />
 
                     <Spacer />
 
@@ -179,7 +202,7 @@ export const App: React.FC = () => {
                 <CanvasActions>
                     <button onClick={exportChr}>CHRエクスポート</button>
                     <button onClick={exportPng}>PNGエクスポート</button>
-                    <button onClick={() => setTile(makeEmptyTile(spriteSize === "8x8" ? 8 : 16))}>クリア</button>
+                    <button onClick={() => setTile(makeEmptyTile(tile.width, tile.height))}>クリア</button>
                 </CanvasActions>
             </LeftPane>
 
