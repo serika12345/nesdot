@@ -121,7 +121,7 @@ export const App: React.FC = () => {
         <div
             style={{
                 display: "grid",
-                gridTemplateColumns: "auto 320px",
+                gridTemplateColumns: "1fr minmax(320px, 420px)", // ★ 右ペインを可変幅に
                 gap: 16,
                 padding: 16,
                 fontFamily: "ui-sans-serif, system-ui",

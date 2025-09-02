@@ -35,23 +35,32 @@ export const PalettePicker: React.FC<Props> = ({ palette, onChange }) => {
                     />
                 ))}
             </div>
-            <div
-                style={{ display: "grid", gridTemplateColumns: "repeat(16, 18px)", gap: 4, border: "1px solid #aaa", padding: 6 }}
-            >
-                {NES_PALETTE_HEX.map((hex, idx) => (
-                    <div
-                        key={idx}
-                        onClick={() => setSlot(activeSlot, idx)}
-                        title={`#${idx.toString(16).padStart(2, "0").toUpperCase()}`}
-                        style={{
-                            width: 18,
-                            height: 18,
-                            background: hex,
-                            border: "1px solid #00000022",
-                            cursor: "pointer",
-                        }}
-                    />
-                ))}
+            <div style={{ overflowX: "auto", maxWidth: "100%" }}>
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(16, 18px)",
+                        gap: 4,
+                        border: "1px solid #aaa",
+                        padding: 6,
+                        width: 16 * 18 + 15 * 4 + 12, // 約 360px + 枠線相当、固定幅で横スクロールを有効に
+                    }}
+                >
+                    {NES_PALETTE_HEX.map((hex, idx) => (
+                        <div
+                            key={idx}
+                            onClick={() => setSlot(activeSlot, idx)}
+                            title={`#${idx.toString(16).padStart(2, "0").toUpperCase()}`}
+                            style={{
+                                width: 18,
+                                height: 18,
+                                background: hex,
+                                border: "1px solid #00000022",
+                                cursor: "pointer",
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
             <small style={{ color: "#555" }}>注意: Slot0は「透明扱い」です。実際の色は描画しません（チェッカ柄表示）。</small>
         </div>
