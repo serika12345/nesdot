@@ -21,6 +21,7 @@ export const PalettePicker: React.FC = () => {
 
     return (
         <Root>
+            <div>現在のパレット: {currentSelectPalette}</div>
             <SlotRow>
                 {palettes[currentSelectPalette].map((idx, i) => (
                     <SlotButton
