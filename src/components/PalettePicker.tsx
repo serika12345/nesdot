@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { NesColorIndex, Palette4, Palettes, useProjectState } from "../../src/store/projectState";
+import { NesColorIndex, Palette4Colors, Palettes, useProjectState } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { ColorCell, Grid, Note, Root, ScrollWrap, SlotButton, SlotRow } from "./PalettePicker.styles";
 
 export const PalettePicker: React.FC = () => {
     const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
     const palettes = useProjectState((s) => s.palettes);
-    const setPalette = (p: Palette4) => {
+    const setPalette = (p: Palette4Colors) => {
         const next = [...palettes] as Palettes;
         next[currentSelectPalette] = p;
         useProjectState.setState({ palettes: next });

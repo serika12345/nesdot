@@ -6,8 +6,8 @@ export type Pixel2bpp = 0 | 1 | 2 | 3;
 export type NesColorIndex = number;
 
 // 4色パレット（palette[0]は透過スロット扱い）
-export type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
-export type Palettes = [Palette4, Palette4, Palette4, Palette4]; // 4つの4色パレット TODO: これに置き換える
+export type Palette4Colors = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
+export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4Colors]; // 4つの4色パレット TODO: これに置き換える
 
 type SpriteSize = "8x8" | "8x16"; // 今は使ってない
 
