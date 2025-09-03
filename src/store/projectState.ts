@@ -8,7 +8,7 @@ export type NesColorIndex = number;
 // 4色パレット（palette[0]は透過スロット扱い）
 export type Palette4 = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 
-type SpriteSize = "8x8" | "8x16";
+type SpriteSize = "8x8" | "8x16"; // 今は使ってない
 
 export interface SpriteTile {
     width: number; // 8の倍数であること
@@ -18,7 +18,6 @@ export interface SpriteTile {
 }
 
 interface ProjectState {
-    spriteSize: SpriteSize;
     palette: Palette4;
     tile: SpriteTile; // 単一タイル編集ベース
 }
@@ -29,7 +28,6 @@ function makeEmptyTile(height: 8 | 16): SpriteTile {
 }
 
 const DEFAULT_STATE: ProjectState = {
-    spriteSize: "8x8",
     palette: [0, 1, 21, 34], // 初期パレット（0=透明扱い）
     tile: makeEmptyTile(8),
 };
