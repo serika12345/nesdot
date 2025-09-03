@@ -24,14 +24,17 @@ export const PalettePicker: React.FC = () => {
             <div>現在のパレット: {currentSelectPalette}</div>
             <SlotRow>
                 {palettes[currentSelectPalette].map((idx, i) => (
-                    <SlotButton
-                        key={i}
-                        onClick={() => setActiveSlot(i)}
-                        title={i === 0 ? "Slot 0: Transparent" : `Slot ${i}`}
-                        active={activeSlot === i}
-                        transparent={i === 0}
-                        bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                    />
+                    <>
+                        <SlotButton
+                            key={i}
+                            onClick={() => setActiveSlot(i)}
+                            title={i === 0 ? "Slot 0: Transparent" : `Slot ${i}`}
+                            active={activeSlot === i}
+                            transparent={i === 0}
+                            bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                        />
+                        <div>slot{i}</div>
+                    </>
                 ))}
             </SlotRow>
 
