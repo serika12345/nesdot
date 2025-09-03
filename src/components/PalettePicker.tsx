@@ -1,42 +1,49 @@
 import React, { useState } from "react";
-import { NesColorIndex, Palette4Colors, Palettes, useProjectState } from "../../src/store/projectState";
+import { NesColorIndex, Palettes, useProjectState } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { ColorCell, Grid, Note, Root, ScrollWrap, SlotButton, SlotRow } from "./PalettePicker.styles";
 
 export const PalettePicker: React.FC = () => {
-    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
     const palettes = useProjectState((s) => s.palettes);
-    const setPalette = (p: Palette4Colors) => {
-        const next = [...palettes] as Palettes;
-        next[currentSelectPalette] = p;
-        useProjectState.setState({ palettes: next });
-    };
+    const [activePalette, setActivePalette] = useState<number>(0);
     const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
 
-    const setSlot = (slot: number, idx: NesColorIndex) => {
+    const handlePaletteClick = (activePalette: number, activeSlot: number) => {
+        setActivePalette(activePalette);
+        setActiveSlot(activeSlot);
+    };
+
+    const setSlot = (slotIndex: number, idx: NesColorIndex) => {
         const next = [...palettes] as Palettes;
-        next[currentSelectPalette][slot] = idx;
+        next[activePalette][slotIndex] = idx;
         useProjectState.setState({ palettes: next });
     };
 
     return (
         <Root>
-            <div>現在のパレット: {currentSelectPalette}</div>
-            <SlotRow>
-                {palettes[currentSelectPalette].map((idx, i) => (
+            <div>現在のパレット: {activePalette}</div>
+            {palettes.map((palette, i) => {
+                return (
                     <>
-                        <SlotButton
-                            key={i}
-                            onClick={() => setActiveSlot(i)}
-                            title={i === 0 ? "Slot 0: Transparent" : `Slot ${i}`}
-                            active={activeSlot === i}
-                            transparent={i === 0}
-                            bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                        />
-                        <div>slot{i}</div>
+                        <div>Palette {i}</div>
+                        <SlotRow>
+                            {palette.map((idx, j) => (
+                                <>
+                                    <SlotButton
+                                        key={j}
+                                        onClick={j !== 0 ? () => handlePaletteClick(i, j) : undefined}
+                                        title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                        active={activeSlot === j && activePalette === i}
+                                        transparent={j === 0}
+                                        bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                    />
+                                    <div>slot{j}</div>
+                                </>
+                            ))}
+                        </SlotRow>
                     </>
-                ))}
-            </SlotRow>
+                );
+            })}
 
             <ScrollWrap>
                 <Grid>

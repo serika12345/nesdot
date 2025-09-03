@@ -182,10 +182,10 @@ export const App: React.FC = () => {
                     <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
                         消しゴム
                     </ToolButton>
+                </Toolbar>
 
-                    <Spacer />
-
-                    <label>描画色:</label>
+                <div css={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div>描画色:</div>
                     <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
                     <div>slot{0}</div>
                     {[1, 2, 3].map((i) => (
@@ -195,12 +195,12 @@ export const App: React.FC = () => {
                                 onClick={() => setActiveIdx(i as Pixel2bpp)}
                                 title={`Palette Slot ${i}`}
                                 active={activeIdx === i}
-                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]} // TODO: 切り替えられるようにする
+                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]} // TODO:
                             />
                             <div>slot{i}</div>
                         </>
                     ))}
-                </Toolbar>
+                </div>
 
                 <PixelCanvas scale={24} showGrid={true} tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
 
