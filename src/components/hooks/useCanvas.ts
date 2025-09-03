@@ -5,13 +5,20 @@ import { Pixel2bpp, SpriteTile, useProjectState } from "../../../src/store/proje
 export interface UseCanvasParams {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
+    currentSelectPalette: Pixel2bpp;
     tool: "pen" | "eraser";
     activeColorIndex: Pixel2bpp; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile) => void;
 }
 
-export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
-    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
+export const useCanvas = ({
+    scale = 24,
+    showGrid = true,
+    currentSelectPalette,
+    tool,
+    activeColorIndex,
+    onChange,
+}: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.tile);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);

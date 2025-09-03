@@ -6,6 +6,7 @@ interface Props {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";
+    currentSelectPalette: Pixel2bpp;
     activeColorIndex: Pixel2bpp; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile) => void;
 }

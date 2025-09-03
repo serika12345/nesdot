@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
     CanvasActions,
-    ColorButton,
     Container,
     CurrentColors,
     H3,
@@ -16,7 +15,6 @@ import {
     SwatchWrap,
     Toolbar,
     ToolButton,
-    TransparentButton,
 } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
@@ -25,6 +23,7 @@ import { NES_PALETTE_HEX } from "./nes/palette";
 import { Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
+import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
 import { makeTile, resizeTile } from "./tiles/utils";
 
 declare global {
@@ -44,13 +43,17 @@ export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
     const palettes = useProjectState((s) => s.palettes);
-    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
     const tile = useProjectState((s) => s.tile);
 
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<"pen" | "eraser">("pen");
-    const [activeIdx, setActiveIdx] = useState<Pixel2bpp>(1);
+    const [activePalette, setActivePalette] = useState<number>(0);
+    const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
 
+    const handlePaletteClick = (activePalette: number, activeSlot: number) => {
+        setActivePalette(activePalette);
+        setActiveSlot(activeSlot);
+    };
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
 
@@ -116,7 +119,7 @@ export const App: React.FC = () => {
                     // 透明
                     ctx.clearRect(x * scale, y * scale, scale, scale);
                 } else {
-                    ctx.fillStyle = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
+                    ctx.fillStyle = NES_PALETTE_HEX[palettes[activePalette][v]];
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
             }
@@ -184,25 +187,39 @@ export const App: React.FC = () => {
                     </ToolButton>
                 </Toolbar>
 
-                <div css={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div>描画色:</div>
-                    <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
-                    <div>slot{0}</div>
-                    {[1, 2, 3].map((i) => (
-                        <>
-                            <ColorButton
-                                key={i}
-                                onClick={() => setActiveIdx(i as Pixel2bpp)}
-                                title={`Palette Slot ${i}`}
-                                active={activeIdx === i}
-                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]} // TODO:
-                            />
-                            <div>slot{i}</div>
-                        </>
-                    ))}
+                <div css={{ display: "grid" }}>
+                    {palettes.map((palette, i) => {
+                        return (
+                            <>
+                                <div>Palette {i}</div>
+                                <SlotRow>
+                                    {palette.map((idx, j) => (
+                                        <>
+                                            <SlotButton
+                                                key={j}
+                                                onClick={() => handlePaletteClick(i, j)}
+                                                title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                                active={activeSlot === j && activePalette === i}
+                                                transparent={j === 0}
+                                                bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                            />
+                                            <div>slot{j}</div>
+                                        </>
+                                    ))}
+                                </SlotRow>
+                            </>
+                        );
+                    })}
                 </div>
 
-                <PixelCanvas scale={24} showGrid={true} tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
+                <PixelCanvas
+                    scale={24}
+                    showGrid={true}
+                    tool={tool}
+                    currentSelectPalette={activePalette as Pixel2bpp}
+                    activeColorIndex={activeSlot as Pixel2bpp}
+                    onChange={setTile}
+                />
 
                 <CanvasActions>
                     <button onClick={exportChr}>CHRエクスポート</button>
