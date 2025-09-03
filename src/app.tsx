@@ -197,7 +197,7 @@ export const App: React.FC = () => {
                     ))}
                 </Toolbar>
 
-                <PixelCanvas tile={tile} scale={24} showGrid tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
+                <PixelCanvas scale={24} showGrid tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
 
                 <CanvasActions>
                     <button onClick={exportChr}>CHRエクスポート</button>

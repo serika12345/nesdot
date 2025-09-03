@@ -3,7 +3,6 @@ import { Pixel2bpp, SpriteTile } from "../../src/store/projectState";
 import { useCanvas } from "./hooks/useCanvas";
 
 interface Props {
-    tile: SpriteTile;
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";

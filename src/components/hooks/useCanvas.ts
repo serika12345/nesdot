@@ -3,7 +3,6 @@ import { NES_PALETTE_HEX } from "../../../src/nes/palette";
 import { Pixel2bpp, SpriteTile, useProjectState } from "../../../src/store/projectState";
 
 export interface UseCanvasParams {
-    tile: SpriteTile;
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";
@@ -11,8 +10,9 @@ export interface UseCanvasParams {
     onChange: (next: SpriteTile) => void;
 }
 
-export const useCanvas = ({ tile, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
+export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
     const palette = useProjectState((s) => s.palette);
+    const tile = useProjectState((s) => s.tile);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const width = tile.width;
