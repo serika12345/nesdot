@@ -47,12 +47,12 @@ export const App: React.FC = () => {
 
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<"pen" | "eraser">("pen");
-    const [activePalette, setActivePalette] = useState<number>(0);
-    const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
+    const [activePalette, setActivePalette] = useState<Pixel2bpp>(0);
+    const [activeSlot, setActiveSlot] = useState<Pixel2bpp>(1); // 0は透明スロット扱い
 
     const handlePaletteClick = (activePalette: number, activeSlot: number) => {
-        setActivePalette(activePalette);
-        setActiveSlot(activeSlot);
+        setActivePalette(activePalette as Pixel2bpp);
+        setActiveSlot(activeSlot as Pixel2bpp);
     };
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
