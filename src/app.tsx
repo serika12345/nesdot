@@ -212,15 +212,22 @@ export const App: React.FC = () => {
                 <PalettePicker />
 
                 <div>
-                    <H4>現在の4色</H4>
-                    <CurrentColors>
-                        {palettes[currentSelectPalette].map((idx, i) => (
-                            <SwatchWrap key={i}>
-                                <Swatch transparent={i === 0} bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]} />
-                                <div>slot{i}</div>
-                            </SwatchWrap>
-                        ))}
-                    </CurrentColors>
+                    <H4>現在のパレット</H4>
+                    {palettes.map((palette, idx) => {
+                        return (
+                            <>
+                                <div>Palette {idx}</div>
+                                <CurrentColors>
+                                    {palette.map((idx, i) => (
+                                        <SwatchWrap key={i}>
+                                            <Swatch transparent={i === 0} bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]} />
+                                            <div>slot{i}</div>
+                                        </SwatchWrap>
+                                    ))}
+                                </CurrentColors>
+                            </>
+                        );
+                    })}
                     <SmallNote>NESスプライトは「4色パレット（うち1色は透明）」＋各ピクセルは0..3の2bitです。</SmallNote>
                 </div>
             </RightPane>
