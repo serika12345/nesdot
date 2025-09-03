@@ -195,7 +195,7 @@ export const App: React.FC = () => {
                                 onClick={() => setActiveIdx(i as Pixel2bpp)}
                                 title={`Palette Slot ${i}`}
                                 active={activeIdx === i}
-                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]}
+                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]} // TODO: 切り替えられるようにする
                             />
                             <div>slot{i}</div>
                         </>
