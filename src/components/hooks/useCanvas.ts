@@ -11,7 +11,8 @@ export interface UseCanvasParams {
 }
 
 export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
-    const palette = useProjectState((s) => s.palette);
+    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
+    const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.tile);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -45,7 +46,7 @@ export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex,
             for (let x = 0; x < width; x++) {
                 const v = tile.pixels[y][x];
                 if (v !== 0) {
-                    const hex = NES_PALETTE_HEX[palette[v]];
+                    const hex = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
@@ -83,7 +84,7 @@ export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex,
                 ctx.stroke();
             }
         }
-    }, [tile, palette, scale, showGrid, width, height]);
+    }, [tile, palettes, scale, showGrid, width, height]);
 
     useEffect(() => {
         drawAll();

@@ -19,7 +19,8 @@ export interface SpriteTile {
 }
 
 interface ProjectState {
-    palette: Palette4;
+    palettes: Palettes;
+    currentSelectPalette: number;
     tile: SpriteTile; // 単一タイル編集ベース
 }
 
@@ -29,7 +30,13 @@ function makeEmptyTile(height: 8 | 16): SpriteTile {
 }
 
 const DEFAULT_STATE: ProjectState = {
-    palette: [0, 1, 21, 34], // 初期パレット（0=透明扱い）
+    palettes: [
+        [0, 1, 21, 34],
+        [0, 1, 21, 34],
+        [0, 1, 21, 34],
+        [0, 1, 21, 34],
+    ], // 初期パレット（0=透明扱い）
+    currentSelectPalette: 0,
     tile: makeEmptyTile(8),
 };
 

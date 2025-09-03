@@ -43,7 +43,8 @@ function makeEmptyTile(width = 8, height = 8): SpriteTile {
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
-    const palette = useProjectState((s) => s.palette);
+    const palettes = useProjectState((s) => s.palettes);
+    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
     const tile = useProjectState((s) => s.tile);
 
     // UI 用の一時状態はローカルで維持
@@ -115,7 +116,7 @@ export const App: React.FC = () => {
                     // 透明
                     ctx.clearRect(x * scale, y * scale, scale, scale);
                 } else {
-                    ctx.fillStyle = NES_PALETTE_HEX[palette[v]];
+                    ctx.fillStyle = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
             }
@@ -192,12 +193,12 @@ export const App: React.FC = () => {
                             onClick={() => setActiveIdx(i as Pixel2bpp)}
                             title={`Palette Slot ${i}`}
                             active={activeIdx === i}
-                            bg={NES_PALETTE_HEX[palette[i]]}
+                            bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]}
                         />
                     ))}
                 </Toolbar>
 
-                <PixelCanvas scale={24} showGrid tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
+                <PixelCanvas scale={24} showGrid={true} tool={tool} activeColorIndex={activeIdx} onChange={setTile} />
 
                 <CanvasActions>
                     <button onClick={exportChr}>CHRエクスポート</button>
@@ -213,7 +214,7 @@ export const App: React.FC = () => {
                 <div>
                     <H4>現在の4色</H4>
                     <CurrentColors>
-                        {palette.map((idx, i) => (
+                        {palettes[currentSelectPalette].map((idx, i) => (
                             <SwatchWrap key={i}>
                                 <Swatch transparent={i === 0} bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]} />
                                 <div>slot{i}</div>

@@ -1,23 +1,28 @@
 import React, { useState } from "react";
-import { NesColorIndex, Palette4, useProjectState } from "../../src/store/projectState";
+import { NesColorIndex, Palette4, Palettes, useProjectState } from "../../src/store/projectState";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { ColorCell, Grid, Note, Root, ScrollWrap, SlotButton, SlotRow } from "./PalettePicker.styles";
 
 export const PalettePicker: React.FC = () => {
-    const setPalette = (p: Palette4) => useProjectState.setState({ palette: p });
-    const palette = useProjectState((s) => s.palette);
+    const currentSelectPalette = useProjectState((s) => s.currentSelectPalette);
+    const palettes = useProjectState((s) => s.palettes);
+    const setPalette = (p: Palette4) => {
+        const next = [...palettes] as Palettes;
+        next[currentSelectPalette] = p;
+        useProjectState.setState({ palettes: next });
+    };
     const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
 
     const setSlot = (slot: number, idx: NesColorIndex) => {
-        const next = [...palette] as Palette4;
-        next[slot] = idx;
-        setPalette(next);
+        const next = [...palettes] as Palettes;
+        next[currentSelectPalette][slot] = idx;
+        useProjectState.setState({ palettes: next });
     };
 
     return (
         <Root>
             <SlotRow>
-                {palette.map((idx, i) => (
+                {palettes[currentSelectPalette].map((idx, i) => (
                     <SlotButton
                         key={i}
                         onClick={() => setActiveSlot(i)}
