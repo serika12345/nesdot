@@ -187,14 +187,18 @@ export const App: React.FC = () => {
 
                     <label>描画色:</label>
                     <TransparentButton onClick={() => setActiveIdx(0)} title="Transparent (erase)" active={activeIdx === 0} />
+                    <div>slot{0}</div>
                     {[1, 2, 3].map((i) => (
-                        <ColorButton
-                            key={i}
-                            onClick={() => setActiveIdx(i as Pixel2bpp)}
-                            title={`Palette Slot ${i}`}
-                            active={activeIdx === i}
-                            bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]}
-                        />
+                        <>
+                            <ColorButton
+                                key={i}
+                                onClick={() => setActiveIdx(i as Pixel2bpp)}
+                                title={`Palette Slot ${i}`}
+                                active={activeIdx === i}
+                                bg={NES_PALETTE_HEX[palettes[currentSelectPalette][i]]}
+                            />
+                            <div>slot{i}</div>
+                        </>
                     ))}
                 </Toolbar>
 
