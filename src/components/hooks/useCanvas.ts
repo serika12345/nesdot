@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { NES_PALETTE_HEX } from "src/nes/palette.js";
-import { Pixel2bpp, SpriteTile, useProjectState } from "src/store/projectState.js";
+import { NES_PALETTE_HEX } from "../../nes/palette";
+import { Pixel2bpp, SpriteTile, useProjectState } from "../../store/projectState";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
