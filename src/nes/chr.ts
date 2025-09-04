@@ -1,4 +1,4 @@
-import { Pixel2bpp, SpriteTile } from "../../src/store/projectState";
+import { ColorIndexOfPalette, SpriteTile } from "../../src/store/projectState";
 
 /**
  * 8x8 タイルを 16 バイトCHRに変換（先頭8B: bitplane0, 次の8B: bitplane1）
@@ -15,7 +15,7 @@ export function tile8x8ToChr(tile: SpriteTile): Uint8Array {
         let p0 = 0;
         let p1 = 0;
         for (let x = 0; x < 8; x++) {
-            const pix: Pixel2bpp = tile.pixels[y][x];
+            const pix: ColorIndexOfPalette = tile.pixels[y][x];
             const b0 = pix & 1;
             const b1 = (pix >> 1) & 1;
             // NESはビット7が左端ピクセル

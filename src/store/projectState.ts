@@ -3,7 +3,8 @@ import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
 import { createJSONStorage, persist, PersistOptions, StateStorage } from "zustand/middleware";
 
-export type Pixel2bpp = 0 | 1 | 2 | 3;
+export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
+export type PaletteIndex = 0 | 1 | 2 | 3;
 export type NesColorIndex = number;
 export type Palette4Colors = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4Colors];
@@ -14,7 +15,8 @@ export interface SpriteTile {
     width: number; // 8の倍数であること
     height: number; // 8の倍数であること
     // ピクセル値は0..3（=パレット内インデックス）
-    pixels: Pixel2bpp[][];
+    paletteIndex: PaletteIndex; // 0..3
+    pixels: ColorIndexOfPalette[][];
 }
 
 interface ProjectState {
@@ -30,8 +32,10 @@ interface ProjectState {
 }
 
 function makeEmptyTile(height: 8 | 16): SpriteTile {
-    const pixels: Pixel2bpp[][] = Array.from({ length: height }, () => Array.from({ length: 8 }, () => 0 as Pixel2bpp));
-    return { width: 8, height, pixels };
+    const pixels: ColorIndexOfPalette[][] = Array.from({ length: height }, () =>
+        Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette)
+    );
+    return { width: 8, height, pixels, paletteIndex: 0 };
 }
 
 const DEFAULT_STATE: Omit<ProjectState, "setPalettes" | "setTile"> = {

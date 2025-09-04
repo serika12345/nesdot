@@ -1,5 +1,5 @@
 // src/tiles/utils.ts
-import { Pixel2bpp, SpriteTile } from "../store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, SpriteTile } from "../store/projectState";
 
 /** 8の倍数であることを検査 */
 export function assertTileSize(w: number, h: number): void {
@@ -10,10 +10,10 @@ export function assertTileSize(w: number, h: number): void {
 
 /** タイル生成（既定は透明0で初期化） */
 // ピクセル値は0..3（=パレット内インデックス）
-export function makeTile(width: number, height: number, fill: Pixel2bpp = 0): SpriteTile {
+export function makeTile(width: number, height: number, fill: ColorIndexOfPalette = 0, paletteIndex: PaletteIndex): SpriteTile {
     assertTileSize(width, height);
-    const pixels: Pixel2bpp[][] = Array.from({ length: height }, () => Array.from({ length: width }, () => fill));
-    return { width, height, pixels };
+    const pixels: ColorIndexOfPalette[][] = Array.from({ length: height }, () => Array.from({ length: width }, () => fill));
+    return { width, height, pixels, paletteIndex };
 }
 
 /** ディープコピー（不変更新用） */
@@ -21,7 +21,8 @@ export function cloneTile(src: SpriteTile): SpriteTile {
     return {
         width: src.width,
         height: src.height,
-        pixels: src.pixels.map((row) => row.slice()) as Pixel2bpp[][],
+        pixels: src.pixels.map((row) => row.slice()) as ColorIndexOfPalette[][],
+        paletteIndex: src.paletteIndex,
     };
 }
 
@@ -45,13 +46,13 @@ export function resizeTile(
     src: SpriteTile,
     nextW: number,
     nextH: number,
-    opts?: { anchor?: ResizeAnchor; fill?: Pixel2bpp }
+    opts?: { anchor?: ResizeAnchor; fill?: ColorIndexOfPalette }
 ): SpriteTile {
     assertTileSize(nextW, nextH);
     const anchor = opts?.anchor ?? "top-left";
-    const fill: Pixel2bpp = opts?.fill ?? 0;
+    const fill: ColorIndexOfPalette = opts?.fill ?? 0;
 
-    const dst = makeTile(nextW, nextH, fill);
+    const dst = makeTile(nextW, nextH, fill, src.paletteIndex);
 
     // アンカーに応じて貼り付けオフセットを計算
     const dx = computeOffset(anchor, src.width, nextW);

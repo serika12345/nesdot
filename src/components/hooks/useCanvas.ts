@@ -1,25 +1,17 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
-import { Pixel2bpp, SpriteTile, useProjectState } from "../../store/projectState";
+import { ColorIndexOfPalette, SpriteTile, useProjectState } from "../../store/projectState";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
-    currentSelectPalette: Pixel2bpp;
     tool: Tool;
-    activeColorIndex: Pixel2bpp; // 0..3（0は透明スロット）
+    activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile) => void;
 }
 
-export const useCanvas = ({
-    scale = 24,
-    showGrid = true,
-    currentSelectPalette,
-    tool,
-    activeColorIndex,
-    onChange,
-}: UseCanvasParams) => {
+export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.tile);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -106,7 +98,7 @@ export const useCanvas = ({
             if (px < 0 || py < 0 || px >= width || py >= height) return;
             const next: SpriteTile = {
                 ...tile,
-                pixels: tile.pixels.map((row) => row.slice()) as Pixel2bpp[][],
+                pixels: tile.pixels.map((row) => row.slice()) as ColorIndexOfPalette[][],
             };
             next.pixels[py][px] = tool === "pen" ? activeColorIndex : 0;
             onChange(next);

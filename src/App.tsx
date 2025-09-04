@@ -18,13 +18,13 @@ import {
 } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
-import { tile8x16ToChr, tile8x8ToChr } from "./nes/chr";
 import { NES_PALETTE_HEX } from "./nes/palette";
-import { Pixel2bpp, SpriteTile, useProjectState } from "./store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useCanvas";
 import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
+import useExportImage from "./hooks/useExportImage";
 import { makeTile, resizeTile } from "./tiles/utils";
 
 declare global {
@@ -36,8 +36,8 @@ declare global {
 }
 
 // ★ makeEmptyTile は任意サイズ対応（既定8x8）
-function makeEmptyTile(width = 8, height = 8): SpriteTile {
-    return makeTile(width, height, 0);
+function makeEmptyTile(width = 8, height = 8, paletteIndex: PaletteIndex): SpriteTile {
+    return makeTile(width, height, 0, paletteIndex);
 }
 
 export const App: React.FC = () => {
@@ -48,12 +48,13 @@ export const App: React.FC = () => {
 
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<Tool>("pen");
-    const [activePalette, setActivePalette] = useState<Pixel2bpp>(0);
-    const [activeSlot, setActiveSlot] = useState<Pixel2bpp>(1); // 0は透明スロット扱い
+    const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
+    const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
+    const { exportChr, exportPng, exportSvgSimple } = useExportImage();
 
     const handlePaletteClick = (activePalette: number, activeSlot: number) => {
-        setActivePalette(activePalette as Pixel2bpp);
-        setActiveSlot(activeSlot as Pixel2bpp);
+        setActivePalette(activePalette as PaletteIndex);
+        setActiveSlot(activeSlot as ColorIndexOfPalette);
     };
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
@@ -66,89 +67,6 @@ export const App: React.FC = () => {
     const setHeight = (nextH: number) => {
         if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
         setTile(resizeTile(tile, tile.width, nextH, { anchor: "top-left", fill: 0 }));
-    };
-
-    // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
-    const exportChr = async () => {
-        const chunks: Uint8Array[] = [];
-        for (let ty = 0; ty < tile.height; ty += 8) {
-            for (let tx = 0; tx < tile.width; tx += 8) {
-                // 8x8 サブタイルを切り出し
-                const subPixels: Pixel2bpp[][] = [];
-                for (let y = 0; y < 8; y++) {
-                    subPixels.push(tile.pixels[ty + y].slice(tx, tx + 8) as Pixel2bpp[]);
-                }
-                const bin = tile8x8ToChr({ width: 8, height: 8, pixels: subPixels });
-                chunks.push(bin);
-            }
-        }
-        // 8x16 専用が必要なワークフロー向けに、幅==8 && 高さ==16のときだけ最適化（互換維持）
-        if (tile.width === 8 && tile.height === 16) {
-            const top = { width: 8, height: 8, pixels: tile.pixels.slice(0, 8) } as SpriteTile;
-            const bottom = { width: 8, height: 8, pixels: tile.pixels.slice(8, 16) } as SpriteTile;
-            const bin = tile8x16ToChr(top, bottom);
-            await saveBinary(bin, "sprite_8x16.chr");
-            return;
-        }
-
-        const total = chunks.reduce((a, c) => a + c.length, 0);
-        const out = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-            out.set(c, off);
-            off += c.length;
-        }
-        await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`);
-    };
-
-    const exportPng = async () => {
-        // 簡易PNG出力：キャンバスをオフスクリーンで再描画してダウンロード
-        const scale = 8;
-        const w = tile.width * scale;
-        const h = tile.height * scale;
-        const cvs = document.createElement("canvas");
-        cvs.width = w;
-        cvs.height = h;
-        const ctx = cvs.getContext("2d")!;
-        ctx.imageSmoothingEnabled = false;
-
-        // 透明はalpha=0、他はパレット色
-        for (let y = 0; y < tile.height; y++) {
-            for (let x = 0; x < tile.width; x++) {
-                const v = tile.pixels[y][x];
-                if (v === 0) {
-                    // 透明
-                    ctx.clearRect(x * scale, y * scale, scale, scale);
-                } else {
-                    ctx.fillStyle = NES_PALETTE_HEX[palettes[activePalette][v]];
-                    ctx.fillRect(x * scale, y * scale, scale, scale);
-                }
-            }
-        }
-        cvs.toBlob((blob) => {
-            if (!blob) return;
-            downloadBlob(blob, `sprite_${tile.width}x${tile.height}.png`);
-        }, "image/png");
-    };
-
-    const saveBinary = async (data: Uint8Array, defaultName: string) => {
-        if (window.api?.saveBytes) {
-            await window.api.saveBytes(data, defaultName);
-        } else {
-            // ★ ここを修正：ArrayBuffer バックの Uint8Array に正規化してから Blob を作る
-            const arr = new Uint8Array(data); // copy; ensures ArrayBuffer (not SharedArrayBuffer)
-            const blob = new Blob([arr], { type: "application/octet-stream" });
-            downloadBlob(blob, defaultName);
-        }
-    };
-
-    const downloadBlob = (blob: Blob, fileName: string) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
     };
 
     return (
@@ -217,15 +135,16 @@ export const App: React.FC = () => {
                     scale={24}
                     showGrid={true}
                     tool={tool}
-                    currentSelectPalette={activePalette as Pixel2bpp}
-                    activeColorIndex={palettes[activePalette][activeSlot] as Pixel2bpp}
+                    currentSelectPalette={activePalette as PaletteIndex}
+                    activeColorIndex={palettes[activePalette][activeSlot] as ColorIndexOfPalette}
                     onChange={setTile}
                 />
 
                 <CanvasActions>
-                    <button onClick={exportChr}>CHRエクスポート</button>
-                    <button onClick={exportPng}>PNGエクスポート</button>
-                    <button onClick={() => setTile(makeEmptyTile(tile.width, tile.height))}>クリア</button>
+                    <button onClick={() => exportChr(tile, activePalette)}>CHRエクスポート</button>
+                    <button onClick={() => exportPng(tile)}>PNGエクスポート</button>
+                    <button onClick={() => exportSvgSimple(tile)}>SVGエクスポート</button>
+                    <button onClick={() => setTile(makeEmptyTile(tile.width, tile.height, tile.paletteIndex))}>クリア</button>
                 </CanvasActions>
             </LeftPane>
 
