@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { NES_PALETTE_HEX } from "../../../src/nes/palette";
-import { Pixel2bpp, SpriteTile, useProjectState } from "../../../src/store/projectState";
+import { NES_PALETTE_HEX } from "src/nes/palette.js";
+import { Pixel2bpp, SpriteTile, useProjectState } from "src/store/projectState.js";
 
+export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     currentSelectPalette: Pixel2bpp;
-    tool: "pen" | "eraser";
+    tool: Tool;
     activeColorIndex: Pixel2bpp; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile) => void;
 }
@@ -53,7 +54,8 @@ export const useCanvas = ({
             for (let x = 0; x < width; x++) {
                 const v = tile.pixels[y][x];
                 if (v !== 0) {
-                    const hex = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
+                    // TODO: 混ぜられるのをどうするか？ スプライトを個別に作って合成できれば解決
+                    const hex = NES_PALETTE_HEX[v];
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
