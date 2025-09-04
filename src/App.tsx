@@ -19,13 +19,13 @@ import {
 import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
 import { NES_PALETTE_HEX } from "./nes/palette";
-import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "./store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useCanvas";
 import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
 import useExportImage from "./hooks/useExportImage";
-import { makeTile, resizeTile } from "./tiles/utils";
+import { makeTile, resizeTileND } from "./tiles/utils";
 
 declare global {
     interface Window {
@@ -59,14 +59,14 @@ export const App: React.FC = () => {
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
 
-    // ★ 幅・高さ入力（8刻み）ハンドラ
+    // ★ 幅・高さ入力（8刻み）ハンドラ（非破壊版へ差し替え）
     const setWidth = (nextW: number) => {
         if (Number.isNaN(nextW) || nextW < 8 || nextW % 8 !== 0) return;
-        setTile(resizeTile(tile, nextW, tile.height, { anchor: "top-left", fill: 0 }));
+        setTile(resizeTileND(tile as SpriteTileND, nextW, tile.height, { anchor: "top-left", fill: 0 }));
     };
     const setHeight = (nextH: number) => {
         if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
-        setTile(resizeTile(tile, tile.width, nextH, { anchor: "top-left", fill: 0 }));
+        setTile(resizeTileND(tile as SpriteTileND, tile.width, nextH, { anchor: "top-left", fill: 0 }));
     };
 
     return (

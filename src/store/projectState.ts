@@ -19,6 +19,20 @@ export interface SpriteTile {
     pixels: ColorIndexOfPalette[][];
 }
 
+// --- ここから追加: 非破壊リサイズ用の裏キャンバス付き拡張 ---
+export type Backing = {
+    pixels: ColorIndexOfPalette[][];
+    width: number;
+    height: number;
+    // タイルの (0,0) が裏キャンバス上のどこに対応しているか
+    offsetX: number;
+    offsetY: number;
+    fill: ColorIndexOfPalette;
+};
+
+// 既存 SpriteTile を拡張プロパティで拡張（型安全用の交差型）
+export type SpriteTileND = SpriteTile & { __backing?: Backing };
+
 interface ProjectState {
     palettes: Palettes;
     tile: SpriteTile; // 単一タイル編集ベース
