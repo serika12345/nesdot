@@ -14,6 +14,7 @@
         "jsx": "react-jsx",
         "jsxImportSource": "@emotion/react",
         "paths": {
+            "src/*": ["src/*"],
             "*": ["node_modules/*"]
         }
     },
