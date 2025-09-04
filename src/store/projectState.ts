@@ -1,7 +1,7 @@
 // store/project.ts
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
-import { createJSONStorage, persist, PersistOptions } from "zustand/middleware";
+import { createJSONStorage, persist, PersistOptions, StateStorage } from "zustand/middleware";
 
 export type Pixel2bpp = 0 | 1 | 2 | 3;
 export type NesColorIndex = number;
@@ -46,7 +46,7 @@ const DEFAULT_STATE: Omit<ProjectState, "setPalettes" | "setTile"> = {
 };
 
 // --- IndexedDB-backed Storage (string ベース) ---
-const idbStorage = {
+const idbStorage: StateStorage = {
     getItem: async (name: string): Promise<string | null> => {
         const v = await idbGet(name);
         return typeof v === "string" ? v : v == null ? null : JSON.stringify(v);
