@@ -11,12 +11,28 @@ export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4
 
 type SpriteSize = "8x8" | "8x16"; // 今は使ってない
 
+type ScreenWidth = 256;
+type ScreenHeight = 240;
+
+export type Screen = {
+    width: ScreenWidth;
+    height: ScreenHeight;
+    backgroundTiles: BackgroundTile[][];
+};
+
 export interface SpriteTile {
     width: number; // 8の倍数であること
     height: number; // 8の倍数であること
     spriteSize?: SpriteSize; // 8x8 or 8x16 TODO: スプライト毎の編集→キャンバスに統合させるのでこれを参照する
     // ピクセル値は0..3（=パレット内インデックス）
     paletteIndex: PaletteIndex; // 0..3
+    pixels: ColorIndexOfPalette[][];
+}
+
+export interface BackgroundTile {
+    width: 8;
+    height: 8;
+    paletteIndex: PaletteIndex;
     pixels: ColorIndexOfPalette[][];
 }
 
