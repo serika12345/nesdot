@@ -14,6 +14,7 @@ type SpriteSize = "8x8" | "8x16"; // 今は使ってない
 export interface SpriteTile {
     width: number; // 8の倍数であること
     height: number; // 8の倍数であること
+    spriteSize?: SpriteSize; // 8x8 or 8x16 TODO: スプライト毎の編集→キャンバスに統合させるのでこれを参照する
     // ピクセル値は0..3（=パレット内インデックス）
     paletteIndex: PaletteIndex; // 0..3
     pixels: ColorIndexOfPalette[][];

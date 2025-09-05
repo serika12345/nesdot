@@ -50,6 +50,7 @@ export const App: React.FC = () => {
     const [tool, setTool] = useState<Tool>("pen");
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
+    const [activeSprite, setActiveSprite] = useState<number>(0); // スプライトごとに編集できるようにする
     const { exportChr, exportPng, exportSvgSimple } = useExportImage();
 
     const handlePaletteClick = (activePalette: number, activeSlot: number) => {
