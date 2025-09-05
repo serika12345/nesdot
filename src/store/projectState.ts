@@ -36,7 +36,7 @@ export type SpriteTileND = SpriteTile & { __backing?: Backing };
 interface ProjectState {
     palettes: Palettes;
     tile: SpriteTile; // 単一タイル編集ベース
-
+    sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
     // （必要に応じて）更新用のアクション群をここに追加
     setPalettes: (p: Palettes) => void;
     setTile: (t: SpriteTile) => void;
@@ -59,6 +59,7 @@ const DEFAULT_STATE: Omit<ProjectState, "setPalettes" | "setTile"> = {
         [0, 1, 21, 34],
         [0, 1, 21, 34],
     ],
+    sprites: [],
     tile: makeEmptyTile(8),
     _hydrated: false,
 };
