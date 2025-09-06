@@ -9,15 +9,18 @@ export type NesColorIndex = number;
 export type Palette4Colors = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4Colors];
 
+export type Sprite = {
+    x: number;
+    y: number;
+    spriteIndex: number;
+    pixels: ColorIndexOfPalette[][];
+};
+
 export type Screen = {
     width: 256;
     height: 240;
     backgroundTiles: BackgroundTile[][];
-    sprites: {
-        x: number;
-        y: number;
-        spriteIndex: number;
-    }[];
+    sprites: Sprite[];
 };
 
 export interface SpriteTile {

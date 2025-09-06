@@ -1,14 +1,35 @@
 // components/modes/ScreenMode.tsx
 import React, { useState } from "react";
+import { Sprite, useProjectState } from "../store/projectState";
 import { ScreenCanvas } from "./ScreenCanvas";
 
 export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
+    const screen = useProjectState((s) => s.screen);
+    const sprites = useProjectState((s) => s.sprites);
     const handleAddSprite = () => {
-        alert(`スプライトを追加: 番号=${spriteNumber}, X=${x}, Y=${y} (未実装)`);
+        const spriteTile = sprites[spriteNumber];
+        if (!spriteTile) {
+            alert("指定されたスプライト番号のスプライトが存在しません");
+            return;
+        }
+        if (screen.sprites.length >= 64) {
+            alert("スプライトは最大64個までです");
+            return;
+        }
+        const sprite: Sprite = {
+            x,
+            y,
+            spriteIndex: spriteNumber,
+            pixels: spriteTile.pixels,
+        };
+        screen.sprites.push(sprite);
+        useProjectState.setState({ screen });
+        alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
     };
+
     return (
         <>
             {/* TODO: モーダル */}
