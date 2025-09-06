@@ -18,6 +18,11 @@ export type Screen = {
     width: ScreenWidth;
     height: ScreenHeight;
     backgroundTiles: BackgroundTile[][];
+    sprites: {
+        x: number;
+        y: number;
+        spriteIndex: number;
+    }[];
 };
 
 export interface SpriteTile {
@@ -51,6 +56,7 @@ export type Backing = {
 export type SpriteTileND = SpriteTile & { __backing?: Backing };
 
 export interface ProjectState {
+    screen: Screen;
     palettes: Palettes;
     sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
     // リハイドレート完了フラグ（UIのチラつき抑止用）
@@ -65,6 +71,20 @@ function makeEmptyTile(height: 8 | 16): SpriteTile {
 }
 
 const DEFAULT_STATE: ProjectState = {
+    screen: {
+        width: 256,
+        height: 240,
+        backgroundTiles: Array.from({ length: 30 }, () =>
+            Array.from({ length: 32 }, () => ({
+                width: 8,
+                height: 8,
+                paletteIndex: 0,
+                pixels: Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette)),
+            }))
+        ),
+        sprites: [],
+    },
+    // NES標準パレット（0は透明スロット扱い）
     palettes: [
         [0, 1, 21, 34],
         [0, 1, 21, 34],
