@@ -25,6 +25,7 @@ import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND, useProject
 import { Tool } from "./components/hooks/useCanvas";
 import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
 import useExportImage from "./hooks/useExportImage";
+import useImportImage from "./hooks/useImportImage";
 import { makeTile, resizeTileND } from "./tiles/utils";
 
 declare global {
@@ -43,13 +44,15 @@ function makeEmptyTile(width = 8, height = 8, paletteIndex: PaletteIndex): Sprit
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
+    const projectState = useProjectState((s) => s);
     const palettes = useProjectState((s) => s.palettes);
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<Tool>("pen");
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
     const [activeSprite, setActiveSprite] = useState<number>(0); // TODO: スプライトごとに編集できるようにする
-    const { exportChr, exportPng, exportSvgSimple } = useExportImage();
+    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
+    const { importJSON } = useImportImage();
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const sprites = useProjectState((s) => s.sprites);
 
@@ -75,6 +78,16 @@ export const App: React.FC = () => {
     const setHeight = (nextH: number) => {
         if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
         setTile(resizeTileND(activeTile as SpriteTileND, activeTile.width, nextH, { anchor: "top-left", fill: 0 }), activeSprite);
+    };
+    // ★ インポートハンドラ
+    const handleImport = async () => {
+        try {
+            await importJSON((data) => {
+                useProjectState.setState(data);
+            });
+        } catch (err) {
+            alert("インポートに失敗しました: " + err);
+        }
     };
 
     return (
@@ -122,6 +135,13 @@ export const App: React.FC = () => {
                     <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
                         消しゴム
                     </ToolButton>
+                    <ToolButton
+                        onClick={() =>
+                            setTile(makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex), activeSprite)
+                        }
+                    >
+                        クリア
+                    </ToolButton>
                 </Toolbar>
 
                 <div css={{ display: "grid" }}>
@@ -163,13 +183,8 @@ export const App: React.FC = () => {
                     <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
                     <button onClick={() => exportPng(activeTile)}>PNGエクスポート</button>
                     <button onClick={() => exportSvgSimple(activeTile)}>SVGエクスポート</button>
-                    <button
-                        onClick={() =>
-                            setTile(makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex), activeSprite)
-                        }
-                    >
-                        クリア
-                    </button>
+                    <button onClick={() => exportJSON(projectState)}>保存</button>
+                    <button onClick={handleImport}>復元</button>
                 </CanvasActions>
             </LeftPane>
 

@@ -1,7 +1,7 @@
 // store/project.ts
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
-import { createJSONStorage, persist, PersistOptions, StateStorage } from "zustand/middleware";
+import { createJSONStorage, PersistOptions, StateStorage } from "zustand/middleware";
 
 export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 export type PaletteIndex = 0 | 1 | 2 | 3;
@@ -50,7 +50,7 @@ export type Backing = {
 // 既存 SpriteTile を拡張プロパティで拡張（型安全用の交差型）
 export type SpriteTileND = SpriteTile & { __backing?: Backing };
 
-interface ProjectState {
+export interface ProjectState {
     palettes: Palettes;
     sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
     // リハイドレート完了フラグ（UIのチラつき抑止用）
@@ -111,12 +111,15 @@ const persistOptions: PersistOptions<ProjectState> = {
 };
 
 export const useProjectState = create<ProjectState>()(
-    persist(
-        (set) => ({
-            ...DEFAULT_STATE,
-        }),
-        persistOptions
-    )
+    // persist(
+    //     (set) => ({
+    //         ...DEFAULT_STATE,
+    //     }),
+    //     persistOptions
+    // )
+    (set) => ({
+        ...DEFAULT_STATE,
+    })
 );
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---

@@ -1,6 +1,6 @@
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
 import { NES_PALETTE_HEX } from "../nes/palette";
-import { ColorIndexOfPalette, PaletteIndex, SpriteTile } from "../store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, ProjectState, SpriteTile } from "../store/projectState";
 
 export default function useExportImage() {
     // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
@@ -115,9 +115,16 @@ export default function useExportImage() {
         URL.revokeObjectURL(url);
     };
 
+    const exportJSON = (projectState: ProjectState) => {
+        const json = JSON.stringify(projectState);
+        const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+        downloadBlob(blob, "project.json");
+    };
+
     return {
         exportChr,
         exportPng,
         exportSvgSimple,
+        exportJSON,
     };
 }
