@@ -92,7 +92,7 @@ export const App: React.FC = () => {
                                 step={8}
                                 min={8}
                                 // 任意で上限（例：128）
-                                max={128}
+                                max={8}
                                 style={{ width: 80 }}
                             />
                             <label>高さ</label>
@@ -102,7 +102,7 @@ export const App: React.FC = () => {
                                 onChange={(e) => setHeight(parseInt(e.target.value, 10))}
                                 step={8}
                                 min={8}
-                                max={128}
+                                max={16}
                                 style={{ width: 80 }}
                             />
                             <label>スプライト</label>
