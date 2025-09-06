@@ -136,9 +136,14 @@ export const App: React.FC = () => {
                         消しゴム
                     </ToolButton>
                     <ToolButton
-                        onClick={() =>
-                            setTile(makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex), activeSprite)
-                        }
+                        onClick={() => {
+                            if (confirm("本当にクリアしますか？")) {
+                                setTile(
+                                    makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex),
+                                    activeSprite
+                                );
+                            }
+                        }}
                     >
                         クリア
                     </ToolButton>
