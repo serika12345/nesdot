@@ -24,8 +24,8 @@ declare global {
 }
 
 // ★ makeEmptyTile は任意サイズ対応（既定8x8）
-function makeEmptyTile(width = 8, height = 8, paletteIndex: PaletteIndex): SpriteTile {
-    return makeTile(width, height, 0, paletteIndex);
+function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
+    return makeTile(height, 0, paletteIndex);
 }
 
 export const App: React.FC = () => {
@@ -54,15 +54,8 @@ export const App: React.FC = () => {
         useProjectState.setState({ sprites: newSprites });
     };
 
-    // ★ 幅・高さ入力（8刻み）ハンドラ（非破壊版へ差し替え）
-    const setWidth = (nextW: number) => {
-        if (Number.isNaN(nextW) || nextW < 8 || nextW % 8 !== 0) return;
-        setTile(
-            resizeTileND(activeTile as SpriteTileND, nextW, activeTile.height, { anchor: "top-left", fill: 0 }),
-            activeSprite
-        );
-    };
-    const setHeight = (nextH: number) => {
+    // スプライト高さ変更ハンドラ（非破壊版へ差し替え）
+    const setHeight = (nextH: 8 | 16) => {
         if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
         setTile(resizeTileND(activeTile as SpriteTileND, activeTile.width, nextH, { anchor: "top-left", fill: 0 }), activeSprite);
     };
@@ -123,10 +116,7 @@ export const App: React.FC = () => {
                         <ToolButton
                             onClick={() => {
                                 if (confirm("本当にクリアしますか？")) {
-                                    setTile(
-                                        makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex),
-                                        activeSprite
-                                    );
+                                    setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
                                 }
                             }}
                         >

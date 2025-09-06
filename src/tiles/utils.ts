@@ -10,8 +10,9 @@ export function assertTileSize(w: number, h: number): void {
 
 /** タイル生成（既定は透明0で初期化） */
 // ピクセル値は0..3（=パレット内インデックス）
-export function makeTile(width: number, height: number, fill: ColorIndexOfPalette = 0, paletteIndex: PaletteIndex): SpriteTile {
-    assertTileSize(width, height);
+// widthを廃止し、height とその他のみを受け付ける
+export function makeTile(height: 8 | 16, paletteIndex: PaletteIndex, fill: ColorIndexOfPalette = 0): SpriteTile {
+    const width = 8 as const; // SpriteTileのwidth: 8 に合わせてリテラル固定
     const pixels: ColorIndexOfPalette[][] = Array.from({ length: height }, () => Array.from({ length: width }, () => fill));
     return { width, height, pixels, paletteIndex };
 }
@@ -123,7 +124,7 @@ function clonePixels(src: ColorIndexOfPalette[][]): ColorIndexOfPalette[][] {
 export function resizeTileND(
     src: SpriteTileND,
     nextW: number,
-    nextH: number,
+    nextH: 8 | 16,
     opts?: { anchor?: ResizeAnchor; fill?: ColorIndexOfPalette }
 ): SpriteTileND {
     assertTileSize(nextW, nextH);
@@ -166,7 +167,7 @@ export function resizeTileND(
     }
 
     // 2) 新しい可視タイルを作成（表示用バッファ）
-    const dst = makeTile(nextW, nextH, fill, src.paletteIndex) as SpriteTileND;
+    const dst = makeTile(nextH, fill, src.paletteIndex) as SpriteTileND;
 
     // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
     for (let y = 0; y < nextH; y++) {
