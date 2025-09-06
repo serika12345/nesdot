@@ -1,19 +1,18 @@
 // App.tsx
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CanvasActions, Container, H3, LeftPane, RightPane, Spacer, Toolbar, ToolButton } from "./App.styles";
+import { CanvasActions, Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
-import { SpriteCanvas } from "./components/SpriteCanvas";
-import { NES_PALETTE_HEX } from "./nes/palette";
-import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND, useProjectState } from "./store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useSpriteCanvas";
-import { SlotButton } from "./components/PalettePicker.styles";
-import { ScreenCanvas } from "./components/ScreenCanvas";
+import { ScreenMode } from "./components/ScreenMode";
+import { SpriteMode } from "./components/SpriteMode";
 import useExportImage from "./hooks/useExportImage";
 import useImportImage from "./hooks/useImportImage";
-import { makeTile, resizeTileND } from "./tiles/utils";
+
+// 分割後のモード別コンポーネント
 
 declare global {
     interface Window {
@@ -23,30 +22,25 @@ declare global {
     }
 }
 
-// ★ makeEmptyTile は任意サイズ対応（既定8x8）
-function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
-    return makeTile(height, 0, paletteIndex);
-}
-
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
     const projectState = useProjectState((s) => s);
     const palettes = useProjectState((s) => s.palettes);
+    const sprites = useProjectState((s) => s.sprites);
+
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<Tool>("pen");
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
     const [activeSprite, setActiveSprite] = useState<number>(0);
-    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
-    const { importJSON } = useImportImage();
-    const activeTile = useProjectState((s) => s.sprites[activeSprite]);
-    const sprites = useProjectState((s) => s.sprites);
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
 
-    const handlePaletteClick = (activeSlot: number) => {
-        setActiveSlot(activeSlot as ColorIndexOfPalette);
-    };
+    const activeTile = useProjectState((s) => s.sprites[activeSprite]);
+
+    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
+    const { importJSON } = useImportImage();
+
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile, index: number) => {
         const newSprites = [...sprites];
@@ -54,11 +48,6 @@ export const App: React.FC = () => {
         useProjectState.setState({ sprites: newSprites });
     };
 
-    // スプライト高さ変更ハンドラ（非破壊版へ差し替え）
-    const setHeight = (nextH: 8 | 16) => {
-        if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
-        setTile(resizeTileND(activeTile as SpriteTileND, activeTile.width, nextH, { anchor: "top-left", fill: 0 }), activeSprite);
-    };
     // ★ インポートハンドラ
     const handleImport = async () => {
         try {
@@ -70,65 +59,9 @@ export const App: React.FC = () => {
         }
     };
 
-    const handleSpriteChange = (index: string) => {
-        const i = parseInt(index);
-        setActiveSprite(i);
-        const targetSprite = sprites[i];
-        setActivePalette(targetSprite.paletteIndex);
-    };
-
     return (
         <Container>
             <LeftPane>
-                {editMode === "sprite" && (
-                    <Toolbar>
-                        {/* ★ 旧: 8x8/8x16 ラジオ -> 新: 幅/高さセレクタ（8刻み） */}
-                        {editMode === "sprite" && (
-                            <>
-                                <ToolButton onClick={(e) => setHeight(8)} active={activeTile.height === 8}>
-                                    8×8
-                                </ToolButton>
-                                <ToolButton onClick={() => setHeight(16)} active={activeTile.height === 16}>
-                                    8×16
-                                </ToolButton>
-
-                                <label>スプライト</label>
-                                <input
-                                    type="number"
-                                    value={activeSprite}
-                                    onChange={(e) => handleSpriteChange(e.target.value)}
-                                    step={1}
-                                    min={0}
-                                    max={63}
-                                    style={{ width: 80 }}
-                                />
-                            </>
-                        )}
-
-                        <Spacer />
-
-                        <ToolButton onClick={() => setTool("pen")} active={tool === "pen"}>
-                            ペン
-                        </ToolButton>
-                        <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
-                            消しゴム
-                        </ToolButton>
-                        <ToolButton
-                            onClick={() => {
-                                if (confirm("本当にクリアしますか？")) {
-                                    setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
-                                }
-                            }}
-                        >
-                            クリア
-                        </ToolButton>
-                    </Toolbar>
-                )}
-                {editMode === "screen" && (
-                    <div>
-                        <button onClick={() => alert("未実装")}>スプライトを追加</button>
-                    </div>
-                )}
                 <div>
                     <label>編集モード</label>
                     <select value={editMode} onChange={(e) => setEditMode(e.target.value as "screen" | "sprite")}>
@@ -136,58 +69,27 @@ export const App: React.FC = () => {
                         <option value="sprite">スプライト</option>
                     </select>
                 </div>
+
                 {editMode === "sprite" && (
-                    <>
-                        <div>
-                            <label>パレット</label>
-                            <select
-                                value={activePalette}
-                                onChange={(e) => setActivePalette(parseInt(e.target.value) as PaletteIndex)}
-                            >
-                                {palettes.map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Palette {i}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div css={{ display: "flex", gap: 8 }}>
-                            {palettes[activePalette].map((idx, j) => (
-                                <>
-                                    <SlotButton
-                                        key={j}
-                                        onClick={() => handlePaletteClick(j)}
-                                        title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
-                                        active={activeSlot === j}
-                                        transparent={j === 0}
-                                        bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                                    />
-                                    <div>slot{j}</div>
-                                </>
-                            ))}
-                        </div>
-                    </>
+                    <SpriteMode
+                        // state
+                        tool={tool}
+                        activePalette={activePalette}
+                        activeSlot={activeSlot}
+                        activeSprite={activeSprite}
+                        activeTile={activeTile}
+                        palettes={palettes}
+                        sprites={sprites}
+                        // setters
+                        setTool={setTool}
+                        setActivePalette={setActivePalette}
+                        setActiveSlot={setActiveSlot}
+                        setActiveSprite={setActiveSprite}
+                        setTile={setTile}
+                    />
                 )}
 
-                {editMode === "screen" && (
-                    <>
-                        {/* TODO: BGを描画する */}
-                        <ScreenCanvas scale={5} showGrid={true} />
-                    </>
-                )}
-                {editMode === "sprite" && (
-                    <>
-                        <SpriteCanvas
-                            target={activeSprite}
-                            scale={24}
-                            showGrid={true}
-                            tool={tool}
-                            currentSelectPalette={activePalette as PaletteIndex}
-                            activeColorIndex={activeSlot as ColorIndexOfPalette}
-                            onChange={setTile}
-                        />
-                    </>
-                )}
+                {editMode === "screen" && <ScreenMode />}
 
                 <CanvasActions>
                     <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
