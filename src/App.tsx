@@ -43,8 +43,7 @@ export const App: React.FC = () => {
     const sprites = useProjectState((s) => s.sprites);
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
 
-    const handlePaletteClick = (activePalette: number, activeSlot: number) => {
-        setActivePalette(activePalette as PaletteIndex);
+    const handlePaletteClick = (activeSlot: number) => {
         setActiveSlot(activeSlot as ColorIndexOfPalette);
     };
     // ★ zustand の setState で部分更新
@@ -163,7 +162,7 @@ export const App: React.FC = () => {
                         <>
                             <SlotButton
                                 key={j}
-                                onClick={() => handlePaletteClick(activePalette, j)}
+                                onClick={() => handlePaletteClick(j)}
                                 title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
                                 active={activeSlot === j}
                                 transparent={j === 0}
@@ -196,7 +195,7 @@ export const App: React.FC = () => {
                             showGrid={true}
                             tool={tool}
                             currentSelectPalette={activePalette as PaletteIndex}
-                            activeColorIndex={palettes[activePalette][activeSlot] as ColorIndexOfPalette}
+                            activeColorIndex={activeSlot as ColorIndexOfPalette}
                             onChange={setTile}
                         />
                     </>
