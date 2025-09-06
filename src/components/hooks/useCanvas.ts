@@ -9,7 +9,7 @@ export interface UseCanvasParams {
     showGrid?: boolean;
     tool: Tool;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
-    onChange: (next: SpriteTile, target: number) => void;
+    onChange: (next: SpriteTile, target: number) => void; // 更新を状態に伝える
 }
 
 export const useCanvas = ({ target, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
