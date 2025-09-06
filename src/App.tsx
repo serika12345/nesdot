@@ -77,6 +77,13 @@ export const App: React.FC = () => {
         }
     };
 
+    const handleSpriteChange = (index: string) => {
+        const i = parseInt(index);
+        setActiveSprite(i);
+        const targetSprite = sprites[i];
+        setActivePalette(targetSprite.paletteIndex);
+    };
+
     return (
         <Container>
             <LeftPane>
@@ -110,7 +117,7 @@ export const App: React.FC = () => {
                                 <input
                                     type="number"
                                     value={activeSprite}
-                                    onChange={(e) => setActiveSprite(parseInt(e.target.value))}
+                                    onChange={(e) => handleSpriteChange(e.target.value)}
                                     step={1}
                                     min={0}
                                     max={63}
