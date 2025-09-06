@@ -54,10 +54,10 @@ export const useSpriteCanvas = ({
         // ピクセル描画
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                const v = tile.pixels[y][x];
-                if (v !== 0) {
+                const HexToColorIndex = tile.pixels[y][x];
+                if (HexToColorIndex !== 0) {
                     // TODO: 混ぜられるのをどうするか？ スプライトを個別に作って合成できれば解決
-                    const hex = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
+                    const hex = NES_PALETTE_HEX[palettes[currentSelectPalette][HexToColorIndex]];
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
