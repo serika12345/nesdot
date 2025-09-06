@@ -82,7 +82,7 @@ const DEFAULT_STATE: ProjectState = {
                 pixels: Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette)),
             }))
         ),
-        sprites: [],
+        sprites: [], // TODO: 64個まで登録できるようにする
     },
     // NES標準パレット（0は透明スロット扱い）
     palettes: [
