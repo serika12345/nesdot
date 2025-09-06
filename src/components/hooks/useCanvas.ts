@@ -4,16 +4,17 @@ import { ColorIndexOfPalette, SpriteTile, useProjectState } from "../../store/pr
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
+    target: number; // 表示対象スプライトインデックス
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: Tool;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
-    onChange: (next: SpriteTile) => void;
+    onChange: (next: SpriteTile, target: number) => void;
 }
 
-export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
+export const useCanvas = ({ target, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
-    const tile = useProjectState((s) => s.tile);
+    const tile = useProjectState((s) => s.sprites[target]);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const width = tile.width;
@@ -101,7 +102,7 @@ export const useCanvas = ({ scale = 24, showGrid = true, tool, activeColorIndex,
                 pixels: tile.pixels.map((row) => row.slice()) as ColorIndexOfPalette[][],
             };
             next.pixels[py][px] = tool === "pen" ? activeColorIndex : 0;
-            onChange(next);
+            onChange(next, target);
         },
         [tile, tool, activeColorIndex, onChange, width, height]
     );

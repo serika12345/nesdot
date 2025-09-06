@@ -3,12 +3,13 @@ import { ColorIndexOfPalette, SpriteTile } from "../../src/store/projectState";
 import { useCanvas } from "./hooks/useCanvas";
 
 interface Props {
+    target: number; // 表示対象スプライトインデックス
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";
     currentSelectPalette: ColorIndexOfPalette;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
-    onChange: (next: SpriteTile) => void;
+    onChange: (next: SpriteTile, target: number) => void;
 }
 
 export const PixelCanvas: React.FC<Props> = (props) => {

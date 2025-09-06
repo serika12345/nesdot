@@ -52,12 +52,7 @@ export type SpriteTileND = SpriteTile & { __backing?: Backing };
 
 interface ProjectState {
     palettes: Palettes;
-    tile: SpriteTile; // 単一タイル編集ベース
     sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
-    // （必要に応じて）更新用のアクション群をここに追加
-    setPalettes: (p: Palettes) => void;
-    setTile: (t: SpriteTile) => void;
-
     // リハイドレート完了フラグ（UIのチラつき抑止用）
     _hydrated?: boolean;
 }
@@ -69,15 +64,21 @@ function makeEmptyTile(height: 8 | 16): SpriteTile {
     return { width: 8, height, pixels, paletteIndex: 0 };
 }
 
-const DEFAULT_STATE: Omit<ProjectState, "setPalettes" | "setTile"> = {
+const DEFAULT_STATE: ProjectState = {
     palettes: [
         [0, 1, 21, 34],
         [0, 1, 21, 34],
         [0, 1, 21, 34],
         [0, 1, 21, 34],
     ],
-    sprites: [],
-    tile: makeEmptyTile(8),
+    sprites: (() => {
+        const length = 64;
+        const arr: SpriteTile[] = [];
+        for (let i = 0; i < length; i++) {
+            arr.push(makeEmptyTile(8));
+        }
+        return arr;
+    })(),
     _hydrated: false,
 };
 
@@ -113,8 +114,6 @@ export const useProjectState = create<ProjectState>()(
     persist(
         (set) => ({
             ...DEFAULT_STATE,
-            setPalettes: (p) => set({ palettes: p }),
-            setTile: (t) => set({ tile: t }),
         }),
         persistOptions
     )

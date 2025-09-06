@@ -44,30 +44,37 @@ export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
     const palettes = useProjectState((s) => s.palettes);
-    const tile = useProjectState((s) => s.tile);
-
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<Tool>("pen");
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
     const [activeSprite, setActiveSprite] = useState<number>(0); // TODO: スプライトごとに編集できるようにする
     const { exportChr, exportPng, exportSvgSimple } = useExportImage();
+    const activeTile = useProjectState((s) => s.sprites[activeSprite]);
+    const sprites = useProjectState((s) => s.sprites);
 
     const handlePaletteClick = (activePalette: number, activeSlot: number) => {
         setActivePalette(activePalette as PaletteIndex);
         setActiveSlot(activeSlot as ColorIndexOfPalette);
     };
     // ★ zustand の setState で部分更新
-    const setTile = (t: SpriteTile) => useProjectState.setState({ tile: t });
+    const setTile = (t: SpriteTile, index: number) => {
+        const newSprites = [...sprites];
+        newSprites[index] = t;
+        useProjectState.setState({ sprites: newSprites });
+    };
 
     // ★ 幅・高さ入力（8刻み）ハンドラ（非破壊版へ差し替え）
     const setWidth = (nextW: number) => {
         if (Number.isNaN(nextW) || nextW < 8 || nextW % 8 !== 0) return;
-        setTile(resizeTileND(tile as SpriteTileND, nextW, tile.height, { anchor: "top-left", fill: 0 }));
+        setTile(
+            resizeTileND(activeTile as SpriteTileND, nextW, activeTile.height, { anchor: "top-left", fill: 0 }),
+            activeSprite
+        );
     };
     const setHeight = (nextH: number) => {
         if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
-        setTile(resizeTileND(tile as SpriteTileND, tile.width, nextH, { anchor: "top-left", fill: 0 }));
+        setTile(resizeTileND(activeTile as SpriteTileND, activeTile.width, nextH, { anchor: "top-left", fill: 0 }), activeSprite);
     };
 
     return (
@@ -78,7 +85,7 @@ export const App: React.FC = () => {
                     <label>幅</label>
                     <input
                         type="number"
-                        value={tile.width}
+                        value={activeTile.width}
                         onChange={(e) => setWidth(parseInt(e.target.value, 10))}
                         step={8}
                         min={8}
@@ -89,11 +96,21 @@ export const App: React.FC = () => {
                     <label>高さ</label>
                     <input
                         type="number"
-                        value={tile.height}
+                        value={activeTile.height}
                         onChange={(e) => setHeight(parseInt(e.target.value, 10))}
                         step={8}
                         min={8}
                         max={128}
+                        style={{ width: 80 }}
+                    />
+                    <label>スプライト</label>
+                    <input
+                        type="number"
+                        value={activeSprite}
+                        onChange={(e) => setActiveSprite(parseInt(e.target.value))}
+                        step={1}
+                        min={0}
+                        max={64}
                         style={{ width: 80 }}
                     />
 
@@ -133,6 +150,7 @@ export const App: React.FC = () => {
                 </div>
 
                 <PixelCanvas
+                    target={activeSprite}
                     scale={24}
                     showGrid={true}
                     tool={tool}
@@ -142,10 +160,16 @@ export const App: React.FC = () => {
                 />
 
                 <CanvasActions>
-                    <button onClick={() => exportChr(tile, activePalette)}>CHRエクスポート</button>
-                    <button onClick={() => exportPng(tile)}>PNGエクスポート</button>
-                    <button onClick={() => exportSvgSimple(tile)}>SVGエクスポート</button>
-                    <button onClick={() => setTile(makeEmptyTile(tile.width, tile.height, tile.paletteIndex))}>クリア</button>
+                    <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
+                    <button onClick={() => exportPng(activeTile)}>PNGエクスポート</button>
+                    <button onClick={() => exportSvgSimple(activeTile)}>SVGエクスポート</button>
+                    <button
+                        onClick={() =>
+                            setTile(makeEmptyTile(activeTile.width, activeTile.height, activeTile.paletteIndex), activeSprite)
+                        }
+                    >
+                        クリア
+                    </button>
                 </CanvasActions>
             </LeftPane>
 
