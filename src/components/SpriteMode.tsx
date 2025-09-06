@@ -25,7 +25,6 @@ type Props = {
     setTile: (t: SpriteTile, index: number) => void;
 };
 
-// ★ makeEmptyTile は任意サイズ対応（既定8x8）
 function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
     return makeTile(height, 0, paletteIndex);
 }
