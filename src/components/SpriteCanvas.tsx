@@ -9,7 +9,7 @@ interface Props {
     tool: "pen" | "eraser";
     currentSelectPalette: ColorIndexOfPalette;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
-    onChange: (next: SpriteTile, target: number) => void;
+    onChange: (next: SpriteTile, currentSprite: number) => void;
 }
 
 export const SpriteCanvas: React.FC<Props> = (props) => {

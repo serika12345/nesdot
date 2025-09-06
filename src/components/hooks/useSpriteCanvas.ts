@@ -10,7 +10,7 @@ export interface UseCanvasParams {
     tool: Tool;
     currentSelectPalette: ColorIndexOfPalette;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
-    onChange: (next: SpriteTile, target: number) => void; // 更新を状態に伝える
+    onChange: (next: SpriteTile, currentSprite: number) => void; // 更新を状態に伝える
 }
 
 export const useSpriteCanvas = ({
@@ -120,8 +120,8 @@ export const useSpriteCanvas = ({
         (e: React.PointerEvent) => {
             const cvs = canvasRef.current!;
             const rect = cvs.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / scale);
-            const y = Math.floor((e.clientY - rect.top) / scale);
+            const x = Math.floor((e.clientX - rect.left) / scale); // 列
+            const y = Math.floor((e.clientY - rect.top) / scale); // 行
             if (paintingRef.current) applyAt(x, y);
         },
         [scale, applyAt]
