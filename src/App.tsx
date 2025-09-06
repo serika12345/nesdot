@@ -109,7 +109,7 @@ export const App: React.FC = () => {
                         onChange={(e) => setActiveSprite(parseInt(e.target.value))}
                         step={1}
                         min={0}
-                        max={64}
+                        max={63}
                         style={{ width: 80 }}
                     />
 
