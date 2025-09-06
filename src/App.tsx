@@ -92,27 +92,13 @@ export const App: React.FC = () => {
                         {/* ★ 旧: 8x8/8x16 ラジオ -> 新: 幅/高さセレクタ（8刻み） */}
                         {editMode === "sprite" && (
                             <>
-                                <label>幅</label>
-                                <input
-                                    type="number"
-                                    value={activeTile.width}
-                                    onChange={(e) => setWidth(parseInt(e.target.value, 10))}
-                                    step={8}
-                                    min={8}
-                                    // 任意で上限（例：128）
-                                    max={8}
-                                    style={{ width: 80 }}
-                                />
-                                <label>高さ</label>
-                                <input
-                                    type="number"
-                                    value={activeTile.height}
-                                    onChange={(e) => setHeight(parseInt(e.target.value, 10))}
-                                    step={8}
-                                    min={8}
-                                    max={16}
-                                    style={{ width: 80 }}
-                                />
+                                <ToolButton onClick={(e) => setHeight(8)} active={activeTile.height === 8}>
+                                    8×8
+                                </ToolButton>
+                                <ToolButton onClick={() => setHeight(16)} active={activeTile.height === 16}>
+                                    8×16
+                                </ToolButton>
+
                                 <label>スプライト</label>
                                 <input
                                     type="number"
