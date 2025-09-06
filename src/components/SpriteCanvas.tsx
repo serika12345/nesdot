@@ -1,6 +1,6 @@
 import React from "react";
-import { ColorIndexOfPalette, SpriteTile } from "../../src/store/projectState";
-import { useCanvas } from "./hooks/useCanvas";
+import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
+import { useSpriteCanvas } from "./hooks/useSpriteCanvas";
 
 interface Props {
     target: number; // 表示対象スプライトインデックス
@@ -12,8 +12,8 @@ interface Props {
     onChange: (next: SpriteTile, target: number) => void;
 }
 
-export const PixelCanvas: React.FC<Props> = (props) => {
-    const { canvasProps } = useCanvas(props);
+export const SpriteCanvas: React.FC<Props> = (props) => {
+    const { canvasProps } = useSpriteCanvas(props);
 
     return <canvas {...canvasProps} css={{ border: "1px solid #aaa", touchAction: "none" }} />;
 };

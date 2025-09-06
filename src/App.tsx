@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { CanvasActions, Container, H3, LeftPane, RightPane, Spacer, Toolbar, ToolButton } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
-import { PixelCanvas } from "./components/PixelCanvas";
+import { SpriteCanvas } from "./components/SpriteCanvas";
 import { NES_PALETTE_HEX } from "./nes/palette";
 import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
-import { Tool } from "./components/hooks/useCanvas";
+import { Tool } from "./components/hooks/useSpriteCanvas";
 import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
 import useExportImage from "./hooks/useExportImage";
 import useImportImage from "./hooks/useImportImage";
@@ -41,6 +41,7 @@ export const App: React.FC = () => {
     const { importJSON } = useImportImage();
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const sprites = useProjectState((s) => s.sprites);
+    const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
 
     const handlePaletteClick = (activePalette: number, activeSlot: number) => {
         setActivePalette(activePalette as PaletteIndex);
@@ -81,37 +82,41 @@ export const App: React.FC = () => {
             <LeftPane>
                 <Toolbar>
                     {/* ★ 旧: 8x8/8x16 ラジオ -> 新: 幅/高さセレクタ（8刻み） */}
-                    <label>幅</label>
-                    <input
-                        type="number"
-                        value={activeTile.width}
-                        onChange={(e) => setWidth(parseInt(e.target.value, 10))}
-                        step={8}
-                        min={8}
-                        // 任意で上限（例：128）
-                        max={128}
-                        style={{ width: 80 }}
-                    />
-                    <label>高さ</label>
-                    <input
-                        type="number"
-                        value={activeTile.height}
-                        onChange={(e) => setHeight(parseInt(e.target.value, 10))}
-                        step={8}
-                        min={8}
-                        max={128}
-                        style={{ width: 80 }}
-                    />
-                    <label>スプライト</label>
-                    <input
-                        type="number"
-                        value={activeSprite}
-                        onChange={(e) => setActiveSprite(parseInt(e.target.value))}
-                        step={1}
-                        min={0}
-                        max={63}
-                        style={{ width: 80 }}
-                    />
+                    {editMode === "sprite" && (
+                        <>
+                            <label>幅</label>
+                            <input
+                                type="number"
+                                value={activeTile.width}
+                                onChange={(e) => setWidth(parseInt(e.target.value, 10))}
+                                step={8}
+                                min={8}
+                                // 任意で上限（例：128）
+                                max={128}
+                                style={{ width: 80 }}
+                            />
+                            <label>高さ</label>
+                            <input
+                                type="number"
+                                value={activeTile.height}
+                                onChange={(e) => setHeight(parseInt(e.target.value, 10))}
+                                step={8}
+                                min={8}
+                                max={128}
+                                style={{ width: 80 }}
+                            />
+                            <label>スプライト</label>
+                            <input
+                                type="number"
+                                value={activeSprite}
+                                onChange={(e) => setActiveSprite(parseInt(e.target.value))}
+                                step={1}
+                                min={0}
+                                max={63}
+                                style={{ width: 80 }}
+                            />
+                        </>
+                    )}
 
                     <Spacer />
 
@@ -134,6 +139,14 @@ export const App: React.FC = () => {
                         クリア
                     </ToolButton>
                 </Toolbar>
+
+                <div>
+                    <label>編集モード</label>
+                    <select value={editMode} onChange={(e) => setEditMode(e.target.value as "screen" | "sprite")}>
+                        <option value="screen">画面</option>
+                        <option value="sprite">スプライト</option>
+                    </select>
+                </div>
 
                 <div css={{ display: "grid" }}>
                     {palettes.map((palette, i) => {
@@ -160,15 +173,33 @@ export const App: React.FC = () => {
                     })}
                 </div>
 
-                <PixelCanvas
-                    target={activeSprite}
-                    scale={24}
-                    showGrid={true}
-                    tool={tool}
-                    currentSelectPalette={activePalette as PaletteIndex}
-                    activeColorIndex={palettes[activePalette][activeSlot] as ColorIndexOfPalette}
-                    onChange={setTile}
-                />
+                {editMode === "screen" && (
+                    <>
+                        {/* TODO: BGを描画する */}
+                        <SpriteCanvas
+                            target={activeSprite}
+                            scale={24}
+                            showGrid={true}
+                            tool={tool}
+                            currentSelectPalette={activePalette as PaletteIndex}
+                            activeColorIndex={palettes[activePalette][activeSlot] as ColorIndexOfPalette}
+                            onChange={() => {}}
+                        />
+                    </>
+                )}
+                {editMode === "sprite" && (
+                    <>
+                        <SpriteCanvas
+                            target={activeSprite}
+                            scale={24}
+                            showGrid={true}
+                            tool={tool}
+                            currentSelectPalette={activePalette as PaletteIndex}
+                            activeColorIndex={palettes[activePalette][activeSlot] as ColorIndexOfPalette}
+                            onChange={setTile}
+                        />
+                    </>
+                )}
 
                 <CanvasActions>
                     <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>

@@ -12,7 +12,7 @@ export interface UseCanvasParams {
     onChange: (next: SpriteTile, target: number) => void; // 更新を状態に伝える
 }
 
-export const useCanvas = ({ target, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
+export const useSpriteCanvas = ({ target, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.sprites[target]);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
