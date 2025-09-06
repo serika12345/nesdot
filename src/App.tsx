@@ -9,7 +9,7 @@ import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND, useProject
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useSpriteCanvas";
-import { SlotButton, SlotRow } from "./components/PalettePicker.styles";
+import { SlotButton } from "./components/PalettePicker.styles";
 import useExportImage from "./hooks/useExportImage";
 import useImportImage from "./hooks/useImportImage";
 import { makeTile, resizeTileND } from "./tiles/utils";
@@ -147,30 +147,31 @@ export const App: React.FC = () => {
                         <option value="sprite">スプライト</option>
                     </select>
                 </div>
+                <div>
+                    <label>パレット</label>
+                    <select value={activePalette} onChange={(e) => setActivePalette(parseInt(e.target.value) as PaletteIndex)}>
+                        {palettes.map((_, i) => (
+                            <option key={i} value={i}>
+                                Palette {i}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                <div css={{ display: "grid" }}>
-                    {palettes.map((palette, i) => {
-                        return (
-                            <>
-                                <div>Palette {i}</div>
-                                <SlotRow>
-                                    {palette.map((idx, j) => (
-                                        <>
-                                            <SlotButton
-                                                key={j}
-                                                onClick={() => handlePaletteClick(i, j)}
-                                                title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
-                                                active={activeSlot === j && activePalette === i}
-                                                transparent={j === 0}
-                                                bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                                            />
-                                            <div>slot{j}</div>
-                                        </>
-                                    ))}
-                                </SlotRow>
-                            </>
-                        );
-                    })}
+                <div css={{ display: "flex", gap: 8 }}>
+                    {palettes[activePalette].map((idx, j) => (
+                        <>
+                            <SlotButton
+                                key={j}
+                                onClick={() => handlePaletteClick(activePalette, j)}
+                                title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                active={activeSlot === j}
+                                transparent={j === 0}
+                                bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                            />
+                            <div>slot{j}</div>
+                        </>
+                    ))}
                 </div>
 
                 {editMode === "screen" && (
