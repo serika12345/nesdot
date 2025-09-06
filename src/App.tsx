@@ -1,21 +1,7 @@
 // App.tsx
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-    CanvasActions,
-    Container,
-    CurrentColors,
-    H3,
-    H4,
-    LeftPane,
-    RightPane,
-    SmallNote,
-    Spacer,
-    Swatch,
-    SwatchWrap,
-    Toolbar,
-    ToolButton,
-} from "./App.styles";
+import { CanvasActions, Container, H3, LeftPane, RightPane, Spacer, Toolbar, ToolButton } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 import { PixelCanvas } from "./components/PixelCanvas";
 import { NES_PALETTE_HEX } from "./nes/palette";
@@ -196,26 +182,6 @@ export const App: React.FC = () => {
             <RightPane>
                 <H3>パレット</H3>
                 <PalettePicker />
-
-                <div>
-                    <H4>現在のパレット</H4>
-                    {palettes.map((palette, idx) => {
-                        return (
-                            <>
-                                <div>Palette {idx}</div>
-                                <CurrentColors>
-                                    {palette.map((idx, i) => (
-                                        <SwatchWrap key={i}>
-                                            <Swatch transparent={i === 0} bg={i === 0 ? undefined : NES_PALETTE_HEX[idx]} />
-                                            <div>slot{i}</div>
-                                        </SwatchWrap>
-                                    ))}
-                                </CurrentColors>
-                            </>
-                        );
-                    })}
-                    <SmallNote>NESスプライトは「4色パレット（うち1色は透明）」＋各ピクセルは0..3の2bitです。</SmallNote>
-                </div>
             </RightPane>
         </Container>
     );
