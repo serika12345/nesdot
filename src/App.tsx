@@ -134,6 +134,11 @@ export const App: React.FC = () => {
                         </ToolButton>
                     </Toolbar>
                 )}
+                {editMode === "screen" && (
+                    <div>
+                        <button onClick={() => alert("未実装")}>スプライトを追加</button>
+                    </div>
+                )}
                 <div>
                     <label>編集モード</label>
                     <select value={editMode} onChange={(e) => setEditMode(e.target.value as "screen" | "sprite")}>
