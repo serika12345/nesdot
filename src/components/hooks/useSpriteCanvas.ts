@@ -8,11 +8,20 @@ export interface UseCanvasParams {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: Tool;
+    currentSelectPalette: ColorIndexOfPalette;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile, target: number) => void; // 更新を状態に伝える
 }
 
-export const useSpriteCanvas = ({ target, scale = 24, showGrid = true, tool, activeColorIndex, onChange }: UseCanvasParams) => {
+export const useSpriteCanvas = ({
+    target,
+    scale = 24,
+    showGrid = true,
+    tool,
+    currentSelectPalette,
+    activeColorIndex,
+    onChange,
+}: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.sprites[target]);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -48,7 +57,7 @@ export const useSpriteCanvas = ({ target, scale = 24, showGrid = true, tool, act
                 const v = tile.pixels[y][x];
                 if (v !== 0) {
                     // TODO: 混ぜられるのをどうするか？ スプライトを個別に作って合成できれば解決
-                    const hex = NES_PALETTE_HEX[v];
+                    const hex = NES_PALETTE_HEX[palettes[currentSelectPalette][v]];
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
@@ -86,7 +95,7 @@ export const useSpriteCanvas = ({ target, scale = 24, showGrid = true, tool, act
                 ctx.stroke();
             }
         }
-    }, [tile, palettes, scale, showGrid, width, height]);
+    }, [tile, palettes, scale, showGrid, width, height, currentSelectPalette]);
 
     useEffect(() => {
         drawAll();
