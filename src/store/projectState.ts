@@ -9,14 +9,9 @@ export type NesColorIndex = number;
 export type Palette4Colors = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4Colors];
 
-type SpriteSize = "8x8" | "8x16"; // 今は使ってない
-
-type ScreenWidth = 256;
-type ScreenHeight = 240;
-
 export type Screen = {
-    width: ScreenWidth;
-    height: ScreenHeight;
+    width: 256;
+    height: 240;
     backgroundTiles: BackgroundTile[][];
     sprites: {
         x: number;
@@ -26,9 +21,8 @@ export type Screen = {
 };
 
 export interface SpriteTile {
-    width: number; // 8の倍数であること
-    height: number; // 8の倍数であること
-    spriteSize?: SpriteSize; // 8x8 or 8x16 TODO: スプライト毎の編集→キャンバスに統合させるのでこれを参照する
+    width: 8;
+    height: 8 | 16; // 8の倍数であること
     // ピクセル値は0..3（=パレット内インデックス）
     paletteIndex: PaletteIndex; // 0..3
     pixels: ColorIndexOfPalette[][];
