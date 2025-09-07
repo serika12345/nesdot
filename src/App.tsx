@@ -91,6 +91,7 @@ export const App: React.FC = () => {
 
                 {editMode === "screen" && <ScreenMode />}
 
+                {/**TODO: スクリーンモードのエクスポートボタン */}
                 <CanvasActions>
                     <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
                     <button onClick={() => exportPng(activeTile)}>PNGエクスポート</button>
