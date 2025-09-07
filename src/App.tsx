@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
-import { ColorIndexOfPalette, PaletteIndex, useProjectState } from "./store/projectState";
+import { ColorIndexOfPalette, PaletteIndex } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useSpriteCanvas";
@@ -23,9 +23,6 @@ declare global {
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
-
-    const palettes = useProjectState((s) => s.palettes);
-    const sprites = useProjectState((s) => s.sprites);
 
     // UI 用の一時状態はローカルで維持
     const [tool, setTool] = useState<Tool>("pen");
@@ -52,8 +49,6 @@ export const App: React.FC = () => {
                         activePalette={activePalette}
                         activeSlot={activeSlot}
                         activeSprite={activeSprite}
-                        palettes={palettes}
-                        sprites={sprites}
                         // setters
                         setTool={setTool}
                         setActivePalette={setActivePalette}

@@ -23,8 +23,6 @@ type Props = {
     activePalette: PaletteIndex;
     activeSlot: ColorIndexOfPalette;
     activeSprite: number;
-    palettes: number[][];
-    sprites: SpriteTile[];
     // setters
     setTool: (t: Tool) => void;
     setActivePalette: (p: PaletteIndex) => void;
@@ -41,14 +39,15 @@ export const SpriteMode: React.FC<Props> = ({
     activePalette,
     activeSlot,
     activeSprite,
-    palettes,
-    sprites,
     setTool,
     setActivePalette,
     setActiveSlot,
     setActiveSprite,
 }) => {
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
+    const palettes = useProjectState((s) => s.palettes);
+    const sprites = useProjectState((s) => s.sprites);
+
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile, index: number) => {
         const newSprites = [...sprites];
