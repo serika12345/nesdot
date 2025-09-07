@@ -9,20 +9,13 @@ export type NesColorIndex = number;
 export type Palette4Colors = [NesColorIndex, NesColorIndex, NesColorIndex, NesColorIndex];
 export type Palettes = [Palette4Colors, Palette4Colors, Palette4Colors, Palette4Colors];
 
-export type Sprite = {
-    x: number;
-    y: number;
-    spriteIndex: number;
-    paletteIndex: PaletteIndex;
-    // ピクセル値は0..3（=パレット内インデックス）
-    pixels: ColorIndexOfPalette[][];
-};
+export type SpriteInScreen = SpriteTile & { x: number; y: number; spriteIndex: number };
 
 export type Screen = {
     width: 256;
     height: 240;
     backgroundTiles: BackgroundTile[][];
-    sprites: Sprite[];
+    sprites: SpriteInScreen[];
 };
 
 export interface SpriteTile {

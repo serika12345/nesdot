@@ -1,6 +1,6 @@
 // components/modes/ScreenMode.tsx
 import React, { useState } from "react";
-import { Sprite, useProjectState } from "../store/projectState";
+import { SpriteInScreen, useProjectState } from "../store/projectState";
 import { ScreenCanvas } from "./ScreenCanvas";
 
 export const ScreenMode: React.FC = () => {
@@ -20,12 +20,11 @@ export const ScreenMode: React.FC = () => {
             alert("スプライトは最大64個までです");
             return;
         }
-        const sprite: Sprite = {
+        const sprite: SpriteInScreen = {
+            ...spriteTile,
             x,
             y,
             spriteIndex: spriteNumber,
-            paletteIndex: spriteTile.paletteIndex,
-            pixels: spriteTile.pixels,
         };
         const newScreen = {
             ...screen,
