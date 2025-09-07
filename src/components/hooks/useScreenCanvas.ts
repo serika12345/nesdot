@@ -36,6 +36,8 @@ export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams
             }
         }
 
+        // TODO: スプライト描画
+
         // グリッド
         if (showGrid) {
             ctx.strokeStyle = "rgba(0,0,0,0.2)";

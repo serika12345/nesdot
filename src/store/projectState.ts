@@ -13,6 +13,8 @@ export type Sprite = {
     x: number;
     y: number;
     spriteIndex: number;
+    paletteIndex: PaletteIndex;
+    // ピクセル値は0..3（=パレット内インデックス）
     pixels: ColorIndexOfPalette[][];
 };
 

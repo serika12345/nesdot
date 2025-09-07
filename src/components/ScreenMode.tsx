@@ -23,6 +23,7 @@ export const ScreenMode: React.FC = () => {
             x,
             y,
             spriteIndex: spriteNumber,
+            paletteIndex: spriteTile.paletteIndex,
             pixels: spriteTile.pixels,
         };
         screen.sprites.push(sprite);
