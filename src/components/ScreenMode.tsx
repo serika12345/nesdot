@@ -80,10 +80,8 @@ export const ScreenMode: React.FC = () => {
                 <button onClick={handleAddSprite}>スプライトを追加</button>
             </div>
 
-            {/* TODO: 配置されたスプライトを描画する */}
             <ScreenCanvas scale={5} showGrid={true} />
 
-            {/**TODO: スクリーンモードのエクスポートボタン */}
             <CanvasActions>
                 <button onClick={() => exportPng(getHexArrayForScreen(screen))}>PNGエクスポート</button>
                 <button onClick={() => exportSvgSimple(getHexArrayForScreen(screen))}>SVGエクスポート</button>

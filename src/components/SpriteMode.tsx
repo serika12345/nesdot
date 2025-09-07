@@ -173,7 +173,6 @@ export const SpriteMode: React.FC<Props> = ({
                 onChange={setTile}
             />
 
-            {/**TODO: スクリーンモードのエクスポートボタン */}
             <CanvasActions>
                 <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
                 <button onClick={() => exportPng(getHexArrayForSpriteTile(activeTile))}>PNGエクスポート</button>
