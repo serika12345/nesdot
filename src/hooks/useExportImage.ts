@@ -50,12 +50,12 @@ export default function useExportImage() {
         // 透明はalpha=0、他はパレット色
         for (let y = 0; y < tile.height; y++) {
             for (let x = 0; x < tile.width; x++) {
-                const v = tile.pixels[y][x];
-                if (v === 0) {
+                const HEXTableIndex = tile.pixels[y][x];
+                if (HEXTableIndex === 0) {
                     // 透明
                     ctx.clearRect(x * scale, y * scale, scale, scale);
                 } else {
-                    ctx.fillStyle = NES_PALETTE_HEX[v];
+                    ctx.fillStyle = NES_PALETTE_HEX[HEXTableIndex];
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
             }
@@ -83,9 +83,9 @@ export default function useExportImage() {
 
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
-                const v = tile.pixels[y][x];
-                if (v === 0) continue; // 透明は出力しない
-                svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(v)}"/>\n`;
+                const HEXTableIndex = tile.pixels[y][x];
+                if (HEXTableIndex === 0) continue; // 透明は出力しない
+                svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(HEXTableIndex)}"/>\n`;
             }
         }
 
