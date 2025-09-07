@@ -1,6 +1,9 @@
 // components/modes/ScreenMode.tsx
 import React, { useState } from "react";
-import { SpriteInScreen, useProjectState } from "../store/projectState";
+import { CanvasActions } from "../App.styles";
+import useExportImage from "../hooks/useExportImage";
+import useImportImage from "../hooks/useImportImage";
+import { getHexArrayForScreen, SpriteInScreen, useProjectState } from "../store/projectState";
 import { ScreenCanvas } from "./ScreenCanvas";
 import { isValid } from "./hooks/useScreenCanvas";
 
@@ -10,6 +13,20 @@ export const ScreenMode: React.FC = () => {
     const [y, setY] = useState(0);
     const screen = useProjectState((s) => s.screen);
     const sprites = useProjectState((s) => s.sprites);
+
+    const projectState = useProjectState((s) => s);
+    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
+    const { importJSON } = useImportImage();
+    // ★ インポートハンドラ
+    const handleImport = async () => {
+        try {
+            await importJSON((data) => {
+                useProjectState.setState(data);
+            });
+        } catch (err) {
+            alert("インポートに失敗しました: " + err);
+        }
+    };
 
     const handleAddSprite = () => {
         const spriteTile = sprites[spriteNumber];
@@ -65,6 +82,14 @@ export const ScreenMode: React.FC = () => {
 
             {/* TODO: 配置されたスプライトを描画する */}
             <ScreenCanvas scale={5} showGrid={true} />
+
+            {/**TODO: スクリーンモードのエクスポートボタン */}
+            <CanvasActions>
+                <button onClick={() => exportPng(getHexArrayForScreen(screen))}>PNGエクスポート</button>
+                <button onClick={() => exportSvgSimple(getHexArrayForScreen(screen))}>SVGエクスポート</button>
+                <button onClick={() => exportJSON(projectState)}>保存</button>
+                <button onClick={handleImport}>復元</button>
+            </CanvasActions>
         </>
     );
 };

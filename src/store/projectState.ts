@@ -2,6 +2,7 @@
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
 import { createJSONStorage, PersistOptions, StateStorage } from "zustand/middleware";
+import { NES_PALETTE_HEX } from "../nes/palette";
 
 export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 export type PaletteIndex = 0 | 1 | 2 | 3;
@@ -133,6 +134,93 @@ export const useProjectState = create<ProjectState>()(
         ...DEFAULT_STATE,
     })
 );
+
+export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
+    return tile.pixels.map((row) => {
+        return row.map((colorIndexOfPalette) => {
+            const palette = useProjectState.getState().palettes[tile.paletteIndex];
+            const nesColorIndex = palette[colorIndexOfPalette];
+            return NES_PALETTE_HEX[nesColorIndex];
+        });
+    });
+};
+
+export const getHexArrayForScreen = (screen: Screen): string[][] => {
+    // 256x240 の空配列を生成（hex文字列で満たす）
+    const emptyLayer = (): string[][] =>
+        Array.from({ length: screen.height }, () => Array.from({ length: screen.width }, () => NES_PALETTE_HEX[0]));
+
+    const bgLayer = emptyLayer();
+    const spriteLayer = emptyLayer();
+
+    // --- BGレイヤの構築 ---
+    // タイルは 32x30（各 8x8）なので、タイル座標→ピクセル座標へ展開
+    for (let ty = 0; ty < screen.backgroundTiles.length; ty++) {
+        const row = screen.backgroundTiles[ty];
+        for (let tx = 0; tx < row.length; tx++) {
+            const tile = row[tx];
+            const palette = useProjectState.getState().palettes[tile.paletteIndex];
+            const baseY = ty * 8;
+            const baseX = tx * 8;
+
+            for (let py = 0; py < 8; py++) {
+                for (let px = 0; px < 8; px++) {
+                    const ci = tile.pixels[py][px]; // ColorIndexOfPalette (0..3)
+                    const nesIndex = palette[ci];
+                    const hex = NES_PALETTE_HEX[nesIndex];
+                    const y = baseY + py;
+                    const x = baseX + px;
+                    if (y >= 0 && y < screen.height && x >= 0 && x < screen.width) {
+                        bgLayer[y][x] = hex;
+                    }
+                }
+            }
+        }
+    }
+
+    // --- スプライトレイヤの構築 ---
+    // spriteIndex 昇順で描画（後から描いたものが上書き = 後勝ち）
+    const spritesSorted = [...screen.sprites].sort((a, b) => a.spriteIndex - b.spriteIndex);
+
+    for (const spr of spritesSorted) {
+        const palette = useProjectState.getState().palettes[spr.paletteIndex];
+        const w = spr.width; // 8
+        const h = spr.height; // 8 or 16
+        const baseX = spr.x | 0; // 負座標もクリップ対象にするため一応整数化
+        const baseY = spr.y | 0;
+
+        for (let py = 0; py < h; py++) {
+            const row = spr.pixels[py];
+            if (!row) continue;
+            for (let px = 0; px < w; px++) {
+                const ci = row[px];
+                if (ci == null) continue;
+                const nesIndex = palette[ci];
+                const hex = NES_PALETTE_HEX[nesIndex];
+
+                const x = baseX + px;
+                const y = baseY + py;
+                if (y < 0 || y >= screen.height || x < 0 || x >= screen.width) continue;
+
+                // 透明色は書き込まない（後段のマージでBGを優先）
+                if (hex !== NES_PALETTE_HEX[0]) {
+                    spriteLayer[y][x] = hex;
+                }
+            }
+        }
+    }
+
+    // --- マージ（透明色はBG優先） ---
+    const out: string[][] = Array.from({ length: screen.height }, (_, y) =>
+        Array.from({ length: screen.width }, (_, x) => {
+            const sHex = spriteLayer[y][x];
+            // スプライトが透明ならBG、そうでなければスプライト
+            return sHex === NES_PALETTE_HEX[0] ? bgLayer[y][x] : sHex;
+        })
+    );
+
+    return out;
+};
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---
 // persist は set ごとに保存しますが、Electron の終了タイミングで

@@ -36,45 +36,46 @@ export default function useExportImage() {
         await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`);
     };
 
-    const exportPng = async (tile: SpriteTile) => {
+    const exportPng = async (hexPixels: string[][], fileName?: string) => {
         // 簡易PNG出力：キャンバスをオフスクリーンで再描画してダウンロード
         const scale = 8;
-        const w = tile.width * scale;
-        const h = tile.height * scale;
+        const h = hexPixels.length;
+        const w = h > 0 ? hexPixels[0].length : 0;
         const cvs = document.createElement("canvas");
-        cvs.width = w;
-        cvs.height = h;
+        cvs.width = w * scale;
+        cvs.height = h * scale;
         const ctx = cvs.getContext("2d")!;
         ctx.imageSmoothingEnabled = false;
 
         // 透明はalpha=0、他はパレット色
-        for (let y = 0; y < tile.height; y++) {
-            for (let x = 0; x < tile.width; x++) {
-                const HEXTableIndex = tile.pixels[y][x];
-                if (HEXTableIndex === 0) {
+        for (let y = 0; y < h; y++) {
+            const row = hexPixels[y];
+            for (let x = 0; x < w; x++) {
+                const hex = row[x];
+                if (hex === NES_PALETTE_HEX[0]) {
                     // 透明
                     ctx.clearRect(x * scale, y * scale, scale, scale);
                 } else {
-                    ctx.fillStyle = NES_PALETTE_HEX[HEXTableIndex];
+                    ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
             }
         }
         cvs.toBlob((blob) => {
             if (!blob) return;
-            downloadBlob(blob, `sprite_${tile.width}x${tile.height}.png`);
+            const name = fileName ?? `image_${w}x${h}.png`;
+            downloadBlob(blob, name);
         }, "image/png");
     };
 
     // ▼追加：単純版SVG出力（1ピクセル＝1 rect）
-    const exportSvgSimple = (tile: SpriteTile, scale = 8) => {
-        const w = tile.width;
-        const h = tile.height;
+    const exportSvgSimple = (hexPixels: string[][], scale = 8, fileName?: string) => {
+        const h = hexPixels.length;
+        const w = h > 0 ? hexPixels[0].length : 0;
 
         // 必要に応じてパレットガード
-        const colorOf = (idx: number) => {
-            const c = NES_PALETTE_HEX[idx];
-            return typeof c === "string" ? c : "#000";
+        const colorOf = (hex: string) => {
+            return typeof hex === "string" ? hex : "#000";
         };
 
         // XML宣言は必須ではありませんが、互換性のため付けておきます
@@ -82,17 +83,19 @@ export default function useExportImage() {
         svg += `<svg xmlns="http://www.w3.org/2000/svg" width="${w * scale}" height="${h * scale}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">\n`;
 
         for (let y = 0; y < h; y++) {
+            const row = hexPixels[y];
             for (let x = 0; x < w; x++) {
-                const HEXTableIndex = tile.pixels[y][x];
-                if (HEXTableIndex === 0) continue; // 透明は出力しない
-                svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(HEXTableIndex)}"/>\n`;
+                const hex = row[x];
+                if (hex === NES_PALETTE_HEX[0]) continue; // 透明は出力しない
+                svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(hex)}"/>\n`;
             }
         }
 
         svg += `</svg>`;
 
         const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-        downloadBlob(blob, `sprite_${w}x${h}.svg`);
+        const name = fileName ?? `image_${w}x${h}.svg`;
+        downloadBlob(blob, name);
     };
 
     const saveBinary = async (data: Uint8Array, defaultName: string) => {

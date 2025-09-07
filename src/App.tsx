@@ -1,7 +1,7 @@
 // App.tsx
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CanvasActions, Container, H3, LeftPane, RightPane } from "./App.styles";
+import { Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "./store/projectState";
 
@@ -9,8 +9,6 @@ import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "
 import { Tool } from "./components/hooks/useSpriteCanvas";
 import { ScreenMode } from "./components/ScreenMode";
 import { SpriteMode } from "./components/SpriteMode";
-import useExportImage from "./hooks/useExportImage";
-import useImportImage from "./hooks/useImportImage";
 
 // 分割後のモード別コンポーネント
 
@@ -25,7 +23,7 @@ declare global {
 export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
-    const projectState = useProjectState((s) => s);
+
     const palettes = useProjectState((s) => s.palettes);
     const sprites = useProjectState((s) => s.sprites);
 
@@ -38,25 +36,11 @@ export const App: React.FC = () => {
 
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
 
-    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
-    const { importJSON } = useImportImage();
-
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile, index: number) => {
         const newSprites = [...sprites];
         newSprites[index] = t;
         useProjectState.setState({ sprites: newSprites });
-    };
-
-    // ★ インポートハンドラ
-    const handleImport = async () => {
-        try {
-            await importJSON((data) => {
-                useProjectState.setState(data);
-            });
-        } catch (err) {
-            alert("インポートに失敗しました: " + err);
-        }
     };
 
     return (
@@ -90,15 +74,6 @@ export const App: React.FC = () => {
                 )}
 
                 {editMode === "screen" && <ScreenMode />}
-
-                {/**TODO: スクリーンモードのエクスポートボタン */}
-                <CanvasActions>
-                    <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
-                    <button onClick={() => exportPng(activeTile)}>PNGエクスポート</button>
-                    <button onClick={() => exportSvgSimple(activeTile)}>SVGエクスポート</button>
-                    <button onClick={() => exportJSON(projectState)}>保存</button>
-                    <button onClick={handleImport}>復元</button>
-                </CanvasActions>
             </LeftPane>
 
             <RightPane>

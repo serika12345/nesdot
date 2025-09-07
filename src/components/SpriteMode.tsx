@@ -1,8 +1,17 @@
 // components/modes/SpriteMode.tsx
 import React from "react";
-import { Spacer, Toolbar, ToolButton } from "../App.styles";
+import { CanvasActions, Spacer, Toolbar, ToolButton } from "../App.styles";
+import useExportImage from "../hooks/useExportImage";
+import useImportImage from "../hooks/useImportImage";
 import { NES_PALETTE_HEX } from "../nes/palette";
-import { ColorIndexOfPalette, PaletteIndex, SpriteTile, SpriteTileND } from "../store/projectState";
+import {
+    ColorIndexOfPalette,
+    getHexArrayForSpriteTile,
+    PaletteIndex,
+    SpriteTile,
+    SpriteTileND,
+    useProjectState,
+} from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
 import { Tool } from "./hooks/useSpriteCanvas";
 import { SlotButton } from "./PalettePicker.styles";
@@ -58,6 +67,20 @@ export const SpriteMode: React.FC<Props> = ({
         setActiveSprite(i);
         const targetSprite = sprites[i];
         setActivePalette(targetSprite.paletteIndex);
+    };
+
+    const projectState = useProjectState((s) => s);
+    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
+    const { importJSON } = useImportImage();
+    // ★ インポートハンドラ
+    const handleImport = async () => {
+        try {
+            await importJSON((data) => {
+                useProjectState.setState(data);
+            });
+        } catch (err) {
+            alert("インポートに失敗しました: " + err);
+        }
     };
 
     return (
@@ -138,6 +161,15 @@ export const SpriteMode: React.FC<Props> = ({
                 activeColorIndex={activeSlot as ColorIndexOfPalette}
                 onChange={setTile}
             />
+
+            {/**TODO: スクリーンモードのエクスポートボタン */}
+            <CanvasActions>
+                <button onClick={() => exportChr(activeTile, activePalette)}>CHRエクスポート</button>
+                <button onClick={() => exportPng(getHexArrayForSpriteTile(activeTile))}>PNGエクスポート</button>
+                <button onClick={() => exportSvgSimple(getHexArrayForSpriteTile(activeTile))}>SVGエクスポート</button>
+                <button onClick={() => exportJSON(projectState)}>保存</button>
+                <button onClick={handleImport}>復元</button>
+            </CanvasActions>
         </>
     );
 };
