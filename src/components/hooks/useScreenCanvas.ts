@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
+import { NES_PALETTE_HEX } from "../../nes/palette";
 import { useProjectState } from "../../store/projectState";
 
 export type Tool = "pen" | "eraser";
@@ -37,6 +38,20 @@ export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams
         }
 
         // TODO: スプライト描画
+        screen.sprites.forEach((sprite) => {
+            const spriteTile = useProjectState.getState().sprites[sprite.spriteIndex];
+            if (!spriteTile) return;
+            for (let py = 0; py < spriteTile.height; py++) {
+                for (let px = 0; px < spriteTile.width; px++) {
+                    const colorIndex = sprite.pixels[py][px];
+                    if (colorIndex === 0) continue; // 0は透明
+                    const nesColorIndex = useProjectState.getState().palettes[sprite.paletteIndex][colorIndex];
+                    const hex = useProjectState.getState().palettes ? NES_PALETTE_HEX[nesColorIndex] : "#f0f";
+                    ctx.fillStyle = hex;
+                    ctx.fillRect((sprite.x + px) * scale, (sprite.y + py) * scale, scale, scale);
+                }
+            }
+        });
 
         // グリッド
         if (showGrid) {
@@ -69,7 +84,7 @@ export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams
                 ctx.stroke();
             }
         }
-    }, [scale, showGrid, width, height]);
+    }, [scale, showGrid, screen]);
 
     useEffect(() => {
         drawAll();

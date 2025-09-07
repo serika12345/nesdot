@@ -9,6 +9,7 @@ export const ScreenMode: React.FC = () => {
     const [y, setY] = useState(0);
     const screen = useProjectState((s) => s.screen);
     const sprites = useProjectState((s) => s.sprites);
+
     const handleAddSprite = () => {
         const spriteTile = sprites[spriteNumber];
         if (!spriteTile) {
@@ -26,8 +27,11 @@ export const ScreenMode: React.FC = () => {
             paletteIndex: spriteTile.paletteIndex,
             pixels: spriteTile.pixels,
         };
-        screen.sprites.push(sprite);
-        useProjectState.setState({ screen });
+        const newScreen = {
+            ...screen,
+            sprites: [...screen.sprites, sprite],
+        };
+        useProjectState.setState({ screen: newScreen });
         alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
     };
 
