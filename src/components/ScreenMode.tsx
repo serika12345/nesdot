@@ -15,7 +15,7 @@ export const ScreenMode: React.FC = () => {
     const sprites = useProjectState((s) => s.sprites);
 
     const projectState = useProjectState((s) => s);
-    const { exportChr, exportPng, exportSvgSimple, exportJSON } = useExportImage();
+    const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
     const { importJSON } = useImportImage();
     // ★ インポートハンドラ
     const handleImport = async () => {
