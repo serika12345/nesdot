@@ -1,5 +1,5 @@
 // components/modes/SpriteMode.tsx
-import React from "react";
+import React, { useState } from "react";
 import { CanvasActions, Spacer, Toolbar, ToolButton } from "../App.styles";
 import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
@@ -17,33 +17,15 @@ import { Tool } from "./hooks/useSpriteCanvas";
 import { SlotButton } from "./PalettePicker.styles";
 import { SpriteCanvas } from "./SpriteCanvas";
 
-type Props = {
-    // state
-    tool: Tool;
-    activePalette: PaletteIndex;
-    activeSlot: ColorIndexOfPalette;
-    activeSprite: number;
-    // setters
-    setTool: (t: Tool) => void;
-    setActivePalette: (p: PaletteIndex) => void;
-    setActiveSlot: (s: ColorIndexOfPalette) => void;
-    setActiveSprite: (i: number) => void;
-};
-
 function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
     return makeTile(height, 0, paletteIndex);
 }
 
-export const SpriteMode: React.FC<Props> = ({
-    tool,
-    activePalette,
-    activeSlot,
-    activeSprite,
-    setTool,
-    setActivePalette,
-    setActiveSlot,
-    setActiveSprite,
-}) => {
+export const SpriteMode: React.FC = () => {
+    const [tool, setTool] = useState<Tool>("pen");
+    const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
+    const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
+    const [activeSprite, setActiveSprite] = useState<number>(0);
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const palettes = useProjectState((s) => s.palettes);
     const sprites = useProjectState((s) => s.sprites);

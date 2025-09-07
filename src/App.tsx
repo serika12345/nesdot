@@ -3,10 +3,8 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
-import { ColorIndexOfPalette, PaletteIndex } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
-import { Tool } from "./components/hooks/useSpriteCanvas";
 import { ScreenMode } from "./components/ScreenMode";
 import { SpriteMode } from "./components/SpriteMode";
 
@@ -24,11 +22,6 @@ export const App: React.FC = () => {
     // ★ App 内の ProjectState は zustand から取得
     // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
 
-    // UI 用の一時状態はローカルで維持
-    const [tool, setTool] = useState<Tool>("pen");
-    const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
-    const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
-    const [activeSprite, setActiveSprite] = useState<number>(0);
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
 
     return (
@@ -41,22 +34,7 @@ export const App: React.FC = () => {
                         <option value="sprite">スプライト</option>
                     </select>
                 </div>
-
-                {editMode === "sprite" && (
-                    <SpriteMode
-                        // state
-                        tool={tool}
-                        activePalette={activePalette}
-                        activeSlot={activeSlot}
-                        activeSprite={activeSprite}
-                        // setters
-                        setTool={setTool}
-                        setActivePalette={setActivePalette}
-                        setActiveSlot={setActiveSlot}
-                        setActiveSprite={setActiveSprite}
-                    />
-                )}
-
+                {editMode === "sprite" && <SpriteMode />}
                 {editMode === "screen" && <ScreenMode />}
             </LeftPane>
 
