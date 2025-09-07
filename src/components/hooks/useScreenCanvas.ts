@@ -1,12 +1,28 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
-import { useProjectState } from "../../store/projectState";
+import { Screen, useProjectState } from "../../store/projectState";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
 }
+
+export const isValid = (screen: Screen) => {
+    // スプライト数は64個まで
+    if (screen.sprites.length > 64) return false;
+    // 同一行にスプライトのピクセルは8個まで
+    for (let y = 0; y < screen.height; y++) {
+        let count = 0;
+        for (const sprite of screen.sprites) {
+            if (y >= sprite.y && y < sprite.y + sprite.height) {
+                count++;
+                if (count > 8) return false;
+            }
+        }
+    }
+    return true;
+};
 
 export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams) => {
     const screen = useProjectState((s) => s.screen);

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { SpriteInScreen, useProjectState } from "../store/projectState";
 import { ScreenCanvas } from "./ScreenCanvas";
+import { isValid } from "./hooks/useScreenCanvas";
 
 export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
@@ -30,6 +31,10 @@ export const ScreenMode: React.FC = () => {
             ...screen,
             sprites: [...screen.sprites, sprite],
         };
+        if (!isValid(newScreen)) {
+            alert("スプライトの配置が不正です（同一行に8個を超えるスプライトが配置されている可能性があります）");
+            return;
+        }
         useProjectState.setState({ screen: newScreen });
         alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
     };
