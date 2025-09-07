@@ -19,11 +19,7 @@ declare global {
 }
 
 export const App: React.FC = () => {
-    // ★ App 内の ProjectState は zustand から取得
-    // もともとの spriteSize は廃止し、tile.width/height を真実のソースにします
-
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
-
     return (
         <Container>
             <LeftPane>
