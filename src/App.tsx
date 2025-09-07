@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
-import { ColorIndexOfPalette, PaletteIndex, SpriteTile, useProjectState } from "./store/projectState";
+import { ColorIndexOfPalette, PaletteIndex, useProjectState } from "./store/projectState";
 
 // ★ 追加: 任意サイズ対応ユーティリティ
 import { Tool } from "./components/hooks/useSpriteCanvas";
@@ -34,15 +34,6 @@ export const App: React.FC = () => {
     const [activeSprite, setActiveSprite] = useState<number>(0);
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
 
-    const activeTile = useProjectState((s) => s.sprites[activeSprite]);
-
-    // ★ zustand の setState で部分更新
-    const setTile = (t: SpriteTile, index: number) => {
-        const newSprites = [...sprites];
-        newSprites[index] = t;
-        useProjectState.setState({ sprites: newSprites });
-    };
-
     return (
         <Container>
             <LeftPane>
@@ -61,7 +52,6 @@ export const App: React.FC = () => {
                         activePalette={activePalette}
                         activeSlot={activeSlot}
                         activeSprite={activeSprite}
-                        activeTile={activeTile}
                         palettes={palettes}
                         sprites={sprites}
                         // setters
@@ -69,7 +59,6 @@ export const App: React.FC = () => {
                         setActivePalette={setActivePalette}
                         setActiveSlot={setActiveSlot}
                         setActiveSprite={setActiveSprite}
-                        setTile={setTile}
                     />
                 )}
 

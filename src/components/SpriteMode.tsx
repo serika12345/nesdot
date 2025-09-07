@@ -23,7 +23,6 @@ type Props = {
     activePalette: PaletteIndex;
     activeSlot: ColorIndexOfPalette;
     activeSprite: number;
-    activeTile: SpriteTile;
     palettes: number[][];
     sprites: SpriteTile[];
     // setters
@@ -31,7 +30,6 @@ type Props = {
     setActivePalette: (p: PaletteIndex) => void;
     setActiveSlot: (s: ColorIndexOfPalette) => void;
     setActiveSprite: (i: number) => void;
-    setTile: (t: SpriteTile, index: number) => void;
 };
 
 function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
@@ -43,15 +41,21 @@ export const SpriteMode: React.FC<Props> = ({
     activePalette,
     activeSlot,
     activeSprite,
-    activeTile,
     palettes,
     sprites,
     setTool,
     setActivePalette,
     setActiveSlot,
     setActiveSprite,
-    setTile,
 }) => {
+    const activeTile = useProjectState((s) => s.sprites[activeSprite]);
+    // ★ zustand の setState で部分更新
+    const setTile = (t: SpriteTile, index: number) => {
+        const newSprites = [...sprites];
+        newSprites[index] = t;
+        useProjectState.setState({ sprites: newSprites });
+    };
+
     const handlePaletteClick = (slot: number) => {
         setActiveSlot(slot as ColorIndexOfPalette);
     };
@@ -67,6 +71,13 @@ export const SpriteMode: React.FC<Props> = ({
         setActiveSprite(i);
         const targetSprite = sprites[i];
         setActivePalette(targetSprite.paletteIndex);
+    };
+
+    const handlePaletteChange = (index: string) => {
+        const i = parseInt(index);
+        setActivePalette(i as PaletteIndex);
+        const newTile = { ...activeTile, paletteIndex: i as PaletteIndex };
+        setTile(newTile, activeSprite);
     };
 
     const projectState = useProjectState((s) => s);
@@ -128,7 +139,7 @@ export const SpriteMode: React.FC<Props> = ({
 
             <div>
                 <label>パレット</label>
-                <select value={activePalette} onChange={(e) => setActivePalette(parseInt(e.target.value) as PaletteIndex)}>
+                <select value={activePalette} onChange={(e) => handlePaletteChange(e.target.value)}>
                     {palettes.map((_, i) => (
                         <option key={i} value={i}>
                             Palette {i}
