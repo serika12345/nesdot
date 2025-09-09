@@ -3,6 +3,7 @@ import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
 import { useSpriteCanvas } from "./hooks/useSpriteCanvas";
 
 interface Props {
+    isChangeOrderMode?: boolean; // 並べ替えモード
     target: number; // 表示対象スプライトインデックス
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;

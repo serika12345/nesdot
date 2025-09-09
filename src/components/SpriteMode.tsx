@@ -23,6 +23,7 @@ function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
 
 export const SpriteMode: React.FC = () => {
     const [tool, setTool] = useState<Tool>("pen");
+    const [isChangeOrderMode, setIsChangeOrderMode] = useState<boolean>(false); // 並べ替えモード
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
     const [activeSprite, setActiveSprite] = useState<number>(0);
@@ -100,22 +101,43 @@ export const SpriteMode: React.FC = () => {
                 </>
 
                 <Spacer />
-
-                <ToolButton onClick={() => setTool("pen")} active={tool === "pen"}>
-                    ペン
-                </ToolButton>
-                <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
-                    消しゴム
-                </ToolButton>
-                <ToolButton
-                    onClick={() => {
-                        if (confirm("本当にクリアしますか？")) {
-                            setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
-                        }
-                    }}
-                >
-                    クリア
-                </ToolButton>
+                {!isChangeOrderMode && (
+                    <>
+                        <ToolButton onClick={() => setTool("pen")} active={tool === "pen"}>
+                            ペン
+                        </ToolButton>
+                        <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"}>
+                            消しゴム
+                        </ToolButton>
+                        <ToolButton
+                            onClick={() => {
+                                if (confirm("本当にクリアしますか？")) {
+                                    setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
+                                }
+                            }}
+                        >
+                            クリア
+                        </ToolButton>
+                        <ToolButton
+                            onClick={() => {
+                                setIsChangeOrderMode(true);
+                            }}
+                            active={isChangeOrderMode}
+                        >
+                            並べ替え
+                        </ToolButton>
+                    </>
+                )}
+                {isChangeOrderMode && (
+                    <ToolButton
+                        onClick={() => {
+                            setIsChangeOrderMode(false);
+                        }}
+                        active={isChangeOrderMode}
+                    >
+                        並べ替え終了
+                    </ToolButton>
+                )}
             </Toolbar>
 
             <div>
@@ -145,6 +167,7 @@ export const SpriteMode: React.FC = () => {
             </div>
 
             <SpriteCanvas
+                isChangeOrderMode={isChangeOrderMode}
                 target={activeSprite}
                 scale={24}
                 showGrid={true}
