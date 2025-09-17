@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { ColorIndexOfPalette, SpriteTile, useProjectState } from "../../store/projectState";
 import { useGhost } from "./useGhost";
+import { useSwap } from "./useSwap";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -41,6 +42,7 @@ export const useSpriteCanvas = ({
         palettes,
         currentSelectPalette,
     });
+    const { swap } = useSwap();
     // --- ここまで ---
 
     const drawAll = useCallback(() => {
@@ -178,35 +180,6 @@ export const useSpriteCanvas = ({
 
     const onPointerMove = handlePointer;
 
-    // ファイル内のどこか（onPointerUp の上など）にヘルパーを追加
-    // 追加：8x8ブロックを入れ替える（破壊しない）
-    function swap8x8Blocks(
-        srcPixels: ColorIndexOfPalette[][],
-        ax: number,
-        ay: number, // Aブロック左上（ピクセル単位）
-        bx: number,
-        by: number // Bブロック左上（ピクセル単位）
-    ) {
-        const next = srcPixels.map((r) => r.slice()) as ColorIndexOfPalette[][];
-        for (let dy = 0; dy < 8; dy++) {
-            for (let dx = 0; dx < 8; dx++) {
-                const ayy = ay + dy,
-                    axx = ax + dx;
-                const byy = by + dy,
-                    bxx = bx + dx;
-                // 範囲安全化（念のため）
-                if (ayy < 0 || ayy >= next.length) continue;
-                if (byy < 0 || byy >= next.length) continue;
-                if (axx < 0 || axx >= next[0].length) continue;
-                if (bxx < 0 || bxx >= next[0].length) continue;
-                const tmp = next[ayy][axx];
-                next[ayy][axx] = next[byy][bxx];
-                next[byy][bxx] = tmp as ColorIndexOfPalette;
-            }
-        }
-        return next;
-    }
-
     // 既存：onPointerUp を差し替え
     const onPointerUp = useCallback(
         (e: React.PointerEvent) => {
@@ -232,7 +205,7 @@ export const useSpriteCanvas = ({
                     const inBounds = (x: number, y: number) => x >= 0 && y >= 0 && x + 7 < width && y + 7 < height;
 
                     if (inBounds(startTileX, startTileY) && inBounds(dropTileX, dropTileY)) {
-                        const nextPixels = swap8x8Blocks(tile.pixels, startTileX, startTileY, dropTileX, dropTileY);
+                        const nextPixels = swap(tile.pixels, startTileX, startTileY, dropTileX, dropTileY);
 
                         // 状態更新（他フィールドはそのまま）
                         const next: SpriteTile = {
