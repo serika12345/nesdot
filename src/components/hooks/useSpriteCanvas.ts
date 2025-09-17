@@ -33,7 +33,7 @@ export const useSpriteCanvas = ({
     const height = tile.height;
 
     // --- ここからゴースト関連は useGhost に委譲 ---
-    const { beginGhostAtCell, moveGhost, cleanupGhost } = useGhost({
+    const { dragInfoRef, beginGhostAtCell, moveGhost, cleanupGhost } = useGhost({
         scale,
         width,
         height,
@@ -178,15 +178,76 @@ export const useSpriteCanvas = ({
 
     const onPointerMove = handlePointer;
 
+    // ファイル内のどこか（onPointerUp の上など）にヘルパーを追加
+    // 追加：8x8ブロックを入れ替える（破壊しない）
+    function swap8x8Blocks(
+        srcPixels: ColorIndexOfPalette[][],
+        ax: number,
+        ay: number, // Aブロック左上（ピクセル単位）
+        bx: number,
+        by: number // Bブロック左上（ピクセル単位）
+    ) {
+        const next = srcPixels.map((r) => r.slice()) as ColorIndexOfPalette[][];
+        for (let dy = 0; dy < 8; dy++) {
+            for (let dx = 0; dx < 8; dx++) {
+                const ayy = ay + dy,
+                    axx = ax + dx;
+                const byy = by + dy,
+                    bxx = bx + dx;
+                // 範囲安全化（念のため）
+                if (ayy < 0 || ayy >= next.length) continue;
+                if (byy < 0 || byy >= next.length) continue;
+                if (axx < 0 || axx >= next[0].length) continue;
+                if (bxx < 0 || bxx >= next[0].length) continue;
+                const tmp = next[ayy][axx];
+                next[ayy][axx] = next[byy][bxx];
+                next[byy][bxx] = tmp as ColorIndexOfPalette;
+            }
+        }
+        return next;
+    }
+
+    // 既存：onPointerUp を差し替え
     const onPointerUp = useCallback(
         (e: React.PointerEvent) => {
             paintingRef.current = false;
             (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
+            // 追加：並べ替えモード中は、ドロップ位置のタイルと開始位置のタイルを入れ替える
+            if (isChangeOrderMode && dragInfoRef.current) {
+                const cvs = canvasRef.current!;
+                const rect = cvs.getBoundingClientRect();
+                const dropCellX = Math.floor((e.clientX - rect.left) / scale);
+                const dropCellY = Math.floor((e.clientY - rect.top) / scale);
+
+                // ドロップ先の8x8ブロック左上（ピクセル単位）
+                const dropTileX = Math.floor(dropCellX / 8) * 8;
+                const dropTileY = Math.floor(dropCellY / 8) * 8;
+
+                const { startTileX, startTileY } = dragInfoRef.current;
+
+                // 同一タイルなら何もしない
+                if (dropTileX !== startTileX || dropTileY !== startTileY) {
+                    // キャンバス範囲内チェック（安全側）
+                    const inBounds = (x: number, y: number) => x >= 0 && y >= 0 && x + 7 < width && y + 7 < height;
+
+                    if (inBounds(startTileX, startTileY) && inBounds(dropTileX, dropTileY)) {
+                        const nextPixels = swap8x8Blocks(tile.pixels, startTileX, startTileY, dropTileX, dropTileY);
+
+                        // 状態更新（他フィールドはそのまま）
+                        const next: SpriteTile = {
+                            ...tile,
+                            pixels: nextPixels,
+                        };
+                        onChange(next, target);
+                    }
+                }
+            }
+
             // 追加：ゴーストの後始末
-            cleanupGhost(); // ← フックAPI呼び出し
+            cleanupGhost();
         },
-        [cleanupGhost]
+        [isChangeOrderMode, cleanupGhost, tile, onChange, target, width, height, scale]
     );
 
     const onContextMenu = useCallback((e: React.MouseEvent) => e.preventDefault(), []);
