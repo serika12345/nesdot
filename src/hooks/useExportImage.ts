@@ -99,14 +99,10 @@ export default function useExportImage() {
     };
 
     const saveBinary = async (data: Uint8Array, defaultName: string) => {
-        if (window.api?.saveBytes) {
-            await window.api.saveBytes(data, defaultName);
-        } else {
-            // ★ ここを修正：ArrayBuffer バックの Uint8Array に正規化してから Blob を作る
-            const arr = new Uint8Array(data); // copy; ensures ArrayBuffer (not SharedArrayBuffer)
-            const blob = new Blob([arr], { type: "application/octet-stream" });
-            downloadBlob(blob, defaultName);
-        }
+        // ★ ここを修正：ArrayBuffer バックの Uint8Array に正規化してから Blob を作る
+        const arr = new Uint8Array(data); // copy; ensures ArrayBuffer (not SharedArrayBuffer)
+        const blob = new Blob([arr], { type: "application/octet-stream" });
+        downloadBlob(blob, defaultName);
     };
 
     const downloadBlob = (blob: Blob, fileName: string) => {

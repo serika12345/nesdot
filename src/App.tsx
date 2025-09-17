@@ -9,15 +9,6 @@ import { ScreenMode } from "./components/ScreenMode";
 import { SpriteMode } from "./components/SpriteMode";
 
 // 分割後のモード別コンポーネント
-
-declare global {
-    interface Window {
-        api?: {
-            saveBytes: (data: Uint8Array, defaultFileName: string) => Promise<void>;
-        };
-    }
-}
-
 export const App: React.FC = () => {
     const [editMode, setEditMode] = useState<"screen" | "sprite">("sprite");
     return (
