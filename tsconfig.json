@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "ES6",
-        "allowJs": true,
+        "target": "ESNext",
         "module": "commonjs",
+        "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
         "noImplicitAny": true,
@@ -12,10 +12,6 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "jsx": "react-jsx",
-        "jsxImportSource": "@emotion/react",
-        "paths": {
-            "*": ["node_modules/*"]
-        }
-    },
-    "include": ["src/**/*"]
+        "jsxImportSource": "@emotion/react"
+    }
 }
