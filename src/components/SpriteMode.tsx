@@ -50,6 +50,7 @@ export const SpriteMode: React.FC = () => {
 
     const handleSpriteChange = (index: string) => {
         const i = parseInt(index);
+        if (i < 0 || i >= 64 || Number.isNaN(i)) return;
         setActiveSprite(i);
         const targetSprite = sprites[i];
         setActivePalette(targetSprite.paletteIndex);
