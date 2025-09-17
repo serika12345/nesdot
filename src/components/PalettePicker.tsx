@@ -24,13 +24,12 @@ export const PalettePicker: React.FC = () => {
             <div>現在のパレット: {activePalette}</div>
             {palettes.map((palette, i) => {
                 return (
-                    <>
+                    <React.Fragment key={i}>
                         <div>Palette {i}</div>
                         <SlotRow>
                             {palette.map((idx, j) => (
-                                <>
+                                <React.Fragment key={j}>
                                     <SlotButton
-                                        key={j}
                                         onClick={j !== 0 ? () => handlePaletteClick(i, j) : undefined}
                                         title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
                                         active={activeSlot === j && activePalette === i}
@@ -38,10 +37,10 @@ export const PalettePicker: React.FC = () => {
                                         bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
                                     />
                                     <div>slot{j}</div>
-                                </>
+                                </React.Fragment>
                             ))}
                         </SlotRow>
-                    </>
+                    </React.Fragment>
                 );
             })}
 

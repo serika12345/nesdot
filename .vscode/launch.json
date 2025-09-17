@@ -2,22 +2,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome", // Chrome/Edge用デバッガ
+            "type": "chrome",
             "request": "launch",
             "name": "Launch Vite App (Chrome)",
-            "url": "http://localhost:5173", // Vite dev server の URL
-            "webRoot": "${workspaceFolder}/src", // ソースのルート
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/src",
             "sourceMaps": true,
-            "skipFiles": ["<node_internals>/**"]
-        },
-        {
-            "type": "node", // サーバー側コードのデバッグ例
-            "request": "launch",
-            "name": "Debug Node backend",
-            "program": "${workspaceFolder}/server/index.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-            "sourceMaps": true
+            "skipFiles": ["<node_internals>/**"],
+            "preLaunchTask": "Run Vite Dev Server"
         }
     ]
 }
