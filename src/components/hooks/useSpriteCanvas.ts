@@ -4,6 +4,7 @@ import { ColorIndexOfPalette, SpriteTile, useProjectState } from "../../store/pr
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
+    isChangeOrderMode?: boolean; // 並べ替えモード
     target: number; // 表示対象スプライトインデックス
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
@@ -14,6 +15,7 @@ export interface UseCanvasParams {
 }
 
 export const useSpriteCanvas = ({
+    isChangeOrderMode = false,
     target,
     scale = 24,
     showGrid = true,
@@ -122,7 +124,17 @@ export const useSpriteCanvas = ({
             const rect = cvs.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale); // 列
             const y = Math.floor((e.clientY - rect.top) / scale); // 行
-            if (paintingRef.current) applyAt(x, y);
+            if (paintingRef.current && !isChangeOrderMode) {
+                applyAt(x, y);
+                return;
+            }
+            if (paintingRef.current && isChangeOrderMode) {
+                // 並べ替えモード時はドラッグでスプライト入れ替え
+                const overIndex = Math.floor(x / 8) + Math.floor(y / 8) * (width / 8);
+                if (overIndex !== target && overIndex >= 0 && overIndex < 64) {
+                    // TODO:
+                }
+            }
         },
         [scale, applyAt]
     );
