@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { ColorIndexOfPalette, SpriteTile, useProjectState } from "../../store/projectState";
+import { useGhost } from "./useGhost";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -30,6 +31,17 @@ export const useSpriteCanvas = ({
 
     const width = tile.width;
     const height = tile.height;
+
+    // --- ここからゴースト関連は useGhost に委譲 ---
+    const { beginGhostAtCell, moveGhost, cleanupGhost } = useGhost({
+        scale,
+        width,
+        height,
+        tile,
+        palettes,
+        currentSelectPalette,
+    });
+    // --- ここまで ---
 
     const drawAll = useCallback(() => {
         const cvs = canvasRef.current;
@@ -124,19 +136,26 @@ export const useSpriteCanvas = ({
             const rect = cvs.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale); // 列
             const y = Math.floor((e.clientY - rect.top) / scale); // 行
+
             if (paintingRef.current && !isChangeOrderMode) {
                 applyAt(x, y);
                 return;
             }
+
             if (paintingRef.current && isChangeOrderMode) {
                 // 並べ替えモード時はドラッグでスプライト入れ替え
                 const overIndex = Math.floor(x / 8) + Math.floor(y / 8) * (width / 8);
                 if (overIndex !== target && overIndex >= 0 && overIndex < 64) {
-                    // TODO:
+                    // ゴースト追従（クリック開始時に作成済みの画像を移動）
+                    moveGhost(e.clientX, e.clientY);
+
+                    // 必要に応じてハイライトしたい場合は drawAll() 後に overIndex を枠描画
+                    // （ここでは描画負荷を考慮して省略）
                 }
+                return;
             }
         },
-        [scale, applyAt]
+        [scale, applyAt, isChangeOrderMode, target, width, moveGhost]
     );
 
     const onPointerDown = useCallback(
@@ -144,16 +163,31 @@ export const useSpriteCanvas = ({
             paintingRef.current = true;
             (e.target as HTMLElement).setPointerCapture(e.pointerId);
             handlePointer(e);
+
+            // 追加：並べ替えモード開始時に8x8タイルのゴースト生成
+            if (isChangeOrderMode) {
+                const cvs = canvasRef.current!;
+                const rect = cvs.getBoundingClientRect();
+                const cellX = Math.floor((e.clientX - rect.left) / scale);
+                const cellY = Math.floor((e.clientY - rect.top) / scale);
+                beginGhostAtCell(e, rect, cellX, cellY); // ← フックAPI呼び出し
+            }
         },
-        [handlePointer]
+        [handlePointer, isChangeOrderMode, scale, beginGhostAtCell]
     );
 
     const onPointerMove = handlePointer;
 
-    const onPointerUp = useCallback((e: React.PointerEvent) => {
-        paintingRef.current = false;
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }, []);
+    const onPointerUp = useCallback(
+        (e: React.PointerEvent) => {
+            paintingRef.current = false;
+            (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+
+            // 追加：ゴーストの後始末
+            cleanupGhost(); // ← フックAPI呼び出し
+        },
+        [cleanupGhost]
+    );
 
     const onContextMenu = useCallback((e: React.MouseEvent) => e.preventDefault(), []);
 
