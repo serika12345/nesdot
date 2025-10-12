@@ -11,6 +11,7 @@ export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
+    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | null>(null);
     const screen = useProjectState((s) => s.screen);
     const sprites = useProjectState((s) => s.sprites);
     const spritesOnScreen = useProjectState((s) => s.screen.sprites);
@@ -53,6 +54,9 @@ export const ScreenMode: React.FC = () => {
             return;
         }
         useProjectState.setState({ screen: newScreen });
+        if (selectedSpriteIndex == null) {
+            setSelectedSpriteIndex(newScreen.sprites.length - 1);
+        }
         alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
     };
 
@@ -83,12 +87,40 @@ export const ScreenMode: React.FC = () => {
                 {spritesOnScreen.length === 0 && <option>スプライトが配置されていません</option>}
                 {spritesOnScreen.map((sprite, index) => {
                     return (
-                        <option key={index} value={index}>
+                        <option key={index} value={index} onClick={() => setSelectedSpriteIndex(index)}>
                             {`#${index} spriteIndex: ${sprite.spriteIndex} (${sprite.width}x${sprite.height}) position: ${sprite.x},${sprite.y}`}
                         </option>
                     );
                 })}
             </select>
+
+            {selectedSpriteIndex !== null && spritesOnScreen[selectedSpriteIndex] && (
+                <div>
+                    <h3>選択中のスプライト情報</h3>
+                    <p>スプライト番号: {selectedSpriteIndex}</p>
+                    <p>元のスプライトシート内インデックス: {spritesOnScreen[selectedSpriteIndex].spriteIndex}</p>
+                    <p>
+                        サイズ: {spritesOnScreen[selectedSpriteIndex].width}x{spritesOnScreen[selectedSpriteIndex].height}
+                    </p>
+                    <p>
+                        位置: ({spritesOnScreen[selectedSpriteIndex].x}, {spritesOnScreen[selectedSpriteIndex].y})
+                    </p>
+                    <button
+                        onClick={() => {
+                            const newSprites = spritesOnScreen.filter((_, i) => i !== selectedSpriteIndex);
+                            useProjectState.setState({
+                                screen: {
+                                    ...screen,
+                                    sprites: newSprites,
+                                },
+                            });
+                            setSelectedSpriteIndex(null);
+                        }}
+                    >
+                        このスプライトを削除
+                    </button>
+                </div>
+            )}
 
             <ScreenCanvas scale={5} showGrid={true} />
 
