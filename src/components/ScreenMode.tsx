@@ -103,7 +103,42 @@ export const ScreenMode: React.FC = () => {
                         サイズ: {spritesOnScreen[selectedSpriteIndex].width}x{spritesOnScreen[selectedSpriteIndex].height}
                     </p>
                     <p>
-                        位置: ({spritesOnScreen[selectedSpriteIndex].x}, {spritesOnScreen[selectedSpriteIndex].y})
+                        <label>
+                            位置: X
+                            <input
+                                type="number"
+                                value={spritesOnScreen[selectedSpriteIndex].x}
+                                onChange={(e) => {
+                                    const newX = Number(e.target.value);
+                                    const newSprites = spritesOnScreen.map((s, i) =>
+                                        i === selectedSpriteIndex ? { ...s, x: newX } : s
+                                    );
+                                    useProjectState.setState({
+                                        screen: {
+                                            ...screen,
+                                            sprites: newSprites,
+                                        },
+                                    });
+                                }}
+                            />
+                            Y
+                            <input
+                                type="number"
+                                value={spritesOnScreen[selectedSpriteIndex].y}
+                                onChange={(e) => {
+                                    const newY = Number(e.target.value);
+                                    const newSprites = spritesOnScreen.map((s, i) =>
+                                        i === selectedSpriteIndex ? { ...s, y: newY } : s
+                                    );
+                                    useProjectState.setState({
+                                        screen: {
+                                            ...screen,
+                                            sprites: newSprites,
+                                        },
+                                    });
+                                }}
+                            />
+                        </label>
                     </p>
                     <button
                         onClick={() => {
