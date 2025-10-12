@@ -11,7 +11,10 @@ export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
-    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | null>(null);
+    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | null>(() => {
+        if (useProjectState.getState().screen.sprites.length > 0) return 0;
+        return null;
+    });
     const screen = useProjectState((s) => s.screen);
     const sprites = useProjectState((s) => s.sprites);
     const spritesOnScreen = useProjectState((s) => s.screen.sprites);
