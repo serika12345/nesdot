@@ -20,8 +20,8 @@ export const ScreenMode: React.FC = () => {
     const { importJSON } = useImportImage();
 
     // 制約値（必要に応じて1か所で調整できます）
-    const SCREEN_WIDTH = 256;
-    const SCREEN_HEIGHT = 240;
+    const SCREEN_WIDTH = screen.width;
+    const SCREEN_HEIGHT = screen.height;
     const MAX_SPRITES = 64;
     const MAX_PER_SCANLINE = 8;
 
