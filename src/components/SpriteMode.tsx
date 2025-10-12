@@ -30,12 +30,19 @@ export const SpriteMode: React.FC = () => {
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const palettes = useProjectState((s) => s.palettes);
     const sprites = useProjectState((s) => s.sprites);
+    const screen = useProjectState((s) => s.screen);
 
     // ★ zustand の setState で部分更新
     const setTile = (t: SpriteTile, index: number) => {
         const newSprites = [...sprites];
         newSprites[index] = t;
         useProjectState.setState({ sprites: newSprites });
+        const currentScreen = { ...screen };
+        const newScreen = {
+            ...currentScreen,
+            sprites: currentScreen.sprites.map((s) => (s.spriteIndex === index ? { ...s, ...t } : s)),
+        };
+        useProjectState.setState({ screen: newScreen });
     };
 
     const handlePaletteClick = (slot: number) => {
@@ -50,6 +57,7 @@ export const SpriteMode: React.FC = () => {
 
     const handleSpriteChange = (index: string) => {
         const i = parseInt(index);
+        if (i < 0 || i >= 64 || Number.isNaN(i)) return;
         setActiveSprite(i);
         const targetSprite = sprites[i];
         setActivePalette(targetSprite.paletteIndex);
