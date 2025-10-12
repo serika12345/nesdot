@@ -45,15 +45,15 @@ export const ScreenMode: React.FC = () => {
         }
 
         // 画面境界
-        list.forEach((sp, i) => {
-            const outRight = sp.x < 0 || sp.x > SCREEN_WIDTH - sp.width;
-            const outBottom = sp.y < 0 || sp.y > SCREEN_HEIGHT - sp.height;
-            if (outRight || outBottom) {
-                errors.push(
-                    `#${i} (spriteIndex:${sp.spriteIndex}) の位置が画面外です: x=${sp.x}, y=${sp.y} / size=${sp.width}x${sp.height}`
-                );
-            }
-        });
+        // list.forEach((sp, i) => {
+        //     const outRight = sp.x < 0 || sp.x > SCREEN_WIDTH - sp.width;
+        //     const outBottom = sp.y < 0 || sp.y > SCREEN_HEIGHT - sp.height;
+        //     if (outRight || outBottom) {
+        //         errors.push(
+        //             `#${i} (spriteIndex:${sp.spriteIndex}) の位置が画面外です: x=${sp.x}, y=${sp.y} / size=${sp.width}x${sp.height}`
+        //         );
+        //     }
+        // });
 
         // スキャンライン上のスプライト数（行あたり最大8）
         // 行ごとのカウントを作成
