@@ -13,7 +13,7 @@ export const ScreenMode: React.FC = () => {
     const [y, setY] = useState(0);
     const screen = useProjectState((s) => s.screen);
     const sprites = useProjectState((s) => s.sprites);
-
+    const spritesOnScreen = useProjectState((s) => s.screen.sprites);
     const projectState = useProjectState((s) => s);
     const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
     const { importJSON } = useImportImage();
@@ -59,7 +59,7 @@ export const ScreenMode: React.FC = () => {
     return (
         <>
             {/* TODO: モーダル */}
-            <div
+            <nav
                 css={{
                     display: "flex",
                     gap: "12px",
@@ -78,7 +78,17 @@ export const ScreenMode: React.FC = () => {
                 <label>Y座標</label>
                 <input type="number" min={0} max={240} defaultValue={0} onChange={(e) => setY(Number(e.target.value))} />
                 <button onClick={handleAddSprite}>スプライトを追加</button>
-            </div>
+            </nav>
+            <select>
+                {spritesOnScreen.length === 0 && <option>スプライトが配置されていません</option>}
+                {spritesOnScreen.map((sprite, index) => {
+                    return (
+                        <option key={index} value={index}>
+                            {`#${index} spriteIndex: ${sprite.spriteIndex} (${sprite.width}x${sprite.height}) position: ${sprite.x},${sprite.y}`}
+                        </option>
+                    );
+                })}
+            </select>
 
             <ScreenCanvas scale={5} showGrid={true} />
 
