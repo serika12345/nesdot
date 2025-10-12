@@ -5,7 +5,6 @@ import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
 import { getHexArrayForScreen, SpriteInScreen, useProjectState } from "../store/projectState";
 import { ScreenCanvas } from "./ScreenCanvas";
-// import { isValid } from "./hooks/useScreenCanvas"; // ← 集約のため未使用になります。削除推奨。
 
 export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
