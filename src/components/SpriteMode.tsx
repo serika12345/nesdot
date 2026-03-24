@@ -20,6 +20,7 @@ import {
     PanelHeader,
     PanelHeaderRow,
     PanelTitle,
+    ScrollArea,
     SelectInput,
     SplitLayout,
     Toolbar,
@@ -114,24 +115,24 @@ export const SpriteMode: React.FC = () => {
 
     return (
         <SplitLayout>
-            <div css={{ display: "grid", gap: 16 }}>
-                <Panel>
-                    <PanelHeader>
-                        <PanelHeaderRow>
-                            <Badge tone="accent">{isChangeOrderMode ? "Reorder Mode" : "Brush Mode"}</Badge>
-                            <ProjectActions
-                                actions={[
-                                    { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
-                                    { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)) },
-                                    { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)) },
-                                    { label: "保存", onSelect: () => exportJSON(projectState) },
-                                ]}
-                                onImport={handleImport}
-                            />
-                        </PanelHeaderRow>
-                        <PanelTitle>スプライト編集</PanelTitle>
-                    </PanelHeader>
+            <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
+                <PanelHeader>
+                    <PanelHeaderRow>
+                        <Badge tone="accent">{isChangeOrderMode ? "Reorder Mode" : "Brush Mode"}</Badge>
+                        <ProjectActions
+                            actions={[
+                                { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
+                                { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)) },
+                                { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)) },
+                                { label: "保存", onSelect: () => exportJSON(projectState) },
+                            ]}
+                            onImport={handleImport}
+                        />
+                    </PanelHeaderRow>
+                    <PanelTitle>スプライト編集</PanelTitle>
+                </PanelHeader>
 
+                <ScrollArea css={{ display: "grid", gap: 14, alignContent: "start" }}>
                     <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                         <Field>
                             <FieldLabel>スプライト番号</FieldLabel>
@@ -192,11 +193,10 @@ export const SpriteMode: React.FC = () => {
                             <DetailValue>{isChangeOrderMode ? "8×8 ブロックをドラッグ" : tool === "pen" ? "ペン" : "消しゴム"}</DetailValue>
                         </DetailRow>
                     </DetailList>
-                </Panel>
+                </ScrollArea>
+            </Panel>
 
-            </div>
-
-            <Panel>
+            <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
                     <PanelHeaderRow>
                         <div css={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -223,6 +223,7 @@ export const SpriteMode: React.FC = () => {
                             borderRadius: 20,
                             background: "rgba(248, 250, 252, 0.82)",
                             border: "1px solid rgba(148, 163, 184, 0.16)",
+                            flexShrink: 0,
                         }}
                     >
                         <Toolbar>
@@ -277,6 +278,7 @@ export const SpriteMode: React.FC = () => {
                         borderRadius: 20,
                         background: "rgba(248, 250, 252, 0.82)",
                         border: "1px solid rgba(148, 163, 184, 0.16)",
+                        flexShrink: 0,
                     }}
                 >
                     <PanelHeaderRow>
@@ -327,7 +329,7 @@ export const SpriteMode: React.FC = () => {
                     </DetailList>
                 </div>
 
-                <CanvasViewport css={{ minHeight: 520, placeItems: "center" }}>
+                <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
                     <SpriteCanvas
                         isChangeOrderMode={isChangeOrderMode}
                         target={activeSprite}

@@ -21,6 +21,7 @@ import {
     PanelHeader,
     PanelHeaderRow,
     PanelTitle,
+    ScrollColumn,
     SelectInput,
     SplitLayout,
     ToolButton,
@@ -137,7 +138,7 @@ export const ScreenMode: React.FC = () => {
 
     return (
         <SplitLayout>
-            <div css={{ display: "grid", gap: 16 }}>
+            <ScrollColumn>
                 <Panel>
                     <PanelHeader>
                         <PanelHeaderRow>
@@ -336,9 +337,9 @@ export const ScreenMode: React.FC = () => {
                         <HelperText>{activeSprite ? `現在は #${selectedSpriteIndex} を選択中です。` : "現在は未選択です。"}</HelperText>
                     )}
                 </Panel>
-            </div>
+            </ScrollColumn>
 
-            <Panel>
+            <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
                     <PanelHeaderRow>
                         <Badge tone="neutral">Preview</Badge>
@@ -347,12 +348,12 @@ export const ScreenMode: React.FC = () => {
                     <PanelTitle>Screen Preview</PanelTitle>
                 </PanelHeader>
 
-                <CanvasViewport css={{ minHeight: 520, placeItems: "center" }}>
+                <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
                     <ScreenCanvas scale={2} showGrid={true} />
                 </CanvasViewport>
 
                 {scanReport.ok === false && (
-                    <DetailList>
+                    <DetailList css={{ flexShrink: 0 }}>
                         {scanReport.errors.map((error: string) => (
                             <DetailRow key={error}>
                                 <DetailKey>警告</DetailKey>

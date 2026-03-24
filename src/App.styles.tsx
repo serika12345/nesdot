@@ -73,6 +73,7 @@ export const globalStyles = css`
     }
 
     html {
+        height: 100%;
         background:
             radial-gradient(circle at 12% 12%, rgba(56, 189, 248, 0.18), transparent 24%),
             radial-gradient(circle at 88% 18%, rgba(45, 212, 191, 0.14), transparent 20%),
@@ -81,10 +82,12 @@ export const globalStyles = css`
 
     body {
         margin: 0;
+        height: 100%;
         min-width: 1480px;
         color: var(--ink);
         font-family: "Avenir Next", "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
         background: transparent;
+        overflow: hidden;
     }
 
     body::before {
@@ -106,7 +109,8 @@ export const globalStyles = css`
     }
 
     #root {
-        min-height: 100vh;
+        height: 100vh;
+        overflow: hidden;
     }
 
     ::selection {
@@ -117,10 +121,12 @@ export const globalStyles = css`
 export const Container = styled.div`
     position: relative;
     z-index: 1;
-    min-height: 100vh;
+    height: 100vh;
     display: grid;
+    grid-template-rows: minmax(0, 1fr);
     gap: 20px;
     padding: 24px;
+    overflow: hidden;
 `;
 
 export const Eyebrow = styled.div`
@@ -196,23 +202,27 @@ export const SegmentedButton = styled.button<{ active?: boolean }>`
 export const WorkspaceGrid = styled.div`
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-rows: minmax(0, 1fr);
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
+    min-height: 0;
 `;
 
 export const LeftPane = styled.div`
     display: grid;
-    gap: 16px;
-    align-content: start;
+    grid-template-rows: minmax(0, 1fr);
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 `;
 
 export const RightPane = styled.aside`
-    position: sticky;
-    top: 24px;
     display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 16px;
-    align-content: start;
+    align-content: stretch;
+    min-height: 0;
+    overflow: hidden;
 `;
 
 export const Panel = styled.section`
@@ -220,6 +230,8 @@ export const Panel = styled.section`
     overflow: hidden;
     display: grid;
     gap: 14px;
+    min-width: 0;
+    min-height: 0;
     padding: 18px;
     border-radius: 24px;
     background: linear-gradient(180deg, var(--panel-surface-strong), var(--panel-surface));
@@ -513,8 +525,10 @@ export const Badge = styled.span<{ tone?: BadgeTone }>`
 export const SplitLayout = styled.div`
     display: grid;
     grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
+    min-height: 0;
 `;
 
 export const CanvasViewport = styled.div`
@@ -522,6 +536,7 @@ export const CanvasViewport = styled.div`
     z-index: 1;
     overflow: auto;
     display: grid;
+    min-height: 0;
     border-radius: 24px;
     padding: 18px;
     background:
@@ -529,6 +544,24 @@ export const CanvasViewport = styled.div`
         linear-gradient(180deg, var(--canvas-shell-alt), var(--canvas-shell));
     border: 1px solid rgba(148, 163, 184, 0.16);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    scrollbar-gutter: stable both-edges;
+`;
+
+export const ScrollColumn = styled.div`
+    min-height: 0;
+    overflow: auto;
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    padding-right: 4px;
+    scrollbar-gutter: stable both-edges;
+`;
+
+export const ScrollArea = styled.div`
+    min-height: 0;
+    overflow: auto;
+    padding-right: 4px;
+    scrollbar-gutter: stable both-edges;
 `;
 
 export const MetricGrid = styled.div`

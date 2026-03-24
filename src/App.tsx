@@ -16,6 +16,7 @@ import {
     PanelHeader,
     PanelTitle,
     RightPane,
+    ScrollArea,
     SegmentedButton,
     SegmentedControl,
     WorkspaceGrid,
@@ -50,12 +51,14 @@ export const App: React.FC = () => {
                             </ModeSwitcherLayout>
                         </ModeSwitcherCard>
 
-                        <Panel>
+                        <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
                             <PanelHeader>
                                 <Eyebrow>Palette Console</Eyebrow>
                                 <PanelTitle>NES パレット</PanelTitle>
                             </PanelHeader>
-                            <PalettePicker />
+                            <ScrollArea>
+                                <PalettePicker />
+                            </ScrollArea>
                         </Panel>
                     </RightPane>
                 </WorkspaceGrid>
