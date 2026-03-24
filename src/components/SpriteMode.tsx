@@ -8,7 +8,6 @@ import {
     DetailList,
     DetailRow,
     DetailValue,
-    Divider,
     Field,
     FieldGrid,
     FieldLabel,
@@ -41,7 +40,7 @@ import {
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
 import { ProjectActions } from "./ProjectActions";
-import { SlotButton } from "./PalettePicker.styles";
+import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { Tool } from "./hooks/useSpriteCanvas";
 import { SpriteCanvas } from "./SpriteCanvas";
 import { ChevronIcon } from "./ui/Icons";
@@ -183,7 +182,7 @@ export const SpriteMode: React.FC = () => {
                             </MetricValue>
                         </MetricCard>
                         <MetricCard>
-                            <MetricLabel>現在色</MetricLabel>
+                            <MetricLabel>選択スロット</MetricLabel>
                             <MetricValue>slot {activeSlot}</MetricValue>
                         </MetricCard>
                     </MetricGrid>
@@ -200,79 +199,6 @@ export const SpriteMode: React.FC = () => {
                     </DetailList>
                 </Panel>
 
-                <Panel>
-                    <PanelHeader>
-                        <PanelHeaderRow>
-                            <Badge tone="neutral">Palette Slots</Badge>
-                            <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
-                                {isPaletteOpen ? "閉じる" : "開く"}
-                                <ChevronIcon open={isPaletteOpen} />
-                            </CollapseToggle>
-                        </PanelHeaderRow>
-                        <PanelTitle>現在のスロット</PanelTitle>
-                        <PanelDescription>Slot 0 は透明扱いです。必要なときだけ開いて選択します。</PanelDescription>
-                    </PanelHeader>
-
-                    {isPaletteOpen ? (
-                        <>
-                            <div
-                                css={{
-                                    position: "relative",
-                                    zIndex: 1,
-                                    display: "grid",
-                                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                                    gap: 12,
-                                }}
-                            >
-                                {palettes[activePalette].map((idx, j) => (
-                                    <div
-                                        key={j}
-                                        css={{
-                                            display: "grid",
-                                            justifyItems: "center",
-                                            gap: 8,
-                                            padding: "12px 8px",
-                                            borderRadius: 18,
-                                            background: activeSlot === j ? "rgba(15, 118, 110, 0.1)" : "rgba(248, 250, 252, 0.76)",
-                                            border:
-                                                activeSlot === j
-                                                    ? "1px solid rgba(15, 118, 110, 0.16)"
-                                                    : "1px solid rgba(148, 163, 184, 0.14)",
-                                        }}
-                                    >
-                                        <SlotButton
-                                            onClick={() => handlePaletteClick(j)}
-                                            title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
-                                            active={activeSlot === j}
-                                            transparent={j === 0}
-                                            bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                                        />
-                                        <div
-                                            css={{
-                                                fontSize: 11,
-                                                fontWeight: 700,
-                                                letterSpacing: "0.08em",
-                                                textTransform: "uppercase",
-                                                color: "var(--ink-soft)",
-                                            }}
-                                        >
-                                            slot{j}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <Divider />
-                        </>
-                    ) : null}
-
-                    <DetailList>
-                        <DetailRow>
-                            <DetailKey>現在色</DetailKey>
-                            <DetailValue>#{palettes[activePalette][activeSlot].toString(16).padStart(2, "0").toUpperCase()}</DetailValue>
-                        </DetailRow>
-                    </DetailList>
-                </Panel>
             </div>
 
             <Panel>
@@ -289,7 +215,7 @@ export const SpriteMode: React.FC = () => {
                         </CollapseToggle>
                     </PanelHeaderRow>
                     <PanelTitle>Sprite Canvas</PanelTitle>
-                    <PanelDescription>主作業面は右に固定し、左の各操作パネルだけを必要時に開く構造にしています。</PanelDescription>
+                    <PanelDescription>描画ツールとスロット選択をここにまとめ、キャンバスの近くで作業を完結できる構造にしています。</PanelDescription>
                 </PanelHeader>
 
                 {isToolsOpen ? (
@@ -352,6 +278,69 @@ export const SpriteMode: React.FC = () => {
                 ) : (
                     <HelperText>{isChangeOrderMode ? "並べ替えモードが有効です。" : "ツールはキャンバス上部に格納されています。"}</HelperText>
                 )}
+
+                <div
+                    css={{
+                        position: "relative",
+                        zIndex: 1,
+                        display: "grid",
+                        gap: 12,
+                        padding: 14,
+                        borderRadius: 20,
+                        background: "rgba(248, 250, 252, 0.82)",
+                        border: "1px solid rgba(148, 163, 184, 0.16)",
+                    }}
+                >
+                    <PanelHeaderRow>
+                        <div css={{ display: "grid", gap: 8 }}>
+                            <Badge tone="neutral">Palette Slots</Badge>
+                            <div css={{ display: "grid", gap: 4 }}>
+                                <FieldLabel>現在のスロット</FieldLabel>
+                                <HelperText css={{ margin: 0 }}>Slot 0 は透明扱いです。必要なときだけ開いて選択します。</HelperText>
+                            </div>
+                        </div>
+                        <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
+                            {isPaletteOpen ? "スロットを閉じる" : "スロットを開く"}
+                            <ChevronIcon open={isPaletteOpen} />
+                        </CollapseToggle>
+                    </PanelHeaderRow>
+
+                    {isPaletteOpen ? (
+                        <div
+                            css={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                                gap: 12,
+                            }}
+                        >
+                            {palettes[activePalette].map((idx, j) => (
+                                <SlotGroup key={j} active={activeSlot === j}>
+                                    <SlotButton
+                                        onClick={() => handlePaletteClick(j)}
+                                        title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                        active={activeSlot === j}
+                                        transparent={j === 0}
+                                        bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                    />
+                                    <SlotLabel>slot{j}</SlotLabel>
+                                </SlotGroup>
+                            ))}
+                        </div>
+                    ) : null}
+
+                    <DetailList>
+                        <DetailRow>
+                            <DetailKey>選択中</DetailKey>
+                            <DetailValue>
+                                Palette {activePalette} / slot {activeSlot}
+                            </DetailValue>
+                        </DetailRow>
+                        <DetailRow>
+                            <DetailKey>現在色</DetailKey>
+                            <DetailValue>#{palettes[activePalette][activeSlot].toString(16).padStart(2, "0").toUpperCase()}</DetailValue>
+                        </DetailRow>
+                    </DetailList>
+                </div>
 
                 <CanvasViewport css={{ minHeight: 520, placeItems: "center" }}>
                     <SpriteCanvas
