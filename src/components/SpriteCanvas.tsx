@@ -16,5 +16,5 @@ interface Props {
 export const SpriteCanvas: React.FC<Props> = (props) => {
     const { canvasProps } = useSpriteCanvas(props);
 
-    return <canvas {...canvasProps} css={{ border: "1px solid #aaa", touchAction: "none" }} />;
+    return <canvas {...canvasProps} css={{ display: "block", touchAction: "none", imageRendering: "pixelated" }} />;
 };

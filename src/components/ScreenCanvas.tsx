@@ -9,5 +9,5 @@ interface Props {
 export const ScreenCanvas: React.FC<Props> = (props) => {
     const { canvasProps } = useScreenCanvas(props);
 
-    return <canvas {...canvasProps} css={{ border: "1px solid #aaa", touchAction: "none" }} />;
+    return <canvas {...canvasProps} css={{ display: "block", touchAction: "none", imageRendering: "pixelated" }} />;
 };
