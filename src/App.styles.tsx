@@ -123,12 +123,6 @@ export const Container = styled.div`
     padding: 24px;
 `;
 
-export const AppHeader = styled.header`
-    display: flex;
-    justify-content: flex-end;
-    align-items: start;
-`;
-
 export const Eyebrow = styled.div`
     font-size: 11px;
     font-weight: 700;
@@ -139,22 +133,42 @@ export const Eyebrow = styled.div`
 
 export const ModeSwitcherCard = styled.section`
     display: grid;
-    gap: 14px;
-    width: min(100%, 380px);
-    padding: 18px;
-    border-radius: 24px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 20px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9));
     border: 1px solid var(--panel-border);
     box-shadow: var(--panel-shadow);
     backdrop-filter: blur(18px);
 `;
 
+export const ModeSwitcherLayout = styled.div`
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+`;
+
+export const ModeSwitcherHeader = styled.div`
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+`;
+
+export const ModeSwitcherTitle = styled.h2`
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink-strong);
+`;
+
 export const SegmentedControl = styled.div`
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    padding: 8px;
-    border-radius: 22px;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 18px;
     background: rgba(15, 23, 42, 0.05);
     border: 1px solid rgba(148, 163, 184, 0.18);
 `;
@@ -162,9 +176,9 @@ export const SegmentedControl = styled.div`
 export const SegmentedButton = styled.button<{ active?: boolean }>`
     appearance: none;
     border: 0;
-    border-radius: 16px;
-    padding: 14px 16px;
-    font-size: 14px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.01em;
     cursor: pointer;
