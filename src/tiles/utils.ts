@@ -74,10 +74,10 @@ function ensureBacking(tile: SpriteTileND, fill: ColorIndexOfPalette): Backing {
  */
 function growBackingIfNeeded(b: Backing, viewLeft: number, viewTop: number, viewRight: number, viewBottom: number) {
     let needGrow = false;
-    let newLeft = Math.min(0, viewLeft);
-    let newTop = Math.min(0, viewTop);
-    let newRight = Math.max(b.width, viewRight);
-    let newBottom = Math.max(b.height, viewBottom);
+    const newLeft = Math.min(0, viewLeft);
+    const newTop = Math.min(0, viewTop);
+    const newRight = Math.max(b.width, viewRight);
+    const newBottom = Math.max(b.height, viewBottom);
 
     // 左・上に負方向へはみ出す場合はオフセット移動が必要
     const shiftX = newLeft < 0 ? -newLeft : 0;
@@ -137,8 +137,6 @@ export function resizeTileND(
     // 現ビューの左上が裏キャンバス上でどこか（= backing.offset を基準に決まる）
     const curViewLeft = backing.offsetX;
     const curViewTop = backing.offsetY;
-    const curViewRight = curViewLeft + src.width;
-    const curViewBottom = curViewTop + src.height;
 
     // 「アンカーに応じた貼り付けオフセット」をビュー座標に変換
     // dx, dy は「旧ビューの中で」貼り付け先を決めるための移動量
@@ -167,7 +165,7 @@ export function resizeTileND(
     }
 
     // 2) 新しい可視タイルを作成（表示用バッファ）
-    const dst = makeTile(nextH, fill, src.paletteIndex) as SpriteTileND;
+    const dst = makeTile(nextH, src.paletteIndex, fill) as SpriteTileND;
 
     // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
     for (let y = 0; y < nextH; y++) {

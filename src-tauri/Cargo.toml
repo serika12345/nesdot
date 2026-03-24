@@ -1,0 +1,18 @@
+[package]
+name = "nesdot"
+version = "1.0.0"
+description = "NESDOT desktop app powered by Tauri"
+authors = ["paseri3739 <tael43@icloud.com>"]
+edition = "2021"
+
+[lib]
+name = "nesdot_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"

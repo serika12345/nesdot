@@ -1,7 +1,40 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { ProjectState } from "../store/projectState";
 
 export default function useImportImage() {
+    const readJsonWithNativeDialog = async (): Promise<string | null | undefined> => {
+        try {
+            const selected = await open({
+                multiple: false,
+                filters: [{ name: "JSON file", extensions: ["json"] }],
+            });
+
+            if (!selected) {
+                return null;
+            }
+
+            if (Array.isArray(selected)) {
+                return selected[0] ? await readTextFile(selected[0]) : null;
+            }
+
+            return await readTextFile(selected);
+        } catch {
+            return undefined;
+        }
+    };
+
     const importJSON = async (onImport: (data: ProjectState) => void) => {
+        const nativeText = await readJsonWithNativeDialog();
+        if (typeof nativeText === "string") {
+            onImport(JSON.parse(nativeText) as ProjectState);
+            return;
+        }
+
+        if (nativeText === null) {
+            throw new Error("No file selected");
+        }
+
         // JSONインポート：ファイル選択ダイアログを出して読み込み
         return new Promise<void>((resolve, reject) => {
             const input = document.createElement("input");

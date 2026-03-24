@@ -1,6 +1,5 @@
 // App.tsx
 import React, { useState } from "react";
-import { createRoot } from "react-dom/client";
 import { Container, H3, LeftPane, RightPane } from "./App.styles";
 import { PalettePicker } from "./components/PalettePicker";
 
@@ -32,6 +31,3 @@ export const App: React.FC = () => {
         </Container>
     );
 };
-
-const root = createRoot(document.body);
-root.render(<App />);

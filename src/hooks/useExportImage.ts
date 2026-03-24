@@ -1,8 +1,41 @@
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { ColorIndexOfPalette, PaletteIndex, ProjectState, SpriteTile } from "../store/projectState";
 
+type FileFilter = {
+    name: string;
+    extensions: string[];
+};
+
+type NativeSaveResult = "saved" | "cancelled" | "unavailable";
+
 export default function useExportImage() {
+    const blobToBytes = async (blob: Blob) => new Uint8Array(await blob.arrayBuffer());
+
+    const saveBytesNative = async (
+        bytes: Uint8Array,
+        defaultName: string,
+        filters: FileFilter[]
+    ): Promise<NativeSaveResult> => {
+        try {
+            const targetPath = await save({
+                defaultPath: defaultName,
+                filters,
+            });
+
+            if (!targetPath) {
+                return "cancelled";
+            }
+
+            await writeFile(targetPath, bytes);
+            return "saved";
+        } catch {
+            return "unavailable";
+        }
+    };
+
     // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
     const exportChr = async (tile: SpriteTile, activePalette: PaletteIndex) => {
         const chunks: Uint8Array[] = [];
@@ -22,7 +55,7 @@ export default function useExportImage() {
             const top = { width: 8, height: 8, pixels: tile.pixels.slice(0, 8) } as SpriteTile;
             const bottom = { width: 8, height: 8, pixels: tile.pixels.slice(8, 16) } as SpriteTile;
             const bin = tile8x16ToChr(top, bottom);
-            await saveBinary(bin, "sprite_8x16.chr");
+            await saveBinary(bin, "sprite_8x16.chr", [{ name: "CHR files", extensions: ["chr"] }]);
             return;
         }
 
@@ -33,7 +66,7 @@ export default function useExportImage() {
             out.set(c, off);
             off += c.length;
         }
-        await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`);
+        await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`, [{ name: "CHR files", extensions: ["chr"] }]);
     };
 
     const exportPng = async (hexPixels: string[][], fileName?: string) => {
@@ -61,15 +94,25 @@ export default function useExportImage() {
                 }
             }
         }
-        cvs.toBlob((blob) => {
-            if (!blob) return;
-            const name = fileName ?? `image_${w}x${h}.png`;
+        const blob = await new Promise<Blob>((resolve, reject) => {
+            cvs.toBlob((value) => {
+                if (!value) {
+                    reject(new Error("PNG blob generation failed"));
+                    return;
+                }
+                resolve(value);
+            }, "image/png");
+        });
+
+        const name = fileName ?? `image_${w}x${h}.png`;
+        const saveResult = await saveBytesNative(await blobToBytes(blob), name, [{ name: "PNG image", extensions: ["png"] }]);
+        if (saveResult === "unavailable") {
             downloadBlob(blob, name);
-        }, "image/png");
+        }
     };
 
     // ▼追加：単純版SVG出力（1ピクセル＝1 rect）
-    const exportSvgSimple = (hexPixels: string[][], scale = 8, fileName?: string) => {
+    const exportSvgSimple = async (hexPixels: string[][], scale = 8, fileName?: string) => {
         const h = hexPixels.length;
         const w = h > 0 ? hexPixels[0].length : 0;
 
@@ -93,16 +136,23 @@ export default function useExportImage() {
 
         svg += `</svg>`;
 
-        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
         const name = fileName ?? `image_${w}x${h}.svg`;
-        downloadBlob(blob, name);
+        const bytes = new TextEncoder().encode(svg);
+        const saveResult = await saveBytesNative(bytes, name, [{ name: "SVG image", extensions: ["svg"] }]);
+        if (saveResult === "unavailable") {
+            const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+            downloadBlob(blob, name);
+        }
     };
 
-    const saveBinary = async (data: Uint8Array, defaultName: string) => {
+    const saveBinary = async (data: Uint8Array, defaultName: string, filters: FileFilter[]) => {
         // ★ ここを修正：ArrayBuffer バックの Uint8Array に正規化してから Blob を作る
         const arr = new Uint8Array(data); // copy; ensures ArrayBuffer (not SharedArrayBuffer)
-        const blob = new Blob([arr], { type: "application/octet-stream" });
-        downloadBlob(blob, defaultName);
+        const saveResult = await saveBytesNative(arr, defaultName, filters);
+        if (saveResult === "unavailable") {
+            const blob = new Blob([arr], { type: "application/octet-stream" });
+            downloadBlob(blob, defaultName);
+        }
     };
 
     const downloadBlob = (blob: Blob, fileName: string) => {
@@ -114,10 +164,15 @@ export default function useExportImage() {
         URL.revokeObjectURL(url);
     };
 
-    const exportJSON = (projectState: ProjectState) => {
+    const exportJSON = async (projectState: ProjectState) => {
         const json = JSON.stringify(projectState);
-        const blob = new Blob([json], { type: "application/json;charset=utf-8" });
-        downloadBlob(blob, "project.json");
+        const fileName = "project.json";
+        const bytes = new TextEncoder().encode(json);
+        const saveResult = await saveBytesNative(bytes, fileName, [{ name: "JSON file", extensions: ["json"] }]);
+        if (saveResult === "unavailable") {
+            const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+            downloadBlob(blob, fileName);
+        }
     };
 
     return {

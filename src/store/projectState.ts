@@ -130,7 +130,7 @@ export const useProjectState = create<ProjectState>()(
     //     }),
     //     persistOptions
     // )
-    (set) => ({
+    () => ({
         ...DEFAULT_STATE,
     })
 );
@@ -223,7 +223,7 @@ export const getHexArrayForScreen = (screen: Screen): string[][] => {
 };
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---
-// persist は set ごとに保存しますが、Electron の終了タイミングで
+// persist は set ごとに保存しますが、ウィンドウ終了タイミングで
 // 未完了の I/O を取りこぼさないよう念のため追加します。
 function flushNow() {
     const key = persistOptions.name!;
@@ -234,14 +234,10 @@ function flushNow() {
     void idbStorage.setItem(key, serialized);
 }
 
-// ブラウザ/Electron レンダラーのライフサイクルでフック
+// ブラウザ/Tauri WebView のライフサイクルでフック
 if (typeof window !== "undefined") {
     window.addEventListener("beforeunload", flushNow);
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") flushNow();
     });
 }
-
-// --- （任意）メインプロセスから終了通知を受けてフラッシュしたい場合 ---
-// preload.ts で contextBridge.exposeInMainWorld("appEvents", { onBeforeQuit(cb) { ipcRenderer.on("app-before-quit", cb) } })
-// し、ここで window.appEvents?.onBeforeQuit(() => flushNow());
