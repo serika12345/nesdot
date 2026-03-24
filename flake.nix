@@ -1,16 +1,26 @@
 {
+  description = "Node.js project with Nix flake";
+
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = inputs:
-    inputs.flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
-        pkgs = (import (inputs.nixpkgs) { inherit system; });
-      in {
-        devShell = pkgs.mkShell {
-          buildInputs= with pkgs [
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          # コンパイルを実行するマシン上で動くツール群
+          buildInputs = with pkgs; [
             nodejs_24
             pnpm
           ];
