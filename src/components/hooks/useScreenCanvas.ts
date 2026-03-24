@@ -92,7 +92,7 @@ export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams
 
     const paintingRef = useRef(false);
 
-    const applyAt = useCallback((px: number, py: number) => {}, [width, height]);
+    const applyAt = useCallback((px: number, py: number) => { }, [width, height]);
 
     const handlePointer = useCallback(
         (e: React.PointerEvent) => {
