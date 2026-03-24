@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import {
     Badge,
     CanvasViewport,
@@ -162,10 +163,10 @@ export const SpriteMode: React.FC = () => {
                     </FieldGrid>
 
                     <Toolbar>
-                        <ToolButton onClick={() => setHeight(8)} active={activeTile.height === 8}>
+                        <ToolButton type="button" onClick={() => setHeight(8)} active={activeTile.height === 8}>
                             8×8
                         </ToolButton>
-                        <ToolButton onClick={() => setHeight(16)} active={activeTile.height === 16}>
+                        <ToolButton type="button" onClick={() => setHeight(16)} active={activeTile.height === 16}>
                             8×16
                         </ToolButton>
                     </Toolbar>
@@ -305,10 +306,11 @@ export const SpriteMode: React.FC = () => {
                         }}
                     >
                         <Toolbar>
-                            <ToolButton onClick={() => setTool("pen")} active={tool === "pen"} disabled={isChangeOrderMode}>
+                            <ToolButton type="button" onClick={() => setTool("pen")} active={tool === "pen"} disabled={isChangeOrderMode}>
                                 ペン
                             </ToolButton>
                             <ToolButton
+                                type="button"
                                 onClick={() => setTool("eraser")}
                                 active={tool === "eraser"}
                                 disabled={isChangeOrderMode}
@@ -316,9 +318,17 @@ export const SpriteMode: React.FC = () => {
                                 消しゴム
                             </ToolButton>
                             <ToolButton
+                                type="button"
                                 disabled={isChangeOrderMode}
-                                onClick={() => {
-                                    if (confirm("本当にクリアしますか？")) {
+                                onClick={async () => {
+                                    const message = "本当にクリアしますか？";
+                                    const shouldClear = await tauriConfirm(message, {
+                                        title: "スプライトをクリア",
+                                        okLabel: "クリア",
+                                        cancelLabel: "キャンセル",
+                                    }).catch(() => window.confirm(message));
+
+                                    if (shouldClear) {
                                         setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
                                     }
                                 }}
@@ -326,6 +336,7 @@ export const SpriteMode: React.FC = () => {
                                 クリア
                             </ToolButton>
                             <ToolButton
+                                type="button"
                                 active={isChangeOrderMode}
                                 tone={isChangeOrderMode ? "primary" : "neutral"}
                                 onClick={() => setIsChangeOrderMode((prev) => !prev)}
