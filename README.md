@@ -151,6 +151,13 @@ pnpm lint
 - スタイル: Emotion
 - ファイル保存 / 読み込み: Tauri Plugin Dialog / FS
 
+## コーディングルール
+
+- 本プロジェクトではコーディングルールとして関数型スタイルを採用します
+- React は class component ではなく関数コンポーネントを前提とします
+- 状態更新は破壊的変更を避け、不変更新を優先します
+- ロジックは副作用を分離し、可能な限り純粋関数として記述します
+
 ## コード構成
 
 - `src/App.tsx`
@@ -175,6 +182,10 @@ pnpm lint
   - JSON の復元
 - `src-tauri/`
   - Tauri 側のエントリポイントと設定
+
+## 実装メモ
+
+- `nesdev` の仕様をもとにした画面描画コンテキスト: [`docs/nesdev-screen-rendering-context.md`](docs/nesdev-screen-rendering-context.md)
 
 ## 備考
 
