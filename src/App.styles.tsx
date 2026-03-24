@@ -124,25 +124,9 @@ export const Container = styled.div`
 `;
 
 export const AppHeader = styled.header`
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 24px;
+    display: flex;
+    justify-content: flex-end;
     align-items: start;
-`;
-
-export const HeaderCopy = styled.section`
-    position: relative;
-    overflow: hidden;
-    display: grid;
-    gap: 8px;
-    padding: 20px 24px;
-    border-radius: 28px;
-    color: #e2e8f0;
-    background:
-        radial-gradient(circle at top right, rgba(45, 212, 191, 0.22), transparent 28%),
-        linear-gradient(135deg, rgba(8, 19, 32, 0.92) 0%, rgba(14, 35, 53, 0.88) 100%);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    box-shadow: 0 28px 60px rgba(2, 8, 23, 0.32);
 `;
 
 export const Eyebrow = styled.div`
@@ -153,24 +137,10 @@ export const Eyebrow = styled.div`
     color: rgba(148, 163, 184, 0.92);
 `;
 
-export const AppTitle = styled.h1`
-    margin: 0;
-    font-size: 34px;
-    line-height: 1.05;
-    letter-spacing: -0.04em;
-`;
-
-export const AppSubtitle = styled.p`
-    margin: 0;
-    max-width: 760px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: rgba(226, 232, 240, 0.82);
-`;
-
 export const ModeSwitcherCard = styled.section`
     display: grid;
     gap: 14px;
+    width: min(100%, 380px);
     padding: 18px;
     border-radius: 24px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9));
@@ -357,14 +327,16 @@ export const CollapseToggle = styled.button<{ open?: boolean }>`
 export const ActionCluster = styled.div`
     position: relative;
     z-index: 3;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    width: min(100%, 320px);
 `;
 
-export const ActionMenuWrap = styled.div`
-    position: relative;
+export const ActionButtonsRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
 `;
 
 export const IconActionButton = styled.button<{ active?: boolean }>`
@@ -375,6 +347,7 @@ export const IconActionButton = styled.button<{ active?: boolean }>`
     min-height: 42px;
     padding: 10px 14px;
     border-radius: 16px;
+    white-space: nowrap;
     border: 1px solid ${(p) => (p.active ? "rgba(15, 118, 110, 0.22)" : "rgba(148, 163, 184, 0.2)")};
     background: ${(p) =>
         p.active
@@ -403,10 +376,9 @@ export const IconLabel = styled.span`
 `;
 
 export const ActionMenu = styled.div`
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
+    position: fixed;
     min-width: 220px;
+    max-width: min(320px, calc(100vw - 32px));
     display: grid;
     gap: 6px;
     padding: 10px;
@@ -415,6 +387,7 @@ export const ActionMenu = styled.div`
     border: 1px solid rgba(148, 163, 184, 0.2);
     box-shadow: 0 22px 40px rgba(15, 23, 42, 0.16);
     backdrop-filter: blur(18px);
+    z-index: 9999;
 `;
 
 export const ActionMenuButton = styled.button`

@@ -5,12 +5,9 @@ import { ScreenMode } from "./components/ScreenMode";
 import { SpriteMode } from "./components/SpriteMode";
 import {
     AppHeader,
-    AppSubtitle,
-    AppTitle,
     Container,
     Eyebrow,
     globalStyles,
-    HeaderCopy,
     LeftPane,
     ModeSwitcherCard,
     Panel,
@@ -32,12 +29,6 @@ export const App: React.FC = () => {
 
             <Container>
                 <AppHeader>
-                    <HeaderCopy>
-                        <Eyebrow>NES Visual Editor</Eyebrow>
-                        <AppTitle>nesdot workspace</AppTitle>
-                        <AppSubtitle>主要操作を折りたたみ、キャンバスを見失わないデスクトップ向け構成にしています。</AppSubtitle>
-                    </HeaderCopy>
-
                     <ModeSwitcherCard>
                         <PanelHeader>
                             <Eyebrow>Editor Mode</Eyebrow>
