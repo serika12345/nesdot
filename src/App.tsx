@@ -11,7 +11,6 @@ import {
     LeftPane,
     ModeSwitcherCard,
     Panel,
-    PanelDescription,
     PanelHeader,
     PanelTitle,
     RightPane,
@@ -33,7 +32,6 @@ export const App: React.FC = () => {
                         <PanelHeader>
                             <Eyebrow>Editor Mode</Eyebrow>
                             <PanelTitle>作業モード</PanelTitle>
-                            <PanelDescription>スプライト編集と画面配置をここで切り替えます。</PanelDescription>
                         </PanelHeader>
                         <SegmentedControl>
                             <SegmentedButton active={editMode === "sprite"} onClick={() => setEditMode("sprite")}>
@@ -54,7 +52,6 @@ export const App: React.FC = () => {
                             <PanelHeader>
                                 <Eyebrow>Palette Console</Eyebrow>
                                 <PanelTitle>NES パレット</PanelTitle>
-                                <PanelDescription>必要なときだけ展開して編集する右側の補助パネルです。</PanelDescription>
                             </PanelHeader>
                             <PalettePicker />
                         </Panel>

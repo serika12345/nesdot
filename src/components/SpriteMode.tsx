@@ -11,14 +11,12 @@ import {
     Field,
     FieldGrid,
     FieldLabel,
-    HelperText,
     MetricCard,
     MetricGrid,
     MetricLabel,
     MetricValue,
     NumberInput,
     Panel,
-    PanelDescription,
     PanelHeader,
     PanelHeaderRow,
     PanelTitle,
@@ -132,9 +130,6 @@ export const SpriteMode: React.FC = () => {
                             />
                         </PanelHeaderRow>
                         <PanelTitle>スプライト編集</PanelTitle>
-                        <PanelDescription>
-                            スプライト番号、パレット、サイズの設定をここにまとめ、主作業面は右のキャンバスに固定しています。
-                        </PanelDescription>
                     </PanelHeader>
 
                     <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
@@ -215,7 +210,6 @@ export const SpriteMode: React.FC = () => {
                         </CollapseToggle>
                     </PanelHeaderRow>
                     <PanelTitle>Sprite Canvas</PanelTitle>
-                    <PanelDescription>描画ツールとスロット選択をここにまとめ、キャンバスの近くで作業を完結できる構造にしています。</PanelDescription>
                 </PanelHeader>
 
                 {isToolsOpen ? (
@@ -270,14 +264,8 @@ export const SpriteMode: React.FC = () => {
                                 {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
                             </ToolButton>
                         </Toolbar>
-
-                        <HelperText>
-                            並べ替えモード中は描画ツールを停止し、キャンバス上で 8×8 ブロックのドラッグだけを有効にします。
-                        </HelperText>
                     </div>
-                ) : (
-                    <HelperText>{isChangeOrderMode ? "並べ替えモードが有効です。" : "ツールはキャンバス上部に格納されています。"}</HelperText>
-                )}
+                ) : null}
 
                 <div
                     css={{
@@ -294,10 +282,7 @@ export const SpriteMode: React.FC = () => {
                     <PanelHeaderRow>
                         <div css={{ display: "grid", gap: 8 }}>
                             <Badge tone="neutral">Palette Slots</Badge>
-                            <div css={{ display: "grid", gap: 4 }}>
-                                <FieldLabel>現在のスロット</FieldLabel>
-                                <HelperText css={{ margin: 0 }}>Slot 0 は透明扱いです。必要なときだけ開いて選択します。</HelperText>
-                            </div>
+                            <FieldLabel>現在のスロット</FieldLabel>
                         </div>
                         <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
                             {isPaletteOpen ? "スロットを閉じる" : "スロットを開く"}
@@ -354,10 +339,6 @@ export const SpriteMode: React.FC = () => {
                         onChange={setTile}
                     />
                 </CanvasViewport>
-
-                <HelperText>
-                    左クリックで描画します。並べ替えモードでは 8×8 ブロック単位でドラッグし、同じスプライト内の配置を入れ替えます。
-                </HelperText>
             </Panel>
         </SplitLayout>
     );

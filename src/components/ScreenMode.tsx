@@ -152,7 +152,6 @@ export const ScreenMode: React.FC = () => {
                             />
                         </PanelHeaderRow>
                         <PanelTitle>スクリーン配置</PanelTitle>
-                        <PanelDescription>追加、選択、保存を左に集約し、右のプレビューは縮小して常時見える状態にしています。</PanelDescription>
                     </PanelHeader>
 
                     <MetricGrid>
@@ -346,7 +345,6 @@ export const ScreenMode: React.FC = () => {
                         <Badge tone="accent">2x Scale</Badge>
                     </PanelHeaderRow>
                     <PanelTitle>Screen Preview</PanelTitle>
-                    <PanelDescription>256×240 の表示を 2 倍で縮小プレビューしています。ページ全体のスクロールを避けるための表示です。</PanelDescription>
                 </PanelHeader>
 
                 <CanvasViewport css={{ minHeight: 520, placeItems: "center" }}>
