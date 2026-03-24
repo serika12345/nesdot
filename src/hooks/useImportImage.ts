@@ -2,8 +2,13 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { ProjectState } from "../store/projectState";
 
+type NativeImportResult =
+    | { status: "selected"; text: string }
+    | { status: "cancelled" }
+    | { status: "unavailable" };
+
 export default function useImportImage() {
-    const readJsonWithNativeDialog = async (): Promise<string | null | undefined> => {
+    const readJsonWithNativeDialog = async (): Promise<NativeImportResult> => {
         try {
             const selected = await open({
                 multiple: false,
@@ -11,57 +16,83 @@ export default function useImportImage() {
             });
 
             if (!selected) {
-                return null;
+                return { status: "cancelled" };
             }
 
             if (Array.isArray(selected)) {
-                return selected[0] ? await readTextFile(selected[0]) : null;
+                if (!selected[0]) {
+                    return { status: "cancelled" };
+                }
+
+                return { status: "selected", text: await readTextFile(selected[0]) };
             }
 
-            return await readTextFile(selected);
+            return { status: "selected", text: await readTextFile(selected) };
         } catch {
-            return undefined;
+            return { status: "unavailable" };
         }
     };
 
-    const importJSON = async (onImport: (data: ProjectState) => void) => {
-        const nativeText = await readJsonWithNativeDialog();
-        if (typeof nativeText === "string") {
-            onImport(JSON.parse(nativeText) as ProjectState);
-            return;
-        }
-
-        if (nativeText === null) {
-            throw new Error("No file selected");
-        }
-
-        // JSONインポート：ファイル選択ダイアログを出して読み込み
-        return new Promise<void>((resolve, reject) => {
+    const readJsonWithInputFallback = async (): Promise<string | null> => {
+        return new Promise<string | null>((resolve, reject) => {
             const input = document.createElement("input");
             input.type = "file";
             input.accept = ".json,application/json";
             input.style.display = "none";
             document.body.appendChild(input);
+
+            const cleanup = () => {
+                input.onchange = null;
+                input.oncancel = null;
+                document.body.removeChild(input);
+            };
+
             input.onchange = async (e) => {
                 const file = (e.target as HTMLInputElement).files?.[0];
                 if (!file) {
-                    document.body.removeChild(input);
-                    reject(new Error("No file selected"));
+                    cleanup();
+                    resolve(null);
                     return;
                 }
+
                 try {
-                    const text = await file.text();
-                    const data = JSON.parse(text) as ProjectState;
-                    onImport(data);
-                    resolve();
+                    resolve(await file.text());
                 } catch (err) {
                     reject(err);
                 } finally {
-                    document.body.removeChild(input);
+                    cleanup();
                 }
             };
+
+            input.oncancel = () => {
+                cleanup();
+                resolve(null);
+            };
+
             input.click();
         });
     };
+
+    const importJSON = async (onImport: (data: ProjectState) => void): Promise<boolean> => {
+        const nativeResult = await readJsonWithNativeDialog();
+
+        if (nativeResult.status === "selected") {
+            onImport(JSON.parse(nativeResult.text) as ProjectState);
+            return true;
+        }
+
+        if (nativeResult.status === "cancelled") {
+            return false;
+        }
+
+        const fallbackText = await readJsonWithInputFallback();
+        if (fallbackText == null) {
+            return false;
+        }
+
+        onImport(JSON.parse(fallbackText) as ProjectState);
+        return true;
+    };
+
     return { importJSON };
 }
