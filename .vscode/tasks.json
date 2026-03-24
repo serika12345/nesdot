@@ -2,10 +2,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Vite Dev Server",
+            "label": "Run Frontend Dev Server",
             "type": "shell",
             "command": "pnpm",
-            "args": ["vite"],
+            "args": ["dev"],
             "isBackground": true,
             "problemMatcher": {
                 "pattern": [
@@ -21,6 +21,16 @@
                     "beginsPattern": "ready in",
                     "endsPattern": "ready in"
                 }
+            }
+        },
+        {
+            "label": "Run Tauri Dev",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["start"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
             }
         }
     ]

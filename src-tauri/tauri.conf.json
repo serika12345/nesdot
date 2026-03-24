@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "identifier": "com.paseri3739.nesdot",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "pnpm dev:tauri",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"

@@ -6,6 +6,7 @@
   "description": "An NES screen emulator built with Tauri and React.",
   "scripts": {
     "dev": "vite",
+    "dev:tauri": "node scripts/ensure-tauri-dev-server.mjs",
     "start": "tauri dev",
     "build": "tsc --noEmit && vite build",
     "package": "tauri build",
