@@ -119,8 +119,8 @@ export const Container = styled.div`
     z-index: 1;
     min-height: 100vh;
     display: grid;
-    gap: 24px;
-    padding: 32px;
+    gap: 20px;
+    padding: 24px;
 `;
 
 export const AppHeader = styled.header`
@@ -134,9 +134,9 @@ export const HeaderCopy = styled.section`
     position: relative;
     overflow: hidden;
     display: grid;
-    gap: 10px;
-    padding: 28px 32px;
-    border-radius: 32px;
+    gap: 8px;
+    padding: 20px 24px;
+    border-radius: 28px;
     color: #e2e8f0;
     background:
         radial-gradient(circle at top right, rgba(45, 212, 191, 0.22), transparent 28%),
@@ -155,7 +155,7 @@ export const Eyebrow = styled.div`
 
 export const AppTitle = styled.h1`
     margin: 0;
-    font-size: 42px;
+    font-size: 34px;
     line-height: 1.05;
     letter-spacing: -0.04em;
 `;
@@ -163,16 +163,16 @@ export const AppTitle = styled.h1`
 export const AppSubtitle = styled.p`
     margin: 0;
     max-width: 760px;
-    font-size: 15px;
-    line-height: 1.7;
+    font-size: 14px;
+    line-height: 1.6;
     color: rgba(226, 232, 240, 0.82);
 `;
 
 export const ModeSwitcherCard = styled.section`
     display: grid;
-    gap: 18px;
-    padding: 24px;
-    border-radius: 28px;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9));
     border: 1px solid var(--panel-border);
     box-shadow: var(--panel-shadow);
@@ -211,23 +211,23 @@ export const SegmentedButton = styled.button<{ active?: boolean }>`
 
 export const WorkspaceGrid = styled.div`
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 20px;
     align-items: start;
 `;
 
 export const LeftPane = styled.div`
     display: grid;
-    gap: 20px;
+    gap: 16px;
     align-content: start;
     min-width: 0;
 `;
 
 export const RightPane = styled.aside`
     position: sticky;
-    top: 32px;
+    top: 24px;
     display: grid;
-    gap: 20px;
+    gap: 16px;
     align-content: start;
 `;
 
@@ -235,9 +235,9 @@ export const Panel = styled.section`
     position: relative;
     overflow: hidden;
     display: grid;
-    gap: 18px;
-    padding: 24px;
-    border-radius: 28px;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 24px;
     background: linear-gradient(180deg, var(--panel-surface-strong), var(--panel-surface));
     border: 1px solid var(--panel-border);
     box-shadow: var(--panel-shadow);
@@ -258,7 +258,15 @@ export const PanelHeader = styled.div`
     position: relative;
     z-index: 1;
     display: grid;
-    gap: 6px;
+    gap: 5px;
+`;
+
+export const PanelHeaderRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
 `;
 
 export const PanelTitle = styled.h2`
@@ -320,6 +328,117 @@ export const ToolButton = styled.button<{ active?: boolean; tone?: ButtonTone }>
 `;
 
 export const ActionButton = ToolButton;
+
+export const CollapseToggle = styled.button<{ open?: boolean }>`
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 9px 12px;
+    border: 1px solid ${(p) => (p.open ? "rgba(15, 118, 110, 0.2)" : "rgba(148, 163, 184, 0.18)")};
+    background: ${(p) => (p.open ? "rgba(15, 118, 110, 0.1)" : "rgba(248, 250, 252, 0.88)")};
+    color: ${(p) => (p.open ? "#0f766e" : "var(--ink-soft)")};
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+        transform 160ms ease,
+        background 160ms ease,
+        border-color 160ms ease;
+
+    &:hover {
+        transform: translateY(-1px);
+    }
+`;
+
+export const ActionCluster = styled.div`
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+`;
+
+export const ActionMenuWrap = styled.div`
+    position: relative;
+`;
+
+export const IconActionButton = styled.button<{ active?: boolean }>`
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    border: 1px solid ${(p) => (p.active ? "rgba(15, 118, 110, 0.22)" : "rgba(148, 163, 184, 0.2)")};
+    background: ${(p) =>
+        p.active
+            ? "linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.9))"
+            : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92))"};
+    color: ${(p) => (p.active ? "#0f766e" : "var(--ink-strong)")};
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        border-color 160ms ease;
+
+    &:hover {
+        transform: translateY(-1px);
+    }
+`;
+
+export const IconLabel = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+`;
+
+export const ActionMenu = styled.div`
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 220px;
+    display: grid;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(18px);
+`;
+
+export const ActionMenuButton = styled.button`
+    appearance: none;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink-strong);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    transition: background 160ms ease;
+
+    &:hover {
+        background: rgba(15, 23, 42, 0.05);
+    }
+`;
 
 export const CanvasActions = styled.div`
     position: relative;
@@ -406,8 +525,8 @@ export const Badge = styled.span<{ tone?: BadgeTone }>`
 
 export const SplitLayout = styled.div`
     display: grid;
-    grid-template-columns: 360px minmax(0, 1fr);
-    gap: 20px;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
 `;
 

@@ -35,18 +35,14 @@ export const App: React.FC = () => {
                     <HeaderCopy>
                         <Eyebrow>NES Visual Editor</Eyebrow>
                         <AppTitle>nesdot workspace</AppTitle>
-                        <AppSubtitle>
-                            スプライト編集、スクリーン配置、パレット調整をひとつの作業面にまとめたデスクトップ向けUIです。
-                        </AppSubtitle>
+                        <AppSubtitle>主要操作を折りたたみ、キャンバスを見失わないデスクトップ向け構成にしています。</AppSubtitle>
                     </HeaderCopy>
 
                     <ModeSwitcherCard>
                         <PanelHeader>
                             <Eyebrow>Editor Mode</Eyebrow>
                             <PanelTitle>作業モード</PanelTitle>
-                            <PanelDescription>
-                                現在の機能はそのままに、モード切り替えだけを常時見えるセグメントに整理しています。
-                            </PanelDescription>
+                            <PanelDescription>スプライト編集と画面配置をここで切り替えます。</PanelDescription>
                         </PanelHeader>
                         <SegmentedControl>
                             <SegmentedButton active={editMode === "sprite"} onClick={() => setEditMode("sprite")}>
@@ -67,9 +63,7 @@ export const App: React.FC = () => {
                             <PanelHeader>
                                 <Eyebrow>Palette Console</Eyebrow>
                                 <PanelTitle>NES パレット</PanelTitle>
-                                <PanelDescription>
-                                    4つのパレットと NES 64色を右ペインに固定し、どのモードでも同じ場所から編集できます。
-                                </PanelDescription>
+                                <PanelDescription>必要なときだけ展開して編集する右側の補助パネルです。</PanelDescription>
                             </PanelHeader>
                             <PalettePicker />
                         </Panel>

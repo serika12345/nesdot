@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import {
-    ActionButton,
     Badge,
-    CanvasActions,
     CanvasViewport,
+    CollapseToggle,
     DetailKey,
     DetailList,
     DetailRow,
@@ -21,6 +20,7 @@ import {
     Panel,
     PanelDescription,
     PanelHeader,
+    PanelHeaderRow,
     PanelTitle,
     SelectInput,
     SplitLayout,
@@ -39,9 +39,11 @@ import {
     useProjectState,
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
-import { Tool } from "./hooks/useSpriteCanvas";
+import { ProjectActions } from "./ProjectActions";
 import { SlotButton } from "./PalettePicker.styles";
+import { Tool } from "./hooks/useSpriteCanvas";
 import { SpriteCanvas } from "./SpriteCanvas";
+import { ChevronIcon } from "./ui/Icons";
 
 function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
     return makeTile(height, 0, paletteIndex);
@@ -53,6 +55,9 @@ export const SpriteMode: React.FC = () => {
     const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
     const [activeSprite, setActiveSprite] = useState<number>(0);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(true);
+    const [isToolsOpen, setIsToolsOpen] = useState(false);
+    const [isPaletteOpen, setIsPaletteOpen] = useState(false);
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const palettes = useProjectState((s) => s.palettes);
     const sprites = useProjectState((s) => s.sprites);
@@ -112,173 +117,228 @@ export const SpriteMode: React.FC = () => {
 
     return (
         <SplitLayout>
-            <div css={{ display: "grid", gap: 20 }}>
+            <div css={{ display: "grid", gap: 16 }}>
                 <Panel>
                     <PanelHeader>
-                        <Badge tone="accent">{isChangeOrderMode ? "Reorder Mode" : "Brush Mode"}</Badge>
-                        <PanelTitle>スプライト設定</PanelTitle>
+                        <PanelHeaderRow>
+                            <Badge tone="accent">{isChangeOrderMode ? "Reorder Mode" : "Brush Mode"}</Badge>
+                            <ProjectActions
+                                actions={[
+                                    { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
+                                    { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)) },
+                                    { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)) },
+                                    { label: "保存", onSelect: () => exportJSON(projectState) },
+                                ]}
+                                onImport={handleImport}
+                            />
+                        </PanelHeaderRow>
+                        <PanelTitle>スプライト編集</PanelTitle>
                         <PanelDescription>
-                            編集対象のスプライト、サイズ、パレットを切り替えます。現在のデータ構造はそのまま使っています。
+                            必要なときだけ左側の各UIを展開し、主作業面は右のキャンバスに固定しています。
                         </PanelDescription>
                     </PanelHeader>
 
-                    <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                        <Field>
-                            <FieldLabel>スプライト番号</FieldLabel>
-                            <NumberInput
-                                type="number"
-                                value={activeSprite}
-                                onChange={(e) => handleSpriteChange(e.target.value)}
-                                step={1}
-                                min={0}
-                                max={63}
-                            />
-                        </Field>
-                        <Field>
-                            <FieldLabel>パレット</FieldLabel>
-                            <SelectInput value={activePalette} onChange={(e) => handlePaletteChange(e.target.value)}>
-                                {palettes.map((_, i) => (
-                                    <option key={i} value={i}>
-                                        Palette {i}
-                                    </option>
-                                ))}
-                            </SelectInput>
-                        </Field>
-                    </FieldGrid>
-
-                    <Toolbar>
-                        <ToolButton onClick={() => setHeight(8)} active={activeTile.height === 8}>
-                            8×8
-                        </ToolButton>
-                        <ToolButton onClick={() => setHeight(16)} active={activeTile.height === 16}>
-                            8×16
-                        </ToolButton>
-                    </Toolbar>
-
                     <MetricGrid>
                         <MetricCard>
-                            <MetricLabel>キャンバス</MetricLabel>
+                            <MetricLabel>対象</MetricLabel>
+                            <MetricValue>#{activeSprite}</MetricValue>
+                        </MetricCard>
+                        <MetricCard>
+                            <MetricLabel>サイズ</MetricLabel>
                             <MetricValue>
                                 {activeTile.width}×{activeTile.height}
                             </MetricValue>
                         </MetricCard>
                         <MetricCard>
-                            <MetricLabel>アクティブ</MetricLabel>
+                            <MetricLabel>現在色</MetricLabel>
                             <MetricValue>slot {activeSlot}</MetricValue>
                         </MetricCard>
-                        <MetricCard>
-                            <MetricLabel>表示パレット</MetricLabel>
-                            <MetricValue>Palette {activePalette}</MetricValue>
-                        </MetricCard>
                     </MetricGrid>
-                </Panel>
-
-                <Panel>
-                    <PanelHeader>
-                        <Badge tone={isChangeOrderMode ? "accent" : "neutral"}>Tools</Badge>
-                        <PanelTitle>ツールと操作</PanelTitle>
-                        <PanelDescription>
-                            ペンと消しゴムで描画し、必要に応じて 8×8 ブロックの並べ替えモードに切り替えます。
-                        </PanelDescription>
-                    </PanelHeader>
-
-                    <Toolbar>
-                        <ToolButton onClick={() => setTool("pen")} active={tool === "pen"} disabled={isChangeOrderMode}>
-                            ペン
-                        </ToolButton>
-                        <ToolButton onClick={() => setTool("eraser")} active={tool === "eraser"} disabled={isChangeOrderMode}>
-                            消しゴム
-                        </ToolButton>
-                        <ToolButton
-                            disabled={isChangeOrderMode}
-                            onClick={() => {
-                                if (confirm("本当にクリアしますか？")) {
-                                    setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
-                                }
-                            }}
-                        >
-                            クリア
-                        </ToolButton>
-                        <ToolButton
-                            active={isChangeOrderMode}
-                            tone={isChangeOrderMode ? "primary" : "neutral"}
-                            onClick={() => setIsChangeOrderMode((prev) => !prev)}
-                        >
-                            {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
-                        </ToolButton>
-                    </Toolbar>
 
                     <DetailList>
+                        <DetailRow>
+                            <DetailKey>表示パレット</DetailKey>
+                            <DetailValue>Palette {activePalette}</DetailValue>
+                        </DetailRow>
                         <DetailRow>
                             <DetailKey>描画モード</DetailKey>
                             <DetailValue>{isChangeOrderMode ? "8×8 ブロックをドラッグ" : tool === "pen" ? "ペン" : "消しゴム"}</DetailValue>
                         </DetailRow>
-                        <DetailRow>
-                            <DetailKey>エディタ倍率</DetailKey>
-                            <DetailValue>24x</DetailValue>
-                        </DetailRow>
                     </DetailList>
-
-                    <HelperText>
-                        並べ替えモード中は描画ツールを固定停止し、キャンバス上で 8×8 単位のドラッグだけを有効にしています。
-                    </HelperText>
                 </Panel>
 
                 <Panel>
                     <PanelHeader>
-                        <Badge tone="neutral">Palette Slots</Badge>
-                        <PanelTitle>現在のスロット</PanelTitle>
-                        <PanelDescription>スプライト編集中のスロットをここで選択します。Slot 0 は透明扱いです。</PanelDescription>
+                        <PanelHeaderRow>
+                            <Badge tone="neutral">Setup</Badge>
+                            <CollapseToggle type="button" open={isSettingsOpen} onClick={() => setIsSettingsOpen((prev) => !prev)}>
+                                {isSettingsOpen ? "閉じる" : "開く"}
+                                <ChevronIcon open={isSettingsOpen} />
+                            </CollapseToggle>
+                        </PanelHeaderRow>
+                        <PanelTitle>スプライト設定</PanelTitle>
+                        <PanelDescription>編集対象の番号、サイズ、表示パレットを切り替えます。</PanelDescription>
                     </PanelHeader>
 
-                    <div
-                        css={{
-                            position: "relative",
-                            zIndex: 1,
-                            display: "grid",
-                            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                            gap: 12,
-                        }}
-                    >
-                        {palettes[activePalette].map((idx, j) => (
-                            <div
-                                key={j}
-                                css={{
-                                    display: "grid",
-                                    justifyItems: "center",
-                                    gap: 8,
-                                    padding: "12px 8px",
-                                    borderRadius: 18,
-                                    background: activeSlot === j ? "rgba(15, 118, 110, 0.1)" : "rgba(248, 250, 252, 0.76)",
-                                    border:
-                                        activeSlot === j
-                                            ? "1px solid rgba(15, 118, 110, 0.16)"
-                                            : "1px solid rgba(148, 163, 184, 0.14)",
-                                }}
-                            >
-                                <SlotButton
-                                    onClick={() => handlePaletteClick(j)}
-                                    title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
-                                    active={activeSlot === j}
-                                    transparent={j === 0}
-                                    bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                                />
-                                <div
-                                    css={{
-                                        fontSize: 11,
-                                        fontWeight: 700,
-                                        letterSpacing: "0.08em",
-                                        textTransform: "uppercase",
-                                        color: "var(--ink-soft)",
+                    {isSettingsOpen ? (
+                        <>
+                            <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+                                <Field>
+                                    <FieldLabel>スプライト番号</FieldLabel>
+                                    <NumberInput
+                                        type="number"
+                                        value={activeSprite}
+                                        onChange={(e) => handleSpriteChange(e.target.value)}
+                                        step={1}
+                                        min={0}
+                                        max={63}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel>パレット</FieldLabel>
+                                    <SelectInput value={activePalette} onChange={(e) => handlePaletteChange(e.target.value)}>
+                                        {palettes.map((_, i) => (
+                                            <option key={i} value={i}>
+                                                Palette {i}
+                                            </option>
+                                        ))}
+                                    </SelectInput>
+                                </Field>
+                            </FieldGrid>
+
+                            <Toolbar>
+                                <ToolButton onClick={() => setHeight(8)} active={activeTile.height === 8}>
+                                    8×8
+                                </ToolButton>
+                                <ToolButton onClick={() => setHeight(16)} active={activeTile.height === 16}>
+                                    8×16
+                                </ToolButton>
+                            </Toolbar>
+                        </>
+                    ) : (
+                        <HelperText>現在は sprite #{activeSprite} / Palette {activePalette} を編集しています。</HelperText>
+                    )}
+                </Panel>
+
+                <Panel>
+                    <PanelHeader>
+                        <PanelHeaderRow>
+                            <Badge tone={isChangeOrderMode ? "accent" : "neutral"}>Tools</Badge>
+                            <CollapseToggle type="button" open={isToolsOpen} onClick={() => setIsToolsOpen((prev) => !prev)}>
+                                {isToolsOpen ? "閉じる" : "開く"}
+                                <ChevronIcon open={isToolsOpen} />
+                            </CollapseToggle>
+                        </PanelHeaderRow>
+                        <PanelTitle>ツールと操作</PanelTitle>
+                        <PanelDescription>描画ツールと 8×8 並べ替えモードをここで切り替えます。</PanelDescription>
+                    </PanelHeader>
+
+                    {isToolsOpen ? (
+                        <>
+                            <Toolbar>
+                                <ToolButton onClick={() => setTool("pen")} active={tool === "pen"} disabled={isChangeOrderMode}>
+                                    ペン
+                                </ToolButton>
+                                <ToolButton
+                                    onClick={() => setTool("eraser")}
+                                    active={tool === "eraser"}
+                                    disabled={isChangeOrderMode}
+                                >
+                                    消しゴム
+                                </ToolButton>
+                                <ToolButton
+                                    disabled={isChangeOrderMode}
+                                    onClick={() => {
+                                        if (confirm("本当にクリアしますか？")) {
+                                            setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
+                                        }
                                     }}
                                 >
-                                    slot{j}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                    クリア
+                                </ToolButton>
+                                <ToolButton
+                                    active={isChangeOrderMode}
+                                    tone={isChangeOrderMode ? "primary" : "neutral"}
+                                    onClick={() => setIsChangeOrderMode((prev) => !prev)}
+                                >
+                                    {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
+                                </ToolButton>
+                            </Toolbar>
 
-                    <Divider />
+                            <HelperText>
+                                並べ替えモード中は描画ツールを停止し、キャンバス上で 8×8 ブロックのドラッグだけを有効にします。
+                            </HelperText>
+                        </>
+                    ) : (
+                        <HelperText>{isChangeOrderMode ? "並べ替えモードが有効です。" : "現在のツールは閉じたまま維持されます。"}</HelperText>
+                    )}
+                </Panel>
+
+                <Panel>
+                    <PanelHeader>
+                        <PanelHeaderRow>
+                            <Badge tone="neutral">Palette Slots</Badge>
+                            <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
+                                {isPaletteOpen ? "閉じる" : "開く"}
+                                <ChevronIcon open={isPaletteOpen} />
+                            </CollapseToggle>
+                        </PanelHeaderRow>
+                        <PanelTitle>現在のスロット</PanelTitle>
+                        <PanelDescription>Slot 0 は透明扱いです。必要なときだけ開いて選択します。</PanelDescription>
+                    </PanelHeader>
+
+                    {isPaletteOpen ? (
+                        <>
+                            <div
+                                css={{
+                                    position: "relative",
+                                    zIndex: 1,
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                                    gap: 12,
+                                }}
+                            >
+                                {palettes[activePalette].map((idx, j) => (
+                                    <div
+                                        key={j}
+                                        css={{
+                                            display: "grid",
+                                            justifyItems: "center",
+                                            gap: 8,
+                                            padding: "12px 8px",
+                                            borderRadius: 18,
+                                            background: activeSlot === j ? "rgba(15, 118, 110, 0.1)" : "rgba(248, 250, 252, 0.76)",
+                                            border:
+                                                activeSlot === j
+                                                    ? "1px solid rgba(15, 118, 110, 0.16)"
+                                                    : "1px solid rgba(148, 163, 184, 0.14)",
+                                        }}
+                                    >
+                                        <SlotButton
+                                            onClick={() => handlePaletteClick(j)}
+                                            title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                            active={activeSlot === j}
+                                            transparent={j === 0}
+                                            bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                        />
+                                        <div
+                                            css={{
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                letterSpacing: "0.08em",
+                                                textTransform: "uppercase",
+                                                color: "var(--ink-soft)",
+                                            }}
+                                        >
+                                            slot{j}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <Divider />
+                        </>
+                    ) : null}
 
                     <DetailList>
                         <DetailRow>
@@ -287,36 +347,19 @@ export const SpriteMode: React.FC = () => {
                         </DetailRow>
                     </DetailList>
                 </Panel>
-
-                <Panel>
-                    <PanelHeader>
-                        <Badge tone="neutral">Project I/O</Badge>
-                        <PanelTitle>エクスポートと保存</PanelTitle>
-                        <PanelDescription>CHR と画像書き出し、JSON 保存と復元はこれまでと同じ動作のままです。</PanelDescription>
-                    </PanelHeader>
-
-                    <CanvasActions>
-                        <ActionButton tone="primary" onClick={() => exportChr(activeTile, activePalette)}>
-                            CHRエクスポート
-                        </ActionButton>
-                        <ActionButton onClick={() => exportPng(getHexArrayForSpriteTile(activeTile))}>PNGエクスポート</ActionButton>
-                        <ActionButton onClick={() => exportSvgSimple(getHexArrayForSpriteTile(activeTile))}>SVGエクスポート</ActionButton>
-                        <ActionButton onClick={() => exportJSON(projectState)}>保存</ActionButton>
-                        <ActionButton onClick={handleImport}>復元</ActionButton>
-                    </CanvasActions>
-                </Panel>
             </div>
 
             <Panel>
                 <PanelHeader>
-                    <Badge tone="neutral">Canvas</Badge>
+                    <PanelHeaderRow>
+                        <Badge tone="neutral">Canvas</Badge>
+                        <Badge tone="accent">Always On</Badge>
+                    </PanelHeaderRow>
                     <PanelTitle>Sprite Canvas</PanelTitle>
-                    <PanelDescription>
-                        ピクセル編集と並べ替えの主作業面です。既存の描画ロジックとイベントハンドラはそのまま利用しています。
-                    </PanelDescription>
+                    <PanelDescription>主作業面は右に固定し、左の各操作パネルだけを必要時に開く構造にしています。</PanelDescription>
                 </PanelHeader>
 
-                <CanvasViewport css={{ minHeight: 540, placeItems: "center" }}>
+                <CanvasViewport css={{ minHeight: 520, placeItems: "center" }}>
                     <SpriteCanvas
                         isChangeOrderMode={isChangeOrderMode}
                         target={activeSprite}
