@@ -209,12 +209,6 @@ export const SpriteMode: React.FC = () => {
 
             <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
-                    <PanelHeaderRow>
-                        <CollapseToggle type="button" open={isToolsOpen} onClick={() => setIsToolsOpen((prev) => !prev)}>
-                            {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
-                            <ChevronIcon open={isToolsOpen} />
-                        </CollapseToggle>
-                    </PanelHeaderRow>
                     <PanelTitle>スプライトキャンバス</PanelTitle>
                 </PanelHeader>
 
@@ -259,11 +253,25 @@ export const SpriteMode: React.FC = () => {
                 </div>
 
                 <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
+                    <div
+                        css={{
+                            position: "absolute",
+                            top: 18,
+                            left: 18,
+                            zIndex: 4,
+                        }}
+                    >
+                        <CollapseToggle type="button" open={isToolsOpen} onClick={() => setIsToolsOpen((prev) => !prev)}>
+                            {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
+                            <ChevronIcon open={isToolsOpen} />
+                        </CollapseToggle>
+                    </div>
+
                     {isToolsOpen ? (
                         <div
                             css={{
                                 position: "absolute",
-                                top: 18,
+                                top: 68,
                                 left: 18,
                                 zIndex: 3,
                                 bottom: 18,
