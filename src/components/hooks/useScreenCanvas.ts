@@ -49,21 +49,22 @@ export const useScreenCanvas = ({
         Array.from({ length: spriteTile.width }, (_, px) => px).forEach(
           (px) => {
             const colorIndex = sprite.pixels[py][px];
-            if (colorIndex === 0) continue; // 0は透明
-            const nesColorIndex =
-              useProjectState.getState().palettes[sprite.paletteIndex][
-                colorIndex
-              ];
-            const hex = useProjectState.getState().palettes
-              ? NES_PALETTE_HEX[nesColorIndex]
-              : "#f0f";
-            ctx.fillStyle = hex;
-            ctx.fillRect(
-              (sprite.x + px) * scale,
-              (sprite.y + py) * scale,
-              scale,
-              scale,
-            );
+            if (colorIndex !== 0) {
+              const nesColorIndex =
+                useProjectState.getState().palettes[sprite.paletteIndex][
+                  colorIndex
+                ];
+              const hex = useProjectState.getState().palettes
+                ? NES_PALETTE_HEX[nesColorIndex]
+                : "#f0f";
+              ctx.fillStyle = hex;
+              ctx.fillRect(
+                (sprite.x + px) * scale,
+                (sprite.y + py) * scale,
+                scale,
+                scale,
+              );
+            }
           },
         );
       });

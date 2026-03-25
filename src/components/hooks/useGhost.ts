@@ -51,13 +51,15 @@ export const useGhost = ({
         Array.from({ length: 8 }, (_, xx) => xx).forEach((xx) => {
           const gx = tileX + xx;
           const gy = tileY + yy;
-          if (gx < 0 || gy < 0 || gx >= width || gy >= height) continue;
-          const colorIdx = tile.pixels[gy][gx];
-          if (colorIdx !== 0) {
-            const hex =
-              NES_PALETTE_HEX[palettes[currentSelectPalette][colorIdx]];
-            gctx.fillStyle = hex;
-            gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
+          const inBounds = gx >= 0 && gy >= 0 && gx < width && gy < height;
+          if (inBounds) {
+            const colorIdx = tile.pixels[gy][gx];
+            if (colorIdx !== 0) {
+              const hex =
+                NES_PALETTE_HEX[palettes[currentSelectPalette][colorIdx]];
+              gctx.fillStyle = hex;
+              gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
+            }
           }
         });
       });
