@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import React, { useState } from "react";
 import {
   CanvasViewport,
   CollapseToggle,
@@ -46,7 +46,9 @@ export const ScreenMode: React.FC = () => {
   const [spriteNumber, setSpriteNumber] = useState(0);
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
-  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<O.Option<number>>(() =>
+  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
+    O.Option<number>
+  >(() =>
     useProjectState.getState().screen.sprites.length > 0 ? O.some(0) : O.none,
   );
   const [isPlacementOpen, setIsPlacementOpen] = useState(true);
@@ -64,7 +66,9 @@ export const ScreenMode: React.FC = () => {
     try {
       await importJSON((data) => {
         useProjectState.setState(data);
-        setSelectedSpriteIndex(data.screen.sprites.length > 0 ? O.some(0) : O.none);
+        setSelectedSpriteIndex(
+          data.screen.sprites.length > 0 ? O.some(0) : O.none,
+        );
 
         const result = scan(data.screen);
         if (result.ok === false) {
@@ -250,7 +254,9 @@ export const ScreenMode: React.FC = () => {
                 <SelectInput
                   onChange={(e) => {
                     const next = e.target.value;
-                    setSelectedSpriteIndex(next === "" ? O.none : O.some(Number(next)));
+                    setSelectedSpriteIndex(
+                      next === "" ? O.none : O.some(Number(next)),
+                    );
                   }}
                   value={pipe(
                     selectedSpriteIndex,
@@ -280,96 +286,108 @@ export const ScreenMode: React.FC = () => {
                     </HelperText>
                   ),
                   (selectedSprite) => (
-                <>
-                  <DetailList>
-                    <DetailRow>
-                      <DetailKey>元スプライト</DetailKey>
-                      <DetailValue>
-                        spriteIndex {selectedSprite.spriteIndex}
-                      </DetailValue>
-                    </DetailRow>
-                    <DetailRow>
-                      <DetailKey>サイズ</DetailKey>
-                      <DetailValue>
-                        {selectedSprite.width}×{selectedSprite.height}
-                      </DetailValue>
-                    </DetailRow>
-                  </DetailList>
+                    <>
+                      <DetailList>
+                        <DetailRow>
+                          <DetailKey>元スプライト</DetailKey>
+                          <DetailValue>
+                            spriteIndex {selectedSprite.spriteIndex}
+                          </DetailValue>
+                        </DetailRow>
+                        <DetailRow>
+                          <DetailKey>サイズ</DetailKey>
+                          <DetailValue>
+                            {selectedSprite.width}×{selectedSprite.height}
+                          </DetailValue>
+                        </DetailRow>
+                      </DetailList>
 
-                  <FieldGrid
-                    css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-                  >
-                    <Field>
-                      <FieldLabel>Position X</FieldLabel>
-                      <NumberInput
-                        type="number"
-                        value={selectedSprite.x}
-                        onChange={(e) => {
-                          const newX = Number(e.target.value);
-                          const newSprites = spritesOnScreen.map((s, i) =>
-                            i === selectedIndexValue ? { ...s, x: newX } : s,
+                      <FieldGrid
+                        css={{
+                          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        }}
+                      >
+                        <Field>
+                          <FieldLabel>Position X</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            value={selectedSprite.x}
+                            onChange={(e) => {
+                              const newX = Number(e.target.value);
+                              const newSprites = spritesOnScreen.map((s, i) =>
+                                i === selectedIndexValue
+                                  ? { ...s, x: newX }
+                                  : s,
+                              );
+                              const newScreen = {
+                                ...screen,
+                                sprites: newSprites,
+                              };
+                              const report = scan(newScreen);
+                              if (report.ok === false) {
+                                alert(
+                                  "位置の更新に失敗しました。制約違反:\n" +
+                                    report.errors.join("\n"),
+                                );
+                                return;
+                              }
+                              useProjectState.setState({ screen: newScreen });
+                            }}
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel>Position Y</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            value={selectedSprite.y}
+                            onChange={(e) => {
+                              const newY = Number(e.target.value);
+                              const newSprites = spritesOnScreen.map((s, i) =>
+                                i === selectedIndexValue
+                                  ? { ...s, y: newY }
+                                  : s,
+                              );
+                              const newScreen = {
+                                ...screen,
+                                sprites: newSprites,
+                              };
+                              const report = scan(newScreen);
+                              if (report.ok === false) {
+                                alert(
+                                  "位置の更新に失敗しました。制約違反:\n" +
+                                    report.errors.join("\n"),
+                                );
+                                return;
+                              }
+                              useProjectState.setState({ screen: newScreen });
+                            }}
+                          />
+                        </Field>
+                      </FieldGrid>
+
+                      <ToolButton
+                        type="button"
+                        tone="danger"
+                        onClick={() => {
+                          const newSprites = spritesOnScreen.filter(
+                            (_, i) => i !== selectedIndexValue,
                           );
                           const newScreen = { ...screen, sprites: newSprites };
                           const report = scan(newScreen);
                           if (report.ok === false) {
                             alert(
-                              "位置の更新に失敗しました。制約違反:\n" +
+                              "削除後の状態で制約違反が検出されました:\n" +
                                 report.errors.join("\n"),
                             );
-                            return;
                           }
                           useProjectState.setState({ screen: newScreen });
+                          setSelectedSpriteIndex(O.none);
                         }}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel>Position Y</FieldLabel>
-                      <NumberInput
-                        type="number"
-                        value={selectedSprite.y}
-                        onChange={(e) => {
-                          const newY = Number(e.target.value);
-                          const newSprites = spritesOnScreen.map((s, i) =>
-                            i === selectedIndexValue ? { ...s, y: newY } : s,
-                          );
-                          const newScreen = { ...screen, sprites: newSprites };
-                          const report = scan(newScreen);
-                          if (report.ok === false) {
-                            alert(
-                              "位置の更新に失敗しました。制約違反:\n" +
-                                report.errors.join("\n"),
-                            );
-                            return;
-                          }
-                          useProjectState.setState({ screen: newScreen });
-                        }}
-                      />
-                    </Field>
-                  </FieldGrid>
-
-                  <ToolButton
-                    type="button"
-                    tone="danger"
-                    onClick={() => {
-                      const newSprites = spritesOnScreen.filter(
-                        (_, i) => i !== selectedIndexValue,
-                      );
-                      const newScreen = { ...screen, sprites: newSprites };
-                      const report = scan(newScreen);
-                      if (report.ok === false) {
-                        alert(
-                          "削除後の状態で制約違反が検出されました:\n" +
-                            report.errors.join("\n"),
-                        );
-                      }
-                      useProjectState.setState({ screen: newScreen });
-                      setSelectedSpriteIndex(O.none);
-                    }}
-                    css={{ minHeight: 46 }}
-                  >
-                    このスプライトを削除
-                  </ToolButton>
-                </>
+                        css={{ minHeight: 46 }}
+                      >
+                        このスプライトを削除
+                      </ToolButton>
+                    </>
                   ),
                 ),
               )}

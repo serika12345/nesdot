@@ -124,7 +124,8 @@ const idbStorage: StateStorage = {
       O.fromNullable(value),
       O.match(
         () => EMPTY_STORAGE_VALUE,
-        (stored) => (typeof stored === "string" ? stored : JSON.stringify(stored)),
+        (stored) =>
+          typeof stored === "string" ? stored : JSON.stringify(stored),
       ),
     );
   },

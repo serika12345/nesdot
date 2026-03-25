@@ -1,6 +1,6 @@
-import type { Palettes, Screen, SpriteTile } from "../store/projectState";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import type { Palettes, Screen, SpriteTile } from "../store/projectState";
 import { NES_PALETTE_HEX } from "./palette";
 
 export function renderSpriteTileToHexArray(
