@@ -112,6 +112,19 @@ export const SpriteMode: React.FC = () => {
         }
     };
 
+    const handleClearSprite = async () => {
+        const message = "本当にクリアしますか？";
+        const shouldClear = await tauriConfirm(message, {
+            title: "スプライトをクリア",
+            okLabel: "クリア",
+            cancelLabel: "キャンセル",
+        }).catch(() => window.confirm(message));
+
+        if (shouldClear) {
+            setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
+        }
+    };
+
     return (
         <SplitLayout>
             <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
@@ -205,62 +218,6 @@ export const SpriteMode: React.FC = () => {
                     <PanelTitle>スプライトキャンバス</PanelTitle>
                 </PanelHeader>
 
-                {isToolsOpen ? (
-                    <div
-                        css={{
-                            position: "relative",
-                            zIndex: 1,
-                            display: "grid",
-                            gap: 12,
-                            padding: 14,
-                            borderRadius: 20,
-                            background: "rgba(248, 250, 252, 0.82)",
-                            border: "1px solid rgba(148, 163, 184, 0.16)",
-                            flexShrink: 0,
-                        }}
-                    >
-                        <Toolbar>
-                            <ToolButton type="button" onClick={() => setTool("pen")} active={tool === "pen"} disabled={isChangeOrderMode}>
-                                ペン
-                            </ToolButton>
-                            <ToolButton
-                                type="button"
-                                onClick={() => setTool("eraser")}
-                                active={tool === "eraser"}
-                                disabled={isChangeOrderMode}
-                            >
-                                消しゴム
-                            </ToolButton>
-                            <ToolButton
-                                type="button"
-                                disabled={isChangeOrderMode}
-                                onClick={async () => {
-                                    const message = "本当にクリアしますか？";
-                                    const shouldClear = await tauriConfirm(message, {
-                                        title: "スプライトをクリア",
-                                        okLabel: "クリア",
-                                        cancelLabel: "キャンセル",
-                                    }).catch(() => window.confirm(message));
-
-                                    if (shouldClear) {
-                                        setTile(makeEmptyTile(activeTile.height, activeTile.paletteIndex), activeSprite);
-                                    }
-                                }}
-                            >
-                                クリア
-                            </ToolButton>
-                            <ToolButton
-                                type="button"
-                                active={isChangeOrderMode}
-                                tone={isChangeOrderMode ? "primary" : "neutral"}
-                                onClick={() => setIsChangeOrderMode((prev) => !prev)}
-                            >
-                                {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
-                            </ToolButton>
-                        </Toolbar>
-                    </div>
-                ) : null}
-
                 <div
                     css={{
                         position: "relative",
@@ -320,6 +277,74 @@ export const SpriteMode: React.FC = () => {
                 </div>
 
                 <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
+                    {isToolsOpen ? (
+                        <div
+                            css={{
+                                position: "absolute",
+                                top: 18,
+                                left: 18,
+                                zIndex: 3,
+                                bottom: 18,
+                                pointerEvents: "none",
+                                display: "flex",
+                                alignItems: "flex-start",
+                            }}
+                        >
+                            <div
+                                css={{
+                                    pointerEvents: "auto",
+                                    display: "grid",
+                                    gap: 10,
+                                    padding: 12,
+                                    width: 136,
+                                    borderRadius: 18,
+                                    background: "rgba(248, 250, 252, 0.84)",
+                                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                                    boxShadow: "0 18px 34px rgba(15, 23, 42, 0.16)",
+                                    backdropFilter: "blur(14px)",
+                                }}
+                            >
+                                <div css={{ display: "grid", gap: 8 }}>
+                                    <ToolButton
+                                        type="button"
+                                        onClick={() => setTool("pen")}
+                                        active={tool === "pen"}
+                                        disabled={isChangeOrderMode}
+                                        css={{ width: "100%", justifyContent: "center", padding: "10px 14px" }}
+                                    >
+                                        ペン
+                                    </ToolButton>
+                                    <ToolButton
+                                        type="button"
+                                        onClick={() => setTool("eraser")}
+                                        active={tool === "eraser"}
+                                        disabled={isChangeOrderMode}
+                                        css={{ width: "100%", justifyContent: "center", padding: "10px 14px" }}
+                                    >
+                                        消しゴム
+                                    </ToolButton>
+                                    <ToolButton
+                                        type="button"
+                                        disabled={isChangeOrderMode}
+                                        onClick={handleClearSprite}
+                                        css={{ width: "100%", justifyContent: "center", padding: "10px 14px" }}
+                                    >
+                                        クリア
+                                    </ToolButton>
+                                    <ToolButton
+                                        type="button"
+                                        active={isChangeOrderMode}
+                                        tone={isChangeOrderMode ? "primary" : "neutral"}
+                                        onClick={() => setIsChangeOrderMode((prev) => !prev)}
+                                        css={{ width: "100%", justifyContent: "center", padding: "10px 14px" }}
+                                    >
+                                        {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
+                                    </ToolButton>
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+
                     <SpriteCanvas
                         isChangeOrderMode={isChangeOrderMode}
                         target={activeSprite}
