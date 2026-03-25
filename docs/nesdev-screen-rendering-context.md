@@ -8,11 +8,16 @@
 
 ## このリポジトリの現状
 
-- `screen` は `256x240` 固定で、`backgroundTiles` と `sprites` を持っています。
+- `screen` は `256x240` 固定で、`sprites` を持っています。背景は `nes.nameTable` / `nes.attributeTable` / `nes.chrBytes` から描画します。
 - 背景タイルのデータ構造はありますが、[`useScreenCanvas.ts`](/Users/masato/Documents/nesdot/src/components/hooks/useScreenCanvas.ts#L28) は背景を描かず、チェッカ背景の上にスプライトだけを描いています。
-- [`getHexArrayForScreen`](/Users/masato/Documents/nesdot/src/store/projectState.ts#L148) は背景とスプライトの合成をしていますが、背景パレットを `8x8` 単位で持っており、NES の `16x16` 属性領域を表現できません。
+- [`getHexArrayForScreen`](/Users/masato/Documents/nesdot/src/store/projectState.ts#L139) は背景とスプライトの合成を行い、背景パレットは `nes.attributeTable` に基づく `16x16` 属性領域で解決します。
 - スプライトの前後関係は [`spriteIndex` 昇順で描画](/Users/masato/Documents/nesdot/src/store/projectState.ts#L181) しており、NES の OAM 順序とは一致していません。
-- [`ScreenMode.tsx`](/Users/masato/Documents/nesdot/src/components/ScreenMode.tsx#L24) の制約チェックは、総数 `64` とスキャンライン `8` 枚までに限定されています。
+- [`ScreenMode.tsx`](/Users/masato/Documents/nesdot/src/components/ScreenMode.tsx#L1) の制約チェックは `scanNesSpriteConstraints` を使い、`screen -> nes.oam` 同期後の NES ルール（総数 `64` / 1 scanline `8` / OAM Y+1 / `ppuControl.spriteSize`）で判定しています。
+
+## 完了済み
+
+- スプライト制約チェックを NES 基準へ移行（総数 `64` / 1 scanline `8` / OAM Y+1 / `spriteSize` 反映）。
+- `screen` 更新時に `nes.oam` を同時同期し、画面編集と制約判定の入力データを一致させる。
 
 ## 実装するべき制約
 
@@ -111,12 +116,10 @@
 
 ## このリポジトリでの実装順
 
-1. 背景描画を `checker` から `backgroundTiles` ベースへ置き換える
-2. 背景パレット制約を `8x8` 単位から `16x16` 単位へ落とし込む
-3. スプライトに `oamIndex` / `priority` / `flipH` / `flipV` を追加する
-4. 画面合成を「backdrop -> background -> sprite」の NES ルールへ更新する
-5. 左端 8px マスクを追加する
-6. 必要なら scroll / mirroring を別フェーズで導入する
+1. スプライト合成順を OAM 順 + priority bit へ更新する
+2. スプライトに `priority` / `flipH` / `flipV` を追加する
+3. 左端 8px マスクを追加する
+4. 必要なら scroll / mirroring を別フェーズで導入する
 
 ## データモデルの提案
 
@@ -165,19 +168,19 @@ type Screen = {
 
 ## 参照元
 
-- NESdev Wiki: PPU nametables  
+- NESdev Wiki: PPU nametables
   https://www.nesdev.org/wiki/PPU_nametables
-- NESdev Wiki: PPU attribute tables  
+- NESdev Wiki: PPU attribute tables
   https://www.nesdev.org/wiki/PPU_attribute_tables
-- NESdev Wiki: PPU palettes  
+- NESdev Wiki: PPU palettes
   https://www.nesdev.org/wiki/PPU_palettes
-- NESdev Wiki: PPU OAM  
+- NESdev Wiki: PPU OAM
   https://www.nesdev.org/wiki/PPU_OAM
-- NESdev Wiki: PPU sprite evaluation  
+- NESdev Wiki: PPU sprite evaluation
   https://www.nesdev.org/wiki/PPU_sprite_evaluation
-- NESdev Wiki: PPU sprite priority  
+- NESdev Wiki: PPU sprite priority
   https://www.nesdev.org/wiki/PPU_sprite_priority
-- NESdev Wiki: PPU registers  
+- NESdev Wiki: PPU registers
   https://www.nesdev.org/wiki/PPU_registers
-- NESdev Wiki: PPU rendering  
+- NESdev Wiki: PPU rendering
   https://www.nesdev.org/wiki/PPU_rendering

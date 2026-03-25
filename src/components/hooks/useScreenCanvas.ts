@@ -42,7 +42,6 @@ export const useScreenCanvas = ({
       });
     });
 
-    // TODO: スプライト描画
     screen.sprites.forEach((sprite) => {
       const spriteTileOption = O.fromNullable(
         useProjectState.getState().sprites[sprite.spriteIndex],

@@ -56,7 +56,7 @@ export type SpriteTileND = SpriteTile & { __backing?: Backing };
 
 export interface ProjectState {
   screen: Screen;
-  sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
+  sprites: SpriteTile[];
   nes: NesProjectState;
   // リハイドレート完了フラグ（UIのチラつき抑止用）
   _hydrated?: boolean;
@@ -73,7 +73,7 @@ const DEFAULT_STATE: ProjectState = {
   screen: {
     width: 256,
     height: 240,
-    sprites: [], // TODO: 64個まで登録できるようにする
+    sprites: [],
   },
   sprites: Array.from({ length: 64 }, () => makeEmptyTile(8)),
   nes: createDefaultNesProjectState(),
