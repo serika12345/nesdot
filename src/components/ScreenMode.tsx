@@ -36,6 +36,11 @@ import {
   scanNesSpriteConstraints,
 } from "../screen/constraints";
 import { mergeScreenIntoNesOam } from "../screen/oamSync";
+import {
+  getGroupBounds,
+  isValidGroupMovement,
+  moveGroupByDelta,
+} from "../screen/spriteGroup";
 import { useCharacterState } from "../store/characterState";
 import {
   getHexArrayForScreen,
@@ -59,6 +64,12 @@ export const ScreenMode: React.FC = () => {
   );
   const [isPlacementOpen, setIsPlacementOpen] = useState(true);
   const [isSelectionOpen, setIsSelectionOpen] = useState(false);
+  const [isGroupMoveOpen, setIsGroupMoveOpen] = useState(false);
+  const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<
+    Set<number>
+  >(() => new Set());
+  const [groupMoveDeltaX, setGroupMoveDeltaX] = useState(0);
+  const [groupMoveDeltaY, setGroupMoveDeltaY] = useState(0);
   const screen = useProjectState((s) => s.screen);
   const nes = useProjectState((s) => s.nes);
   const sprites = useProjectState((s) => s.sprites);
@@ -82,6 +93,70 @@ export const ScreenMode: React.FC = () => {
       screen: nextScreen,
       nes: mergeScreenIntoNesOam(nextNes, nextScreen),
     });
+  };
+
+  const addToGroupSelection = (index: number): void => {
+    setSelectedSpriteIndices((prev) => new Set([...prev, index]));
+  };
+
+  const removeFromGroupSelection = (index: number): void => {
+    setSelectedSpriteIndices((prev) => {
+      const next = new Set(prev);
+      next.delete(index);
+      return next;
+    });
+  };
+
+  const clearGroupSelection = (): void => {
+    setSelectedSpriteIndices(new Set());
+  };
+
+  const handleMoveSelectedGroup = (): void => {
+    if (selectedSpriteIndices.size === 0) {
+      alert("グループを選択してください");
+      return;
+    }
+
+    const isValid = isValidGroupMovement(
+      spritesOnScreen,
+      selectedSpriteIndices,
+      groupMoveDeltaX,
+      groupMoveDeltaY,
+    );
+
+    if (!isValid) {
+      alert(
+        "移動により一部のスプライトがスクリーン外に出ます。\n位置を調整してください。",
+      );
+      return;
+    }
+
+    const movedSprites = moveGroupByDelta(
+      spritesOnScreen,
+      selectedSpriteIndices,
+      groupMoveDeltaX,
+      groupMoveDeltaY,
+    );
+
+    const newScreen = {
+      ...screen,
+      sprites: movedSprites,
+    };
+
+    const report = scan(newScreen);
+    if (report.ok === false) {
+      alert(
+        "グループの移動に失敗しました。制約違反:\n" + report.errors.join("\n"),
+      );
+      return;
+    }
+
+    setScreenAndSyncNes(newScreen);
+    alert(
+      `グループを (${groupMoveDeltaX > 0 ? "+" : ""}${groupMoveDeltaX}, ${groupMoveDeltaY > 0 ? "+" : ""}${groupMoveDeltaY}) 移動しました`,
+    );
+    setGroupMoveDeltaX(0);
+    setGroupMoveDeltaY(0);
   };
 
   const handleImport = async () => {
@@ -740,6 +815,187 @@ export const ScreenMode: React.FC = () => {
                   (index) => `現在は #${index} を選択中です。`,
                 ),
               )}
+            </HelperText>
+          )}
+        </Panel>
+
+        <Panel>
+          <PanelHeader>
+            <PanelHeaderRow>
+              <CollapseToggle
+                type="button"
+                open={isGroupMoveOpen}
+                onClick={() => setIsGroupMoveOpen((prev) => !prev)}
+              >
+                {isGroupMoveOpen ? "閉じる" : "開く"}
+                <ChevronIcon open={isGroupMoveOpen} />
+              </CollapseToggle>
+            </PanelHeaderRow>
+            <PanelTitle>グループ移動</PanelTitle>
+          </PanelHeader>
+
+          {isGroupMoveOpen ? (
+            <>
+              <Field>
+                <FieldLabel>選択中のスプライト</FieldLabel>
+                <div css={{ position: "relative" }}>
+                  <SelectInput
+                    css={{ paddingRight: 56 }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") return;
+                      const index = Number(value);
+                      if (selectedSpriteIndices.has(index)) {
+                        removeFromGroupSelection(index);
+                      } else {
+                        addToGroupSelection(index);
+                      }
+                    }}
+                    value=""
+                  >
+                    <option value="">スプライトを追加...</option>
+                    {spritesOnScreen.map((sprite, index) => (
+                      <option key={index} value={index}>
+                        {`#${index} ${selectedSpriteIndices.has(index) ? "✓" : " "} spriteIndex:${sprite.spriteIndex} @ ${sprite.x},${sprite.y}`}
+                      </option>
+                    ))}
+                  </SelectInput>
+                  <span
+                    aria-hidden="true"
+                    css={{
+                      position: "absolute",
+                      right: 18,
+                      top: "50%",
+                      width: 0,
+                      height: 0,
+                      borderLeft: "5px solid transparent",
+                      borderRight: "5px solid transparent",
+                      borderTop: "7px solid #334155",
+                      transform: "translateY(-35%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+              </Field>
+
+              {selectedSpriteIndices.size > 0 && (
+                <>
+                  <DetailList>
+                    <DetailRow
+                      css={{
+                        background: "transparent",
+                        border: "none",
+                        boxShadow: "none",
+                        padding: 0,
+                        borderRadius: 0,
+                      }}
+                    >
+                      <DetailKey>選択数</DetailKey>
+                      <DetailValue>{selectedSpriteIndices.size}</DetailValue>
+                    </DetailRow>
+                    {(() => {
+                      const bounds = getGroupBounds(
+                        spritesOnScreen,
+                        selectedSpriteIndices,
+                      );
+                      const isValidBounds =
+                        bounds.minX !== Infinity &&
+                        bounds.minY !== Infinity &&
+                        bounds.maxX !== -Infinity &&
+                        bounds.maxY !== -Infinity;
+
+                      return isValidBounds ? (
+                        <>
+                          <DetailRow
+                            css={{
+                              background: "transparent",
+                              border: "none",
+                              boxShadow: "none",
+                              padding: 0,
+                              borderRadius: 0,
+                            }}
+                          >
+                            <DetailKey>グループ位置</DetailKey>
+                            <DetailValue>
+                              {bounds.minX}, {bounds.minY}
+                            </DetailValue>
+                          </DetailRow>
+                          <DetailRow
+                            css={{
+                              background: "transparent",
+                              border: "none",
+                              boxShadow: "none",
+                              padding: 0,
+                              borderRadius: 0,
+                            }}
+                          >
+                            <DetailKey>グループサイズ</DetailKey>
+                            <DetailValue>
+                              {bounds.maxX - bounds.minX}×
+                              {bounds.maxY - bounds.minY}
+                            </DetailValue>
+                          </DetailRow>
+                        </>
+                      ) : null;
+                    })()}
+                  </DetailList>
+
+                  <FieldGrid
+                    css={{
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    }}
+                  >
+                    <Field>
+                      <FieldLabel>移動 X</FieldLabel>
+                      <NumberInput
+                        type="number"
+                        value={groupMoveDeltaX}
+                        onChange={(e) =>
+                          setGroupMoveDeltaX(Number(e.target.value))
+                        }
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>移動 Y</FieldLabel>
+                      <NumberInput
+                        type="number"
+                        value={groupMoveDeltaY}
+                        onChange={(e) =>
+                          setGroupMoveDeltaY(Number(e.target.value))
+                        }
+                      />
+                    </Field>
+                    <ToolButton
+                      type="button"
+                      tone="primary"
+                      onClick={handleMoveSelectedGroup}
+                      css={{ gridColumn: "1 / -1", minHeight: 48 }}
+                    >
+                      グループを移動
+                    </ToolButton>
+                    <ToolButton
+                      type="button"
+                      tone="secondary"
+                      onClick={clearGroupSelection}
+                      css={{ gridColumn: "1 / -1", minHeight: 48 }}
+                    >
+                      選択をクリア
+                    </ToolButton>
+                  </FieldGrid>
+                </>
+              )}
+
+              {selectedSpriteIndices.size === 0 && (
+                <HelperText>
+                  移動するスプライトを選択してください。複数選択可能です。
+                </HelperText>
+              )}
+            </>
+          ) : (
+            <HelperText>
+              {selectedSpriteIndices.size === 0
+                ? "グループ移動を使用していません。"
+                : `${selectedSpriteIndices.size}個のスプライトがグループ選択中です。`}
             </HelperText>
           )}
         </Panel>
