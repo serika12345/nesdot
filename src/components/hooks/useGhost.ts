@@ -1,5 +1,5 @@
-import { useCallback, useRef } from "react";
 import * as O from "fp-ts/Option";
+import { useCallback, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { ColorIndexOfPalette, SpriteTile } from "../../store/projectState";
 
@@ -103,7 +103,9 @@ export const useGhost = ({
   // 追加：後始末
   const cleanupGhost = useCallback(() => {
     if (O.isSome(ghostImgRef.current) && ghostImgRef.current.value.parentNode) {
-      ghostImgRef.current.value.parentNode.removeChild(ghostImgRef.current.value);
+      ghostImgRef.current.value.parentNode.removeChild(
+        ghostImgRef.current.value,
+      );
     }
     ghostImgRef.current = O.none;
     dragInfoRef.current = O.none;

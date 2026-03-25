@@ -1,3 +1,5 @@
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import React, {
   useCallback,
   useEffect,
@@ -5,8 +7,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
 import { createPortal } from "react-dom";
 import {
   ActionButtonsRow,
@@ -67,10 +67,7 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
       O.map((node) => node.offsetHeight),
       O.getOrElse(() => 0),
     );
-    const measuredWidth = Math.max(
-      triggerRect.width,
-      menuWidth,
-    );
+    const measuredWidth = Math.max(triggerRect.width, menuWidth);
     const width = Math.min(
       measuredWidth,
       window.innerWidth - viewportPadding * 2,
@@ -150,38 +147,38 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
     menuOpen && typeof document !== "undefined"
       ? O.some(
           createPortal(
-          <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
-            <ActionMenu
-              ref={(node) => {
-                menuRef.current = O.fromNullable(node);
-              }}
-              role="menu"
-              aria-label="共有メニュー"
-              onPointerDown={(event) => event.stopPropagation()}
-              style={{
-                top: menuPosition.top,
-                left: menuPosition.left,
-                width: menuPosition.width,
-                visibility: menuPosition.ready ? "visible" : "hidden",
-              }}
-            >
-              {actions.map((action) => (
-                <ActionMenuButton
-                  key={action.label}
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    action.onSelect();
-                  }}
-                >
-                  <span>{action.label}</span>
-                  <ShareIcon size={14} />
-                </ActionMenuButton>
-              ))}
-            </ActionMenu>
-          </ActionMenuOverlay>,
-          document.body,
-        ),
+            <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
+              <ActionMenu
+                ref={(node) => {
+                  menuRef.current = O.fromNullable(node);
+                }}
+                role="menu"
+                aria-label="共有メニュー"
+                onPointerDown={(event) => event.stopPropagation()}
+                style={{
+                  top: menuPosition.top,
+                  left: menuPosition.left,
+                  width: menuPosition.width,
+                  visibility: menuPosition.ready ? "visible" : "hidden",
+                }}
+              >
+                {actions.map((action) => (
+                  <ActionMenuButton
+                    key={action.label}
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      action.onSelect();
+                    }}
+                  >
+                    <span>{action.label}</span>
+                    <ShareIcon size={14} />
+                  </ActionMenuButton>
+                ))}
+              </ActionMenu>
+            </ActionMenuOverlay>,
+            document.body,
+          ),
         )
       : O.none;
 

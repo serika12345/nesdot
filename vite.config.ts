@@ -7,27 +7,27 @@ import { defineConfig } from "vite";
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(() => ({
-    plugins: [react({ jsxImportSource: "@emotion/react" })],
-    clearScreen: false,
-    test: {
-        environment: "node",
-        include: ["src/**/*.test.ts"],
+  plugins: [react({ jsxImportSource: "@emotion/react" })],
+  clearScreen: false,
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.ts"],
+  },
+  server: {
+    port: 1420,
+    strictPort: true,
+    host: host || false,
+    ...(host
+      ? {
+          hmr: {
+            protocol: "ws",
+            host,
+            port: 1421,
+          },
+        }
+      : {}),
+    watch: {
+      ignored: ["**/src-tauri/**"],
     },
-    server: {
-        port: 1420,
-        strictPort: true,
-        host: host || false,
-        ...(host
-            ? {
-                  hmr: {
-                      protocol: "ws",
-                      host,
-                      port: 1421,
-                  },
-              }
-            : {}),
-        watch: {
-            ignored: ["**/src-tauri/**"],
-        },
-    },
+  },
 }));

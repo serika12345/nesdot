@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useRef } from "react";
 import * as O from "fp-ts/Option";
+import React, { useCallback, useEffect, useRef } from "react";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import {
   ColorIndexOfPalette,
