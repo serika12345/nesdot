@@ -49,6 +49,25 @@ export default function useExportImage() {
     x: number,
   ): O.Option<string> => getMatrixItem(hexPixels, y, x);
 
+  const parseHexToRgb = (
+    hex: string,
+  ): O.Option<{ r: number; g: number; b: number }> => {
+    const normalizedOption = O.fromNullable(/^#([0-9A-Fa-f]{6})$/.exec(hex));
+    if (O.isNone(normalizedOption)) {
+      return O.none;
+    }
+
+    const rawOption = O.fromNullable(normalizedOption.value[1]);
+    if (O.isNone(rawOption)) {
+      return O.none;
+    }
+    const raw = rawOption.value;
+    const r = Number.parseInt(raw.slice(0, 2), 16);
+    const g = Number.parseInt(raw.slice(2, 4), 16);
+    const b = Number.parseInt(raw.slice(4, 6), 16);
+    return O.some({ r, g, b });
+  };
+
   const saveBytesNative = async (
     bytes: Uint8Array,
     defaultName: string,
@@ -80,7 +99,8 @@ export default function useExportImage() {
         const tx = blockX * 8;
         const subPixels: ColorIndexOfPalette[][] = Array.from(
           { length: 8 },
-          (_, y) => getSpriteRow(tile.pixels, ty + y, tile.width).slice(tx, tx + 8),
+          (_, y) =>
+            getSpriteRow(tile.pixels, ty + y, tile.width).slice(tx, tx + 8),
         );
         return tile8x8ToChr({
           width: 8,
@@ -140,32 +160,39 @@ export default function useExportImage() {
     const w = getHexGridWidth(hexPixels);
     const transparentHex = nesIndexToCssHex(0);
     const cvs = document.createElement("canvas");
-    cvs.width = w * scale;
-    cvs.height = h * scale;
+    const scaledWidth = w * scale;
+    const scaledHeight = h * scale;
+    cvs.setAttribute("width", `${scaledWidth}`);
+    cvs.setAttribute("height", `${scaledHeight}`);
     const ctxOption = O.fromNullable(cvs.getContext("2d"));
     if (O.isNone(ctxOption)) {
       return;
     }
     const ctx = ctxOption.value;
-    ctx.imageSmoothingEnabled = false;
 
-    // 透明はalpha=0、他はパレット色
-    Array.from({ length: h }, (_, y) => y).forEach((y) => {
-      Array.from({ length: w }, (_, x) => x).forEach((x) => {
+    const rgbaValues = Array.from({ length: scaledHeight }, (_, yy) => {
+      const y = Math.floor(yy / scale);
+      return Array.from({ length: scaledWidth }, (_, xx) => {
+        const x = Math.floor(xx / scale);
         const hexOption = getHexPixel(hexPixels, y, x);
-        if (O.isNone(hexOption)) {
-          return;
+        if (O.isNone(hexOption) || hexOption.value === transparentHex) {
+          return [0, 0, 0, 0];
         }
 
-        if (hexOption.value === transparentHex) {
-          // 透明
-          ctx.clearRect(x * scale, y * scale, scale, scale);
-        } else {
-          ctx.fillStyle = hexOption.value;
-          ctx.fillRect(x * scale, y * scale, scale, scale);
+        const rgbOption = parseHexToRgb(hexOption.value);
+        if (O.isNone(rgbOption)) {
+          return [0, 0, 0, 0];
         }
-      });
-    });
+        return [rgbOption.value.r, rgbOption.value.g, rgbOption.value.b, 255];
+      }).flat();
+    }).flat();
+
+    const imageData = new ImageData(
+      Uint8ClampedArray.from(rgbaValues),
+      scaledWidth,
+      scaledHeight,
+    );
+    ctx.putImageData(imageData, 0, 0);
     const blob = await new Promise<Blob>((resolve, reject) => {
       cvs.toBlob((value) => {
         const valueOption = O.fromNullable(value);
@@ -203,10 +230,7 @@ export default function useExportImage() {
         Array.from({ length: w }, (_, x) => x)
           .map((x) => {
             const hexOption = getHexPixel(hexPixels, y, x);
-            if (
-              O.isNone(hexOption) ||
-              hexOption.value === transparentHex
-            ) {
+            if (O.isNone(hexOption) || hexOption.value === transparentHex) {
               return "";
             }
 
@@ -251,8 +275,8 @@ export default function useExportImage() {
   const downloadBlob = (blob: Blob, fileName: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
+    a.setAttribute("href", url);
+    a.setAttribute("download", fileName);
     a.click();
     URL.revokeObjectURL(url);
   };

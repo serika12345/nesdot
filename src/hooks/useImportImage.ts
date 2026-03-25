@@ -295,8 +295,6 @@ type NativeImportResult =
   | { status: "unavailable" };
 
 export default function useImportImage() {
-  const noopInputHandler = () => {};
-
   const readJsonWithNativeDialog = async (): Promise<NativeImportResult> => {
     try {
       const selected = await open({
@@ -345,19 +343,12 @@ export default function useImportImage() {
   const readJsonWithInputFallback = async (): Promise<O.Option<string>> => {
     return new Promise<O.Option<string>>((resolve, reject) => {
       const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".json,application/json";
-      input.style.display = "none";
+      input.setAttribute("type", "file");
+      input.setAttribute("accept", ".json,application/json");
+      input.setAttribute("style", "display:none");
       document.body.appendChild(input);
 
-      const cleanup = () => {
-        input.onchange = noopInputHandler;
-        input.oncancel = noopInputHandler;
-        document.body.removeChild(input);
-      };
-
-      input.onchange = async (e) => {
-        void e;
+      const onChange = async () => {
         const fileOption = O.fromNullable(input.files?.[0]);
         if (O.isNone(fileOption)) {
           cleanup();
@@ -375,10 +366,19 @@ export default function useImportImage() {
         }
       };
 
-      input.oncancel = () => {
+      const onCancel = () => {
         cleanup();
         resolve(O.none);
       };
+
+      const cleanup = () => {
+        input.removeEventListener("change", onChange);
+        input.removeEventListener("cancel", onCancel);
+        document.body.removeChild(input);
+      };
+
+      input.addEventListener("change", onChange);
+      input.addEventListener("cancel", onCancel);
 
       input.click();
     });

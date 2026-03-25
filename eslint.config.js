@@ -173,6 +173,8 @@ const config = [
       "src/components/hooks/swapPreview.ts",
       "src/components/hooks/swapPreview.test.ts",
       "src/components/hooks/useSwap.ts",
+      "src/hooks/useExportImage.ts",
+      "src/hooks/useImportImage.ts",
       "src/nes/chr.ts",
       "src/nes/chr.test.ts",
       "src/nes/drawingPath.ts",
