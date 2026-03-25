@@ -32,7 +32,7 @@ export const useSpriteCanvas = ({
   activeColorIndex,
   onChange,
 }: UseCanvasParams) => {
-  const palettes = useProjectState((s) => s.palettes);
+  const palettes = useProjectState((s) => s.nes.spritePalettes);
   const tile = useProjectState((s) => s.sprites[target]);
   const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
   const hoverTileRef = useRef<O.Option<{ tileX: number; tileY: number }>>(

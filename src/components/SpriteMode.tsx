@@ -54,7 +54,7 @@ export const SpriteMode: React.FC = () => {
   const [activeSprite, setActiveSprite] = useState<number>(0);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const activeTile = useProjectState((s) => s.sprites[activeSprite]);
-  const palettes = useProjectState((s) => s.palettes);
+  const palettes = useProjectState((s) => s.nes.spritePalettes);
   const sprites = useProjectState((s) => s.sprites);
   const screen = useProjectState((s) => s.screen);
 

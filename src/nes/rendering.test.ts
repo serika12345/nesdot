@@ -76,11 +76,7 @@ describe("renderScreenToHexArray", () => {
     sprite.pixels[0][0] = 0;
     sprite.pixels[0][1] = 1;
 
-    const rendered = renderScreenToHexArray(
-      createScreen([sprite]),
-      nes.backgroundPalettes,
-      nes,
-    );
+    const rendered = renderScreenToHexArray(createScreen([sprite]), nes);
 
     expect(rendered[0][0]).toBe(NES_PALETTE_HEX[22]);
     expect(rendered[0][1]).toBe(NES_PALETTE_HEX[1]);
@@ -103,7 +99,6 @@ describe("renderScreenToHexArray", () => {
 
     const rendered = renderScreenToHexArray(
       createScreen([frontSprite, backSprite]),
-      palettes,
       nes,
     );
 
@@ -119,11 +114,7 @@ describe("renderScreenToHexArray", () => {
     nes.chrBytes[0] = 0b10000000;
     nes.chrBytes[8] = 0b10000000;
 
-    const rendered = renderScreenToHexArray(
-      createScreen([]),
-      nes.backgroundPalettes,
-      nes,
-    );
+    const rendered = renderScreenToHexArray(createScreen([]), nes);
 
     expect(rendered[0][0]).toBe(NES_PALETTE_HEX[7]);
     expect(rendered[0][1]).toBe(NES_PALETTE_HEX[45]);

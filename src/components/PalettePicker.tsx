@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import {
   NesColorIndex,
   Palette4Colors,
-  Palettes,
   useProjectState,
 } from "../../src/store/projectState";
 import { CollapseToggle } from "../App.styles";
 import { NES_PALETTE_HEX } from "../nes/palette";
+import { NesBackgroundPalettes } from "../store/nesProjectState";
 import {
   ColorCell,
   Grid,
@@ -31,7 +31,7 @@ import {
 import { ChevronIcon } from "./ui/Icons";
 
 export const PalettePicker: React.FC = () => {
-  const palettes = useProjectState((s) => s.palettes);
+  const palettes = useProjectState((s) => s.nes.backgroundPalettes);
   const [activePalette, setActivePalette] = useState<number>(0);
   const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
   const [isPaletteListOpen, setIsPaletteListOpen] = useState(false);
@@ -48,14 +48,31 @@ export const PalettePicker: React.FC = () => {
   };
 
   const setSlot = (slotIndex: number, idx: NesColorIndex) => {
-    const next: Palettes = [
+    const next: NesBackgroundPalettes = [
       clonePalette(palettes[0]),
       clonePalette(palettes[1]),
       clonePalette(palettes[2]),
       clonePalette(palettes[3]),
     ];
     next[activePalette][slotIndex] = idx;
-    useProjectState.setState({ palettes: next });
+    const state = useProjectState.getState();
+    useProjectState.setState({
+      nes: {
+        ...state.nes,
+        backgroundPalettes: [
+          [next[0][0], next[0][1], next[0][2], next[0][3]],
+          [next[1][0], next[1][1], next[1][2], next[1][3]],
+          [next[2][0], next[2][1], next[2][2], next[2][3]],
+          [next[3][0], next[3][1], next[3][2], next[3][3]],
+        ],
+        spritePalettes: [
+          [next[0][0], next[0][1], next[0][2], next[0][3]],
+          [next[1][0], next[1][1], next[1][2], next[1][3]],
+          [next[2][0], next[2][1], next[2][2], next[2][3]],
+          [next[3][0], next[3][1], next[3][2], next[3][3]],
+        ],
+      },
+    });
   };
 
   const activeColorIndex = palettes[activePalette][activeSlot];

@@ -41,15 +41,9 @@ export function renderSpriteTileToHexArray(
 
 export function renderScreenToHexArray(
   screen: Screen,
-  palettes: Palettes,
-  nesState?: NesProjectState,
+  nesState: NesProjectState,
 ): string[][] {
-  const backgroundLayer =
-    nesState === undefined
-      ? Array.from({ length: screen.height }, () =>
-          Array.from({ length: screen.width }, () => getHexAt(0)),
-        )
-      : renderBackgroundLayerFromNesTables(screen, palettes, nesState);
+  const backgroundLayer = renderBackgroundLayerFromNesTables(screen, nesState);
   const spriteLayer = Array.from({ length: screen.height }, () =>
     Array.from({ length: screen.width }, (): O.Option<string> => O.none),
   );
@@ -68,7 +62,7 @@ export function renderScreenToHexArray(
   );
 
   spritesSorted.forEach((sprite) => {
-    const palette = palettes[sprite.paletteIndex];
+    const palette = nesState.spritePalettes[sprite.paletteIndex];
 
     Array.from({ length: sprite.height }, (_, pixelY) => pixelY).forEach(
       (pixelY) => {
@@ -143,7 +137,6 @@ const getBackgroundColorIndexFromChr = (
 
 const renderBackgroundLayerFromNesTables = (
   screen: Screen,
-  palettes: Palettes,
   nesState: NesProjectState,
 ): string[][] => {
   const backgroundLayer = Array.from({ length: screen.height }, () =>
@@ -167,7 +160,7 @@ const renderBackgroundLayerFromNesTables = (
       const paletteIndex = E.isRight(paletteIndexEither)
         ? paletteIndexEither.right
         : 0;
-      const palette = palettes[paletteIndex];
+      const palette = nesState.backgroundPalettes[paletteIndex];
       const baseY = tileY * 8;
       const baseX = tileX * 8;
 

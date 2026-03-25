@@ -2,7 +2,12 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { z } from "zod";
-import { createDefaultNesProjectState } from "../store/nesProjectState";
+import {
+  createDefaultNesProjectState,
+  NesBackgroundPalettes,
+  NesProjectState,
+  NesSpritePalettes,
+} from "../store/nesProjectState";
 import type { ProjectState } from "../store/projectState";
 
 const ColorIndexOfPaletteSchema = z.union([
@@ -116,7 +121,7 @@ const NesProjectStateSchema = z.object({
 
 const ProjectStateSchema = z.object({
   screen: ScreenSchema,
-  palettes: PalettesSchema,
+  palettes: PalettesSchema.optional(),
   sprites: z.array(SpriteTileSchema).length(64),
   nes: NesProjectStateSchema.optional(),
   _hydrated: z.boolean().optional(),
@@ -124,14 +129,51 @@ const ProjectStateSchema = z.object({
 
 const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
+const toNesBackgroundPalettes = (
+  palettes: z.infer<typeof PalettesSchema>,
+): NesBackgroundPalettes => [
+  [palettes[0][0], palettes[0][1], palettes[0][2], palettes[0][3]],
+  [palettes[1][0], palettes[1][1], palettes[1][2], palettes[1][3]],
+  [palettes[2][0], palettes[2][1], palettes[2][2], palettes[2][3]],
+  [palettes[3][0], palettes[3][1], palettes[3][2], palettes[3][3]],
+];
+
+const toNesSpritePalettes = (
+  palettes: z.infer<typeof PalettesSchema>,
+): NesSpritePalettes => [
+  [palettes[0][0], palettes[0][1], palettes[0][2], palettes[0][3]],
+  [palettes[1][0], palettes[1][1], palettes[1][2], palettes[1][3]],
+  [palettes[2][0], palettes[2][1], palettes[2][2], palettes[2][3]],
+  [palettes[3][0], palettes[3][1], palettes[3][2], palettes[3][3]],
+];
+
+const normalizeNesState = (
+  inputNes: z.infer<typeof NesProjectStateSchema> | undefined,
+  legacyPalettes: z.infer<typeof PalettesSchema> | undefined,
+): NesProjectState => {
+  if (inputNes !== undefined) {
+    return inputNes;
+  }
+
+  if (legacyPalettes !== undefined) {
+    const base = createDefaultNesProjectState();
+    return {
+      ...base,
+      backgroundPalettes: toNesBackgroundPalettes(legacyPalettes),
+      spritePalettes: toNesSpritePalettes(legacyPalettes),
+    };
+  }
+
+  return createDefaultNesProjectState();
+};
+
 const normalizeProjectState = (
   state: z.infer<typeof ProjectStateSchema>,
 ): ProjectState => {
   const baseState: Omit<ProjectState, "_hydrated"> = {
     screen: state.screen,
-    palettes: state.palettes,
     sprites: state.sprites,
-    nes: state.nes ?? createDefaultNesProjectState(),
+    nes: normalizeNesState(state.nes, state.palettes),
   };
 
   return state._hydrated === undefined

@@ -9,10 +9,6 @@ import {
   StateStorage,
 } from "zustand/middleware";
 import {
-  resolveScreenRenderPalettes,
-  resolveSpriteRenderPalettes,
-} from "../nes/drawingPath";
-import {
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "../nes/rendering";
@@ -73,7 +69,6 @@ export type SpriteTileND = SpriteTile & { __backing?: Backing };
 
 export interface ProjectState {
   screen: Screen;
-  palettes: Palettes;
   sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
   nes: NesProjectState;
   // リハイドレート完了フラグ（UIのチラつき抑止用）
@@ -93,13 +88,6 @@ const DEFAULT_STATE: ProjectState = {
     height: 240,
     sprites: [], // TODO: 64個まで登録できるようにする
   },
-  // NES標準パレット（0は透明スロット扱い）
-  palettes: [
-    [0, 1, 21, 34],
-    [0, 1, 21, 34],
-    [0, 1, 21, 34],
-    [0, 1, 21, 34],
-  ],
   sprites: Array.from({ length: 64 }, () => makeEmptyTile(8)),
   nes: createDefaultNesProjectState(),
   _hydrated: false,
@@ -134,7 +122,7 @@ const persistOptions: PersistOptions<ProjectState> = {
   version: 1, // スキーマ変更時に上げる
   storage: createJSONStorage(() => idbStorage),
   // 必要に応じて永続化対象を絞る（全体保存ならコメントアウトのまま）
-  // partialize: (state) => ({ palettes: state.palettes, tile: state.tile }),
+  // partialize: (state) => ({ nes: state.nes, sprites: state.sprites }),
   onRehydrateStorage: () => (state) => {
     // リハイドレート直前/直後のフック。マイグレーションや整合性チェックに使う。
     // 直後に _hydrated を立てて UI の初期化完了を通知
@@ -159,14 +147,12 @@ export const useProjectState = create<ProjectState>()(
 
 export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
   const state = useProjectState.getState();
-  const renderPalettes = resolveSpriteRenderPalettes(state.palettes, state.nes);
-  return renderSpriteTileToHexArray(tile, renderPalettes);
+  return renderSpriteTileToHexArray(tile, state.nes.spritePalettes);
 };
 
 export const getHexArrayForScreen = (screen: Screen): string[][] => {
   const state = useProjectState.getState();
-  const renderPalettes = resolveScreenRenderPalettes(state.palettes, state.nes);
-  return renderScreenToHexArray(screen, renderPalettes, state.nes);
+  return renderScreenToHexArray(screen, state.nes);
 };
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---
