@@ -1,7 +1,9 @@
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useRef } from "react";
-import { NES_PALETTE_HEX } from "../../nes/palette";
-import { useProjectState } from "../../store/projectState";
+import {
+  getHexArrayForScreen,
+  useProjectState,
+} from "../../store/projectState";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -30,43 +32,19 @@ export const useScreenCanvas = ({
     cvs.height = height * scale;
     ctx.imageSmoothingEnabled = false;
 
-    // 背景（チェッカ）
-    ctx.fillStyle = "#ddd";
-    ctx.fillRect(0, 0, cvs.width, cvs.height);
-    ctx.fillStyle = "#eee";
+    const hexGrid = getHexArrayForScreen(screen);
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {
-        if ((x + y) % 2 === 0) {
-          ctx.fillRect(x * scale, y * scale, scale, scale);
+        const rowOption = O.fromNullable(hexGrid[y]);
+        if (O.isNone(rowOption)) {
+          return;
         }
-      });
-    });
-
-    screen.sprites.forEach((sprite) => {
-      const spriteTileOption = O.fromNullable(
-        useProjectState.getState().sprites[sprite.spriteIndex],
-      );
-      if (O.isNone(spriteTileOption)) return;
-      const spriteTile = spriteTileOption.value;
-      Array.from({ length: spriteTile.height }, (_, py) => py).forEach((py) => {
-        Array.from({ length: spriteTile.width }, (_, px) => px).forEach(
-          (px) => {
-            const colorIndex = sprite.pixels[py][px];
-            if (colorIndex !== 0) {
-              const state = useProjectState.getState();
-              const nesColorIndex =
-                state.nes.spritePalettes[sprite.paletteIndex][colorIndex];
-              const hex = NES_PALETTE_HEX[nesColorIndex];
-              ctx.fillStyle = hex;
-              ctx.fillRect(
-                (sprite.x + px) * scale,
-                (sprite.y + py) * scale,
-                scale,
-                scale,
-              );
-            }
-          },
-        );
+        const hexOption = O.fromNullable(rowOption.value[x]);
+        if (O.isNone(hexOption)) {
+          return;
+        }
+        ctx.fillStyle = hexOption.value;
+        ctx.fillRect(x * scale, y * scale, scale, scale);
       });
     });
 

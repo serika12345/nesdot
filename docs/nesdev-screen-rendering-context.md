@@ -9,9 +9,9 @@
 ## このリポジトリの現状
 
 - `screen` は `256x240` 固定で、`sprites` を持っています。背景は `nes.nameTable` / `nes.attributeTable` / `nes.chrBytes` から描画します。
-- 背景タイルのデータ構造はありますが、[`useScreenCanvas.ts`](/Users/masato/Documents/nesdot/src/components/hooks/useScreenCanvas.ts#L28) は背景を描かず、チェッカ背景の上にスプライトだけを描いています。
+- [`useScreenCanvas.ts`](/Users/masato/Documents/nesdot/src/components/hooks/useScreenCanvas.ts#L1) は [`getHexArrayForScreen`](/Users/masato/Documents/nesdot/src/store/projectState.ts#L137) の結果をそのまま描画し、画面プレビューとエクスポート経路が同じ合成ロジックを使います。
 - [`getHexArrayForScreen`](/Users/masato/Documents/nesdot/src/store/projectState.ts#L139) は背景とスプライトの合成を行い、背景パレットは `nes.attributeTable` に基づく `16x16` 属性領域で解決します。
-- スプライトの前後関係は [`spriteIndex` 昇順で描画](/Users/masato/Documents/nesdot/src/store/projectState.ts#L181) しており、NES の OAM 順序とは一致していません。
+- スプライトの前後関係は `screen.sprites` の配列順（OAM 順相当）で決まり、`priority`（`front` / `behindBg`）と背景ピクセル不透明判定で最終合成します。
 - [`ScreenMode.tsx`](/Users/masato/Documents/nesdot/src/components/ScreenMode.tsx#L1) の制約チェックは `scanNesSpriteConstraints` を使い、`screen -> nes.oam` 同期後の NES ルール（総数 `64` / 1 scanline `8` / OAM Y+1 / `ppuControl.spriteSize`）で判定しています。
 
 ## 完了済み
