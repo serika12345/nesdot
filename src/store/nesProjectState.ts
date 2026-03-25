@@ -1,4 +1,5 @@
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 
 export const NES_NAME_TABLE_WIDTH_TILES = 32;
 export const NES_NAME_TABLE_HEIGHT_TILES = 30;
@@ -158,11 +159,13 @@ export const resolveBackgroundPaletteIndex = (
     return attributeIndexEither;
   }
 
-  const attributeByteOption = attributeTable.bytes[attributeIndexEither.right];
-  if (attributeByteOption === undefined) {
+  const attributeByteOption = O.fromNullable(
+    attributeTable.bytes[attributeIndexEither.right],
+  );
+  if (O.isNone(attributeByteOption)) {
     return E.left("attribute byte is missing");
   }
-  const attributeByte = attributeByteOption;
+  const attributeByte = attributeByteOption.value;
 
   const isRightHalf = tileX % 4 >= 2;
   const isBottomHalf = tileY % 4 >= 2;

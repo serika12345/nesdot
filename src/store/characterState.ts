@@ -41,12 +41,17 @@ const pickNextSelected = (
     return O.none;
   }
 
-  const selected = O.toNullable(currentSelection);
-  const hasSelected =
-    selected !== null && nextSets.some((set) => set.id === selected);
+  const selectedId = O.toNullable(currentSelection);
+  const hasSelected = pipe(
+    O.fromNullable(selectedId),
+    O.match(
+      () => false,
+      (id) => nextSets.some((set) => set.id === id),
+    ),
+  );
 
-  if (hasSelected === true && selected !== null) {
-    return O.some(selected);
+  if (hasSelected === true) {
+    return O.fromNullable(selectedId);
   }
 
   return pipe(

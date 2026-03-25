@@ -1,4 +1,5 @@
 import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import { describe, expect, it } from "vitest";
 import { createDefaultNesProjectState } from "../store/nesProjectState";
 import { makeTile } from "../tiles/utils";
@@ -54,11 +55,21 @@ describe("characterSet", () => {
       spriteIndex: 7,
     });
 
-    expect(E.isRight(result)).toBe(true);
-    if (E.isRight(result)) {
-      expect(result.right.cells[1]).toEqual({ kind: "sprite", spriteIndex: 7 });
-      expect(original.cells[1]).toEqual({ kind: "empty" });
-    }
+    pipe(
+      result,
+      E.match(
+        () => {
+          throw new Error("should be right");
+        },
+        (updated) => {
+          expect(updated.cells[1]).toEqual({
+            kind: "sprite",
+            spriteIndex: 7,
+          });
+          expect(original.cells[1]).toEqual({ kind: "empty" });
+        },
+      ),
+    );
 
     const invalid = setCharacterCell(original, 99, emptyCell);
     expect(E.isLeft(invalid)).toBe(true);
@@ -87,18 +98,33 @@ describe("characterSet", () => {
       sprites,
     });
 
-    expect(E.isRight(result)).toBe(true);
-    if (E.isRight(result)) {
-      expect(result.right).toHaveLength(3);
-      expect(result.right[0]).toMatchObject({ x: 40, y: 56, spriteIndex: 0 });
-      expect(result.right[1]).toMatchObject({ x: 40, y: 64, spriteIndex: 1 });
-      expect(result.right[2]).toMatchObject({
-        x: 48,
-        y: 64,
-        spriteIndex: 2,
-        height: 16,
-      });
-    }
+    pipe(
+      result,
+      E.match(
+        () => {
+          throw new Error("should be right");
+        },
+        (screenSprites) => {
+          expect(screenSprites).toHaveLength(3);
+          expect(screenSprites[0]).toMatchObject({
+            x: 40,
+            y: 56,
+            spriteIndex: 0,
+          });
+          expect(screenSprites[1]).toMatchObject({
+            x: 40,
+            y: 64,
+            spriteIndex: 1,
+          });
+          expect(screenSprites[2]).toMatchObject({
+            x: 48,
+            y: 64,
+            spriteIndex: 2,
+            height: 16,
+          });
+        },
+      ),
+    );
   });
 
   it("returns left when a referenced sprite index does not exist", () => {
@@ -132,15 +158,22 @@ describe("characterSet", () => {
       transparentHex,
     });
 
-    expect(E.isRight(result)).toBe(true);
-    if (E.isRight(result)) {
-      expect(result.right).toHaveLength(24);
-      expect(result.right[0]).toHaveLength(16);
-      expect(result.right[0][0]).not.toBe(transparentHex);
-      expect(result.right[0][12]).toBe(transparentHex);
-      expect(result.right[10][0]).not.toBe(transparentHex);
-      expect(result.right[20][8]).not.toBe(transparentHex);
-    }
+    pipe(
+      result,
+      E.match(
+        () => {
+          throw new Error("should be right");
+        },
+        (grid) => {
+          expect(grid).toHaveLength(24);
+          expect(grid[0]).toHaveLength(16);
+          expect(grid[0][0]).not.toBe(transparentHex);
+          expect(grid[0][12]).toBe(transparentHex);
+          expect(grid[10][0]).not.toBe(transparentHex);
+          expect(grid[20][8]).not.toBe(transparentHex);
+        },
+      ),
+    );
   });
 
   it("returns left when preview references a missing sprite", () => {

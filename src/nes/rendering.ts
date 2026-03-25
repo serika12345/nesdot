@@ -137,12 +137,14 @@ const getBackgroundColorIndexFromChr = (
   pixelY: number,
 ): number => {
   const tileStart = tileIndex * 16;
-  const plane0 = chrBytes[tileStart + pixelY];
-  const plane1 = chrBytes[tileStart + 8 + pixelY];
+  const plane0Option = O.fromNullable(chrBytes[tileStart + pixelY]);
+  const plane1Option = O.fromNullable(chrBytes[tileStart + 8 + pixelY]);
 
-  if (plane0 === undefined || plane1 === undefined) {
+  if (O.isNone(plane0Option) || O.isNone(plane1Option)) {
     return 0;
   }
+  const plane0 = plane0Option.value;
+  const plane1 = plane1Option.value;
 
   const shift = 7 - pixelX;
   const bit0 = (plane0 >> shift) & 1;

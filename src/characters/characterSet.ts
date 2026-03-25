@@ -1,4 +1,6 @@
 import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import { renderSpriteTileToHexArray } from "../nes/rendering";
 import { NesSpritePalettes } from "../store/nesProjectState";
 import { SpriteInScreen, SpriteTile } from "../store/projectState";
@@ -47,8 +49,11 @@ const normalizeCells = (
 ): CharacterCell[] => {
   const expected = cellCount(rows, cols);
   return Array.from({ length: expected }, (_, index) => {
-    const cell = cells[index];
-    return cell === undefined ? EMPTY_CELL : cell;
+    const cellOption = O.fromNullable(cells[index]);
+    return pipe(
+      cellOption,
+      O.getOrElse(() => EMPTY_CELL),
+    );
   });
 };
 
@@ -58,10 +63,11 @@ const toScreenSprite = (
   col: number,
   input: ExpandCharacterInput,
 ): E.Either<string, SpriteInScreen> => {
-  const spriteTile = input.sprites[cell.spriteIndex];
-  if (spriteTile === undefined) {
+  const spriteTileOption = O.fromNullable(input.sprites[cell.spriteIndex]);
+  if (O.isNone(spriteTileOption)) {
     return E.left(`sprite index out of range: ${cell.spriteIndex}`);
   }
+  const spriteTile = spriteTileOption.value;
 
   return E.right({
     ...spriteTile,
@@ -113,8 +119,11 @@ export const resizeCharacterSet = (
       }
 
       const oldIndex = toCellIndex(row, col, target.cols);
-      const oldCell = target.cells[oldIndex];
-      return oldCell === undefined ? EMPTY_CELL : oldCell;
+      const oldCellOption = O.fromNullable(target.cells[oldIndex]);
+      return pipe(
+        oldCellOption,
+        O.getOrElse(() => EMPTY_CELL),
+      );
     },
   );
 
@@ -192,10 +201,11 @@ export const buildCharacterPreviewHexGrid = (
         return acc;
       }
 
-      const tile = input.sprites[cell.spriteIndex];
-      if (tile === undefined) {
+      const tileOption = O.fromNullable(input.sprites[cell.spriteIndex]);
+      if (O.isNone(tileOption)) {
         return E.left(`sprite index out of range: ${cell.spriteIndex}`);
       }
+      const tile = tileOption.value;
 
       const row = Math.floor(index / target.cols);
       const col = index % target.cols;
@@ -240,11 +250,15 @@ export const buildCharacterPreviewHexGrid = (
 
         const targetY = top + pixelY;
         const targetX = left + pixelX;
-        const rowOption = placement.hexPixels[pixelY];
-        const colorOption =
-          rowOption === undefined ? undefined : rowOption[pixelX];
-        const nextHex =
-          colorOption === undefined ? input.transparentHex : colorOption;
+        const rowOption = O.fromNullable(placement.hexPixels[pixelY]);
+        const colorOption = pipe(
+          rowOption,
+          O.chain((row) => O.fromNullable(row[pixelX])),
+        );
+        const nextHex = pipe(
+          colorOption,
+          O.getOrElse(() => input.transparentHex),
+        );
 
         return accPixels.map((row, rowIndex) =>
           rowIndex === targetY

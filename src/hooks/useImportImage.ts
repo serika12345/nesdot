@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
+import { pipe } from "fp-ts/function";
 import { z } from "zod";
 import { CharacterJsonData, useCharacterState } from "../store/characterState";
 import type { NesProjectState, NesSubPalette } from "../store/nesProjectState";
@@ -236,18 +237,26 @@ const normalizeProjectState = (
     nes: normalizeNesProjectState(state.nes),
   };
 
-  return state._hydrated === undefined
-    ? baseState
-    : { ...baseState, _hydrated: state._hydrated };
+  return pipe(
+    O.fromNullable(state._hydrated),
+    O.match(
+      () => baseState,
+      (hydrated) => ({ ...baseState, _hydrated: hydrated }),
+    ),
+  );
 };
 
 const normalizeCharacterJsonData = (
   characters: z.infer<typeof CharacterJsonDataSchema>,
 ): CharacterJsonData => ({
   characterSets: characters.characterSets,
-  ...(characters.selectedCharacterId === undefined
-    ? {}
-    : { selectedCharacterId: characters.selectedCharacterId }),
+  ...pipe(
+    O.fromNullable(characters.selectedCharacterId),
+    O.match(
+      () => ({}),
+      (selectedCharacterId) => ({ selectedCharacterId }),
+    ),
+  ),
 });
 
 interface ParsedProjectImport {
@@ -261,10 +270,14 @@ const parseProjectState = (text: string): O.Option<ParsedProjectImport> => {
     const schemaResult = ProjectImportSchema.safeParse(parsed);
     if (schemaResult.success === true) {
       const normalizedProject = normalizeProjectState(schemaResult.data);
-      const normalizedCharacterData =
-        schemaResult.data.characters === undefined
-          ? { characterSets: [] }
-          : normalizeCharacterJsonData(schemaResult.data.characters);
+      const normalizedCharacterData: CharacterJsonData = pipe(
+        O.fromNullable(schemaResult.data.characters),
+        O.match(
+          (): CharacterJsonData => ({ characterSets: [] }),
+          (characters): CharacterJsonData =>
+            normalizeCharacterJsonData(characters),
+        ),
+      );
       return O.some({
         projectState: normalizedProject,
         characterData: normalizedCharacterData,

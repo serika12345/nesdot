@@ -124,7 +124,7 @@ export const ScreenMode: React.FC = () => {
       groupMoveDeltaY,
     );
 
-    if (!isValid) {
+    if (isValid !== true) {
       alert(
         "移動により一部のスプライトがスクリーン外に出ます。\n位置を調整してください。",
       );
@@ -936,7 +936,9 @@ export const ScreenMode: React.FC = () => {
                             </DetailValue>
                           </DetailRow>
                         </>
-                      ) : null;
+                      ) : (
+                        <></>
+                      );
                     })()}
                   </DetailList>
 
@@ -975,7 +977,7 @@ export const ScreenMode: React.FC = () => {
                     </ToolButton>
                     <ToolButton
                       type="button"
-                      tone="secondary"
+                      tone="neutral"
                       onClick={clearGroupSelection}
                       css={{ gridColumn: "1 / -1", minHeight: 48 }}
                     >

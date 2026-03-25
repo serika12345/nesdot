@@ -27,14 +27,15 @@ export const App: React.FC = () => {
     "sprite",
   );
 
-  const mainPanel =
-    editMode === "sprite" ? (
-      <SpriteMode />
-    ) : editMode === "character" ? (
-      <CharacterMode />
-    ) : (
-      <ScreenMode />
-    );
+  const mainPanel = (() => {
+    if (editMode === "sprite") {
+      return <SpriteMode />;
+    }
+    if (editMode === "character") {
+      return <CharacterMode />;
+    }
+    return <ScreenMode />;
+  })();
 
   return (
     <>

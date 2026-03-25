@@ -1,3 +1,4 @@
+import * as O from "fp-ts/Option";
 import { SpriteInScreen } from "../store/projectState";
 
 export interface GroupBounds {
@@ -15,24 +16,31 @@ export const getGroupBounds = (
   sprites: SpriteInScreen[],
   selectedIndices: Set<number>,
 ): GroupBounds => {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+  const bounds = (() => {
+    const initial = {
+      minX: Infinity,
+      minY: Infinity,
+      maxX: -Infinity,
+      maxY: -Infinity,
+    };
 
-  selectedIndices.forEach((index) => {
-    const sprite = sprites[index];
-    if (sprite === undefined) {
-      return;
-    }
+    selectedIndices.forEach((index) => {
+      const spriteOption = O.fromNullable(sprites[index]);
+      if (O.isNone(spriteOption)) {
+        return;
+      }
+      const sprite = spriteOption.value;
 
-    minX = Math.min(minX, sprite.x);
-    minY = Math.min(minY, sprite.y);
-    maxX = Math.max(maxX, sprite.x + sprite.width);
-    maxY = Math.max(maxY, sprite.y + sprite.height);
-  });
+      initial.minX = Math.min(initial.minX, sprite.x);
+      initial.minY = Math.min(initial.minY, sprite.y);
+      initial.maxX = Math.max(initial.maxX, sprite.x + sprite.width);
+      initial.maxY = Math.max(initial.maxY, sprite.y + sprite.height);
+    });
 
-  return { minX, minY, maxX, maxY };
+    return initial;
+  })();
+
+  return bounds;
 };
 
 /**
@@ -74,10 +82,11 @@ export const isValidGroupMovement = (
   const SCREEN_HEIGHT = 240;
 
   return Array.from(selectedIndices).every((index) => {
-    const sprite = sprites[index];
-    if (sprite === undefined) {
+    const spriteOption = O.fromNullable(sprites[index]);
+    if (O.isNone(spriteOption)) {
       return false;
     }
+    const sprite = spriteOption.value;
 
     const newX = sprite.x + deltaX;
     const newY = sprite.y + deltaY;

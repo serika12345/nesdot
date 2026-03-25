@@ -38,3 +38,4 @@
 - **No Implicit Coercion**: Do not use implicit type coercion operators or shorthand coercion patterns. Prefer explicit conversions and comparisons.
 - **React Hooks Rules**: Always follow the Rules of Hooks, and keep hook dependency arrays explicit and consistent with referenced values.
 - **No Unsafe Type Operations**: Avoid unsafe assignment/member access/calls/returns/arguments across untyped boundaries. Narrow unknown data before use and keep unsafe operations lint-clean.
+- **ESLint Compliance**: All code must pass ESLint checks without errors. Run `pnpm lint` in every implementation/verification cycle and resolve all reported issues before completion.
