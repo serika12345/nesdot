@@ -1,184 +1,207 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import {
-    ActionButtonsRow,
-    ActionCluster,
-    ActionMenu,
-    ActionMenuOverlay,
-    ActionMenuButton,
-    IconActionButton,
-    IconLabel,
+  ActionButtonsRow,
+  ActionCluster,
+  ActionMenu,
+  ActionMenuButton,
+  ActionMenuOverlay,
+  IconActionButton,
+  IconLabel,
 } from "../App.styles";
 import { ChevronIcon, ImportIcon, ShareIcon } from "./ui/Icons";
 
 type ActionItem = {
-    label: string;
-    onSelect: () => void;
+  label: string;
+  onSelect: () => void;
 };
 
 type ProjectActionsProps = {
-    actions: ActionItem[];
-    onImport: () => void;
-    importLabel?: string;
+  actions: ActionItem[];
+  onImport: () => void;
+  importLabel?: string;
 };
 
 type MenuPosition = {
-    top: number;
-    left: number;
-    width: number;
-    ready: boolean;
+  top: number;
+  left: number;
+  width: number;
+  ready: boolean;
 };
 
-export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImport, importLabel = "復元" }) => {
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [menuPosition, setMenuPosition] = useState<MenuPosition>({
-        top: 0,
-        left: 0,
-        width: 220,
-        ready: false,
-    });
-    const triggerRef = useRef<HTMLButtonElement | undefined>(undefined);
-    const menuRef = useRef<HTMLDivElement | undefined>(undefined);
+export const ProjectActions: React.FC<ProjectActionsProps> = ({
+  actions,
+  onImport,
+  importLabel = "復元",
+}) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<MenuPosition>({
+    top: 0,
+    left: 0,
+    width: 220,
+    ready: false,
+  });
+  const triggerRef = useRef<HTMLButtonElement | undefined>(undefined);
+  const menuRef = useRef<HTMLDivElement | undefined>(undefined);
 
-    const updateMenuPosition = useCallback(() => {
-        if (!triggerRef.current) return;
+  const updateMenuPosition = useCallback(() => {
+    if (!triggerRef.current) return;
 
-        const viewportPadding = 16;
-        const triggerRect = triggerRef.current.getBoundingClientRect();
-        const measuredWidth = Math.max(triggerRect.width, menuRef.current?.offsetWidth ?? 220);
-        const width = Math.min(measuredWidth, window.innerWidth - viewportPadding * 2);
-        const measuredHeight = menuRef.current?.offsetHeight ?? 0;
-
-        const left = Math.max(
-            viewportPadding,
-            Math.min(triggerRect.right - width, window.innerWidth - width - viewportPadding)
-        );
-
-        const belowTop = triggerRect.bottom + 10;
-        const top =
-            measuredHeight > 0 && belowTop + measuredHeight > window.innerHeight - viewportPadding
-                ? (() => {
-                      const topAbove = triggerRect.top - measuredHeight - 10;
-                      return topAbove >= viewportPadding
-                          ? topAbove
-                          : Math.max(viewportPadding, window.innerHeight - measuredHeight - viewportPadding);
-                  })()
-                : belowTop;
-
-        setMenuPosition({
-            top,
-            left,
-            width,
-            ready: true,
-        });
-    }, []);
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setMenuOpen(false);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
-
-    useLayoutEffect(() => {
-        if (!menuOpen) return;
-        updateMenuPosition();
-    }, [menuOpen, updateMenuPosition]);
-
-    useEffect(() => {
-        if (!menuOpen) return;
-
-        const reposition = () => updateMenuPosition();
-        window.addEventListener("resize", reposition);
-        window.addEventListener("scroll", reposition, true);
-
-        return () => {
-            window.removeEventListener("resize", reposition);
-            window.removeEventListener("scroll", reposition, true);
-        };
-    }, [menuOpen, updateMenuPosition]);
-
-    useEffect(() => {
-        if (!menuOpen) {
-            setMenuPosition((prev) => ({ ...prev, ready: false }));
-        }
-    }, [menuOpen]);
-
-    const menu =
-        menuOpen && typeof document !== "undefined"
-            ? createPortal(
-                  <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
-                      <ActionMenu
-                          ref={(node) => {
-                              menuRef.current = node ?? undefined;
-                          }}
-                          role="menu"
-                          aria-label="共有メニュー"
-                          onPointerDown={(event) => event.stopPropagation()}
-                          style={{
-                              top: menuPosition.top,
-                              left: menuPosition.left,
-                              width: menuPosition.width,
-                              visibility: menuPosition.ready ? "visible" : "hidden",
-                          }}
-                      >
-                          {actions.map((action) => (
-                              <ActionMenuButton
-                                  key={action.label}
-                                  type="button"
-                                  onClick={() => {
-                                      setMenuOpen(false);
-                                      action.onSelect();
-                                  }}
-                              >
-                                  <span>{action.label}</span>
-                                  <ShareIcon size={14} />
-                              </ActionMenuButton>
-                          ))}
-                      </ActionMenu>
-                  </ActionMenuOverlay>,
-                  document.body
-              )
-                        : undefined;
-
-    return (
-        <>
-            <ActionCluster>
-                <ActionButtonsRow>
-                    <IconActionButton
-                        ref={(node) => {
-                            triggerRef.current = node ?? undefined;
-                        }}
-                        type="button"
-                        active={menuOpen}
-                        aria-expanded={menuOpen}
-                        aria-haspopup="menu"
-                        onClick={() => setMenuOpen((prev) => !prev)}
-                    >
-                        <IconLabel>
-                            <ShareIcon />
-                            共有
-                        </IconLabel>
-                        <ChevronIcon open={menuOpen} />
-                    </IconActionButton>
-
-                    <IconActionButton type="button" onClick={onImport}>
-                        <IconLabel>
-                            <ImportIcon />
-                            {importLabel}
-                        </IconLabel>
-                    </IconActionButton>
-                </ActionButtonsRow>
-            </ActionCluster>
-
-            {menu}
-        </>
+    const viewportPadding = 16;
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const measuredWidth = Math.max(
+      triggerRect.width,
+      menuRef.current?.offsetWidth ?? 220,
     );
+    const width = Math.min(
+      measuredWidth,
+      window.innerWidth - viewportPadding * 2,
+    );
+    const measuredHeight = menuRef.current?.offsetHeight ?? 0;
+
+    const left = Math.max(
+      viewportPadding,
+      Math.min(
+        triggerRect.right - width,
+        window.innerWidth - width - viewportPadding,
+      ),
+    );
+
+    const belowTop = triggerRect.bottom + 10;
+    const top =
+      measuredHeight > 0 &&
+      belowTop + measuredHeight > window.innerHeight - viewportPadding
+        ? (() => {
+            const topAbove = triggerRect.top - measuredHeight - 10;
+            return topAbove >= viewportPadding
+              ? topAbove
+              : Math.max(
+                  viewportPadding,
+                  window.innerHeight - measuredHeight - viewportPadding,
+                );
+          })()
+        : belowTop;
+
+    setMenuPosition({
+      top,
+      left,
+      width,
+      ready: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!menuOpen) return;
+    updateMenuPosition();
+  }, [menuOpen, updateMenuPosition]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const reposition = () => updateMenuPosition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [menuOpen, updateMenuPosition]);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      setMenuPosition((prev) => ({ ...prev, ready: false }));
+    }
+  }, [menuOpen]);
+
+  const menu =
+    menuOpen && typeof document !== "undefined"
+      ? createPortal(
+          <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
+            <ActionMenu
+              ref={(node) => {
+                menuRef.current = node ?? undefined;
+              }}
+              role="menu"
+              aria-label="共有メニュー"
+              onPointerDown={(event) => event.stopPropagation()}
+              style={{
+                top: menuPosition.top,
+                left: menuPosition.left,
+                width: menuPosition.width,
+                visibility: menuPosition.ready ? "visible" : "hidden",
+              }}
+            >
+              {actions.map((action) => (
+                <ActionMenuButton
+                  key={action.label}
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    action.onSelect();
+                  }}
+                >
+                  <span>{action.label}</span>
+                  <ShareIcon size={14} />
+                </ActionMenuButton>
+              ))}
+            </ActionMenu>
+          </ActionMenuOverlay>,
+          document.body,
+        )
+      : undefined;
+
+  return (
+    <>
+      <ActionCluster>
+        <ActionButtonsRow>
+          <IconActionButton
+            ref={(node) => {
+              triggerRef.current = node ?? undefined;
+            }}
+            type="button"
+            active={menuOpen}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            <IconLabel>
+              <ShareIcon />
+              共有
+            </IconLabel>
+            <ChevronIcon open={menuOpen} />
+          </IconActionButton>
+
+          <IconActionButton type="button" onClick={onImport}>
+            <IconLabel>
+              <ImportIcon />
+              {importLabel}
+            </IconLabel>
+          </IconActionButton>
+        </ActionButtonsRow>
+      </ActionCluster>
+
+      {menu}
+    </>
+  );
 };

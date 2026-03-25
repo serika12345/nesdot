@@ -1,327 +1,413 @@
 import React, { useState } from "react";
 import {
-    CanvasViewport,
-    CollapseToggle,
-    DetailKey,
-    DetailList,
-    DetailRow,
-    DetailValue,
-    Field,
-    FieldGrid,
-    FieldLabel,
-    HelperText,
-    MetricCard,
-    MetricGrid,
-    MetricLabel,
-    MetricValue,
-    NumberInput,
-    Panel,
-    PanelHeader,
-    PanelHeaderRow,
-    PanelTitle,
-    ScrollColumn,
-    SelectInput,
-    SplitLayout,
-    ToolButton,
+  CanvasViewport,
+  CollapseToggle,
+  DetailKey,
+  DetailList,
+  DetailRow,
+  DetailValue,
+  Field,
+  FieldGrid,
+  FieldLabel,
+  HelperText,
+  MetricCard,
+  MetricGrid,
+  MetricLabel,
+  MetricValue,
+  NumberInput,
+  Panel,
+  PanelHeader,
+  PanelHeaderRow,
+  PanelTitle,
+  ScrollColumn,
+  SelectInput,
+  SplitLayout,
+  ToolButton,
 } from "../App.styles";
 import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
-import { MAX_SCREEN_SPRITES, MAX_SPRITES_PER_SCANLINE, scanScreenSpriteConstraints } from "../screen/constraints";
-import { getHexArrayForScreen, SpriteInScreen, useProjectState } from "../store/projectState";
+import {
+  MAX_SCREEN_SPRITES,
+  MAX_SPRITES_PER_SCANLINE,
+  scanScreenSpriteConstraints,
+} from "../screen/constraints";
+import {
+  getHexArrayForScreen,
+  SpriteInScreen,
+  useProjectState,
+} from "../store/projectState";
 import { ProjectActions } from "./ProjectActions";
 import { ScreenCanvas } from "./ScreenCanvas";
 import { ChevronIcon } from "./ui/Icons";
 
 export const ScreenMode: React.FC = () => {
-    const [spriteNumber, setSpriteNumber] = useState(0);
-    const [x, setX] = useState(0);
-    const [y, setY] = useState(0);
-    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | undefined>(() => {
-        if (useProjectState.getState().screen.sprites.length > 0) return 0;
-        return undefined;
-    });
-    const [isPlacementOpen, setIsPlacementOpen] = useState(true);
-    const [isSelectionOpen, setIsSelectionOpen] = useState(false);
-    const screen = useProjectState((s) => s.screen);
-    const sprites = useProjectState((s) => s.sprites);
-    const spritesOnScreen = useProjectState((s) => s.screen.sprites);
-    const projectState = useProjectState((s) => s);
-    const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
-    const { importJSON } = useImportImage();
-    const scan = (checkee = useProjectState.getState().screen) => scanScreenSpriteConstraints(checkee);
+  const [spriteNumber, setSpriteNumber] = useState(0);
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
+  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
+    number | undefined
+  >(() => {
+    if (useProjectState.getState().screen.sprites.length > 0) return 0;
+    return undefined;
+  });
+  const [isPlacementOpen, setIsPlacementOpen] = useState(true);
+  const [isSelectionOpen, setIsSelectionOpen] = useState(false);
+  const screen = useProjectState((s) => s.screen);
+  const sprites = useProjectState((s) => s.sprites);
+  const spritesOnScreen = useProjectState((s) => s.screen.sprites);
+  const projectState = useProjectState((s) => s);
+  const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
+  const { importJSON } = useImportImage();
+  const scan = (checkee = useProjectState.getState().screen) =>
+    scanScreenSpriteConstraints(checkee);
 
-    const handleImport = async () => {
-        try {
-            await importJSON((data) => {
-                useProjectState.setState(data);
-                setSelectedSpriteIndex(data.screen.sprites.length > 0 ? 0 : undefined);
+  const handleImport = async () => {
+    try {
+      await importJSON((data) => {
+        useProjectState.setState(data);
+        setSelectedSpriteIndex(data.screen.sprites.length > 0 ? 0 : undefined);
 
-                const result = scan(data.screen);
-                if (result.ok === false) {
-                    alert("インポートしたデータに制約違反があります:\n" + result.errors.join("\n"));
-                }
-            });
-        } catch (err) {
-            alert("インポートに失敗しました: " + err);
+        const result = scan(data.screen);
+        if (result.ok === false) {
+          alert(
+            "インポートしたデータに制約違反があります:\n" +
+              result.errors.join("\n"),
+          );
         }
+      });
+    } catch (err) {
+      alert("インポートに失敗しました: " + err);
+    }
+  };
+
+  const handleAddSprite = () => {
+    const spriteTile = sprites[spriteNumber];
+    if (!spriteTile) {
+      alert("指定されたスプライト番号のスプライトが存在しません");
+      return;
+    }
+
+    const candidate: SpriteInScreen = {
+      ...spriteTile,
+      x,
+      y,
+      spriteIndex: spriteNumber,
+    };
+    const newScreen = {
+      ...screen,
+      sprites: [...screen.sprites, candidate],
     };
 
-    const handleAddSprite = () => {
-        const spriteTile = sprites[spriteNumber];
-        if (!spriteTile) {
-            alert("指定されたスプライト番号のスプライトが存在しません");
-            return;
-        }
+    const report = scan(newScreen);
+    if (report.ok === false) {
+      alert(
+        "スプライトの追加に失敗しました。制約違反:\n" +
+          report.errors.join("\n"),
+      );
+      return;
+    }
 
-        const candidate: SpriteInScreen = {
-            ...spriteTile,
-            x,
-            y,
-            spriteIndex: spriteNumber,
-        };
-        const newScreen = {
-            ...screen,
-            sprites: [...screen.sprites, candidate],
-        };
+    useProjectState.setState({ screen: newScreen });
+    if (selectedSpriteIndex === undefined) {
+      setSelectedSpriteIndex(newScreen.sprites.length - 1);
+    }
+    alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
+  };
 
-        const report = scan(newScreen);
-        if (report.ok === false) {
-            alert("スプライトの追加に失敗しました。制約違反:\n" + report.errors.join("\n"));
-            return;
-        }
+  const activeSprite =
+    selectedSpriteIndex === undefined
+      ? undefined
+      : spritesOnScreen[selectedSpriteIndex];
+  const scanReport = scan(screen);
 
-        useProjectState.setState({ screen: newScreen });
-        if (selectedSpriteIndex === undefined) {
-            setSelectedSpriteIndex(newScreen.sprites.length - 1);
-        }
-        alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
-    };
+  return (
+    <SplitLayout>
+      <ScrollColumn>
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>スクリーン配置</PanelTitle>
+          </PanelHeader>
 
-    const activeSprite = selectedSpriteIndex === undefined ? undefined : spritesOnScreen[selectedSpriteIndex];
-    const scanReport = scan(screen);
+          <MetricGrid
+            css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+          >
+            <MetricCard>
+              <MetricLabel>配置中</MetricLabel>
+              <MetricValue>
+                {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
+              </MetricValue>
+            </MetricCard>
+            <MetricCard>
+              <MetricLabel>画面</MetricLabel>
+              <MetricValue>
+                {screen.width}×{screen.height}
+              </MetricValue>
+            </MetricCard>
+            <MetricCard css={{ gridColumn: "1 / -1" }}>
+              <MetricLabel>制約</MetricLabel>
+              <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>
+                1ライン最大 {MAX_SPRITES_PER_SCANLINE}
+              </MetricValue>
+            </MetricCard>
+          </MetricGrid>
 
-    return (
-        <SplitLayout>
-            <ScrollColumn>
-                <Panel>
-                    <PanelHeader>
-                        <PanelTitle>スクリーン配置</PanelTitle>
-                    </PanelHeader>
+          {!scanReport.ok && (
+            <HelperText>
+              制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。
+            </HelperText>
+          )}
+        </Panel>
 
-                    <MetricGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                        <MetricCard>
-                            <MetricLabel>配置中</MetricLabel>
-                            <MetricValue>
-                                {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
-                            </MetricValue>
-                        </MetricCard>
-                        <MetricCard>
-                            <MetricLabel>画面</MetricLabel>
-                            <MetricValue>
-                                {screen.width}×{screen.height}
-                            </MetricValue>
-                        </MetricCard>
-                        <MetricCard css={{ gridColumn: "1 / -1" }}>
-                            <MetricLabel>制約</MetricLabel>
-                            <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>
-                                1ライン最大 {MAX_SPRITES_PER_SCANLINE}
-                            </MetricValue>
-                        </MetricCard>
-                    </MetricGrid>
+        <Panel>
+          <PanelHeader>
+            <PanelHeaderRow>
+              <CollapseToggle
+                type="button"
+                open={isPlacementOpen}
+                onClick={() => setIsPlacementOpen((prev) => !prev)}
+              >
+                {isPlacementOpen ? "閉じる" : "開く"}
+                <ChevronIcon open={isPlacementOpen} />
+              </CollapseToggle>
+            </PanelHeaderRow>
+            <PanelTitle>スプライト追加</PanelTitle>
+          </PanelHeader>
 
-                    {!scanReport.ok && (
-                        <HelperText>制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。</HelperText>
-                    )}
-                </Panel>
+          {isPlacementOpen ? (
+            <FieldGrid
+              css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+            >
+              <Field>
+                <FieldLabel>スプライト番号</FieldLabel>
+                <NumberInput
+                  type="number"
+                  min={0}
+                  max={64}
+                  value={spriteNumber}
+                  onChange={(e) => setSpriteNumber(Number(e.target.value))}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>X 座標</FieldLabel>
+                <NumberInput
+                  type="number"
+                  min={0}
+                  max={256}
+                  value={x}
+                  onChange={(e) => setX(Number(e.target.value))}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Y 座標</FieldLabel>
+                <NumberInput
+                  type="number"
+                  min={0}
+                  max={240}
+                  value={y}
+                  onChange={(e) => setY(Number(e.target.value))}
+                />
+              </Field>
+              <div css={{ display: "grid", alignItems: "end" }}>
+                <ToolButton
+                  type="button"
+                  tone="primary"
+                  onClick={handleAddSprite}
+                  css={{ minHeight: 48 }}
+                >
+                  スプライトを追加
+                </ToolButton>
+              </div>
+            </FieldGrid>
+          ) : (
+            <HelperText>
+              追加候補は sprite #{spriteNumber} を ({x}, {y}) に配置します。
+            </HelperText>
+          )}
+        </Panel>
 
-                <Panel>
-                    <PanelHeader>
-                        <PanelHeaderRow>
-                            <CollapseToggle type="button" open={isPlacementOpen} onClick={() => setIsPlacementOpen((prev) => !prev)}>
-                                {isPlacementOpen ? "閉じる" : "開く"}
-                                <ChevronIcon open={isPlacementOpen} />
-                            </CollapseToggle>
-                        </PanelHeaderRow>
-                        <PanelTitle>スプライト追加</PanelTitle>
-                    </PanelHeader>
+        <Panel>
+          <PanelHeader>
+            <PanelHeaderRow>
+              <CollapseToggle
+                type="button"
+                open={isSelectionOpen}
+                onClick={() => setIsSelectionOpen((prev) => !prev)}
+              >
+                {isSelectionOpen ? "閉じる" : "開く"}
+                <ChevronIcon open={isSelectionOpen} />
+              </CollapseToggle>
+            </PanelHeaderRow>
+            <PanelTitle>選択中のスプライト</PanelTitle>
+          </PanelHeader>
 
-                    {isPlacementOpen ? (
-                        <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                            <Field>
-                                <FieldLabel>スプライト番号</FieldLabel>
-                                <NumberInput
-                                    type="number"
-                                    min={0}
-                                    max={64}
-                                    value={spriteNumber}
-                                    onChange={(e) => setSpriteNumber(Number(e.target.value))}
-                                />
-                            </Field>
-                            <Field>
-                                <FieldLabel>X 座標</FieldLabel>
-                                <NumberInput type="number" min={0} max={256} value={x} onChange={(e) => setX(Number(e.target.value))} />
-                            </Field>
-                            <Field>
-                                <FieldLabel>Y 座標</FieldLabel>
-                                <NumberInput type="number" min={0} max={240} value={y} onChange={(e) => setY(Number(e.target.value))} />
-                            </Field>
-                            <div css={{ display: "grid", alignItems: "end" }}>
-                                <ToolButton type="button" tone="primary" onClick={handleAddSprite} css={{ minHeight: 48 }}>
-                                    スプライトを追加
-                                </ToolButton>
-                            </div>
-                        </FieldGrid>
-                    ) : (
-                        <HelperText>
-                            追加候補は sprite #{spriteNumber} を ({x}, {y}) に配置します。
-                        </HelperText>
-                    )}
-                </Panel>
+          {isSelectionOpen ? (
+            <>
+              <Field>
+                <FieldLabel>スプライト一覧</FieldLabel>
+                <SelectInput
+                  onChange={(e) =>
+                    setSelectedSpriteIndex(
+                      e.target.value === ""
+                        ? undefined
+                        : Number(e.target.value),
+                    )
+                  }
+                  value={selectedSpriteIndex ?? ""}
+                >
+                  {spritesOnScreen.length === 0 && (
+                    <option value="">スプライトが配置されていません</option>
+                  )}
+                  {spritesOnScreen.map((sprite, index) => (
+                    <option key={index} value={index}>
+                      {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y}`}
+                    </option>
+                  ))}
+                </SelectInput>
+              </Field>
 
-                <Panel>
-                    <PanelHeader>
-                        <PanelHeaderRow>
-                            <CollapseToggle type="button" open={isSelectionOpen} onClick={() => setIsSelectionOpen((prev) => !prev)}>
-                                {isSelectionOpen ? "閉じる" : "開く"}
-                                <ChevronIcon open={isSelectionOpen} />
-                            </CollapseToggle>
-                        </PanelHeaderRow>
-                        <PanelTitle>選択中のスプライト</PanelTitle>
-                    </PanelHeader>
+              {activeSprite ? (
+                <>
+                  <DetailList>
+                    <DetailRow>
+                      <DetailKey>元スプライト</DetailKey>
+                      <DetailValue>
+                        spriteIndex {activeSprite.spriteIndex}
+                      </DetailValue>
+                    </DetailRow>
+                    <DetailRow>
+                      <DetailKey>サイズ</DetailKey>
+                      <DetailValue>
+                        {activeSprite.width}×{activeSprite.height}
+                      </DetailValue>
+                    </DetailRow>
+                  </DetailList>
 
-                    {isSelectionOpen ? (
-                        <>
-                            <Field>
-                                <FieldLabel>スプライト一覧</FieldLabel>
-                                <SelectInput
-                                    onChange={(e) => setSelectedSpriteIndex(e.target.value === "" ? undefined : Number(e.target.value))}
-                                    value={selectedSpriteIndex ?? ""}
-                                >
-                                    {spritesOnScreen.length === 0 && <option value="">スプライトが配置されていません</option>}
-                                    {spritesOnScreen.map((sprite, index) => (
-                                        <option key={index} value={index}>
-                                            {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y}`}
-                                        </option>
-                                    ))}
-                                </SelectInput>
-                            </Field>
+                  <FieldGrid
+                    css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+                  >
+                    <Field>
+                      <FieldLabel>Position X</FieldLabel>
+                      <NumberInput
+                        type="number"
+                        value={activeSprite.x}
+                        onChange={(e) => {
+                          const newX = Number(e.target.value);
+                          const newSprites = spritesOnScreen.map((s, i) =>
+                            i === selectedSpriteIndex ? { ...s, x: newX } : s,
+                          );
+                          const newScreen = { ...screen, sprites: newSprites };
+                          const report = scan(newScreen);
+                          if (report.ok === false) {
+                            alert(
+                              "位置の更新に失敗しました。制約違反:\n" +
+                                report.errors.join("\n"),
+                            );
+                            return;
+                          }
+                          useProjectState.setState({ screen: newScreen });
+                        }}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>Position Y</FieldLabel>
+                      <NumberInput
+                        type="number"
+                        value={activeSprite.y}
+                        onChange={(e) => {
+                          const newY = Number(e.target.value);
+                          const newSprites = spritesOnScreen.map((s, i) =>
+                            i === selectedSpriteIndex ? { ...s, y: newY } : s,
+                          );
+                          const newScreen = { ...screen, sprites: newSprites };
+                          const report = scan(newScreen);
+                          if (report.ok === false) {
+                            alert(
+                              "位置の更新に失敗しました。制約違反:\n" +
+                                report.errors.join("\n"),
+                            );
+                            return;
+                          }
+                          useProjectState.setState({ screen: newScreen });
+                        }}
+                      />
+                    </Field>
+                  </FieldGrid>
 
-                            {activeSprite ? (
-                                <>
-                                    <DetailList>
-                                        <DetailRow>
-                                            <DetailKey>元スプライト</DetailKey>
-                                            <DetailValue>spriteIndex {activeSprite.spriteIndex}</DetailValue>
-                                        </DetailRow>
-                                        <DetailRow>
-                                            <DetailKey>サイズ</DetailKey>
-                                            <DetailValue>
-                                                {activeSprite.width}×{activeSprite.height}
-                                            </DetailValue>
-                                        </DetailRow>
-                                    </DetailList>
+                  <ToolButton
+                    type="button"
+                    tone="danger"
+                    onClick={() => {
+                      const newSprites = spritesOnScreen.filter(
+                        (_, i) => i !== selectedSpriteIndex,
+                      );
+                      const newScreen = { ...screen, sprites: newSprites };
+                      const report = scan(newScreen);
+                      if (report.ok === false) {
+                        alert(
+                          "削除後の状態で制約違反が検出されました:\n" +
+                            report.errors.join("\n"),
+                        );
+                      }
+                      useProjectState.setState({ screen: newScreen });
+                      setSelectedSpriteIndex(undefined);
+                    }}
+                    css={{ minHeight: 46 }}
+                  >
+                    このスプライトを削除
+                  </ToolButton>
+                </>
+              ) : (
+                <HelperText>
+                  スプライトを追加するか、一覧から対象を選択してください。
+                </HelperText>
+              )}
+            </>
+          ) : (
+            <HelperText>
+              {activeSprite
+                ? `現在は #${selectedSpriteIndex} を選択中です。`
+                : "現在は未選択です。"}
+            </HelperText>
+          )}
+        </Panel>
+      </ScrollColumn>
 
-                                    <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-                                        <Field>
-                                            <FieldLabel>Position X</FieldLabel>
-                                            <NumberInput
-                                                type="number"
-                                                value={activeSprite.x}
-                                                onChange={(e) => {
-                                                    const newX = Number(e.target.value);
-                                                    const newSprites = spritesOnScreen.map((s, i) =>
-                                                        i === selectedSpriteIndex ? { ...s, x: newX } : s
-                                                    );
-                                                    const newScreen = { ...screen, sprites: newSprites };
-                                                    const report = scan(newScreen);
-                                                    if (report.ok === false) {
-                                                        alert("位置の更新に失敗しました。制約違反:\n" + report.errors.join("\n"));
-                                                        return;
-                                                    }
-                                                    useProjectState.setState({ screen: newScreen });
-                                                }}
-                                            />
-                                        </Field>
-                                        <Field>
-                                            <FieldLabel>Position Y</FieldLabel>
-                                            <NumberInput
-                                                type="number"
-                                                value={activeSprite.y}
-                                                onChange={(e) => {
-                                                    const newY = Number(e.target.value);
-                                                    const newSprites = spritesOnScreen.map((s, i) =>
-                                                        i === selectedSpriteIndex ? { ...s, y: newY } : s
-                                                    );
-                                                    const newScreen = { ...screen, sprites: newSprites };
-                                                    const report = scan(newScreen);
-                                                    if (report.ok === false) {
-                                                        alert("位置の更新に失敗しました。制約違反:\n" + report.errors.join("\n"));
-                                                        return;
-                                                    }
-                                                    useProjectState.setState({ screen: newScreen });
-                                                }}
-                                            />
-                                        </Field>
-                                    </FieldGrid>
+      <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <PanelHeader>
+          <PanelHeaderRow>
+            <PanelTitle>画面プレビュー</PanelTitle>
+            <ProjectActions
+              actions={[
+                {
+                  label: "PNGエクスポート",
+                  onSelect: () => exportPng(getHexArrayForScreen(screen)),
+                },
+                {
+                  label: "SVGエクスポート",
+                  onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)),
+                },
+                { label: "保存", onSelect: () => exportJSON(projectState) },
+              ]}
+              onImport={handleImport}
+            />
+          </PanelHeaderRow>
+        </PanelHeader>
 
-                                    <ToolButton
-                                        type="button"
-                                        tone="danger"
-                                        onClick={() => {
-                                            const newSprites = spritesOnScreen.filter((_, i) => i !== selectedSpriteIndex);
-                                            const newScreen = { ...screen, sprites: newSprites };
-                                            const report = scan(newScreen);
-                                            if (report.ok === false) {
-                                                alert("削除後の状態で制約違反が検出されました:\n" + report.errors.join("\n"));
-                                            }
-                                            useProjectState.setState({ screen: newScreen });
-                                            setSelectedSpriteIndex(undefined);
-                                        }}
-                                        css={{ minHeight: 46 }}
-                                    >
-                                        このスプライトを削除
-                                    </ToolButton>
-                                </>
-                            ) : (
-                                <HelperText>スプライトを追加するか、一覧から対象を選択してください。</HelperText>
-                            )}
-                        </>
-                    ) : (
-                        <HelperText>{activeSprite ? `現在は #${selectedSpriteIndex} を選択中です。` : "現在は未選択です。"}</HelperText>
-                    )}
-                </Panel>
-            </ScrollColumn>
+        <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
+          <ScreenCanvas scale={2} showGrid={true} />
+        </CanvasViewport>
 
-            <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <PanelHeader>
-                    <PanelHeaderRow>
-                        <PanelTitle>画面プレビュー</PanelTitle>
-                        <ProjectActions
-                            actions={[
-                                { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForScreen(screen)) },
-                                { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)) },
-                                { label: "保存", onSelect: () => exportJSON(projectState) },
-                            ]}
-                            onImport={handleImport}
-                        />
-                    </PanelHeaderRow>
-                </PanelHeader>
-
-                <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
-                    <ScreenCanvas scale={2} showGrid={true} />
-                </CanvasViewport>
-
-                {scanReport.ok === false && (
-                    <DetailList css={{ flexShrink: 0 }}>
-                        {scanReport.errors.map((error: string) => (
-                            <DetailRow key={error}>
-                                <DetailKey>警告</DetailKey>
-                                <DetailValue>{error}</DetailValue>
-                            </DetailRow>
-                        ))}
-                    </DetailList>
-                )}
-            </Panel>
-        </SplitLayout>
-    );
+        {scanReport.ok === false && (
+          <DetailList css={{ flexShrink: 0 }}>
+            {scanReport.errors.map((error: string) => (
+              <DetailRow key={error}>
+                <DetailKey>警告</DetailKey>
+                <DetailValue>{error}</DetailValue>
+              </DetailRow>
+            ))}
+          </DetailList>
+        )}
+      </Panel>
+    </SplitLayout>
+  );
 };
