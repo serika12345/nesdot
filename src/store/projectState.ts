@@ -84,14 +84,7 @@ const DEFAULT_STATE: ProjectState = {
         [0, 1, 21, 34],
         [0, 1, 21, 34],
     ],
-    sprites: (() => {
-        const length = 64;
-        const arr: SpriteTile[] = [];
-        for (let i = 0; i < length; i++) {
-            arr.push(makeEmptyTile(8));
-        }
-        return arr;
-    })(),
+    sprites: Array.from({ length: 64 }, () => makeEmptyTile(8)),
     _hydrated: false,
 };
 
@@ -99,7 +92,15 @@ const DEFAULT_STATE: ProjectState = {
 const idbStorage: StateStorage = {
     getItem: async (name: string): Promise<string | null> => {
         const v = await idbGet(name);
-        return typeof v === "string" ? v : v == null ? null : JSON.stringify(v);
+        if (typeof v === "string") {
+            return v;
+        }
+
+        if (v === undefined) {
+            return undefined as unknown as string | null;
+        }
+
+        return JSON.stringify(v);
     },
     setItem: async (name: string, value: string): Promise<void> => {
         await idbSet(name, value);

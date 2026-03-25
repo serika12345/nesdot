@@ -28,7 +28,7 @@ export const useSpriteCanvas = ({
 }: UseCanvasParams) => {
     const palettes = useProjectState((s) => s.palettes);
     const tile = useProjectState((s) => s.sprites[target]);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
 
     const width = tile.width;
     const height = tile.height;
@@ -59,17 +59,17 @@ export const useSpriteCanvas = ({
         ctx.fillStyle = "#ddd";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
         ctx.fillStyle = "#eee";
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
+        Array.from({ length: height }, (_, y) => y).forEach((y) => {
+            Array.from({ length: width }, (_, x) => x).forEach((x) => {
                 if ((x + y) % 2 === 0) {
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
-            }
-        }
+            });
+        });
 
         // ピクセル描画
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
+        Array.from({ length: height }, (_, y) => y).forEach((y) => {
+            Array.from({ length: width }, (_, x) => x).forEach((x) => {
                 const HexToColorIndex = tile.pixels[y][x];
                 if (HexToColorIndex !== 0) {
                     // スプライト編集時はパレット切り替えに追従させる
@@ -77,39 +77,39 @@ export const useSpriteCanvas = ({
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
-            }
-        }
+            });
+        });
 
         // グリッド
         if (showGrid) {
             ctx.strokeStyle = "rgba(0,0,0,0.2)";
             ctx.lineWidth = 1;
-            for (let gx = 0; gx <= width; gx++) {
+            Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
                 ctx.beginPath();
                 ctx.moveTo(gx * scale + 0.5, 0);
                 ctx.lineTo(gx * scale + 0.5, height * scale);
                 ctx.stroke();
-            }
-            for (let gy = 0; gy <= height; gy++) {
+            });
+            Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
                 ctx.beginPath();
                 ctx.moveTo(0, gy * scale + 0.5);
                 ctx.lineTo(width * scale, gy * scale + 0.5);
                 ctx.stroke();
-            }
+            });
             // 8x8境界強調
             ctx.strokeStyle = "rgba(0,0,0,0.5)";
-            for (let gx = 0; gx <= width; gx += 8) {
+            Array.from({ length: Math.floor(width / 8) + 1 }, (_, i) => i * 8).forEach((gx) => {
                 ctx.beginPath();
                 ctx.moveTo(gx * scale + 0.5, 0);
                 ctx.lineTo(gx * scale + 0.5, height * scale);
                 ctx.stroke();
-            }
-            for (let gy = 0; gy <= height; gy += 8) {
+            });
+            Array.from({ length: Math.floor(height / 8) + 1 }, (_, i) => i * 8).forEach((gy) => {
                 ctx.beginPath();
                 ctx.moveTo(0, gy * scale + 0.5);
                 ctx.lineTo(width * scale, gy * scale + 0.5);
                 ctx.stroke();
-            }
+            });
         }
     }, [tile, palettes, scale, showGrid, width, height, currentSelectPalette]);
 
@@ -129,7 +129,7 @@ export const useSpriteCanvas = ({
             next.pixels[py][px] = tool === "pen" ? activeColorIndex : 0;
             onChange(next, target);
         },
-        [tile, tool, activeColorIndex, onChange, width, height]
+        [tile, tool, activeColorIndex, onChange, width, height, target]
     );
 
     const handlePointer = useCallback(
@@ -224,7 +224,7 @@ export const useSpriteCanvas = ({
             // 追加：ゴーストの後始末
             cleanupGhost();
         },
-        [isChangeOrderMode, cleanupGhost, tile, onChange, target, width, height, scale]
+        [isChangeOrderMode, cleanupGhost, tile, onChange, target, width, height, scale, dragInfoRef, swap]
     );
 
     const onContextMenu = useCallback((e: React.MouseEvent) => e.preventDefault(), []);

@@ -10,7 +10,7 @@ export interface UseCanvasParams {
 
 export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams) => {
     const screen = useProjectState((s) => s.screen);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
 
     const width = screen.width;
     const height = screen.height;
@@ -29,62 +29,62 @@ export const useScreenCanvas = ({ scale = 24, showGrid = true }: UseCanvasParams
         ctx.fillStyle = "#ddd";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
         ctx.fillStyle = "#eee";
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
+        Array.from({ length: height }, (_, y) => y).forEach((y) => {
+            Array.from({ length: width }, (_, x) => x).forEach((x) => {
                 if ((x + y) % 2 === 0) {
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
-            }
-        }
+            });
+        });
 
         // TODO: スプライト描画
         screen.sprites.forEach((sprite) => {
             const spriteTile = useProjectState.getState().sprites[sprite.spriteIndex];
             if (!spriteTile) return;
-            for (let py = 0; py < spriteTile.height; py++) {
-                for (let px = 0; px < spriteTile.width; px++) {
+            Array.from({ length: spriteTile.height }, (_, py) => py).forEach((py) => {
+                Array.from({ length: spriteTile.width }, (_, px) => px).forEach((px) => {
                     const colorIndex = sprite.pixels[py][px];
                     if (colorIndex === 0) continue; // 0は透明
                     const nesColorIndex = useProjectState.getState().palettes[sprite.paletteIndex][colorIndex];
                     const hex = useProjectState.getState().palettes ? NES_PALETTE_HEX[nesColorIndex] : "#f0f";
                     ctx.fillStyle = hex;
                     ctx.fillRect((sprite.x + px) * scale, (sprite.y + py) * scale, scale, scale);
-                }
-            }
+                });
+            });
         });
 
         // グリッド
         if (showGrid) {
             ctx.strokeStyle = "rgba(0,0,0,0.2)";
             ctx.lineWidth = 1;
-            for (let gx = 0; gx <= width; gx++) {
+            Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
                 ctx.beginPath();
                 ctx.moveTo(gx * scale + 0.5, 0);
                 ctx.lineTo(gx * scale + 0.5, height * scale);
                 ctx.stroke();
-            }
-            for (let gy = 0; gy <= height; gy++) {
+            });
+            Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
                 ctx.beginPath();
                 ctx.moveTo(0, gy * scale + 0.5);
                 ctx.lineTo(width * scale, gy * scale + 0.5);
                 ctx.stroke();
-            }
+            });
             // 8x8境界強調
             ctx.strokeStyle = "rgba(0,0,0,0.5)";
-            for (let gx = 0; gx <= width; gx += 8) {
+            Array.from({ length: Math.floor(width / 8) + 1 }, (_, i) => i * 8).forEach((gx) => {
                 ctx.beginPath();
                 ctx.moveTo(gx * scale + 0.5, 0);
                 ctx.lineTo(gx * scale + 0.5, height * scale);
                 ctx.stroke();
-            }
-            for (let gy = 0; gy <= height; gy += 8) {
+            });
+            Array.from({ length: Math.floor(height / 8) + 1 }, (_, i) => i * 8).forEach((gy) => {
                 ctx.beginPath();
                 ctx.moveTo(0, gy * scale + 0.5);
                 ctx.lineTo(width * scale, gy * scale + 0.5);
                 ctx.stroke();
-            }
+            });
         }
-    }, [scale, showGrid, screen]);
+    }, [scale, showGrid, screen, width, height]);
 
     useEffect(() => {
         drawAll();

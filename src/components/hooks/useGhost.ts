@@ -18,14 +18,14 @@ export interface UseGhostParams {
 
 export const useGhost = ({ scale, width, height, tile, palettes, currentSelectPalette }: UseGhostParams) => {
     // 追加：ドラッグ中の8x8タイルのゴースト管理
-    const ghostImgRef = useRef<HTMLImageElement | null>(null);
+    const ghostImgRef = useRef<HTMLImageElement | undefined>(undefined);
     const dragInfoRef = useRef<{
         startTileX: number; // 8の倍数の列
         startTileY: number; // 8の倍数の行
         // ポインタからタイル左上（キャンバス内表示位置＝スケール後）までのオフセット（CSS px）
         offsetX: number;
         offsetY: number;
-    } | null>(null);
+    } | undefined>(undefined);
 
     // 追加：8x8タイルをオフスクリーンに描画して dataURL を返す（透明背景）
     const makeTileGhostDataURL = useCallback(
@@ -38,8 +38,8 @@ export const useGhost = ({ scale, width, height, tile, palettes, currentSelectPa
             gctx.imageSmoothingEnabled = false;
 
             // 透明背景に対象8x8を拡大描画
-            for (let yy = 0; yy < 8; yy++) {
-                for (let xx = 0; xx < 8; xx++) {
+            Array.from({ length: 8 }, (_, yy) => yy).forEach((yy) => {
+                Array.from({ length: 8 }, (_, xx) => xx).forEach((xx) => {
                     const gx = tileX + xx;
                     const gy = tileY + yy;
                     if (gx < 0 || gy < 0 || gx >= width || gy >= height) continue;
@@ -49,8 +49,8 @@ export const useGhost = ({ scale, width, height, tile, palettes, currentSelectPa
                         gctx.fillStyle = hex;
                         gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
                     }
-                }
-            }
+                });
+            });
 
             // 薄い影（見やすさ）
             gctx.save();
@@ -90,8 +90,8 @@ export const useGhost = ({ scale, width, height, tile, palettes, currentSelectPa
     const cleanupGhost = useCallback(() => {
         const img = ghostImgRef.current;
         if (img?.parentNode) img.parentNode.removeChild(img);
-        ghostImgRef.current = null;
-        dragInfoRef.current = null;
+        ghostImgRef.current = undefined;
+        dragInfoRef.current = undefined;
     }, []);
 
     /**

@@ -16,19 +16,17 @@ export function renderScreenToHexArray(screen: Screen, palettes: Palettes): stri
         Array.from({ length: screen.width }, () => NES_PALETTE_HEX[0])
     );
     const spriteLayer = Array.from({ length: screen.height }, () =>
-        Array.from({ length: screen.width }, () => null as string | null)
+        Array.from({ length: screen.width }, () => undefined as string | undefined)
     );
 
-    for (let tileY = 0; tileY < screen.backgroundTiles.length; tileY++) {
-        const row = screen.backgroundTiles[tileY];
-        for (let tileX = 0; tileX < row.length; tileX++) {
-            const tile = row[tileX];
+    screen.backgroundTiles.forEach((row, tileY) => {
+        row.forEach((tile, tileX) => {
             const palette = palettes[tile.paletteIndex];
             const baseY = tileY * 8;
             const baseX = tileX * 8;
 
-            for (let pixelY = 0; pixelY < 8; pixelY++) {
-                for (let pixelX = 0; pixelX < 8; pixelX++) {
+            Array.from({ length: 8 }, (_, pixelY) => pixelY).forEach((pixelY) => {
+                Array.from({ length: 8 }, (_, pixelX) => pixelX).forEach((pixelX) => {
                     const colorIndex = tile.pixels[pixelY][pixelX];
                     const hex = NES_PALETTE_HEX[palette[colorIndex]];
                     const y = baseY + pixelY;
@@ -37,35 +35,44 @@ export function renderScreenToHexArray(screen: Screen, palettes: Palettes): stri
                     if (y >= 0 && y < screen.height && x >= 0 && x < screen.width) {
                         backgroundLayer[y][x] = hex;
                     }
-                }
-            }
-        }
-    }
+                });
+            });
+        });
+    });
 
-    const spritesSorted = [...screen.sprites].sort((a, b) => a.spriteIndex - b.spriteIndex);
+    const spritesSorted = screen.sprites.reduce<typeof screen.sprites>(
+        (sorted, sprite) => {
+            const insertAt = sorted.findIndex((candidate) => candidate.spriteIndex > sprite.spriteIndex);
 
-    for (const sprite of spritesSorted) {
+            return insertAt === -1
+                ? [...sorted, sprite]
+                : [...sorted.slice(0, insertAt), sprite, ...sorted.slice(insertAt)];
+        },
+        []
+    );
+
+    spritesSorted.forEach((sprite) => {
         const palette = palettes[sprite.paletteIndex];
 
-        for (let pixelY = 0; pixelY < sprite.height; pixelY++) {
+        Array.from({ length: sprite.height }, (_, pixelY) => pixelY).forEach((pixelY) => {
             const row = sprite.pixels[pixelY];
-            if (!row) continue;
+            if (!row) return;
 
-            for (let pixelX = 0; pixelX < sprite.width; pixelX++) {
+            Array.from({ length: sprite.width }, (_, pixelX) => pixelX).forEach((pixelX) => {
                 const colorIndex = row[pixelX];
-                if (colorIndex == null || colorIndex === 0) continue;
+                if (colorIndex === undefined || colorIndex === 0) return;
 
                 const x = (sprite.x | 0) + pixelX;
                 const y = (sprite.y | 0) + pixelY;
 
                 if (y < 0 || y >= screen.height || x < 0 || x >= screen.width) {
-                    continue;
+                    return;
                 }
 
                 spriteLayer[y][x] = NES_PALETTE_HEX[palette[colorIndex]];
-            }
-        }
-    }
+            });
+        });
+    });
 
     return Array.from({ length: screen.height }, (_, y) =>
         Array.from({ length: screen.width }, (_, x) => spriteLayer[y][x] ?? backgroundLayer[y][x])

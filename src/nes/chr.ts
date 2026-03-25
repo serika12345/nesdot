@@ -11,20 +11,27 @@ export function tile8x8ToChr(tile: SpriteTile): Uint8Array {
     const plane0 = new Uint8Array(8);
     const plane1 = new Uint8Array(8);
 
-    for (let y = 0; y < 8; y++) {
-        let p0 = 0;
-        let p1 = 0;
-        for (let x = 0; x < 8; x++) {
+    Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
+        const bits = Array.from({ length: 8 }, (_, x) => {
             const pix: ColorIndexOfPalette = tile.pixels[y][x];
-            const b0 = pix & 1;
-            const b1 = (pix >> 1) & 1;
-            // NESはビット7が左端ピクセル
-            p0 |= b0 << (7 - x);
-            p1 |= b1 << (7 - x);
-        }
-        plane0[y] = p0;
-        plane1[y] = p1;
-    }
+            return {
+                b0: pix & 1,
+                b1: (pix >> 1) & 1,
+                shift: 7 - x,
+            };
+        });
+
+        const packed = bits.reduce(
+            (acc, bit) => ({
+                p0: acc.p0 | (bit.b0 << bit.shift),
+                p1: acc.p1 | (bit.b1 << bit.shift),
+            }),
+            { p0: 0, p1: 0 }
+        );
+
+        plane0[y] = packed.p0;
+        plane1[y] = packed.p1;
+    });
 
     const out = new Uint8Array(16);
     out.set(plane0, 0);

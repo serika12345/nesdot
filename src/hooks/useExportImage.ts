@@ -38,18 +38,16 @@ export default function useExportImage() {
 
     // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
     const exportChr = async (tile: SpriteTile, activePalette: PaletteIndex) => {
-        const chunks: Uint8Array[] = [];
-        for (let ty = 0; ty < tile.height; ty += 8) {
-            for (let tx = 0; tx < tile.width; tx += 8) {
-                // 8x8 サブタイルを切り出し
-                const subPixels: ColorIndexOfPalette[][] = [];
-                for (let y = 0; y < 8; y++) {
-                    subPixels.push(tile.pixels[ty + y].slice(tx, tx + 8) as ColorIndexOfPalette[]);
-                }
-                const bin = tile8x8ToChr({ width: 8, height: 8, pixels: subPixels, paletteIndex: activePalette });
-                chunks.push(bin);
-            }
-        }
+        const chunks = Array.from({ length: tile.height / 8 }, (_, blockY) =>
+            Array.from({ length: tile.width / 8 }, (_, blockX) => {
+                const ty = blockY * 8;
+                const tx = blockX * 8;
+                const subPixels: ColorIndexOfPalette[][] = Array.from({ length: 8 }, (_, y) =>
+                    tile.pixels[ty + y].slice(tx, tx + 8) as ColorIndexOfPalette[]
+                );
+                return tile8x8ToChr({ width: 8, height: 8, pixels: subPixels, paletteIndex: activePalette });
+            })
+        ).flat();
         // 8x16 専用が必要なワークフロー向けに、幅==8 && 高さ==16のときだけ最適化（互換維持）
         if (tile.width === 8 && tile.height === 16) {
             const top = { width: 8, height: 8, pixels: tile.pixels.slice(0, 8) } as SpriteTile;
@@ -59,13 +57,12 @@ export default function useExportImage() {
             return;
         }
 
-        const total = chunks.reduce((a, c) => a + c.length, 0);
-        const out = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-            out.set(c, off);
-            off += c.length;
-        }
+        const out = chunks.reduce((acc, chunk) => {
+            const next = new Uint8Array(acc.length + chunk.length);
+            next.set(acc, 0);
+            next.set(chunk, acc.length);
+            return next;
+        }, new Uint8Array(0));
         await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`, [{ name: "CHR files", extensions: ["chr"] }]);
     };
 
@@ -81,9 +78,9 @@ export default function useExportImage() {
         ctx.imageSmoothingEnabled = false;
 
         // 透明はalpha=0、他はパレット色
-        for (let y = 0; y < h; y++) {
+        Array.from({ length: h }, (_, y) => y).forEach((y) => {
             const row = hexPixels[y];
-            for (let x = 0; x < w; x++) {
+            Array.from({ length: w }, (_, x) => x).forEach((x) => {
                 const hex = row[x];
                 if (hex === NES_PALETTE_HEX[0]) {
                     // 透明
@@ -92,8 +89,8 @@ export default function useExportImage() {
                     ctx.fillStyle = hex;
                     ctx.fillRect(x * scale, y * scale, scale, scale);
                 }
-            }
-        }
+            });
+        });
         const blob = await new Promise<Blob>((resolve, reject) => {
             cvs.toBlob((value) => {
                 if (!value) {
@@ -121,20 +118,20 @@ export default function useExportImage() {
             return typeof hex === "string" ? hex : "#000";
         };
 
-        // XML宣言は必須ではありませんが、互換性のため付けておきます
-        let svg = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-        svg += `<svg xmlns="http://www.w3.org/2000/svg" width="${w * scale}" height="${h * scale}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">\n`;
+        const rects = Array.from({ length: h }, (_, y) => y)
+            .flatMap((y) =>
+                Array.from({ length: w }, (_, x) => x)
+                    .filter((x) => hexPixels[y][x] !== NES_PALETTE_HEX[0])
+                    .map((x) => `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(hexPixels[y][x])}"/>`)
+            )
+            .join("\n");
 
-        for (let y = 0; y < h; y++) {
-            const row = hexPixels[y];
-            for (let x = 0; x < w; x++) {
-                const hex = row[x];
-                if (hex === NES_PALETTE_HEX[0]) continue; // 透明は出力しない
-                svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(hex)}"/>\n`;
-            }
-        }
-
-        svg += `</svg>`;
+        const svg = [
+            `<?xml version="1.0" encoding="UTF-8"?>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${w * scale}" height="${h * scale}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">`,
+            rects,
+            `</svg>`,
+        ].join("\n");
 
         const name = fileName ?? `image_${w}x${h}.svg`;
         const bytes = new TextEncoder().encode(svg);

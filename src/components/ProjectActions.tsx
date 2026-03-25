@@ -37,8 +37,8 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
         width: 220,
         ready: false,
     });
-    const triggerRef = useRef<HTMLButtonElement | null>(null);
-    const menuRef = useRef<HTMLDivElement | null>(null);
+    const triggerRef = useRef<HTMLButtonElement | undefined>(undefined);
+    const menuRef = useRef<HTMLDivElement | undefined>(undefined);
 
     const updateMenuPosition = useCallback(() => {
         if (!triggerRef.current) return;
@@ -49,14 +49,21 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
         const width = Math.min(measuredWidth, window.innerWidth - viewportPadding * 2);
         const measuredHeight = menuRef.current?.offsetHeight ?? 0;
 
-        let left = triggerRect.right - width;
-        left = Math.max(viewportPadding, Math.min(left, window.innerWidth - width - viewportPadding));
+        const left = Math.max(
+            viewportPadding,
+            Math.min(triggerRect.right - width, window.innerWidth - width - viewportPadding)
+        );
 
-        let top = triggerRect.bottom + 10;
-        if (measuredHeight > 0 && top + measuredHeight > window.innerHeight - viewportPadding) {
-            const topAbove = triggerRect.top - measuredHeight - 10;
-            top = topAbove >= viewportPadding ? topAbove : Math.max(viewportPadding, window.innerHeight - measuredHeight - viewportPadding);
-        }
+        const belowTop = triggerRect.bottom + 10;
+        const top =
+            measuredHeight > 0 && belowTop + measuredHeight > window.innerHeight - viewportPadding
+                ? (() => {
+                      const topAbove = triggerRect.top - measuredHeight - 10;
+                      return topAbove >= viewportPadding
+                          ? topAbove
+                          : Math.max(viewportPadding, window.innerHeight - measuredHeight - viewportPadding);
+                  })()
+                : belowTop;
 
         setMenuPosition({
             top,
@@ -109,7 +116,9 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
             ? createPortal(
                   <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
                       <ActionMenu
-                          ref={menuRef}
+                          ref={(node) => {
+                              menuRef.current = node ?? undefined;
+                          }}
                           role="menu"
                           aria-label="共有メニュー"
                           onPointerDown={(event) => event.stopPropagation()}
@@ -137,14 +146,16 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
                   </ActionMenuOverlay>,
                   document.body
               )
-            : null;
+                        : undefined;
 
     return (
         <>
             <ActionCluster>
                 <ActionButtonsRow>
                     <IconActionButton
-                        ref={triggerRef}
+                        ref={(node) => {
+                            triggerRef.current = node ?? undefined;
+                        }}
                         type="button"
                         active={menuOpen}
                         aria-expanded={menuOpen}

@@ -298,7 +298,7 @@ export const SpriteMode: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : null}
+                    ) : undefined}
 
                     <SpriteCanvas
                         isChangeOrderMode={isChangeOrderMode}

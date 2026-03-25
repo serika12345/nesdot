@@ -33,8 +33,8 @@ export default function useImportImage() {
         }
     };
 
-    const readJsonWithInputFallback = async (): Promise<string | null> => {
-        return new Promise<string | null>((resolve, reject) => {
+    const readJsonWithInputFallback = async (): Promise<string | undefined> => {
+        return new Promise<string | undefined>((resolve, reject) => {
             const input = document.createElement("input");
             input.type = "file";
             input.accept = ".json,application/json";
@@ -42,8 +42,8 @@ export default function useImportImage() {
             document.body.appendChild(input);
 
             const cleanup = () => {
-                input.onchange = null;
-                input.oncancel = null;
+                input.onchange = undefined;
+                input.oncancel = undefined;
                 document.body.removeChild(input);
             };
 
@@ -51,7 +51,7 @@ export default function useImportImage() {
                 const file = (e.target as HTMLInputElement).files?.[0];
                 if (!file) {
                     cleanup();
-                    resolve(null);
+                    resolve(undefined);
                     return;
                 }
 
@@ -66,7 +66,7 @@ export default function useImportImage() {
 
             input.oncancel = () => {
                 cleanup();
-                resolve(null);
+                resolve(undefined);
             };
 
             input.click();
@@ -86,7 +86,7 @@ export default function useImportImage() {
         }
 
         const fallbackText = await readJsonWithInputFallback();
-        if (fallbackText == null) {
+        if (fallbackText === undefined) {
             return false;
         }
 

@@ -36,9 +36,9 @@ export const ScreenMode: React.FC = () => {
     const [spriteNumber, setSpriteNumber] = useState(0);
     const [x, setX] = useState(0);
     const [y, setY] = useState(0);
-    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | null>(() => {
+    const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<number | undefined>(() => {
         if (useProjectState.getState().screen.sprites.length > 0) return 0;
-        return null;
+        return undefined;
     });
     const [isPlacementOpen, setIsPlacementOpen] = useState(true);
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
@@ -54,7 +54,7 @@ export const ScreenMode: React.FC = () => {
         try {
             await importJSON((data) => {
                 useProjectState.setState(data);
-                setSelectedSpriteIndex(data.screen.sprites.length > 0 ? 0 : null);
+                setSelectedSpriteIndex(data.screen.sprites.length > 0 ? 0 : undefined);
 
                 const result = scan(data.screen);
                 if (result.ok === false) {
@@ -91,13 +91,13 @@ export const ScreenMode: React.FC = () => {
         }
 
         useProjectState.setState({ screen: newScreen });
-        if (selectedSpriteIndex == null) {
+        if (selectedSpriteIndex === undefined) {
             setSelectedSpriteIndex(newScreen.sprites.length - 1);
         }
         alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
     };
 
-    const activeSprite = selectedSpriteIndex !== null ? spritesOnScreen[selectedSpriteIndex] : null;
+    const activeSprite = selectedSpriteIndex === undefined ? undefined : spritesOnScreen[selectedSpriteIndex];
     const scanReport = scan(screen);
 
     return (
@@ -194,7 +194,7 @@ export const ScreenMode: React.FC = () => {
                             <Field>
                                 <FieldLabel>スプライト一覧</FieldLabel>
                                 <SelectInput
-                                    onChange={(e) => setSelectedSpriteIndex(e.target.value === "" ? null : Number(e.target.value))}
+                                    onChange={(e) => setSelectedSpriteIndex(e.target.value === "" ? undefined : Number(e.target.value))}
                                     value={selectedSpriteIndex ?? ""}
                                 >
                                     {spritesOnScreen.length === 0 && <option value="">スプライトが配置されていません</option>}
@@ -275,7 +275,7 @@ export const ScreenMode: React.FC = () => {
                                                 alert("削除後の状態で制約違反が検出されました:\n" + report.errors.join("\n"));
                                             }
                                             useProjectState.setState({ screen: newScreen });
-                                            setSelectedSpriteIndex(null);
+                                            setSelectedSpriteIndex(undefined);
                                         }}
                                         css={{ minHeight: 46 }}
                                     >

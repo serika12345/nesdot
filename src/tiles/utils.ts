@@ -90,7 +90,6 @@ function growBackingIfNeeded(
     viewRight: number,
     viewBottom: number
 ): { shiftX: number; shiftY: number } {
-    let needGrow = false;
     const newLeft = Math.min(0, viewLeft);
     const newTop = Math.min(0, viewTop);
     const newRight = Math.max(b.width, viewRight);
@@ -99,7 +98,7 @@ function growBackingIfNeeded(
     // 左・上に負方向へはみ出す場合はオフセット移動が必要
     const shiftX = newLeft < 0 ? -newLeft : 0;
     const shiftY = newTop < 0 ? -newTop : 0;
-    if (shiftX || shiftY || newRight > b.width || newBottom > b.height) needGrow = true;
+    const needGrow = shiftX !== 0 || shiftY !== 0 || newRight > b.width || newBottom > b.height;
 
     if (!needGrow) {
         return { shiftX: 0, shiftY: 0 };
@@ -108,18 +107,15 @@ function growBackingIfNeeded(
     const nextW = Math.max(newRight + shiftX, b.width + shiftX);
     const nextH = Math.max(newBottom + shiftY, b.height + shiftY);
 
-    const next: ColorIndexOfPalette[][] = new Array(nextH);
-    for (let y = 0; y < nextH; y++) {
-        const row: ColorIndexOfPalette[] = new Array(nextW);
-        for (let x = 0; x < nextW; x++) row[x] = b.fill;
-        next[y] = row;
-    }
+    const next: ColorIndexOfPalette[][] = Array.from({ length: nextH }, () =>
+        Array.from({ length: nextW }, () => b.fill)
+    );
     // 旧バッファを（shiftX, shiftY）だけ平行移動して貼り付け
-    for (let y = 0; y < b.height; y++) {
-        for (let x = 0; x < b.width; x++) {
+    Array.from({ length: b.height }, (_, y) => y).forEach((y) => {
+        Array.from({ length: b.width }, (_, x) => x).forEach((x) => {
             next[y + shiftY][x + shiftX] = b.pixels[y][x];
-        }
-    }
+        });
+    });
     b.pixels = next;
     b.width = nextW;
     b.height = nextH;
@@ -186,33 +182,33 @@ export function resizeTileND(
 
     // 1) 旧ビューの可視領域の内容を裏キャンバスへ「確定書き戻し」
     //    （src.pixels が正なので、これでビュー外へ出る画素も保持される）
-    for (let y = 0; y < src.height; y++) {
-        for (let x = 0; x < src.width; x++) {
+    Array.from({ length: src.height }, (_, y) => y).forEach((y) => {
+        Array.from({ length: src.width }, (_, x) => x).forEach((x) => {
             const bx = adjustedCurViewLeft + x;
             const by = adjustedCurViewTop + y;
             if (by >= 0 && by < backing.height && bx >= 0 && bx < backing.width) {
                 backing.pixels[by][bx] = src.pixels[y][x];
             }
-        }
-    }
+        });
+    });
 
     // 2) 新しい可視タイルを作成（表示用バッファ）
     const dst = makeTile(nextH, src.paletteIndex, fill) as SpriteTileND;
 
     // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
-    for (let y = 0; y < nextH; y++) {
+    Array.from({ length: nextH }, (_, y) => y).forEach((y) => {
         const by = adjustedNextViewTop + y;
         const dstRow = dst.pixels[y];
         if (by < 0 || by >= backing.height) {
             // 全面 fill（makeTile 済みなので何もしない）
-            continue;
+            return;
         }
-        for (let x = 0; x < nextW; x++) {
+        Array.from({ length: nextW }, (_, x) => x).forEach((x) => {
             const bx = adjustedNextViewLeft + x;
-            if (bx < 0 || bx >= backing.width) continue;
+            if (bx < 0 || bx >= backing.width) return;
             dstRow[x] = backing.pixels[by][bx];
-        }
-    }
+        });
+    });
 
     // 4) 新タイルへ裏キャンバス参照を引き継ぎ、ビューの原点を更新
     dst.__backing = backing;
