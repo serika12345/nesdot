@@ -157,7 +157,19 @@ const config = [
   },
   {
     files: [
+      "src/App.styles.tsx",
+      "src/App.tsx",
+      "src/main.tsx",
       "src/characters/**/*.ts",
+      "src/components/CharacterMode.tsx",
+      "src/components/PalettePicker.styles.tsx",
+      "src/components/ScreenCanvas.tsx",
+      "src/components/SpriteCanvas.tsx",
+      "src/components/ui/**/*.tsx",
+      "src/components/hooks/swapPreview.ts",
+      "src/components/hooks/swapPreview.test.ts",
+      "src/components/hooks/useSwap.ts",
+      "src/nes/chr.test.ts",
       "src/nes/drawingPath.ts",
       "src/nes/drawingPath.test.ts",
       "src/nes/palette.ts",
@@ -165,8 +177,12 @@ const config = [
       "src/screen/constraints.test.ts",
       "src/screen/oamSync.ts",
       "src/screen/oamSync.test.ts",
+      "src/screen/spriteGroup.test.ts",
       "src/store/characterState.ts",
       "src/store/characterState.test.ts",
+      "src/store/nesProjectState.ts",
+      "src/tiles/swap.test.ts",
+      "src/utils/arrayAccess.ts",
     ],
     rules: {
       "functional/immutable-data": [
