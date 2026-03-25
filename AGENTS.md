@@ -18,6 +18,7 @@
 - **No `as` Assertions**: Do not use TypeScript `as` type assertions. Prefer explicit type-safe data flow, type guards, and narrowed function interfaces.
 - **No Non-Null Assertions**: Do not use the `!` non-null assertion operator. Prefer explicit `Option` handling, guards, or early returns.
 - **Runtime Validation for External Data**: Validate all externally sourced data (for example `JSON.parse` results, file imports, storage reads, and network responses) with runtime checks before passing values into state setters or core domain functions.
+- **Runtime Validation Library**: Use `zod` for runtime validation schemas and parsing of external data.
 - **Strict Null Checks**: Keep `strictNullChecks` enabled and fix type issues through explicit narrowing rather than assertions.
 - **Null Safety**: Avoid using `null` and `undefined`; prefer `Option`-like patterns or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
