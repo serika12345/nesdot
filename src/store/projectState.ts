@@ -12,6 +12,10 @@ import {
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "../nes/rendering";
+import {
+  createDefaultNesProjectState,
+  NesProjectState,
+} from "./nesProjectState";
 
 export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 export type PaletteIndex = 0 | 1 | 2 | 3;
@@ -75,6 +79,7 @@ export interface ProjectState {
   screen: Screen;
   palettes: Palettes;
   sprites: SpriteTile[]; // スプライトシート用 TODO: 別で作成したこれをキャンバスに配置できるようにする。
+  nes: NesProjectState;
   // リハイドレート完了フラグ（UIのチラつき抑止用）
   _hydrated?: boolean;
 }
@@ -110,6 +115,7 @@ const DEFAULT_STATE: ProjectState = {
     [0, 1, 21, 34],
   ],
   sprites: Array.from({ length: 64 }, () => makeEmptyTile(8)),
+  nes: createDefaultNesProjectState(),
   _hydrated: false,
 };
 

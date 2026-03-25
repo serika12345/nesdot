@@ -2,6 +2,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { z } from "zod";
+import { createDefaultNesProjectState } from "../store/nesProjectState";
 import type { ProjectState } from "../store/projectState";
 
 const ColorIndexOfPaletteSchema = z.union([
@@ -73,23 +74,85 @@ const ScreenSchema = z.object({
   sprites: z.array(SpriteInScreenSchema),
 });
 
+const PatternTableSelectSchema = z.union([z.literal(0), z.literal(1)]);
+
+const NesNameTableSchema = z.object({
+  widthTiles: z.literal(32),
+  heightTiles: z.literal(30),
+  tileIndices: z.array(z.number().int().min(0)).length(960),
+});
+
+const NesAttributeTableSchema = z.object({
+  widthBytes: z.literal(8),
+  heightBytes: z.literal(8),
+  bytes: z.array(z.number().int().min(0).max(255)).length(64),
+});
+
+const OamSpriteEntrySchema = z.object({
+  y: z.number().int(),
+  tileIndex: z.number().int().min(0).max(255),
+  attributeByte: z.number().int().min(0).max(255),
+  x: z.number().int(),
+});
+
+const PpuControlStateSchema = z.object({
+  spriteSize: z.union([z.literal(8), z.literal(16)]),
+  backgroundPatternTable: PatternTableSelectSchema,
+  spritePatternTable: PatternTableSelectSchema,
+});
+
+const NesProjectStateSchema = z.object({
+  chrBytes: z.array(z.number().int().min(0).max(255)).length(4096),
+  nameTable: NesNameTableSchema,
+  attributeTable: NesAttributeTableSchema,
+  universalBackgroundColor: z.number().int().min(0).max(63),
+  backgroundPalettes: z.tuple([
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+  ]),
+  spritePalettes: z.tuple([
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+    Palette4ColorsSchema,
+  ]),
+  oam: z.array(OamSpriteEntrySchema).length(64),
+  ppuControl: PpuControlStateSchema,
+});
+
 const ProjectStateSchema = z.object({
   screen: ScreenSchema,
   palettes: PalettesSchema,
   sprites: z.array(SpriteTileSchema).length(64),
+  nes: NesProjectStateSchema.optional(),
   _hydrated: z.boolean().optional(),
 });
 
 const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
-const isProjectState = (value: unknown): value is ProjectState =>
-  ProjectStateSchema.safeParse(value).success === true;
+const normalizeProjectState = (
+  state: z.infer<typeof ProjectStateSchema>,
+): ProjectState => {
+  const baseState: Omit<ProjectState, "_hydrated"> = {
+    screen: state.screen,
+    palettes: state.palettes,
+    sprites: state.sprites,
+    nes: state.nes ?? createDefaultNesProjectState(),
+  };
+
+  return state._hydrated === undefined
+    ? baseState
+    : { ...baseState, _hydrated: state._hydrated };
+};
 
 const parseProjectState = (text: string): O.Option<ProjectState> => {
   try {
     const parsed: unknown = JSON.parse(text);
-    if (isProjectState(parsed)) {
-      return O.some(parsed);
+    const schemaResult = ProjectStateSchema.safeParse(parsed);
+    if (schemaResult.success === true) {
+      return O.some(normalizeProjectState(schemaResult.data));
     }
     return O.none;
   } catch {
