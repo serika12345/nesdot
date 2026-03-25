@@ -4,17 +4,9 @@ import {
     Badge,
     CanvasViewport,
     CollapseToggle,
-    DetailKey,
-    DetailList,
-    DetailRow,
-    DetailValue,
     Field,
     FieldGrid,
     FieldLabel,
-    MetricCard,
-    MetricGrid,
-    MetricLabel,
-    MetricValue,
     NumberInput,
     Panel,
     PanelHeader,
@@ -166,33 +158,6 @@ export const SpriteMode: React.FC = () => {
                         </ToolButton>
                     </Toolbar>
 
-                    <MetricGrid>
-                        <MetricCard>
-                            <MetricLabel>対象</MetricLabel>
-                            <MetricValue>#{activeSprite}</MetricValue>
-                        </MetricCard>
-                        <MetricCard>
-                            <MetricLabel>サイズ</MetricLabel>
-                            <MetricValue>
-                                {activeTile.width}×{activeTile.height}
-                            </MetricValue>
-                        </MetricCard>
-                        <MetricCard>
-                            <MetricLabel>選択スロット</MetricLabel>
-                            <MetricValue>スロット {activeSlot}</MetricValue>
-                        </MetricCard>
-                    </MetricGrid>
-
-                    <DetailList>
-                        <DetailRow>
-                            <DetailKey>表示パレット</DetailKey>
-                            <DetailValue>パレット {activePalette}</DetailValue>
-                        </DetailRow>
-                        <DetailRow>
-                            <DetailKey>描画モード</DetailKey>
-                            <DetailValue>{isChangeOrderMode ? "8×8 ブロックをドラッグ" : tool === "pen" ? "ペン" : "消しゴム"}</DetailValue>
-                        </DetailRow>
-                    </DetailList>
                 </ScrollArea>
             </Panel>
 
