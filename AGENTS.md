@@ -15,6 +15,7 @@
 - **I/O Separation**: Isolate I/O operations from pure functions; keep business logic pure.
 - **Function Size**: Pure functions must not exceed 100 lines of code.
 - **Type Safety**: Do not use `any` type; always use explicit types.
+- **No `as` Assertions**: Do not use TypeScript `as` type assertions. Prefer explicit type-safe data flow, type guards, and narrowed function interfaces.
 - **Null Safety**: Avoid using `null` and `undefined`; prefer `Option`-like patterns or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.

@@ -137,9 +137,7 @@ export const useSpriteCanvas = ({
       if (px < 0 || py < 0 || px >= width || py >= height) return;
       const next: SpriteTile = {
         ...tile,
-        pixels: tile.pixels.map((row) =>
-          row.slice(),
-        ) as ColorIndexOfPalette[][],
+        pixels: tile.pixels.map((row) => row.slice()),
       };
       next.pixels[py][px] = tool === "pen" ? activeColorIndex : 0;
       onChange(next, target);
@@ -171,9 +169,9 @@ export const useSpriteCanvas = ({
   );
 
   const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       paintingRef.current = true;
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      e.currentTarget.setPointerCapture(e.pointerId);
       handlePointer(e);
 
       // 追加：並べ替えモード開始時に8x8タイルのゴースト生成
@@ -205,9 +203,9 @@ export const useSpriteCanvas = ({
 
   // 既存：onPointerUp を差し替え
   const onPointerUp = useCallback(
-    (e: React.PointerEvent) => {
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       paintingRef.current = false;
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      e.currentTarget.releasePointerCapture(e.pointerId);
 
       // 追加：並べ替えモード中は、ドロップ位置のタイルと開始位置のタイルを入れ替える
       if (isChangeOrderMode && O.isSome(dragInfoRef.current)) {
@@ -277,7 +275,15 @@ export const useSpriteCanvas = ({
   );
 
   // Canvas にそのまま渡せる props を返す
-  const canvasProps = {
+  const canvasProps: {
+    ref: (node: HTMLCanvasElement | null) => void;
+    onPointerDown: (e: React.PointerEvent<HTMLCanvasElement>) => void;
+    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerUp: (e: React.PointerEvent<HTMLCanvasElement>) => void;
+    onPointerCancel: () => void;
+    onLostPointerCapture: () => void;
+    onContextMenu: (e: React.MouseEvent) => void;
+  } = {
     ref: (node: HTMLCanvasElement | null) => {
       canvasRef.current = O.fromNullable(node);
     },
@@ -287,7 +293,7 @@ export const useSpriteCanvas = ({
     onPointerCancel,
     onLostPointerCapture,
     onContextMenu,
-  } as const;
+  };
 
   return { canvasRef, drawAll, canvasProps };
 };

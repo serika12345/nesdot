@@ -1,6 +1,6 @@
 import { isLeft } from "fp-ts/Either";
 import { describe, expect, it } from "vitest";
-import { ColorIndexOfPalette, SpriteTileND } from "../store/projectState";
+import { SpriteTileND } from "../store/projectState";
 import { assertTileSize, makeTile, resizeTileND } from "./utils";
 
 function createTallTile(): SpriteTileND {
@@ -9,7 +9,7 @@ function createTallTile(): SpriteTileND {
     height: 16,
     paletteIndex: 2,
     pixels: Array.from({ length: 16 }, (_, y) =>
-      Array.from({ length: 8 }, () => (y < 8 ? 1 : 2) as ColorIndexOfPalette),
+      Array.from({ length: 8 }, () => (y < 8 ? 1 : 2)),
     ),
   };
 }
@@ -64,7 +64,7 @@ describe("resizeTileND", () => {
   });
 
   it("positions content according to the requested anchor when expanding", () => {
-    const tile = makeTile(8, 1, 0) as SpriteTileND;
+    const tile: SpriteTileND = makeTile(8, 1, 0);
     tile.pixels[0][0] = 1;
     tile.pixels[7][0] = 2;
 

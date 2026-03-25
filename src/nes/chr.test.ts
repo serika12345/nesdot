@@ -16,7 +16,7 @@ function create8x8Tile(fill: ColorIndexOfPalette): SpriteTile {
 
 describe("tile8x8ToChr", () => {
   it("converts 2-bit pixels into CHR bitplanes", () => {
-    const row = [0, 1, 2, 3, 0, 1, 2, 3] as ColorIndexOfPalette[];
+    const row: ColorIndexOfPalette[] = [0, 1, 2, 3, 0, 1, 2, 3];
     const tile: SpriteTile = {
       width: 8,
       height: 8,
@@ -40,7 +40,7 @@ describe("tile8x8ToChr", () => {
       height: 16,
       paletteIndex: 0,
       pixels: Array.from({ length: 16 }, () =>
-        Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette),
+        Array.from({ length: 8 }, () => 0),
       ),
     };
 

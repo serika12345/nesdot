@@ -135,9 +135,9 @@ export const useScreenCanvas = ({
   );
 
   const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       paintingRef.current = true;
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      e.currentTarget.setPointerCapture(e.pointerId);
       handlePointer(e);
     },
     [handlePointer],
@@ -145,10 +145,13 @@ export const useScreenCanvas = ({
 
   const onPointerMove = handlePointer;
 
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    paintingRef.current = false;
-    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-  }, []);
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      paintingRef.current = false;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    },
+    [],
+  );
 
   const onContextMenu = useCallback(
     (e: React.MouseEvent) => e.preventDefault(),
@@ -156,7 +159,13 @@ export const useScreenCanvas = ({
   );
 
   // Canvas にそのまま渡せる props を返す
-  const canvasProps = {
+  const canvasProps: {
+    ref: (node: HTMLCanvasElement | null) => void;
+    onPointerDown: (e: React.PointerEvent<HTMLCanvasElement>) => void;
+    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerUp: (e: React.PointerEvent<HTMLCanvasElement>) => void;
+    onContextMenu: (e: React.MouseEvent) => void;
+  } = {
     ref: (node: HTMLCanvasElement | null) => {
       canvasRef.current = O.fromNullable(node);
     },
@@ -164,7 +173,7 @@ export const useScreenCanvas = ({
     onPointerMove,
     onPointerUp,
     onContextMenu,
-  } as const;
+  };
 
   return { canvasRef, drawAll, canvasProps };
 };

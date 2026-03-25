@@ -26,7 +26,7 @@ export function makeTile(
   paletteIndex: PaletteIndex,
   fill: ColorIndexOfPalette = 0,
 ): SpriteTile {
-  const width = 8 as const; // SpriteTileのwidth: 8 に合わせてリテラル固定
+  const width: 8 = 8; // SpriteTileのwidth: 8 に合わせてリテラル固定
   const pixels: ColorIndexOfPalette[][] = Array.from({ length: height }, () =>
     Array.from({ length: width }, () => fill),
   );
@@ -220,7 +220,7 @@ export function resizeTileND(
   });
 
   // 2) 新しい可視タイルを作成（表示用バッファ）
-  const dst = makeTile(nextH, src.paletteIndex, fill) as SpriteTileND;
+  const dst: SpriteTileND = makeTile(nextH, src.paletteIndex, fill);
 
   // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
   Array.from({ length: nextH }, (_, y) => y).forEach((y) => {

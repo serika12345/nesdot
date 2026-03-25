@@ -81,7 +81,7 @@ export interface ProjectState {
 
 function makeEmptyTile(height: 8 | 16): SpriteTile {
   const pixels: ColorIndexOfPalette[][] = Array.from({ length: height }, () =>
-    Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette),
+    Array.from({ length: 8 }, () => 0),
   );
   return { width: 8, height, pixels, paletteIndex: 0 };
 }
@@ -96,7 +96,7 @@ const DEFAULT_STATE: ProjectState = {
         height: 8,
         paletteIndex: 0,
         pixels: Array.from({ length: 8 }, () =>
-          Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette),
+          Array.from({ length: 8 }, () => 0),
         ),
       })),
     ),

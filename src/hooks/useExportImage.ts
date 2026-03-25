@@ -53,8 +53,7 @@ export default function useExportImage() {
         const tx = blockX * 8;
         const subPixels: ColorIndexOfPalette[][] = Array.from(
           { length: 8 },
-          (_, y) =>
-            tile.pixels[ty + y].slice(tx, tx + 8) as ColorIndexOfPalette[],
+          (_, y) => tile.pixels[ty + y].slice(tx, tx + 8),
         );
         return tile8x8ToChr({
           width: 8,
@@ -74,16 +73,18 @@ export default function useExportImage() {
 
     // 8x16 専用が必要なワークフロー向けに、幅==8 && 高さ==16のときだけ最適化（互換維持）
     if (tile.width === 8 && tile.height === 16) {
-      const top = {
+      const top: SpriteTile = {
         width: 8,
         height: 8,
+        paletteIndex: activePalette,
         pixels: tile.pixels.slice(0, 8),
-      } as SpriteTile;
-      const bottom = {
+      };
+      const bottom: SpriteTile = {
         width: 8,
         height: 8,
+        paletteIndex: activePalette,
         pixels: tile.pixels.slice(8, 16),
-      } as SpriteTile;
+      };
       const bin = tile8x16ToChr(top, bottom);
       if (E.isLeft(bin)) {
         return;

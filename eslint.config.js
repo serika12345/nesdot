@@ -45,6 +45,7 @@ export default [
 
       // Type Safety: Disallow any type
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/prefer-as-const": "off",
 
       // Immutability: Always use const, never use let or var
       "prefer-const": "error",
@@ -105,6 +106,11 @@ export default [
           selector: 'BinaryExpression[operator="instanceof"]',
           message:
             "Avoid using `instanceof`. Prefer explicit, type-safe predicates and domain modeling.",
+        },
+        {
+          selector: "TSAsExpression",
+          message:
+            "Do not use `as` type assertions. Prefer type guards, explicit data modeling, or narrowed function interfaces.",
         },
         {
           selector:

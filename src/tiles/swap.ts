@@ -7,7 +7,7 @@ export function swap8x8Blocks(
   bx: number,
   by: number,
 ): ColorIndexOfPalette[][] {
-  const next = srcPixels.map((row) => row.slice()) as ColorIndexOfPalette[][];
+  const next: ColorIndexOfPalette[][] = srcPixels.map((row) => row.slice());
 
   Array.from({ length: 8 }, (_, dy) => dy).forEach((dy) => {
     Array.from({ length: 8 }, (_, dx) => dx).forEach((dx) => {
@@ -23,7 +23,7 @@ export function swap8x8Blocks(
 
       const tmp = next[sourceY][sourceX];
       next[sourceY][sourceX] = next[targetY][targetX];
-      next[targetY][targetX] = tmp as ColorIndexOfPalette;
+      next[targetY][targetX] = tmp;
     });
   });
 

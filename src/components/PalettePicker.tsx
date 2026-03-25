@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   NesColorIndex,
+  Palette4Colors,
   Palettes,
   useProjectState,
 } from "../../src/store/projectState";
@@ -42,8 +43,17 @@ export const PalettePicker: React.FC = () => {
     setIsLibraryOpen(true);
   };
 
+  const clonePalette = (palette: Palette4Colors): Palette4Colors => {
+    return [palette[0], palette[1], palette[2], palette[3]];
+  };
+
   const setSlot = (slotIndex: number, idx: NesColorIndex) => {
-    const next = [...palettes] as Palettes;
+    const next: Palettes = [
+      clonePalette(palettes[0]),
+      clonePalette(palettes[1]),
+      clonePalette(palettes[2]),
+      clonePalette(palettes[3]),
+    ];
     next[activePalette][slotIndex] = idx;
     useProjectState.setState({ palettes: next });
   };

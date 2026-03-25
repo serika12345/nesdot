@@ -26,7 +26,6 @@ import {
   getHexArrayForSpriteTile,
   PaletteIndex,
   SpriteTile,
-  SpriteTileND,
   useProjectState,
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
@@ -67,13 +66,16 @@ export const SpriteMode: React.FC = () => {
   };
 
   const handlePaletteClick = (slot: number) => {
-    setActiveSlot(slot as ColorIndexOfPalette);
+    if (slot !== 0 && slot !== 1 && slot !== 2 && slot !== 3) {
+      return;
+    }
+    setActiveSlot(slot);
   };
 
   const setHeight = (nextH: 8 | 16) => {
     if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
     setTile(
-      resizeTileND(activeTile as SpriteTileND, activeTile.width, nextH, {
+      resizeTileND(activeTile, activeTile.width, nextH, {
         anchor: "top-left",
         fill: 0,
       }),
@@ -91,8 +93,11 @@ export const SpriteMode: React.FC = () => {
 
   const handlePaletteChange = (index: string) => {
     const i = parseInt(index);
-    setActivePalette(i as PaletteIndex);
-    const newTile = { ...activeTile, paletteIndex: i as PaletteIndex };
+    if (i !== 0 && i !== 1 && i !== 2 && i !== 3) {
+      return;
+    }
+    setActivePalette(i);
+    const newTile = { ...activeTile, paletteIndex: i };
     setTile(newTile, activeSprite);
   };
 
@@ -106,7 +111,7 @@ export const SpriteMode: React.FC = () => {
       await importJSON((data) => {
         useProjectState.setState(data);
         const nextPalette = data.sprites[activeSprite]?.paletteIndex ?? 0;
-        setActivePalette(nextPalette as PaletteIndex);
+        setActivePalette(nextPalette);
       });
     } catch (err) {
       alert("インポートに失敗しました: " + err);
@@ -359,8 +364,8 @@ export const SpriteMode: React.FC = () => {
             scale={24}
             showGrid={true}
             tool={tool}
-            currentSelectPalette={activePalette as PaletteIndex}
-            activeColorIndex={activeSlot as ColorIndexOfPalette}
+            currentSelectPalette={activePalette}
+            activeColorIndex={activeSlot}
             onChange={setTile}
           />
         </CanvasViewport>

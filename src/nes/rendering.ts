@@ -26,7 +26,7 @@ export function renderScreenToHexArray(
     Array.from({ length: screen.width }, () => NES_PALETTE_HEX[0]),
   );
   const spriteLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => O.none as O.Option<string>),
+    Array.from({ length: screen.width }, (): O.Option<string> => O.none),
   );
 
   screen.backgroundTiles.forEach((row, tileY) => {

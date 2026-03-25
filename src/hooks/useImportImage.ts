@@ -60,9 +60,8 @@ export default function useImportImage() {
       };
 
       input.onchange = async (e) => {
-        const fileOption = O.fromNullable(
-          (e.target as HTMLInputElement).files?.[0],
-        );
+        void e;
+        const fileOption = O.fromNullable(input.files?.[0]);
         if (O.isNone(fileOption)) {
           cleanup();
           resolve(O.none);
@@ -94,7 +93,8 @@ export default function useImportImage() {
     const nativeResult = await readJsonWithNativeDialog();
 
     if (nativeResult.status === "selected") {
-      onImport(JSON.parse(nativeResult.text) as ProjectState);
+      const parsed: ProjectState = JSON.parse(nativeResult.text);
+      onImport(parsed);
       return true;
     }
 
@@ -107,7 +107,8 @@ export default function useImportImage() {
       return false;
     }
 
-    onImport(JSON.parse(fallbackText.value) as ProjectState);
+    const parsed: ProjectState = JSON.parse(fallbackText.value);
+    onImport(parsed);
     return true;
   };
 
