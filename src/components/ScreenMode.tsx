@@ -139,16 +139,6 @@ export const ScreenMode: React.FC = () => {
             <ScrollColumn>
                 <Panel>
                     <PanelHeader>
-                        <PanelHeaderRow>
-                            <ProjectActions
-                                actions={[
-                                    { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForScreen(screen)) },
-                                    { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)) },
-                                    { label: "保存", onSelect: () => exportJSON(projectState) },
-                                ]}
-                                onImport={handleImport}
-                            />
-                        </PanelHeaderRow>
                         <PanelTitle>スクリーン配置</PanelTitle>
                     </PanelHeader>
 
@@ -334,7 +324,17 @@ export const ScreenMode: React.FC = () => {
 
             <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
-                    <PanelTitle>画面プレビュー</PanelTitle>
+                    <PanelHeaderRow>
+                        <PanelTitle>画面プレビュー</PanelTitle>
+                        <ProjectActions
+                            actions={[
+                                { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForScreen(screen)) },
+                                { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)) },
+                                { label: "保存", onSelect: () => exportJSON(projectState) },
+                            ]}
+                            onImport={handleImport}
+                        />
+                    </PanelHeaderRow>
                 </PanelHeader>
 
                 <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>

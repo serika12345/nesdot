@@ -129,17 +129,6 @@ export const SpriteMode: React.FC = () => {
         <SplitLayout>
             <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
                 <PanelHeader>
-                    <PanelHeaderRow>
-                        <ProjectActions
-                            actions={[
-                                { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
-                                { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)) },
-                                { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)) },
-                                { label: "保存", onSelect: () => exportJSON(projectState) },
-                            ]}
-                            onImport={handleImport}
-                        />
-                    </PanelHeaderRow>
                     <PanelTitle>スプライト編集</PanelTitle>
                 </PanelHeader>
 
@@ -209,7 +198,18 @@ export const SpriteMode: React.FC = () => {
 
             <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
-                    <PanelTitle>スプライトキャンバス</PanelTitle>
+                    <PanelHeaderRow>
+                        <PanelTitle>スプライトキャンバス</PanelTitle>
+                        <ProjectActions
+                            actions={[
+                                { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
+                                { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)) },
+                                { label: "SVGエクスポート", onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)) },
+                                { label: "保存", onSelect: () => exportJSON(projectState) },
+                            ]}
+                            onImport={handleImport}
+                        />
+                    </PanelHeaderRow>
                 </PanelHeader>
 
                 <div
