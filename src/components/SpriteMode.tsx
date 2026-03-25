@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import {
+    Badge,
     CanvasViewport,
     CollapseToggle,
     DetailKey,
@@ -54,7 +55,6 @@ export const SpriteMode: React.FC = () => {
     const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
     const [activeSprite, setActiveSprite] = useState<number>(0);
     const [isToolsOpen, setIsToolsOpen] = useState(false);
-    const [isPaletteOpen, setIsPaletteOpen] = useState(false);
     const activeTile = useProjectState((s) => s.sprites[activeSprite]);
     const palettes = useProjectState((s) => s.palettes);
     const sprites = useProjectState((s) => s.sprites);
@@ -233,47 +233,29 @@ export const SpriteMode: React.FC = () => {
                 >
                     <PanelHeaderRow>
                         <FieldLabel>現在のスロット</FieldLabel>
-                        <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
-                            {isPaletteOpen ? "スロットを閉じる" : "スロットを開く"}
-                            <ChevronIcon open={isPaletteOpen} />
-                        </CollapseToggle>
+                        <Badge tone="accent">パレット {activePalette}</Badge>
                     </PanelHeaderRow>
 
-                    {isPaletteOpen ? (
-                        <div
-                            css={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                                gap: 12,
-                            }}
-                        >
-                            {palettes[activePalette].map((idx, j) => (
-                                <SlotGroup key={j} active={activeSlot === j}>
-                                    <SlotButton
-                                        onClick={() => handlePaletteClick(j)}
-                                        title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
-                                        active={activeSlot === j}
-                                        transparent={j === 0}
-                                        bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
-                                    />
-                                    <SlotLabel>スロット{j}</SlotLabel>
-                                </SlotGroup>
-                            ))}
-                        </div>
-                    ) : null}
-
-                    <DetailList>
-                        <DetailRow>
-                            <DetailKey>選択中</DetailKey>
-                            <DetailValue>
-                                パレット {activePalette} / スロット {activeSlot}
-                            </DetailValue>
-                        </DetailRow>
-                        <DetailRow>
-                            <DetailKey>現在色</DetailKey>
-                            <DetailValue>#{palettes[activePalette][activeSlot].toString(16).padStart(2, "0").toUpperCase()}</DetailValue>
-                        </DetailRow>
-                    </DetailList>
+                    <div
+                        css={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                            gap: 12,
+                        }}
+                    >
+                        {palettes[activePalette].map((idx, j) => (
+                            <SlotGroup key={j} active={activeSlot === j}>
+                                <SlotButton
+                                    onClick={() => handlePaletteClick(j)}
+                                    title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
+                                    active={activeSlot === j}
+                                    transparent={j === 0}
+                                    bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                />
+                                <SlotLabel>スロット{j}</SlotLabel>
+                            </SlotGroup>
+                        ))}
+                    </div>
                 </div>
 
                 <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
