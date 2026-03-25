@@ -124,8 +124,7 @@ const config = [
     },
   },
   {
-    files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/hooks/useImportImage.ts", "src/hooks/useExportImage.ts"],
+    files: ["src/domain/**/*.{ts,tsx}", "src/application/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -135,7 +134,7 @@ const config = [
     },
   },
   {
-    files: ["src/hooks/useImportImage.ts", "src/hooks/useExportImage.ts"],
+    files: ["src/infrastructure/**/*.{ts,tsx}", "src/presentation/**/*.{ts,tsx}", "src/main.tsx"],
     rules: {
       "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
     },
@@ -157,46 +156,11 @@ const config = [
   },
   {
     files: [
-      "src/App.styles.tsx",
-      "src/App.tsx",
+      "src/domain/**/*.{ts,tsx}",
+      "src/application/**/*.{ts,tsx}",
+      "src/presentation/**/*.{ts,tsx}",
+      "src/shared/**/*.{ts,tsx}",
       "src/main.tsx",
-      "src/characters/**/*.ts",
-      "src/components/CharacterMode.tsx",
-      "src/components/PalettePicker.styles.tsx",
-      "src/components/PalettePicker.tsx",
-      "src/components/ProjectActions.tsx",
-      "src/components/ScreenMode.tsx",
-      "src/components/ScreenCanvas.tsx",
-      "src/components/SpriteMode.tsx",
-      "src/components/SpriteCanvas.tsx",
-      "src/components/ui/**/*.tsx",
-      "src/components/hooks/swapPreview.ts",
-      "src/components/hooks/swapPreview.test.ts",
-      "src/components/hooks/useSwap.ts",
-      "src/hooks/useImportImage.ts",
-      "src/nes/chr.ts",
-      "src/nes/chr.test.ts",
-      "src/nes/drawingPath.ts",
-      "src/nes/drawingPath.test.ts",
-      "src/nes/palette.ts",
-      "src/nes/rendering.ts",
-      "src/nes/rendering.test.ts",
-      "src/screen/constraints.ts",
-      "src/screen/constraints.test.ts",
-      "src/screen/oamSync.ts",
-      "src/screen/oamSync.test.ts",
-      "src/screen/spriteGroup.ts",
-      "src/screen/spriteGroup.test.ts",
-      "src/store/characterState.ts",
-      "src/store/characterState.test.ts",
-      "src/store/nesProjectState.ts",
-      "src/store/nesProjectState.test.ts",
-      "src/store/projectState.ts",
-      "src/tiles/swap.ts",
-      "src/tiles/swap.test.ts",
-      "src/tiles/utils.ts",
-      "src/tiles/utils.test.ts",
-      "src/utils/arrayAccess.ts",
     ],
     rules: {
       "functional/immutable-data": [
@@ -219,9 +183,9 @@ const config = [
     },
   },
   {
-    files: ["src/effects/**/*.ts", "src/effects/**/*.tsx"],
+    files: ["src/infrastructure/**/*.ts", "src/infrastructure/**/*.tsx"],
     rules: {
-      // 副作用は src/effects 配下に閉じ込め、ここだけ命令的操作を許可する
+      // 副作用は infrastructure 配下に閉じ込め、ここだけ命令的操作を許可する
       "functional/immutable-data": "off",
     },
   },
