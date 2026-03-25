@@ -18,6 +18,8 @@
 
 - スプライト制約チェックを NES 基準へ移行（総数 `64` / 1 scanline `8` / OAM Y+1 / `spriteSize` 反映）。
 - `screen` 更新時に `nes.oam` を同時同期し、画面編集と制約判定の入力データを一致させる。
+- スプライト合成順を OAM 順相当に更新し、`priority`（`front` / `behindBg`）を考慮して背景と合成する。
+- スプライト属性として `flipH` / `flipV` を導入し、描画に反映する。
 
 ## 実装するべき制約
 
@@ -42,7 +44,7 @@
 - 背景・スプライトともに各 palette の entry 0 は「色番号 0」で、透明判定に使われる
 - スプライトの色番号 0 は常に透明で、実色としては描かれない
 
-したがって描画合成は `hex が何色か` ではなく、`pattern の color index が 0 かどうか` で透明判定する必要があります。現在の [`getHexArrayForScreen`](/Users/masato/Documents/nesdot/src/store/projectState.ts#L205) は `NES_PALETTE_HEX[0]` と比較しており、palette slot 0 を差し替えた場合の意味論とズレます。
+したがって描画合成は `hex が何色か` ではなく、`pattern の color index が 0 かどうか` で透明判定する必要があります。現在の実装では背景の不透明判定とスプライトの color index 判定を分けて扱い、`priority` に応じて背景/スプライトの前後を決定しています。
 
 ### 3. スプライトの優先順位は「配置順」ではなく OAM 順序と priority bit で決まる
 
@@ -58,7 +60,7 @@
 - `priority: "front" | "behindBg"`
 - 可能なら `flipH` / `flipV`
 
-現在の [`spriteIndex` 昇順描画](/Users/masato/Documents/nesdot/src/store/projectState.ts#L181) は「どの CHR タイルを使っているか」を前後関係に流用しており、NES の見え方とは一致しません。
+現在は `screen.sprites` の配列順（OAM 順相当）を優先し、低い OAM 順の非透明ピクセルを先に確定する方式へ移行しています。
 
 ### 4. スプライト座標は NES の OAM 制約を意識して扱う
 
@@ -116,10 +118,9 @@
 
 ## このリポジトリでの実装順
 
-1. スプライト合成順を OAM 順 + priority bit へ更新する
-2. スプライトに `priority` / `flipH` / `flipV` を追加する
-3. 左端 8px マスクを追加する
-4. 必要なら scroll / mirroring を別フェーズで導入する
+1. 左端 8px マスクを追加する
+2. `8x16` スプライトの実機寄りタイル解決ルールを導入する
+3. 必要なら scroll / mirroring を別フェーズで導入する
 
 ## データモデルの提案
 
