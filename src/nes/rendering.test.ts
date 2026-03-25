@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultNesProjectState } from "../store/nesProjectState";
 import {
-  BackgroundTile,
   ColorIndexOfPalette,
-  PaletteIndex,
   Palettes,
   Screen,
   SpriteInScreen,
@@ -33,23 +31,9 @@ function createSpriteTile(fill: ColorIndexOfPalette = 0): SpriteTile {
   };
 }
 
-function createBackgroundTile(
-  fill: ColorIndexOfPalette,
-  paletteIndex: PaletteIndex = 1,
-): BackgroundTile {
-  return {
-    width: 8,
-    height: 8,
-    paletteIndex,
-    pixels: Array.from({ length: 8 }, () =>
-      Array.from({ length: 8 }, () => fill),
-    ),
-  };
-}
-
 function createScreen(
   sprites: SpriteInScreen[],
-  backgroundTiles: BackgroundTile[][],
+  backgroundTiles: Screen["backgroundTiles"],
 ): Screen {
   return {
     width: 256,
@@ -77,7 +61,15 @@ describe("renderSpriteTileToHexArray", () => {
 
 describe("renderScreenToHexArray", () => {
   it("renders sprite pixels over the background and treats sprite slot 0 as transparent", () => {
-    const background = createBackgroundTile(2, 1);
+    const nes = createDefaultNesProjectState();
+    nes.universalBackgroundColor = 45;
+    nes.nameTable.tileIndices[0] = 0;
+    nes.attributeTable.bytes[0] = 0b00000001;
+    nes.backgroundPalettes[1] = [45, 2, 22, 35];
+    Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
+      nes.chrBytes[y] = 0b00000000;
+      nes.chrBytes[8 + y] = 0b11111111;
+    });
 
     const sprite: SpriteInScreen = {
       ...createSpriteTile(),
@@ -89,8 +81,9 @@ describe("renderScreenToHexArray", () => {
     sprite.pixels[0][1] = 1;
 
     const rendered = renderScreenToHexArray(
-      createScreen([sprite], [[background]]),
-      palettes,
+      createScreen([sprite], []),
+      nes.backgroundPalettes,
+      nes,
     );
 
     expect(rendered[0][0]).toBe(NES_PALETTE_HEX[22]);
@@ -98,6 +91,7 @@ describe("renderScreenToHexArray", () => {
   });
 
   it("draws higher spriteIndex entries last when sprites overlap", () => {
+    const nes = createDefaultNesProjectState();
     const backSprite: SpriteInScreen = {
       ...createSpriteTile(1),
       x: 4,
@@ -114,6 +108,7 @@ describe("renderScreenToHexArray", () => {
     const rendered = renderScreenToHexArray(
       createScreen([frontSprite, backSprite], []),
       palettes,
+      nes,
     );
 
     expect(rendered[4][4]).toBe(NES_PALETTE_HEX[34]);

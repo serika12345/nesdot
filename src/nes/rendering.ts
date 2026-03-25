@@ -46,7 +46,9 @@ export function renderScreenToHexArray(
 ): string[][] {
   const backgroundLayer =
     nesState === undefined
-      ? renderBackgroundLayerFromLegacyTiles(screen, palettes)
+      ? Array.from({ length: screen.height }, () =>
+          Array.from({ length: screen.width }, () => getHexAt(0)),
+        )
       : renderBackgroundLayerFromNesTables(screen, palettes, nesState);
   const spriteLayer = Array.from({ length: screen.height }, () =>
     Array.from({ length: screen.width }, (): O.Option<string> => O.none),
@@ -118,50 +120,6 @@ export function renderScreenToHexArray(
     ),
   );
 }
-
-const renderBackgroundLayerFromLegacyTiles = (
-  screen: Screen,
-  palettes: Palettes,
-): string[][] => {
-  const backgroundLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => getHexAt(0)),
-  );
-
-  screen.backgroundTiles.forEach((row, tileY) => {
-    row.forEach((tile, tileX) => {
-      const palette = palettes[tile.paletteIndex];
-      const baseY = tileY * 8;
-      const baseX = tileX * 8;
-
-      Array.from({ length: 8 }, (_, pixelY) => pixelY).forEach((pixelY) => {
-        Array.from({ length: 8 }, (_, pixelX) => pixelX).forEach((pixelX) => {
-          const rowOption = O.fromNullable(tile.pixels[pixelY]);
-          if (O.isNone(rowOption)) {
-            return;
-          }
-          const colorIndexOption = O.fromNullable(rowOption.value[pixelX]);
-          if (O.isNone(colorIndexOption)) {
-            return;
-          }
-
-          const hex = getPaletteHex(palette, colorIndexOption.value);
-          const y = baseY + pixelY;
-          const x = baseX + pixelX;
-
-          if (y >= 0 && y < screen.height && x >= 0 && x < screen.width) {
-            const targetRowOption = O.fromNullable(backgroundLayer[y]);
-            if (O.isNone(targetRowOption)) {
-              return;
-            }
-            targetRowOption.value[x] = hex;
-          }
-        });
-      });
-    });
-  });
-
-  return backgroundLayer;
-};
 
 const getBackgroundColorIndexFromChr = (
   chrBytes: number[],
