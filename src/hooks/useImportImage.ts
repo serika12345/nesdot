@@ -71,7 +71,7 @@ export default function useImportImage() {
         const file = fileOption.value;
 
         try {
-          resolve(await file.text());
+          resolve(O.some(await file.text()));
         } catch (err) {
           reject(err);
         } finally {
