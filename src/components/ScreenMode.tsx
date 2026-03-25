@@ -1,3 +1,4 @@
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
@@ -26,6 +27,7 @@ import {
   SplitLayout,
   ToolButton,
 } from "../App.styles";
+import { expandCharacterToScreenSprites } from "../characters/characterSet";
 import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
 import {
@@ -34,6 +36,7 @@ import {
   scanNesSpriteConstraints,
 } from "../screen/constraints";
 import { mergeScreenIntoNesOam } from "../screen/oamSync";
+import { useCharacterState } from "../store/characterState";
 import {
   getHexArrayForScreen,
   Screen,
@@ -60,6 +63,11 @@ export const ScreenMode: React.FC = () => {
   const nes = useProjectState((s) => s.nes);
   const sprites = useProjectState((s) => s.sprites);
   const spritesOnScreen = useProjectState((s) => s.screen.sprites);
+  const characterSets = useCharacterState((s) => s.characterSets);
+  const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
+  const selectCharacterSet = useCharacterState((s) => s.selectSet);
+  const [characterBaseX, setCharacterBaseX] = useState(0);
+  const [characterBaseY, setCharacterBaseY] = useState(0);
   const projectState = useProjectState((s) => s);
   const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
   const { importJSON } = useImportImage();
@@ -143,6 +151,54 @@ export const ScreenMode: React.FC = () => {
     selectedSpriteIndex,
     O.chain((index) => O.fromNullable(spritesOnScreen[index])),
   );
+  const activeCharacter = pipe(
+    selectedCharacterId,
+    O.chain((id) =>
+      O.fromNullable(
+        characterSets.find((characterSet) => characterSet.id === id),
+      ),
+    ),
+  );
+
+  const handleAddCharacter = () => {
+    const placement = pipe(
+      activeCharacter,
+      O.match(
+        () => E.left("キャラクターセットを選択してください"),
+        (characterSet) =>
+          expandCharacterToScreenSprites(characterSet, {
+            baseX: characterBaseX,
+            baseY: characterBaseY,
+            sprites,
+          }),
+      ),
+    );
+
+    if (E.isLeft(placement)) {
+      alert(`キャラクター追加に失敗しました: ${placement.left}`);
+      return;
+    }
+
+    const newScreen = {
+      ...screen,
+      sprites: [...screen.sprites, ...placement.right],
+    };
+    const report = scan(newScreen);
+    if (report.ok === false) {
+      alert(
+        "キャラクターの追加に失敗しました。制約違反:\n" +
+          report.errors.join("\n"),
+      );
+      return;
+    }
+
+    setScreenAndSyncNes(newScreen);
+    if (O.isNone(selectedSpriteIndex) && placement.right.length > 0) {
+      setSelectedSpriteIndex(O.some(screen.sprites.length));
+    }
+    alert(`キャラクターを(${characterBaseX},${characterBaseY})に追加しました`);
+  };
+
   const selectedIndexValue = pipe(
     selectedSpriteIndex,
     O.getOrElse(() => -1),
@@ -213,6 +269,107 @@ export const ScreenMode: React.FC = () => {
             <HelperText>
               制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。
             </HelperText>
+          )}
+        </Panel>
+
+        <Panel>
+          <PanelHeader>
+            <PanelTitle>キャラクター追加</PanelTitle>
+          </PanelHeader>
+
+          <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+            <Field css={{ gridColumn: "1 / -1" }}>
+              <FieldLabel>キャラクターセット</FieldLabel>
+              <div css={{ position: "relative" }}>
+                <SelectInput
+                  css={{ paddingRight: 56 }}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    selectCharacterSet(value === "" ? O.none : O.some(value));
+                  }}
+                  value={pipe(
+                    selectedCharacterId,
+                    O.match(
+                      () => "",
+                      (id) => id,
+                    ),
+                  )}
+                >
+                  {characterSets.length === 0 && (
+                    <option value="">キャラクターセットがありません</option>
+                  )}
+                  {characterSets.map((characterSet) => (
+                    <option key={characterSet.id} value={characterSet.id}>
+                      {`${characterSet.name} (${characterSet.rows}x${characterSet.cols})`}
+                    </option>
+                  ))}
+                </SelectInput>
+                <span
+                  aria-hidden="true"
+                  css={{
+                    position: "absolute",
+                    right: 18,
+                    top: "50%",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "5px solid transparent",
+                    borderRight: "5px solid transparent",
+                    borderTop: "7px solid #334155",
+                    transform: "translateY(-35%)",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+            </Field>
+
+            <Field>
+              <FieldLabel>X 座標</FieldLabel>
+              <NumberInput
+                type="number"
+                min={0}
+                max={256}
+                value={characterBaseX}
+                onChange={(e) => setCharacterBaseX(Number(e.target.value))}
+              />
+            </Field>
+            <Field>
+              <FieldLabel>Y 座標</FieldLabel>
+              <NumberInput
+                type="number"
+                min={0}
+                max={240}
+                value={characterBaseY}
+                onChange={(e) => setCharacterBaseY(Number(e.target.value))}
+              />
+            </Field>
+            <div
+              css={{ display: "grid", alignItems: "end", gridColumn: "1 / -1" }}
+            >
+              <ToolButton
+                type="button"
+                tone="primary"
+                onClick={handleAddCharacter}
+                css={{ minHeight: 48 }}
+              >
+                キャラクターを追加
+              </ToolButton>
+            </div>
+          </FieldGrid>
+
+          {pipe(
+            activeCharacter,
+            O.match(
+              () => (
+                <HelperText>
+                  配置するキャラクターセットを選択してください。
+                </HelperText>
+              ),
+              (characterSet) => (
+                <HelperText>
+                  {`${characterSet.rows}x${characterSet.cols} のセットを (${characterBaseX}, ${characterBaseY}) に配置します。`}
+                </HelperText>
+              ),
+            ),
           )}
         </Panel>
 
