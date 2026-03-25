@@ -31,10 +31,12 @@ import useImportImage from "../hooks/useImportImage";
 import {
   MAX_SCREEN_SPRITES,
   MAX_SPRITES_PER_SCANLINE,
-  scanScreenSpriteConstraints,
+  scanNesSpriteConstraints,
 } from "../screen/constraints";
+import { mergeScreenIntoNesOam } from "../screen/oamSync";
 import {
   getHexArrayForScreen,
+  Screen,
   SpriteInScreen,
   useProjectState,
 } from "../store/projectState";
@@ -54,23 +56,38 @@ export const ScreenMode: React.FC = () => {
   const [isPlacementOpen, setIsPlacementOpen] = useState(true);
   const [isSelectionOpen, setIsSelectionOpen] = useState(false);
   const screen = useProjectState((s) => s.screen);
+  const nes = useProjectState((s) => s.nes);
   const sprites = useProjectState((s) => s.sprites);
   const spritesOnScreen = useProjectState((s) => s.screen.sprites);
   const projectState = useProjectState((s) => s);
   const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
   const { importJSON } = useImportImage();
-  const scan = (checkee = useProjectState.getState().screen) =>
-    scanScreenSpriteConstraints(checkee);
+  const scan = (
+    checkeeScreen = useProjectState.getState().screen,
+    checkeeNes = useProjectState.getState().nes,
+  ) =>
+    scanNesSpriteConstraints(mergeScreenIntoNesOam(checkeeNes, checkeeScreen));
+
+  const setScreenAndSyncNes = (nextScreen: Screen, nextNes = nes): void => {
+    useProjectState.setState({
+      screen: nextScreen,
+      nes: mergeScreenIntoNesOam(nextNes, nextScreen),
+    });
+  };
 
   const handleImport = async () => {
     try {
       await importJSON((data) => {
-        useProjectState.setState(data);
+        const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
+        useProjectState.setState({
+          ...data,
+          nes: syncedNes,
+        });
         setSelectedSpriteIndex(
           data.screen.sprites.length > 0 ? O.some(0) : O.none,
         );
 
-        const result = scan(data.screen);
+        const result = scan(data.screen, syncedNes);
         if (result.ok === false) {
           alert(
             "インポートしたデータに制約違反があります:\n" +
@@ -111,7 +128,7 @@ export const ScreenMode: React.FC = () => {
       return;
     }
 
-    useProjectState.setState({ screen: newScreen });
+    setScreenAndSyncNes(newScreen);
     if (O.isNone(selectedSpriteIndex)) {
       setSelectedSpriteIndex(O.some(newScreen.sprites.length - 1));
     }
@@ -126,7 +143,7 @@ export const ScreenMode: React.FC = () => {
     selectedSpriteIndex,
     O.getOrElse(() => -1),
   );
-  const scanReport = scan(screen);
+  const scanReport = scan(screen, nes);
 
   return (
     <SplitLayout>
@@ -332,7 +349,7 @@ export const ScreenMode: React.FC = () => {
                                 );
                                 return;
                               }
-                              useProjectState.setState({ screen: newScreen });
+                              setScreenAndSyncNes(newScreen);
                             }}
                           />
                         </Field>
@@ -360,7 +377,7 @@ export const ScreenMode: React.FC = () => {
                                 );
                                 return;
                               }
-                              useProjectState.setState({ screen: newScreen });
+                              setScreenAndSyncNes(newScreen);
                             }}
                           />
                         </Field>
@@ -381,7 +398,7 @@ export const ScreenMode: React.FC = () => {
                                 report.errors.join("\n"),
                             );
                           }
-                          useProjectState.setState({ screen: newScreen });
+                          setScreenAndSyncNes(newScreen);
                           setSelectedSpriteIndex(O.none);
                         }}
                         css={{ minHeight: 46 }}

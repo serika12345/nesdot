@@ -21,6 +21,7 @@ import {
 import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
 import { NES_PALETTE_HEX } from "../nes/palette";
+import { mergeScreenIntoNesOam } from "../screen/oamSync";
 import {
   ColorIndexOfPalette,
   getHexArrayForSpriteTile,
@@ -69,7 +70,11 @@ export const SpriteMode: React.FC = () => {
         s.spriteIndex === index ? { ...s, ...t } : s,
       ),
     };
-    useProjectState.setState({ screen: newScreen });
+    const state = useProjectState.getState();
+    useProjectState.setState({
+      screen: newScreen,
+      nes: mergeScreenIntoNesOam(state.nes, newScreen),
+    });
   };
 
   const handlePaletteClick = (slot: number) => {
@@ -117,7 +122,11 @@ export const SpriteMode: React.FC = () => {
   const handleImport = async () => {
     try {
       await importJSON((data) => {
-        useProjectState.setState(data);
+        const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
+        useProjectState.setState({
+          ...data,
+          nes: syncedNes,
+        });
         const nextPalette = data.sprites[activeSprite]?.paletteIndex ?? 0;
         setActivePalette(nextPalette);
       });
