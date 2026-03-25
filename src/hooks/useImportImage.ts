@@ -80,12 +80,14 @@ const ProjectStateSchema = z.object({
   _hydrated: z.boolean().optional(),
 });
 
+const isProjectState = (value: unknown): value is ProjectState =>
+  ProjectStateSchema.safeParse(value).success === true;
+
 const parseProjectState = (text: string): O.Option<ProjectState> => {
   try {
     const parsed: unknown = JSON.parse(text);
-    const result = ProjectStateSchema.safeParse(parsed);
-    if (result.success === true) {
-      return O.some(result.data);
+    if (isProjectState(parsed)) {
+      return O.some(parsed);
     }
     return O.none;
   } catch {
