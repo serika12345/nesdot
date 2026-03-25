@@ -55,11 +55,7 @@ const buttonStyles = ({
   `;
 };
 
-const badgeStyles = ({
-  tone = "neutral",
-}: {
-  tone?: BadgeTone;
-}) => {
+const badgeStyles = ({ tone = "neutral" }: { tone?: BadgeTone }) => {
   if (tone === "accent") {
     return css`
       color: #0f766e;
@@ -119,7 +115,7 @@ export const globalStyles = css`
   body {
     margin: 0;
     height: 100%;
-    min-width: 1480px;
+    min-width: 0;
     color: var(--ink);
     font-family:
       "Avenir Next", "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -164,6 +160,10 @@ export const Container = styled.div`
   gap: 20px;
   padding: 24px;
   overflow: hidden;
+
+  @media (max-width: 980px) {
+    padding: 16px;
+  }
 `;
 
 export const Eyebrow = styled.div`
@@ -194,6 +194,10 @@ export const ModeSwitcherLayout = styled.div`
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
   gap: 12px;
   align-items: center;
+
+  @media (max-width: 1120px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 `;
 
 export const ModeSwitcherHeader = styled.div`
@@ -242,11 +246,22 @@ export const SegmentedButton = styled.button<{ active?: boolean }>`
 
 export const WorkspaceGrid = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
   grid-template-rows: minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
   min-height: 0;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px;
+  }
+
+  @media (max-width: 980px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: auto;
+  }
 `;
 
 export const LeftPane = styled.div`
@@ -264,6 +279,11 @@ export const RightPane = styled.aside`
   align-content: stretch;
   min-height: 0;
   overflow: hidden;
+
+  @media (max-width: 980px) {
+    grid-template-rows: auto auto;
+    min-height: auto;
+  }
 `;
 
 export const Panel = styled.section`
@@ -516,6 +536,14 @@ export const FieldGrid = styled.div`
   grid-template-columns: repeat(4, minmax(140px, 1fr));
   gap: 12px;
   align-items: end;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 `;
 
 export const Field = styled.label`
@@ -590,11 +618,20 @@ export const Badge = styled.span<{ tone?: BadgeTone }>`
 
 export const SplitLayout = styled.div`
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
   min-height: 0;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
 `;
 
 export const CanvasViewport = styled.div`

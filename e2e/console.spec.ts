@@ -26,3 +26,16 @@ test("captures browser console and page errors", async ({ page }) => {
   expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
 });
+
+test("layout follows window resize", async ({ page }) => {
+  await page.goto("/");
+
+  await page.setViewportSize({ width: 900, height: 700 });
+
+  const bodyMinWidth = await page.evaluate(
+    () => window.getComputedStyle(document.body).minWidth,
+  );
+
+  await expect(page.getByRole("heading", { name: "作業モード" })).toBeVisible();
+  expect(bodyMinWidth).toBe("0px");
+});
