@@ -7,7 +7,15 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 /** @type {import("eslint").Linter.FlatConfig[]} */
 const config = [
   {
-    ignores: ["node_modules", "dist", "src-tauri/target", ".git"],
+    ignores: [
+      "node_modules",
+      "dist",
+      "src-tauri/target",
+      ".git",
+      "playwright-report",
+      "test-results",
+      "blob-report",
+    ],
   },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
@@ -50,6 +58,7 @@ const config = [
       "no-nested-ternary": "error",
       eqeqeq: ["error", "always"],
       "no-implicit-coercion": "error",
+      "no-param-reassign": ["error", { props: true }],
 
       "no-restricted-syntax": [
         "error",

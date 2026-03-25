@@ -42,6 +42,48 @@ describe("assertTileSize", () => {
 });
 
 describe("resizeTileND", () => {
+  it("does not attach backing state to the source tile", () => {
+    const source = createTallTile();
+
+    resizeTileND(source, 8, 8, {
+      anchor: "top-left",
+      fill: 0,
+    });
+
+    expect(source).not.toHaveProperty("__backing");
+  });
+
+  it("does not mutate an existing backing on the source tile", () => {
+    const shrunk = resizeTileND(createTallTile(), 8, 8, {
+      anchor: "top-left",
+      fill: 0,
+    });
+    const backingOption = O.fromNullable(shrunk.__backing);
+    expect(O.isSome(backingOption)).toBe(true);
+    if (O.isNone(backingOption)) {
+      return;
+    }
+
+    const backingBefore = {
+      width: backingOption.value.width,
+      height: backingOption.value.height,
+      offsetX: backingOption.value.offsetX,
+      offsetY: backingOption.value.offsetY,
+      pixels: backingOption.value.pixels.map((row) => row.slice()),
+    };
+
+    resizeTileND(shrunk, 8, 16, {
+      anchor: "bottom",
+      fill: 0,
+    });
+
+    expect(backingOption.value.width).toBe(backingBefore.width);
+    expect(backingOption.value.height).toBe(backingBefore.height);
+    expect(backingOption.value.offsetX).toBe(backingBefore.offsetX);
+    expect(backingOption.value.offsetY).toBe(backingBefore.offsetY);
+    expect(backingOption.value.pixels).toEqual(backingBefore.pixels);
+  });
+
   it("preserves hidden pixels when shrinking and expanding with the same anchor", () => {
     const shrunk = resizeTileND(createTallTile(), 8, 8, {
       anchor: "top-left",

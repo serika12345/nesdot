@@ -65,6 +65,7 @@ These constraints are expected to be enforced by repository configuration and mu
 - Do not use TypeScript `as` assertions.
 - Do not use non-null assertions (`!`).
 - Do not use `let` or `var`; use `const`.
+- Do not reassign function parameters or mutate their properties.
 - Do not use mutating array methods such as `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, or `reverse`.
 - Do not rely on truthy/falsy coercion. Use explicit boolean expressions.
 - Do not introduce lint disables unless explicitly requested and justified in code review.

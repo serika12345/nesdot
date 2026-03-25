@@ -92,8 +92,10 @@ function computeVerticalPlacement(
  * 裏キャンバスを初期化（なければ作る）
  */
 function ensureBacking(tile: SpriteTileND, fill: ColorIndexOfPalette): Backing {
-  if (tile.__backing) return tile.__backing;
-  const b: Backing = {
+  if (tile.__backing) {
+    return cloneBacking(tile.__backing);
+  }
+  return {
     width: tile.width,
     height: tile.height,
     pixels: clonePixels(tile.pixels),
@@ -101,8 +103,6 @@ function ensureBacking(tile: SpriteTileND, fill: ColorIndexOfPalette): Backing {
     offsetY: 0,
     fill,
   };
-  tile.__backing = b;
-  return b;
 }
 
 /**
@@ -115,7 +115,7 @@ function growBackingIfNeeded(
   viewTop: number,
   viewRight: number,
   viewBottom: number,
-): { shiftX: number; shiftY: number } {
+): { backing: Backing; shiftX: number; shiftY: number } {
   const newLeft = Math.min(0, viewLeft);
   const newTop = Math.min(0, viewTop);
   const newRight = Math.max(b.width, viewRight);
@@ -128,7 +128,7 @@ function growBackingIfNeeded(
     shiftX !== 0 || shiftY !== 0 || newRight > b.width || newBottom > b.height;
 
   if (needGrow === false) {
-    return { shiftX: 0, shiftY: 0 };
+    return { backing: b, shiftX: 0, shiftY: 0 };
   }
 
   const nextW = Math.max(newRight + shiftX, b.width + shiftX);
@@ -149,13 +149,19 @@ function growBackingIfNeeded(
       nextRowOption.value[x + shiftX] = sourcePixelOption.value;
     });
   });
-  b.pixels = next;
-  b.width = nextW;
-  b.height = nextH;
-  b.offsetX += shiftX;
-  b.offsetY += shiftY;
 
-  return { shiftX, shiftY };
+  return {
+    backing: {
+      ...b,
+      pixels: next,
+      width: nextW,
+      height: nextH,
+      offsetX: b.offsetX + shiftX,
+      offsetY: b.offsetY + shiftY,
+    },
+    shiftX,
+    shiftY,
+  };
 }
 
 /**
@@ -163,6 +169,13 @@ function growBackingIfNeeded(
  */
 function clonePixels(src: ColorIndexOfPalette[][]): ColorIndexOfPalette[][] {
   return src.map((row) => row.slice());
+}
+
+function cloneBacking(src: Backing): Backing {
+  return {
+    ...src,
+    pixels: clonePixels(src.pixels),
+  };
 }
 
 /**
@@ -184,11 +197,11 @@ export function resizeTileND(
   const fill: ColorIndexOfPalette = opts?.fill ?? 0;
 
   // 裏キャンバスの用意
-  const backing = ensureBacking(src, fill);
+  const initialBacking = ensureBacking(src, fill);
 
   // 現ビューの左上が裏キャンバス上でどこか（= backing.offset を基準に決まる）
-  const curViewLeft = backing.offsetX;
-  const curViewTop = backing.offsetY;
+  const curViewLeft = initialBacking.offsetX;
+  const curViewTop = initialBacking.offsetY;
 
   // アンカーに応じて、新ビュー内で旧ビューをどこに置くかを決める。
   // 新ビュー原点はそのぶん逆方向へ動かす必要がある。
@@ -202,8 +215,8 @@ export function resizeTileND(
   const desiredNextViewBottom = desiredNextViewTop + nextH;
 
   // 新ビューが裏キャンバスからはみ出すなら拡張
-  const { shiftX, shiftY } = growBackingIfNeeded(
-    backing,
+  const { backing, shiftX, shiftY } = growBackingIfNeeded(
+    initialBacking,
     desiredNextViewLeft,
     desiredNextViewTop,
     desiredNextViewRight,
@@ -260,9 +273,11 @@ export function resizeTileND(
   });
 
   // 4) 新タイルへ裏キャンバス参照を引き継ぎ、ビューの原点を更新
-  dst.__backing = backing;
-  backing.offsetX = adjustedNextViewLeft;
-  backing.offsetY = adjustedNextViewTop;
+  dst.__backing = {
+    ...backing,
+    offsetX: adjustedNextViewLeft,
+    offsetY: adjustedNextViewTop,
+  };
 
   return dst;
 }
