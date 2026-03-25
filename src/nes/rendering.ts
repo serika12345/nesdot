@@ -4,9 +4,10 @@ import * as O from "fp-ts/Option";
 import {
   getNameTableLinearIndex,
   NesProjectState,
+  NesSpritePalettes,
   resolveBackgroundPaletteIndex,
 } from "../store/nesProjectState";
-import type { Palettes, Screen, SpriteTile } from "../store/projectState";
+import type { Screen, SpriteTile } from "../store/projectState";
 import { NES_PALETTE_HEX } from "./palette";
 
 const FALLBACK_HEX = "#000000";
@@ -26,7 +27,7 @@ const getPaletteHex = (palette: number[], colorIndex: number): string =>
 
 export function renderSpriteTileToHexArray(
   tile: SpriteTile,
-  palettes: Palettes,
+  palettes: NesSpritePalettes,
 ): string[][] {
   const palette = palettes[tile.paletteIndex];
 

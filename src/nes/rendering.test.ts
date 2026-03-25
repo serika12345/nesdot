@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultNesProjectState } from "../store/nesProjectState";
+import {
+  createDefaultNesProjectState,
+  NesSpritePalettes,
+} from "../store/nesProjectState";
 import {
   ColorIndexOfPalette,
-  Palettes,
   Screen,
   SpriteInScreen,
   SpriteTile,
@@ -13,7 +15,7 @@ import {
   renderSpriteTileToHexArray,
 } from "./rendering";
 
-const palettes: Palettes = [
+const palettes: NesSpritePalettes = [
   [45, 1, 21, 34],
   [13, 2, 22, 35],
   [7, 3, 23, 36],

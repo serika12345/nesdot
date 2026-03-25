@@ -13,9 +13,15 @@ export const NES_ATTRIBUTE_TABLE_BYTE_COUNT =
 export const NES_OAM_ENTRY_COUNT = 64;
 
 export type NesPaletteIndex = 0 | 1 | 2 | 3;
+export type NesColorIndex = number;
 export type PatternTableSelect = 0 | 1;
 
-export type NesSubPalette = [number, number, number, number];
+export type NesSubPalette = [
+  NesColorIndex,
+  NesColorIndex,
+  NesColorIndex,
+  NesColorIndex,
+];
 export type NesBackgroundPalettes = [
   NesSubPalette,
   NesSubPalette,

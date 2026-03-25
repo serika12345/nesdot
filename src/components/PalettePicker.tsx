@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import {
-  NesColorIndex,
-  Palette4Colors,
-  useProjectState,
-} from "../../src/store/projectState";
+import { useProjectState } from "../../src/store/projectState";
 import { CollapseToggle } from "../App.styles";
 import { NES_PALETTE_HEX } from "../nes/palette";
-import { NesBackgroundPalettes } from "../store/nesProjectState";
+import {
+  NesBackgroundPalettes,
+  NesColorIndex,
+  NesSubPalette,
+} from "../store/nesProjectState";
 import {
   ColorCell,
   Grid,
@@ -43,7 +43,7 @@ export const PalettePicker: React.FC = () => {
     setIsLibraryOpen(true);
   };
 
-  const clonePalette = (palette: Palette4Colors): Palette4Colors => {
+  const clonePalette = (palette: NesSubPalette): NesSubPalette => {
     return [palette[0], palette[1], palette[2], palette[3]];
   };
 

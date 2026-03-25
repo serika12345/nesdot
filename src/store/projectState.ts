@@ -19,19 +19,6 @@ import {
 
 export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 export type PaletteIndex = 0 | 1 | 2 | 3;
-export type NesColorIndex = number;
-export type Palette4Colors = [
-  NesColorIndex,
-  NesColorIndex,
-  NesColorIndex,
-  NesColorIndex,
-];
-export type Palettes = [
-  Palette4Colors,
-  Palette4Colors,
-  Palette4Colors,
-  Palette4Colors,
-];
 
 export type SpriteInScreen = SpriteTile & {
   x: number;
