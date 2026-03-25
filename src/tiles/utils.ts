@@ -8,7 +8,7 @@ import {
   SpriteTile,
   SpriteTileND,
 } from "../store/projectState";
-import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
+import { getMatrixItem } from "../utils/arrayAccess";
 
 /** 8の倍数であることを検査 */
 export function assertTileSize(w: number, h: number): E.Either<string, true> {
@@ -134,21 +134,12 @@ function growBackingIfNeeded(
   const nextW = Math.max(newRight + shiftX, b.width + shiftX);
   const nextH = Math.max(newBottom + shiftY, b.height + shiftY);
 
-  const next: ColorIndexOfPalette[][] = Array.from({ length: nextH }, () =>
-    Array.from({ length: nextW }, () => b.fill),
+  const next: ColorIndexOfPalette[][] = Array.from({ length: nextH }, (_, y) =>
+    Array.from({ length: nextW }, (_, x) => {
+      const sourcePixelOption = getMatrixItem(b.pixels, y - shiftY, x - shiftX);
+      return O.getOrElse(() => b.fill)(sourcePixelOption);
+    }),
   );
-  // 旧バッファを（shiftX, shiftY）だけ平行移動して貼り付け
-  Array.from({ length: b.height }, (_, y) => y).forEach((y) => {
-    Array.from({ length: b.width }, (_, x) => x).forEach((x) => {
-      const nextRowOption = getArrayItem(next, y + shiftY);
-      const sourcePixelOption = getMatrixItem(b.pixels, y, x);
-      if (O.isNone(nextRowOption) || O.isNone(sourcePixelOption)) {
-        return;
-      }
-
-      nextRowOption.value[x + shiftX] = sourcePixelOption.value;
-    });
-  });
 
   return {
     backing: {
@@ -230,53 +221,62 @@ export function resizeTileND(
 
   // 1) 旧ビューの可視領域の内容を裏キャンバスへ「確定書き戻し」
   //    （src.pixels が正なので、これでビュー外へ出る画素も保持される）
-  Array.from({ length: src.height }, (_, y) => y).forEach((y) => {
-    Array.from({ length: src.width }, (_, x) => x).forEach((x) => {
-      const bx = adjustedCurViewLeft + x;
-      const by = adjustedCurViewTop + y;
-      if (by >= 0 && by < backing.height && bx >= 0 && bx < backing.width) {
-        const backingRowOption = getArrayItem(backing.pixels, by);
-        const sourcePixelOption = getMatrixItem(src.pixels, y, x);
-        if (O.isNone(backingRowOption) || O.isNone(sourcePixelOption)) {
-          return;
+  const committedBackingPixels: ColorIndexOfPalette[][] = Array.from(
+    { length: backing.height },
+    (_, by) =>
+      Array.from({ length: backing.width }, (_, bx) => {
+        const sourceY = by - adjustedCurViewTop;
+        const sourceX = bx - adjustedCurViewLeft;
+        const isInSourceView =
+          sourceY >= 0 &&
+          sourceY < src.height &&
+          sourceX >= 0 &&
+          sourceX < src.width;
+
+        if (isInSourceView === true) {
+          return O.getOrElse<ColorIndexOfPalette>(() => fill)(
+            getMatrixItem(src.pixels, sourceY, sourceX),
+          );
         }
 
-        backingRowOption.value[bx] = sourcePixelOption.value;
-      }
-    });
-  });
+        return O.getOrElse<ColorIndexOfPalette>(() => fill)(
+          getMatrixItem(backing.pixels, by, bx),
+        );
+      }),
+  );
 
   // 2) 新しい可視タイルを作成（表示用バッファ）
-  const dst: SpriteTileND = makeTile(nextH, src.paletteIndex, fill);
+  const dstBase = makeTile(nextH, src.paletteIndex, fill);
 
   // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
-  Array.from({ length: nextH }, (_, y) => y).forEach((y) => {
-    const by = adjustedNextViewTop + y;
-    const dstRowOption = getArrayItem(dst.pixels, y);
-    if (by < 0 || by >= backing.height) {
-      // 全面 fill（makeTile 済みなので何もしない）
-      return;
-    }
-    if (O.isNone(dstRowOption)) {
-      return;
-    }
-    Array.from({ length: nextW }, (_, x) => x).forEach((x) => {
-      const bx = adjustedNextViewLeft + x;
-      if (bx < 0 || bx >= backing.width) return;
-      const sourcePixelOption = getMatrixItem(backing.pixels, by, bx);
-      if (O.isNone(sourcePixelOption)) {
-        return;
-      }
+  const dstPixels: ColorIndexOfPalette[][] = Array.from(
+    { length: nextH },
+    (_, y) =>
+      Array.from({ length: nextW }, (_, x) => {
+        const by = adjustedNextViewTop + y;
+        const bx = adjustedNextViewLeft + x;
+        const isInBacking =
+          by >= 0 && by < backing.height && bx >= 0 && bx < backing.width;
+        if (isInBacking === false) {
+          const basePixelOption = getMatrixItem(dstBase.pixels, y, x);
+          return O.getOrElse<ColorIndexOfPalette>(() => fill)(basePixelOption);
+        }
 
-      dstRowOption.value[x] = sourcePixelOption.value;
-    });
-  });
+        const sourcePixelOption = getMatrixItem(committedBackingPixels, by, bx);
+        return O.getOrElse<ColorIndexOfPalette>(() => fill)(sourcePixelOption);
+      }),
+  );
 
   // 4) 新タイルへ裏キャンバス参照を引き継ぎ、ビューの原点を更新
-  dst.__backing = {
-    ...backing,
-    offsetX: adjustedNextViewLeft,
-    offsetY: adjustedNextViewTop,
+  const dst: SpriteTileND = {
+    ...dstBase,
+    pixels: dstPixels,
+    __backing: {
+      ...backing,
+      pixels: committedBackingPixels,
+      offsetX: adjustedNextViewLeft,
+      offsetY: adjustedNextViewTop,
+    },
   };
 
   return dst;

@@ -2,6 +2,7 @@ import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import {
   createDefaultNesProjectState,
+  NesBackgroundPalettes,
   NesSpritePalettes,
 } from "../store/nesProjectState";
 import {
@@ -10,12 +11,12 @@ import {
   SpriteInScreen,
   SpriteTile,
 } from "../store/projectState";
+import { getMatrixItem } from "../utils/arrayAccess";
 import { nesIndexToCssHex } from "./palette";
 import {
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "./rendering";
-import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
 
 const palettes: NesSpritePalettes = [
   [45, 1, 21, 34],
@@ -59,20 +60,100 @@ function createScreenSprite(
   };
 }
 
-function setTilePixel(
-  tile: SpriteTile,
+function setTilePixel<T extends SpriteTile>(
+  tile: T,
   y: number,
   x: number,
   value: ColorIndexOfPalette,
-): void {
-  const rowOption = getArrayItem(tile.pixels, y);
-  expect(O.isSome(rowOption)).toBe(true);
-  if (O.isNone(rowOption)) {
-    return;
-  }
-
-  rowOption.value[x] = value;
+): T & SpriteTile {
+  return {
+    ...tile,
+    pixels: tile.pixels.map((row, rowIndex) =>
+      rowIndex === y
+        ? row.map((pixel, columnIndex) => (columnIndex === x ? value : pixel))
+        : row,
+    ),
+  };
 }
+
+const cloneNesState = (
+  source: ReturnType<typeof createDefaultNesProjectState>,
+): ReturnType<typeof createDefaultNesProjectState> => ({
+  ...source,
+  nameTable: {
+    ...source.nameTable,
+    tileIndices: source.nameTable.tileIndices.slice(),
+  },
+  attributeTable: {
+    ...source.attributeTable,
+    bytes: source.attributeTable.bytes.slice(),
+  },
+  backgroundPalettes: [
+    [
+      source.backgroundPalettes[0][0],
+      source.backgroundPalettes[0][1],
+      source.backgroundPalettes[0][2],
+      source.backgroundPalettes[0][3],
+    ],
+    [
+      source.backgroundPalettes[1][0],
+      source.backgroundPalettes[1][1],
+      source.backgroundPalettes[1][2],
+      source.backgroundPalettes[1][3],
+    ],
+    [
+      source.backgroundPalettes[2][0],
+      source.backgroundPalettes[2][1],
+      source.backgroundPalettes[2][2],
+      source.backgroundPalettes[2][3],
+    ],
+    [
+      source.backgroundPalettes[3][0],
+      source.backgroundPalettes[3][1],
+      source.backgroundPalettes[3][2],
+      source.backgroundPalettes[3][3],
+    ],
+  ],
+  spritePalettes: [
+    [
+      source.spritePalettes[0][0],
+      source.spritePalettes[0][1],
+      source.spritePalettes[0][2],
+      source.spritePalettes[0][3],
+    ],
+    [
+      source.spritePalettes[1][0],
+      source.spritePalettes[1][1],
+      source.spritePalettes[1][2],
+      source.spritePalettes[1][3],
+    ],
+    [
+      source.spritePalettes[2][0],
+      source.spritePalettes[2][1],
+      source.spritePalettes[2][2],
+      source.spritePalettes[2][3],
+    ],
+    [
+      source.spritePalettes[3][0],
+      source.spritePalettes[3][1],
+      source.spritePalettes[3][2],
+      source.spritePalettes[3][3],
+    ],
+  ],
+  chrBytes: source.chrBytes.slice(),
+  oam: source.oam.map((entry) => ({ ...entry })),
+});
+
+const updateBackgroundPalettes = (
+  palettes: NesBackgroundPalettes,
+  paletteIndex: number,
+  next: [number, number, number, number],
+): NesBackgroundPalettes => [
+  paletteIndex === 0 ? next : palettes[0],
+  paletteIndex === 1 ? next : palettes[1],
+  paletteIndex === 2 ? next : palettes[2],
+  paletteIndex === 3 ? next : palettes[3],
+];
 
 function expectRenderedHex(
   rendered: string[][],
@@ -91,10 +172,12 @@ function expectRenderedHex(
 
 describe("renderSpriteTileToHexArray", () => {
   it("keeps palette slot 0 transparent for sprite exports", () => {
-    const tile = createSpriteTile();
-    setTilePixel(tile, 0, 1, 1);
-    setTilePixel(tile, 0, 2, 2);
-    setTilePixel(tile, 0, 3, 3);
+    const tile = setTilePixel(
+      setTilePixel(setTilePixel(createSpriteTile(), 0, 1, 1), 0, 2, 2),
+      0,
+      3,
+      3,
+    );
 
     const rendered = renderSpriteTileToHexArray(tile, palettes);
 
@@ -107,19 +190,44 @@ describe("renderSpriteTileToHexArray", () => {
 
 describe("renderScreenToHexArray", () => {
   it("renders sprite pixels over the background and treats sprite slot 0 as transparent", () => {
-    const nes = createDefaultNesProjectState();
-    nes.universalBackgroundColor = 45;
-    nes.nameTable.tileIndices[0] = 0;
-    nes.attributeTable.bytes[0] = 0b00000001;
-    nes.backgroundPalettes[1] = [45, 2, 22, 35];
-    Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
-      nes.chrBytes[y] = 0b00000000;
-      nes.chrBytes[8 + y] = 0b11111111;
-    });
+    const nesBase = cloneNesState(createDefaultNesProjectState());
+    const nes = {
+      ...nesBase,
+      universalBackgroundColor: 45,
+      nameTable: {
+        ...nesBase.nameTable,
+        tileIndices: nesBase.nameTable.tileIndices.map((value, index) =>
+          index === 0 ? 0 : value,
+        ),
+      },
+      attributeTable: {
+        ...nesBase.attributeTable,
+        bytes: nesBase.attributeTable.bytes.map((value, index) =>
+          index === 0 ? 0b00000001 : value,
+        ),
+      },
+      backgroundPalettes: updateBackgroundPalettes(
+        nesBase.backgroundPalettes,
+        1,
+        [45, 2, 22, 35],
+      ),
+      chrBytes: nesBase.chrBytes.map((value, index) => {
+        if (index >= 0 && index < 8) {
+          return 0b00000000;
+        }
+        if (index >= 8 && index < 16) {
+          return 0b11111111;
+        }
+        return value;
+      }),
+    };
 
-    const sprite = createScreenSprite({});
-    setTilePixel(sprite, 0, 0, 0);
-    setTilePixel(sprite, 0, 1, 1);
+    const sprite = setTilePixel(
+      setTilePixel(createScreenSprite({}), 0, 0, 0),
+      0,
+      1,
+      1,
+    );
 
     const rendered = renderScreenToHexArray(createScreen([sprite]), nes);
 
@@ -161,15 +269,37 @@ describe("renderScreenToHexArray", () => {
   });
 
   it("keeps lower OAM sprite selected before applying behind-bg priority", () => {
-    const nes = createDefaultNesProjectState();
-    nes.universalBackgroundColor = 45;
-    nes.nameTable.tileIndices[0] = 0;
-    nes.attributeTable.bytes[0] = 0b00000001;
-    nes.backgroundPalettes[1] = [45, 2, 22, 35];
-    Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
-      nes.chrBytes[y] = 0b00000000;
-      nes.chrBytes[8 + y] = 0b11111111;
-    });
+    const nesBase = cloneNesState(createDefaultNesProjectState());
+    const nes = {
+      ...nesBase,
+      universalBackgroundColor: 45,
+      nameTable: {
+        ...nesBase.nameTable,
+        tileIndices: nesBase.nameTable.tileIndices.map((value, index) =>
+          index === 0 ? 0 : value,
+        ),
+      },
+      attributeTable: {
+        ...nesBase.attributeTable,
+        bytes: nesBase.attributeTable.bytes.map((value, index) =>
+          index === 0 ? 0b00000001 : value,
+        ),
+      },
+      backgroundPalettes: updateBackgroundPalettes(
+        nesBase.backgroundPalettes,
+        1,
+        [45, 2, 22, 35],
+      ),
+      chrBytes: nesBase.chrBytes.map((value, index) => {
+        if (index >= 0 && index < 8) {
+          return 0b00000000;
+        }
+        if (index >= 8 && index < 16) {
+          return 0b11111111;
+        }
+        return value;
+      }),
+    };
 
     const behindBgSprite: SpriteInScreen = {
       ...createScreenSprite(
@@ -208,20 +338,24 @@ describe("renderScreenToHexArray", () => {
 
   it("applies horizontal and vertical flip when drawing sprites", () => {
     const nes = createDefaultNesProjectState();
-    const sprite: SpriteInScreen = {
-      ...createScreenSprite(
-        {
-          x: 10,
-          y: 10,
-          spriteIndex: 0,
-          priority: "front",
-          flipH: true,
-          flipV: true,
-        },
-        0,
-      ),
-    };
-    setTilePixel(sprite, 0, 0, 1);
+    const sprite: SpriteInScreen = setTilePixel(
+      {
+        ...createScreenSprite(
+          {
+            x: 10,
+            y: 10,
+            spriteIndex: 0,
+            priority: "front",
+            flipH: true,
+            flipV: true,
+          },
+          0,
+        ),
+      },
+      0,
+      0,
+      1,
+    );
 
     const rendered = renderScreenToHexArray(createScreen([sprite]), nes);
 
@@ -230,13 +364,34 @@ describe("renderScreenToHexArray", () => {
   });
 
   it("renders background directly from nameTable+attributeTable+CHR when NES state is provided", () => {
-    const nes = createDefaultNesProjectState();
-    nes.universalBackgroundColor = 45;
-    nes.nameTable.tileIndices[0] = 0;
-    nes.attributeTable.bytes[0] = 0b00000010;
-    nes.backgroundPalettes[2] = [45, 5, 6, 7];
-    nes.chrBytes[0] = 0b10000000;
-    nes.chrBytes[8] = 0b10000000;
+    const nesBase = cloneNesState(createDefaultNesProjectState());
+    const nes = {
+      ...nesBase,
+      universalBackgroundColor: 45,
+      nameTable: {
+        ...nesBase.nameTable,
+        tileIndices: nesBase.nameTable.tileIndices.map((value, index) =>
+          index === 0 ? 0 : value,
+        ),
+      },
+      attributeTable: {
+        ...nesBase.attributeTable,
+        bytes: nesBase.attributeTable.bytes.map((value, index) =>
+          index === 0 ? 0b00000010 : value,
+        ),
+      },
+      backgroundPalettes: updateBackgroundPalettes(
+        nesBase.backgroundPalettes,
+        2,
+        [45, 5, 6, 7],
+      ),
+      chrBytes: nesBase.chrBytes.map((value, index) => {
+        if (index === 0 || index === 8) {
+          return 0b10000000;
+        }
+        return value;
+      }),
+    };
 
     const rendered = renderScreenToHexArray(createScreen([]), nes);
 
