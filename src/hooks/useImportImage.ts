@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
+import * as O from "fp-ts/Option";
 import { ProjectState } from "../store/projectState";
 
 type NativeImportResult =
@@ -33,8 +34,8 @@ export default function useImportImage() {
     }
   };
 
-  const readJsonWithInputFallback = async (): Promise<string | undefined> => {
-    return new Promise<string | undefined>((resolve, reject) => {
+  const readJsonWithInputFallback = async (): Promise<O.Option<string>> => {
+    return new Promise<O.Option<string>>((resolve, reject) => {
       const input = document.createElement("input");
       input.type = "file";
       input.accept = ".json,application/json";
@@ -51,7 +52,7 @@ export default function useImportImage() {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) {
           cleanup();
-          resolve(undefined);
+          resolve(O.none);
           return;
         }
 
@@ -66,7 +67,7 @@ export default function useImportImage() {
 
       input.oncancel = () => {
         cleanup();
-        resolve(undefined);
+        resolve(O.none);
       };
 
       input.click();
@@ -88,11 +89,11 @@ export default function useImportImage() {
     }
 
     const fallbackText = await readJsonWithInputFallback();
-    if (fallbackText === undefined) {
+    if (O.isNone(fallbackText)) {
       return false;
     }
 
-    onImport(JSON.parse(fallbackText) as ProjectState);
+    onImport(JSON.parse(fallbackText.value) as ProjectState);
     return true;
   };
 

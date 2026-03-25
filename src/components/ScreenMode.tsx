@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import {
   CanvasViewport,
   CollapseToggle,
@@ -44,12 +46,9 @@ export const ScreenMode: React.FC = () => {
   const [spriteNumber, setSpriteNumber] = useState(0);
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
-  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
-    number | undefined
-  >(() => {
-    if (useProjectState.getState().screen.sprites.length > 0) return 0;
-    return undefined;
-  });
+  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<O.Option<number>>(() =>
+    useProjectState.getState().screen.sprites.length > 0 ? O.some(0) : O.none,
+  );
   const [isPlacementOpen, setIsPlacementOpen] = useState(true);
   const [isSelectionOpen, setIsSelectionOpen] = useState(false);
   const screen = useProjectState((s) => s.screen);
@@ -65,7 +64,7 @@ export const ScreenMode: React.FC = () => {
     try {
       await importJSON((data) => {
         useProjectState.setState(data);
-        setSelectedSpriteIndex(data.screen.sprites.length > 0 ? 0 : undefined);
+        setSelectedSpriteIndex(data.screen.sprites.length > 0 ? O.some(0) : O.none);
 
         const result = scan(data.screen);
         if (result.ok === false) {
@@ -108,16 +107,20 @@ export const ScreenMode: React.FC = () => {
     }
 
     useProjectState.setState({ screen: newScreen });
-    if (selectedSpriteIndex === undefined) {
-      setSelectedSpriteIndex(newScreen.sprites.length - 1);
+    if (O.isNone(selectedSpriteIndex)) {
+      setSelectedSpriteIndex(O.some(newScreen.sprites.length - 1));
     }
     alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
   };
 
-  const activeSprite =
-    selectedSpriteIndex === undefined
-      ? undefined
-      : spritesOnScreen[selectedSpriteIndex];
+  const activeSprite = pipe(
+    selectedSpriteIndex,
+    O.chain((index) => O.fromNullable(spritesOnScreen[index])),
+  );
+  const selectedIndexValue = pipe(
+    selectedSpriteIndex,
+    O.getOrElse(() => -1),
+  );
   const scanReport = scan(screen);
 
   return (
@@ -245,14 +248,17 @@ export const ScreenMode: React.FC = () => {
               <Field>
                 <FieldLabel>スプライト一覧</FieldLabel>
                 <SelectInput
-                  onChange={(e) =>
-                    setSelectedSpriteIndex(
-                      e.target.value === ""
-                        ? undefined
-                        : Number(e.target.value),
-                    )
-                  }
-                  value={selectedSpriteIndex ?? ""}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setSelectedSpriteIndex(next === "" ? O.none : O.some(Number(next)));
+                  }}
+                  value={pipe(
+                    selectedSpriteIndex,
+                    O.match(
+                      () => "",
+                      (index) => String(index),
+                    ),
+                  )}
                 >
                   {spritesOnScreen.length === 0 && (
                     <option value="">スプライトが配置されていません</option>
@@ -265,19 +271,27 @@ export const ScreenMode: React.FC = () => {
                 </SelectInput>
               </Field>
 
-              {activeSprite ? (
+              {pipe(
+                activeSprite,
+                O.match(
+                  () => (
+                    <HelperText>
+                      スプライトを追加するか、一覧から対象を選択してください。
+                    </HelperText>
+                  ),
+                  (selectedSprite) => (
                 <>
                   <DetailList>
                     <DetailRow>
                       <DetailKey>元スプライト</DetailKey>
                       <DetailValue>
-                        spriteIndex {activeSprite.spriteIndex}
+                        spriteIndex {selectedSprite.spriteIndex}
                       </DetailValue>
                     </DetailRow>
                     <DetailRow>
                       <DetailKey>サイズ</DetailKey>
                       <DetailValue>
-                        {activeSprite.width}×{activeSprite.height}
+                        {selectedSprite.width}×{selectedSprite.height}
                       </DetailValue>
                     </DetailRow>
                   </DetailList>
@@ -289,11 +303,11 @@ export const ScreenMode: React.FC = () => {
                       <FieldLabel>Position X</FieldLabel>
                       <NumberInput
                         type="number"
-                        value={activeSprite.x}
+                        value={selectedSprite.x}
                         onChange={(e) => {
                           const newX = Number(e.target.value);
                           const newSprites = spritesOnScreen.map((s, i) =>
-                            i === selectedSpriteIndex ? { ...s, x: newX } : s,
+                            i === selectedIndexValue ? { ...s, x: newX } : s,
                           );
                           const newScreen = { ...screen, sprites: newSprites };
                           const report = scan(newScreen);
@@ -312,11 +326,11 @@ export const ScreenMode: React.FC = () => {
                       <FieldLabel>Position Y</FieldLabel>
                       <NumberInput
                         type="number"
-                        value={activeSprite.y}
+                        value={selectedSprite.y}
                         onChange={(e) => {
                           const newY = Number(e.target.value);
                           const newSprites = spritesOnScreen.map((s, i) =>
-                            i === selectedSpriteIndex ? { ...s, y: newY } : s,
+                            i === selectedIndexValue ? { ...s, y: newY } : s,
                           );
                           const newScreen = { ...screen, sprites: newSprites };
                           const report = scan(newScreen);
@@ -338,7 +352,7 @@ export const ScreenMode: React.FC = () => {
                     tone="danger"
                     onClick={() => {
                       const newSprites = spritesOnScreen.filter(
-                        (_, i) => i !== selectedSpriteIndex,
+                        (_, i) => i !== selectedIndexValue,
                       );
                       const newScreen = { ...screen, sprites: newSprites };
                       const report = scan(newScreen);
@@ -349,24 +363,26 @@ export const ScreenMode: React.FC = () => {
                         );
                       }
                       useProjectState.setState({ screen: newScreen });
-                      setSelectedSpriteIndex(undefined);
+                      setSelectedSpriteIndex(O.none);
                     }}
                     css={{ minHeight: 46 }}
                   >
                     このスプライトを削除
                   </ToolButton>
                 </>
-              ) : (
-                <HelperText>
-                  スプライトを追加するか、一覧から対象を選択してください。
-                </HelperText>
+                  ),
+                ),
               )}
             </>
           ) : (
             <HelperText>
-              {activeSprite
-                ? `現在は #${selectedSpriteIndex} を選択中です。`
-                : "現在は未選択です。"}
+              {pipe(
+                selectedSpriteIndex,
+                O.match(
+                  () => "現在は未選択です。",
+                  (index) => `現在は #${index} を選択中です。`,
+                ),
+              )}
             </HelperText>
           )}
         </Panel>

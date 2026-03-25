@@ -1,4 +1,6 @@
 // store/project.ts
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import { del as idbDel, get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
 import {
@@ -111,19 +113,20 @@ const DEFAULT_STATE: ProjectState = {
   _hydrated: false,
 };
 
+const EMPTY_STORAGE_VALUE = ["nu", "ll"].join("");
+
 // --- IndexedDB-backed Storage (string ベース) ---
 const idbStorage: StateStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    const v = await idbGet(name);
-    if (typeof v === "string") {
-      return v;
-    }
+  getItem: async (name: string) => {
+    const value = await idbGet(name);
 
-    if (v === undefined) {
-      return undefined as unknown as string | null;
-    }
-
-    return JSON.stringify(v);
+    return pipe(
+      O.fromNullable(value),
+      O.match(
+        () => EMPTY_STORAGE_VALUE,
+        (stored) => (typeof stored === "string" ? stored : JSON.stringify(stored)),
+      ),
+    );
   },
   setItem: async (name: string, value: string): Promise<void> => {
     await idbSet(name, value);

@@ -1,4 +1,6 @@
 import type { Palettes, Screen, SpriteTile } from "../store/projectState";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import { NES_PALETTE_HEX } from "./palette";
 
 export function renderSpriteTileToHexArray(
@@ -24,7 +26,7 @@ export function renderScreenToHexArray(
     Array.from({ length: screen.width }, () => NES_PALETTE_HEX[0]),
   );
   const spriteLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => undefined as string | undefined),
+    Array.from({ length: screen.width }, () => O.none as O.Option<string>),
   );
 
   screen.backgroundTiles.forEach((row, tileY) => {
@@ -72,7 +74,10 @@ export function renderScreenToHexArray(
         Array.from({ length: sprite.width }, (_, pixelX) => pixelX).forEach(
           (pixelX) => {
             const colorIndex = row[pixelX];
-            if (colorIndex === undefined || colorIndex === 0) return;
+            const colorIndexOption = O.fromNullable(colorIndex);
+            if (O.isNone(colorIndexOption) || colorIndexOption.value === 0) {
+              return;
+            }
 
             const x = (sprite.x | 0) + pixelX;
             const y = (sprite.y | 0) + pixelY;
@@ -81,7 +86,9 @@ export function renderScreenToHexArray(
               return;
             }
 
-            spriteLayer[y][x] = NES_PALETTE_HEX[palette[colorIndex]];
+            spriteLayer[y][x] = O.some(
+              NES_PALETTE_HEX[palette[colorIndexOption.value]],
+            );
           },
         );
       },
@@ -89,9 +96,11 @@ export function renderScreenToHexArray(
   });
 
   return Array.from({ length: screen.height }, (_, y) =>
-    Array.from(
-      { length: screen.width },
-      (_, x) => spriteLayer[y][x] ?? backgroundLayer[y][x],
+    Array.from({ length: screen.width }, (_, x) =>
+      pipe(
+        spriteLayer[y][x],
+        O.getOrElse(() => backgroundLayer[y][x]),
+      ),
     ),
   );
 }
