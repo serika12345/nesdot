@@ -39,6 +39,13 @@ function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
   return makeTile(height, paletteIndex, 0);
 }
 
+function toPaletteIndex(index: number): PaletteIndex | false {
+  if (index === 0 || index === 1 || index === 2 || index === 3) {
+    return index;
+  }
+  return false;
+}
+
 export const SpriteMode: React.FC = () => {
   const [tool, setTool] = useState<Tool>("pen");
   const [isChangeOrderMode, setIsChangeOrderMode] = useState<boolean>(false);
@@ -93,11 +100,12 @@ export const SpriteMode: React.FC = () => {
 
   const handlePaletteChange = (index: string) => {
     const i = parseInt(index);
-    if (i !== 0 && i !== 1 && i !== 2 && i !== 3) {
+    const paletteIndex = toPaletteIndex(i);
+    if (paletteIndex === false) {
       return;
     }
-    setActivePalette(i);
-    const newTile = { ...activeTile, paletteIndex: i };
+    setActivePalette(paletteIndex);
+    const newTile: SpriteTile = { ...activeTile, paletteIndex };
     setTile(newTile, activeSprite);
   };
 

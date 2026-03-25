@@ -177,7 +177,7 @@ export const getHexArrayForScreen = (screen: Screen): string[][] => {
 // persist は set ごとに保存しますが、ウィンドウ終了タイミングで
 // 未完了の I/O を取りこぼさないよう念のため追加します。
 function flushNow() {
-  const key = persistOptions.name!;
+  const key = persistOptions.name ?? "project-state";
   const s = useProjectState.getState();
   // createJSONStorage が JSON.stringify 済みの文字列を要求するためここでも stringify
   const serialized = JSON.stringify({

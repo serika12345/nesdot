@@ -46,6 +46,7 @@ export default [
       // Type Safety: Disallow any type
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/prefer-as-const": "off",
+      "@typescript-eslint/no-non-null-assertion": "error",
 
       // Immutability: Always use const, never use let or var
       "prefer-const": "error",

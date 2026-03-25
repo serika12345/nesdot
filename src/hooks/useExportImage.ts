@@ -114,7 +114,11 @@ export default function useExportImage() {
     const cvs = document.createElement("canvas");
     cvs.width = w * scale;
     cvs.height = h * scale;
-    const ctx = cvs.getContext("2d")!;
+    const ctxOption = O.fromNullable(cvs.getContext("2d"));
+    if (O.isNone(ctxOption)) {
+      return;
+    }
+    const ctx = ctxOption.value;
     ctx.imageSmoothingEnabled = false;
 
     // 透明はalpha=0、他はパレット色

@@ -5,7 +5,12 @@ type IconProps = {
   className?: string;
 };
 
-const baseProps = {
+type BaseSvgProps = Pick<
+  React.SVGProps<SVGSVGElement>,
+  "fill" | "stroke" | "strokeWidth" | "strokeLinecap" | "strokeLinejoin"
+>;
+
+const baseProps: BaseSvgProps = {
   fill: "none",
   stroke: "currentColor",
   strokeWidth: 1.8,

@@ -43,7 +43,11 @@ export const useGhost = ({
       const ghostCvs = document.createElement("canvas");
       ghostCvs.width = 8 * scale + pad * 2;
       ghostCvs.height = 8 * scale + pad * 2;
-      const gctx = ghostCvs.getContext("2d")!;
+      const gctxOption = O.fromNullable(ghostCvs.getContext("2d"));
+      if (O.isNone(gctxOption)) {
+        return O.none;
+      }
+      const gctx = gctxOption.value;
       gctx.imageSmoothingEnabled = false;
 
       // 透明背景に対象8x8を拡大描画
@@ -72,12 +76,12 @@ export const useGhost = ({
       gctx.fillRect(0, 0, ghostCvs.width, ghostCvs.height);
       gctx.restore();
 
-      return {
+      return O.some({
         url: ghostCvs.toDataURL("image/png"),
         w: ghostCvs.width,
         h: ghostCvs.height,
         pad,
-      };
+      });
     },
     [scale, width, height, tile.pixels, palettes, currentSelectPalette],
   );
@@ -130,8 +134,11 @@ export const useGhost = ({
       const startTileY = Math.floor(cellY / 8) * 8;
 
       // ゴースト画像を作成
-      const { url } = makeTileGhostDataURL(startTileX, startTileY);
-      createGhost(url);
+      const ghostDataOption = makeTileGhostDataURL(startTileX, startTileY);
+      if (O.isNone(ghostDataOption)) {
+        return;
+      }
+      createGhost(ghostDataOption.value.url);
 
       // ポインタからタイル左上（表示上の位置）までのオフセット（CSS px）
       const tileLeft = canvasRect.left + startTileX * scale;
