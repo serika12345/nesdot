@@ -19,3 +19,5 @@
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
 - **Test-Driven Development**: Implement all features using test-driven development (TDD). Write tests first, then implement the code to pass those tests.
 - **Test Implementation First**: When tests themselves need to be modified, implement the test changes completely before making any source code changes.
+- **Immutability**: Always use `const` for variable declarations; never use `let` or `var`. Initialize arrays and collections completely at creation; never use `push()` or mutating methods afterward.
+- **Immutable Operations**: Write all code using immutable operations. Avoid nested ternary operators to prevent reassignment; extract complex logic into separate functions. IIFE (Immediately Invoked Function Expressions) are acceptable for short logic blocks (a few lines).
