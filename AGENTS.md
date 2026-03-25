@@ -17,3 +17,5 @@
 - **Null Safety**: Avoid using `null`; prefer `undefined`, `Option`-like patterns, or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
+- **Test-Driven Development**: Implement all features using test-driven development (TDD). Write tests first, then implement the code to pass those tests.
+- **Test Implementation First**: When tests themselves need to be modified, implement the test changes completely before making any source code changes.
