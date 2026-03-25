@@ -13,10 +13,9 @@ export const SelectionSummary = styled.div`
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 16px 18px;
-    border-radius: 22px;
-    background: linear-gradient(180deg, rgba(240, 253, 250, 0.94), rgba(236, 253, 245, 0.82));
-    border: 1px solid rgba(15, 118, 110, 0.16);
+    padding: 0;
+    border: none;
+    background: transparent;
 `;
 
 export const SelectionLabel = styled.div`

@@ -148,6 +148,13 @@ export const ScreenMode: React.FC = () => {
     O.getOrElse(() => -1),
   );
   const scanReport = scan(screen, nes);
+  const readOnlyDetailRowCss = {
+    background: "transparent",
+    border: "none",
+    boxShadow: "none",
+    padding: 0,
+    borderRadius: 0,
+  };
 
   return (
     <SplitLayout>
@@ -350,19 +357,19 @@ export const ScreenMode: React.FC = () => {
                   (selectedSprite) => (
                     <>
                       <DetailList>
-                        <DetailRow>
+                        <DetailRow css={readOnlyDetailRowCss}>
                           <DetailKey>元スプライト</DetailKey>
                           <DetailValue>
                             spriteIndex {selectedSprite.spriteIndex}
                           </DetailValue>
                         </DetailRow>
-                        <DetailRow>
+                        <DetailRow css={readOnlyDetailRowCss}>
                           <DetailKey>サイズ</DetailKey>
                           <DetailValue>
                             {selectedSprite.width}×{selectedSprite.height}
                           </DetailValue>
                         </DetailRow>
-                        <DetailRow>
+                        <DetailRow css={readOnlyDetailRowCss}>
                           <DetailKey>優先度</DetailKey>
                           <DetailValue>
                             {selectedSprite.priority === "behindBg"
@@ -370,7 +377,7 @@ export const ScreenMode: React.FC = () => {
                               : "背景の前"}
                           </DetailValue>
                         </DetailRow>
-                        <DetailRow>
+                        <DetailRow css={readOnlyDetailRowCss}>
                           <DetailKey>反転</DetailKey>
                           <DetailValue>
                             {`${selectedSprite.flipH === true ? "H" : "-"} / ${selectedSprite.flipV === true ? "V" : "-"}`}
