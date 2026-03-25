@@ -219,6 +219,54 @@ const config = [
       ],
     },
   },
+  {
+    files: [
+      "src/components/hooks/useGhost.ts",
+      "src/components/hooks/useScreenCanvas.ts",
+      "src/components/hooks/useSpriteCanvas.ts",
+    ],
+    rules: {
+      // Canvas/DOM操作は命令的代入が本質のため、ここだけ許可アクセサを限定して運用
+      "functional/immutable-data": [
+        "error",
+        {
+          ignoreImmediateMutation: true,
+          ignoreNonConstDeclarations: true,
+          ignoreMapsAndSets: true,
+          ignoreIdentifierPattern: [
+            "cvs",
+            "ctx",
+            "ghostCvs",
+            "gctx",
+            "img",
+            "canvasRef",
+            "ghostImgRef",
+            "dragInfoRef",
+            "hoverTileRef",
+            "paintingRef",
+          ],
+          ignoreAccessorPattern: [
+            "current",
+            "*.current",
+            "style",
+            "*.style",
+            "*.style.*",
+            "data",
+            "*.data",
+            "width",
+            "height",
+            "imageSmoothingEnabled",
+            "fillStyle",
+            "strokeStyle",
+            "lineWidth",
+            "globalCompositeOperation",
+            "filter",
+            "src",
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export default config;
