@@ -14,7 +14,7 @@
 - **I/O Separation**: Isolate I/O operations from pure functions; keep business logic pure.
 - **Function Size**: Pure functions must not exceed 100 lines of code.
 - **Type Safety**: Do not use `any` type; always use explicit types.
-- **Null Safety**: Avoid using `null`; prefer `undefined`, `Option`-like patterns, or early returns.
+- **Null Safety**: Avoid using `null` and `undefined`; prefer `Option`-like patterns or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
 - **Web API Compatibility**: Use only widely available or newly available Web APIs. Avoid APIs with inconsistent browser support.
