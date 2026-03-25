@@ -145,19 +145,13 @@ export const useSpriteCanvas = ({
             }
 
             if (paintingRef.current && isChangeOrderMode) {
-                // 並べ替えモード時はドラッグでスプライト入れ替え
-                const overIndex = Math.floor(x / 8) + Math.floor(y / 8) * (width / 8);
-                if (overIndex !== target && overIndex >= 0 && overIndex < 64) {
-                    // ゴースト追従（クリック開始時に作成済みの画像を移動）
-                    moveGhost(e.clientX, e.clientY);
-
-                    // 必要に応じてハイライトしたい場合は drawAll() 後に overIndex を枠描画
-                    // （ここでは描画負荷を考慮して省略）
-                }
+                // 並べ替えモード中はポインタ座標に常時追従させる。
+                // 条件付きにすると一部領域で更新されず、途中で引っかかったように見える。
+                moveGhost(e.clientX, e.clientY);
                 return;
             }
         },
-        [scale, applyAt, isChangeOrderMode, target, width, moveGhost]
+        [scale, applyAt, isChangeOrderMode, moveGhost]
     );
 
     const onPointerDown = useCallback(
@@ -179,6 +173,16 @@ export const useSpriteCanvas = ({
     );
 
     const onPointerMove = handlePointer;
+
+    const onPointerCancel = useCallback(() => {
+        paintingRef.current = false;
+        cleanupGhost();
+    }, [cleanupGhost]);
+
+    const onLostPointerCapture = useCallback(() => {
+        paintingRef.current = false;
+        cleanupGhost();
+    }, [cleanupGhost]);
 
     // 既存：onPointerUp を差し替え
     const onPointerUp = useCallback(
@@ -231,6 +235,8 @@ export const useSpriteCanvas = ({
         onPointerDown,
         onPointerMove,
         onPointerUp,
+        onPointerCancel,
+        onLostPointerCapture,
         onContextMenu,
     } as const;
 
