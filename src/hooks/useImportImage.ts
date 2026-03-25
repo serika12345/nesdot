@@ -80,6 +80,8 @@ const ProjectStateSchema = z.object({
   _hydrated: z.boolean().optional(),
 });
 
+const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
+
 const isProjectState = (value: unknown): value is ProjectState =>
   ProjectStateSchema.safeParse(value).success === true;
 
@@ -114,20 +116,31 @@ export default function useImportImage() {
       if (O.isNone(selectedOption)) {
         return { status: "cancelled" };
       }
-      const selectedValue = selectedOption.value;
+      const selectedParsed = OpenDialogSelectedSchema.safeParse(
+        selectedOption.value,
+      );
+      if (selectedParsed.success === false) {
+        return { status: "unavailable" };
+      }
+      const selectedValue = selectedParsed.data;
 
       if (selectedValue === "") {
         return { status: "cancelled" };
       }
 
       if (Array.isArray(selectedValue)) {
-        if (selectedValue[0] === "") {
+        if (selectedValue.length === 0) {
+          return { status: "cancelled" };
+        }
+
+        const selectedPathOption = O.fromNullable(selectedValue[0]);
+        if (O.isNone(selectedPathOption) || selectedPathOption.value === "") {
           return { status: "cancelled" };
         }
 
         return {
           status: "selected",
-          text: await readTextFile(selectedValue[0]),
+          text: await readTextFile(selectedPathOption.value),
         };
       }
 

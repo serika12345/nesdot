@@ -10,6 +10,7 @@
     "dev:tauri": "node scripts/ensure-tauri-dev-server.mjs",
     "start": "tauri dev",
     "build": "tsc --noEmit && vite build",
+    "typecheck:safety": "tsc -p tsconfig.type-safety.json --noEmit",
     "package": "tauri build",
     "make": "tauri build",
     "lint": "eslint --ext .ts,.tsx .",

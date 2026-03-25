@@ -3,6 +3,21 @@ import * as O from "fp-ts/Option";
 import type { Palettes, Screen, SpriteTile } from "../store/projectState";
 import { NES_PALETTE_HEX } from "./palette";
 
+const FALLBACK_HEX = "#000000";
+
+const getHexAt = (index: number): string =>
+  pipe(
+    O.fromNullable(NES_PALETTE_HEX[index]),
+    O.getOrElse(() => FALLBACK_HEX),
+  );
+
+const getPaletteHex = (palette: number[], colorIndex: number): string =>
+  pipe(
+    O.fromNullable(palette[colorIndex]),
+    O.map((nesColorIndex) => getHexAt(nesColorIndex)),
+    O.getOrElse(() => getHexAt(0)),
+  );
+
 export function renderSpriteTileToHexArray(
   tile: SpriteTile,
   palettes: Palettes,
@@ -12,8 +27,8 @@ export function renderSpriteTileToHexArray(
   return tile.pixels.map((row) =>
     row.map((colorIndexOfPalette) =>
       colorIndexOfPalette === 0
-        ? NES_PALETTE_HEX[0]
-        : NES_PALETTE_HEX[palette[colorIndexOfPalette]],
+        ? getHexAt(0)
+        : getPaletteHex(palette, colorIndexOfPalette),
     ),
   );
 }
@@ -23,7 +38,7 @@ export function renderScreenToHexArray(
   palettes: Palettes,
 ): string[][] {
   const backgroundLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => NES_PALETTE_HEX[0]),
+    Array.from({ length: screen.width }, () => getHexAt(0)),
   );
   const spriteLayer = Array.from({ length: screen.height }, () =>
     Array.from({ length: screen.width }, (): O.Option<string> => O.none),
@@ -37,13 +52,25 @@ export function renderScreenToHexArray(
 
       Array.from({ length: 8 }, (_, pixelY) => pixelY).forEach((pixelY) => {
         Array.from({ length: 8 }, (_, pixelX) => pixelX).forEach((pixelX) => {
-          const colorIndex = tile.pixels[pixelY][pixelX];
-          const hex = NES_PALETTE_HEX[palette[colorIndex]];
+          const rowOption = O.fromNullable(tile.pixels[pixelY]);
+          if (O.isNone(rowOption)) {
+            return;
+          }
+          const colorIndexOption = O.fromNullable(rowOption.value[pixelX]);
+          if (O.isNone(colorIndexOption)) {
+            return;
+          }
+
+          const hex = getPaletteHex(palette, colorIndexOption.value);
           const y = baseY + pixelY;
           const x = baseX + pixelX;
 
           if (y >= 0 && y < screen.height && x >= 0 && x < screen.width) {
-            backgroundLayer[y][x] = hex;
+            const targetRowOption = O.fromNullable(backgroundLayer[y]);
+            if (O.isNone(targetRowOption)) {
+              return;
+            }
+            targetRowOption.value[x] = hex;
           }
         });
       });
@@ -87,8 +114,12 @@ export function renderScreenToHexArray(
               return;
             }
 
-            spriteLayer[y][x] = O.some(
-              NES_PALETTE_HEX[palette[colorIndexOption.value]],
+            const spriteRowOption = O.fromNullable(spriteLayer[y]);
+            if (O.isNone(spriteRowOption)) {
+              return;
+            }
+            spriteRowOption.value[x] = O.some(
+              getPaletteHex(palette, colorIndexOption.value),
             );
           },
         );
@@ -99,8 +130,15 @@ export function renderScreenToHexArray(
   return Array.from({ length: screen.height }, (_, y) =>
     Array.from({ length: screen.width }, (_, x) =>
       pipe(
-        spriteLayer[y][x],
-        O.getOrElse(() => backgroundLayer[y][x]),
+        O.fromNullable(spriteLayer[y]),
+        O.chain((row) => pipe(O.fromNullable(row[x]), O.flatten)),
+        O.getOrElse(() =>
+          pipe(
+            O.fromNullable(backgroundLayer[y]),
+            O.chain((row) => O.fromNullable(row[x])),
+            O.getOrElse(() => getHexAt(0)),
+          ),
+        ),
       ),
     ),
   );
