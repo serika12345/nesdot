@@ -6,14 +6,16 @@ import {
   SpriteTile,
   SpriteTileND,
 } from "../store/projectState";
+import * as E from "fp-ts/Either";
 
 /** 8の倍数であることを検査 */
-export function assertTileSize(w: number, h: number): void {
+export function assertTileSize(w: number, h: number): E.Either<string, true> {
   if (w <= 0 || h <= 0 || w % 8 !== 0 || h % 8 !== 0) {
-    throw new Error(
+    return E.left(
       `Tile size must be positive and multiples of 8: got ${w}x${h}`,
     );
   }
+  return E.right(true);
 }
 
 /** タイル生成（既定は透明0で初期化） */
@@ -167,7 +169,9 @@ export function resizeTileND(
   nextH: 8 | 16,
   opts?: { anchor?: ResizeAnchor; fill?: ColorIndexOfPalette },
 ): SpriteTileND {
-  assertTileSize(nextW, nextH);
+  if (E.isLeft(assertTileSize(nextW, nextH))) {
+    return src;
+  }
   const anchor = opts?.anchor ?? "top-left";
   const fill: ColorIndexOfPalette = opts?.fill ?? 0;
 

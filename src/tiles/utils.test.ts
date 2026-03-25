@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isLeft } from "fp-ts/Either";
 import { ColorIndexOfPalette, SpriteTileND } from "../store/projectState";
 import { assertTileSize, makeTile, resizeTileND } from "./utils";
 
@@ -26,7 +27,11 @@ describe("makeTile", () => {
 
 describe("assertTileSize", () => {
     it("rejects dimensions that are not positive multiples of 8", () => {
-        expect(() => assertTileSize(7, 8)).toThrow("Tile size must be positive and multiples of 8");
+        const result = assertTileSize(7, 8);
+        expect(isLeft(result)).toBe(true);
+        if (isLeft(result)) {
+            expect(result.left).toContain("Tile size must be positive and multiples of 8");
+        }
     });
 });
 

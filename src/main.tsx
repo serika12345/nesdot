@@ -3,8 +3,6 @@ import { App } from "./App";
 
 const rootElement = document.getElementById("root");
 
-if (!rootElement) {
-    throw new Error("Root element #root was not found.");
+if (rootElement) {
+    createRoot(rootElement).render(<App />);
 }
-
-createRoot(rootElement).render(<App />);

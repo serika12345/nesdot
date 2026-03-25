@@ -1,5 +1,6 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
+import * as E from "fp-ts/Either";
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import {
@@ -44,7 +45,7 @@ export default function useExportImage() {
 
   // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
   const exportChr = async (tile: SpriteTile, activePalette: PaletteIndex) => {
-    const chunks = Array.from({ length: tile.height / 8 }, (_, blockY) =>
+    const chunkResults = Array.from({ length: tile.height / 8 }, (_, blockY) =>
       Array.from({ length: tile.width / 8 }, (_, blockX) => {
         const ty = blockY * 8;
         const tx = blockX * 8;
@@ -61,6 +62,14 @@ export default function useExportImage() {
         });
       }),
     ).flat();
+    const invalidChunk = chunkResults.find((chunk) => E.isLeft(chunk));
+    if (invalidChunk && E.isLeft(invalidChunk)) {
+      return;
+    }
+    const chunks = chunkResults
+      .filter((chunk): chunk is E.Right<Uint8Array> => E.isRight(chunk))
+      .map((chunk) => chunk.right);
+
     // 8x16 専用が必要なワークフロー向けに、幅==8 && 高さ==16のときだけ最適化（互換維持）
     if (tile.width === 8 && tile.height === 16) {
       const top = {
@@ -74,7 +83,10 @@ export default function useExportImage() {
         pixels: tile.pixels.slice(8, 16),
       } as SpriteTile;
       const bin = tile8x16ToChr(top, bottom);
-      await saveBinary(bin, "sprite_8x16.chr", [
+      if (E.isLeft(bin)) {
+        return;
+      }
+      await saveBinary(bin.right, "sprite_8x16.chr", [
         { name: "CHR files", extensions: ["chr"] },
       ]);
       return;

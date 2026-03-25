@@ -30,7 +30,12 @@ async function inspectUrl(url) {
             return { isRunning: false, isExpectedServer: false, url };
         }
 
-        throw error;
+        return {
+            isRunning: false,
+            isExpectedServer: false,
+            url,
+            error: message,
+        };
     } finally {
         clearTimeout(timeout);
     }
@@ -39,6 +44,9 @@ async function inspectUrl(url) {
 async function inspectExistingDevServer() {
     for (const url of DEV_SERVER_URLS) {
         const result = await inspectUrl(url);
+        if (result.error) {
+            return result;
+        }
         if (result.isRunning) {
             return result;
         }
@@ -84,6 +92,11 @@ const existingServer = await inspectExistingDevServer();
 if (existingServer.isRunning && existingServer.isExpectedServer) {
     console.log(`[tauri] Reusing existing frontend dev server at ${existingServer.url}`);
     process.exit(0);
+}
+
+if (existingServer.error) {
+    console.error(`[tauri] Failed to inspect dev server status: ${existingServer.error}`);
+    process.exit(1);
 }
 
 if (existingServer.isRunning && !existingServer.isExpectedServer) {

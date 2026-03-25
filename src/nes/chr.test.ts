@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isLeft, isRight } from "fp-ts/Either";
 import { tile8x16ToChr, tile8x8ToChr } from "./chr";
 import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
 
@@ -21,24 +22,28 @@ describe("tile8x8ToChr", () => {
             pixels: Array.from({ length: 8 }, () => row.slice()),
         };
 
-        expect(Array.from(tile8x8ToChr(tile))).toEqual([
-            0x55,
-            0x55,
-            0x55,
-            0x55,
-            0x55,
-            0x55,
-            0x55,
-            0x55,
-            0x33,
-            0x33,
-            0x33,
-            0x33,
-            0x33,
-            0x33,
-            0x33,
-            0x33,
-        ]);
+        const result = tile8x8ToChr(tile);
+        expect(isRight(result)).toBe(true);
+        if (isRight(result)) {
+            expect(Array.from(result.right)).toEqual([
+                0x55,
+                0x55,
+                0x55,
+                0x55,
+                0x55,
+                0x55,
+                0x55,
+                0x55,
+                0x33,
+                0x33,
+                0x33,
+                0x33,
+                0x33,
+                0x33,
+                0x33,
+                0x33,
+            ]);
+        }
     });
 
     it("rejects non-8x8 tiles", () => {
@@ -49,7 +54,11 @@ describe("tile8x8ToChr", () => {
             pixels: Array.from({ length: 16 }, () => Array.from({ length: 8 }, () => 0 as ColorIndexOfPalette)),
         };
 
-        expect(() => tile8x8ToChr(tile)).toThrow("tile8x8ToChr: 8x8のみ対応");
+        const result = tile8x8ToChr(tile);
+        expect(isLeft(result)).toBe(true);
+        if (isLeft(result)) {
+            expect(result.left).toBe("tile8x8ToChr: 8x8のみ対応");
+        }
     });
 });
 
@@ -58,39 +67,43 @@ describe("tile8x16ToChr", () => {
         const top = create8x8Tile(1);
         const bottom = create8x8Tile(2);
 
-        expect(Array.from(tile8x16ToChr(top, bottom))).toEqual([
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-        ]);
+        const result = tile8x16ToChr(top, bottom);
+        expect(isRight(result)).toBe(true);
+        if (isRight(result)) {
+            expect(Array.from(result.right)).toEqual([
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+            ]);
+        }
     });
 });
