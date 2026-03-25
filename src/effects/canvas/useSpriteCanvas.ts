@@ -10,22 +10,9 @@ import {
 } from "../../store/projectState";
 import { makeTile } from "../../tiles/utils";
 import { getArrayItem, getMatrixItem } from "../../utils/arrayAccess";
-import {
-  fillRect,
-  getCanvasSurface,
-  resizeCanvasSurface,
-  setFillStyle,
-  setImageSmoothingEnabled,
-  setLineDash,
-  setLineWidth,
-  setStrokeStyle,
-  strokeLine,
-  strokeRect,
-  withSavedContext,
-} from "../../utils/canvasRuntime";
-import { getSwapPreviewTile } from "./swapPreview";
+import { getSwapPreviewTile } from "../../components/hooks/swapPreview";
 import { useGhost } from "./useGhost";
-import { useSwap } from "./useSwap";
+import { useSwap } from "../../components/hooks/useSwap";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -89,21 +76,23 @@ export const useSpriteCanvas = ({
 
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
-    const surfaceOption = getCanvasSurface(canvasRef.current.value);
-    if (O.isNone(surfaceOption)) return;
-    const surface = surfaceOption.value;
+    const cvs = canvasRef.current.value;
+    const ctxOption = O.fromNullable(cvs.getContext("2d"));
+    if (O.isNone(ctxOption)) return;
+    const ctx = ctxOption.value;
 
-    resizeCanvasSurface(surface, width * scale, height * scale);
-    setImageSmoothingEnabled(surface, false);
+    cvs.width = width * scale;
+    cvs.height = height * scale;
+    ctx.imageSmoothingEnabled = false;
 
     // 背景（チェッカ）
-    setFillStyle(surface, "#ddd");
-    fillRect(surface, 0, 0, width * scale, height * scale);
-    setFillStyle(surface, "#eee");
+    ctx.fillStyle = "#ddd";
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.fillStyle = "#eee";
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {
         if ((x + y) % 2 === 0) {
-          fillRect(surface, x * scale, y * scale, scale, scale);
+          ctx.fillRect(x * scale, y * scale, scale, scale);
         }
       });
     });
@@ -124,58 +113,46 @@ export const useSpriteCanvas = ({
           return;
         }
 
-        setFillStyle(surface, hexOption.value);
-        fillRect(surface, x * scale, y * scale, scale, scale);
+        ctx.fillStyle = hexOption.value;
+        ctx.fillRect(x * scale, y * scale, scale, scale);
       });
     });
 
     // グリッド
     if (showGrid === true) {
-      setStrokeStyle(surface, "rgba(0,0,0,0.2)");
-      setLineWidth(surface, 1);
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = 1;
       Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
-        strokeLine(
-          surface,
-          gx * scale + 0.5,
-          0,
-          gx * scale + 0.5,
-          height * scale,
-        );
+        ctx.beginPath();
+        ctx.moveTo(gx * scale + 0.5, 0);
+        ctx.lineTo(gx * scale + 0.5, height * scale);
+        ctx.stroke();
       });
       Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
-        strokeLine(
-          surface,
-          0,
-          gy * scale + 0.5,
-          width * scale,
-          gy * scale + 0.5,
-        );
+        ctx.beginPath();
+        ctx.moveTo(0, gy * scale + 0.5);
+        ctx.lineTo(width * scale, gy * scale + 0.5);
+        ctx.stroke();
       });
       // 8x8境界強調
-      setStrokeStyle(surface, "rgba(0,0,0,0.5)");
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
       Array.from(
         { length: Math.floor(width / 8) + 1 },
         (_, i) => i * 8,
       ).forEach((gx) => {
-        strokeLine(
-          surface,
-          gx * scale + 0.5,
-          0,
-          gx * scale + 0.5,
-          height * scale,
-        );
+        ctx.beginPath();
+        ctx.moveTo(gx * scale + 0.5, 0);
+        ctx.lineTo(gx * scale + 0.5, height * scale);
+        ctx.stroke();
       });
       Array.from(
         { length: Math.floor(height / 8) + 1 },
         (_, i) => i * 8,
       ).forEach((gy) => {
-        strokeLine(
-          surface,
-          0,
-          gy * scale + 0.5,
-          width * scale,
-          gy * scale + 0.5,
-        );
+        ctx.beginPath();
+        ctx.moveTo(0, gy * scale + 0.5);
+        ctx.lineTo(width * scale, gy * scale + 0.5);
+        ctx.stroke();
       });
     }
 
@@ -187,20 +164,19 @@ export const useSpriteCanvas = ({
         fill: string,
         dash: number[],
       ) => {
-        withSavedContext(surface, () => {
-          setLineDash(surface, dash);
-          setLineWidth(surface, 2);
-          setStrokeStyle(surface, stroke);
-          setFillStyle(surface, fill);
-          fillRect(surface, tileX * scale, tileY * scale, 8 * scale, 8 * scale);
-          strokeRect(
-            surface,
-            tileX * scale + 1,
-            tileY * scale + 1,
-            8 * scale - 2,
-            8 * scale - 2,
-          );
-        });
+        ctx.save();
+        ctx.setLineDash(dash);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = stroke;
+        ctx.fillStyle = fill;
+        ctx.fillRect(tileX * scale, tileY * scale, 8 * scale, 8 * scale);
+        ctx.strokeRect(
+          tileX * scale + 1,
+          tileY * scale + 1,
+          8 * scale - 2,
+          8 * scale - 2,
+        );
+        ctx.restore();
       };
 
       const { startTileX, startTileY } = dragInfoRef.current.value;

@@ -28,7 +28,7 @@ import {
   ToolButton,
 } from "../App.styles";
 import { expandCharacterToScreenSprites } from "../characters/characterSet";
-import useExportImage from "../hooks/useExportImage";
+import useExportImage from "../effects/useExportImage";
 import useImportImage from "../hooks/useImportImage";
 import {
   MAX_SCREEN_SPRITES,

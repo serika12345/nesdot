@@ -4,16 +4,6 @@ import {
   getHexArrayForScreen,
   useProjectState,
 } from "../../store/projectState";
-import {
-  fillRect,
-  getCanvasSurface,
-  resizeCanvasSurface,
-  setFillStyle,
-  setImageSmoothingEnabled,
-  setLineWidth,
-  setStrokeStyle,
-  strokeLine,
-} from "../../utils/canvasRuntime";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -33,12 +23,14 @@ export const useScreenCanvas = ({
 
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
-    const surfaceOption = getCanvasSurface(canvasRef.current.value);
-    if (O.isNone(surfaceOption)) return;
-    const surface = surfaceOption.value;
+    const cvs = canvasRef.current.value;
+    const ctxOption = O.fromNullable(cvs.getContext("2d"));
+    if (O.isNone(ctxOption)) return;
+    const ctx = ctxOption.value;
 
-    resizeCanvasSurface(surface, width * scale, height * scale);
-    setImageSmoothingEnabled(surface, false);
+    cvs.width = width * scale;
+    cvs.height = height * scale;
+    ctx.imageSmoothingEnabled = false;
 
     const hexGrid = getHexArrayForScreen(screen);
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
@@ -51,58 +43,46 @@ export const useScreenCanvas = ({
         if (O.isNone(hexOption)) {
           return;
         }
-        setFillStyle(surface, hexOption.value);
-        fillRect(surface, x * scale, y * scale, scale, scale);
+        ctx.fillStyle = hexOption.value;
+        ctx.fillRect(x * scale, y * scale, scale, scale);
       });
     });
 
     // グリッド
     if (showGrid === true) {
-      setStrokeStyle(surface, "rgba(0,0,0,0.2)");
-      setLineWidth(surface, 1);
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = 1;
       Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
-        strokeLine(
-          surface,
-          gx * scale + 0.5,
-          0,
-          gx * scale + 0.5,
-          height * scale,
-        );
+        ctx.beginPath();
+        ctx.moveTo(gx * scale + 0.5, 0);
+        ctx.lineTo(gx * scale + 0.5, height * scale);
+        ctx.stroke();
       });
       Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
-        strokeLine(
-          surface,
-          0,
-          gy * scale + 0.5,
-          width * scale,
-          gy * scale + 0.5,
-        );
+        ctx.beginPath();
+        ctx.moveTo(0, gy * scale + 0.5);
+        ctx.lineTo(width * scale, gy * scale + 0.5);
+        ctx.stroke();
       });
       // 8x8境界強調
-      setStrokeStyle(surface, "rgba(0,0,0,0.5)");
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
       Array.from(
         { length: Math.floor(width / 8) + 1 },
         (_, i) => i * 8,
       ).forEach((gx) => {
-        strokeLine(
-          surface,
-          gx * scale + 0.5,
-          0,
-          gx * scale + 0.5,
-          height * scale,
-        );
+        ctx.beginPath();
+        ctx.moveTo(gx * scale + 0.5, 0);
+        ctx.lineTo(gx * scale + 0.5, height * scale);
+        ctx.stroke();
       });
       Array.from(
         { length: Math.floor(height / 8) + 1 },
         (_, i) => i * 8,
       ).forEach((gy) => {
-        strokeLine(
-          surface,
-          0,
-          gy * scale + 0.5,
-          width * scale,
-          gy * scale + 0.5,
-        );
+        ctx.beginPath();
+        ctx.moveTo(0, gy * scale + 0.5);
+        ctx.lineTo(width * scale, gy * scale + 0.5);
+        ctx.stroke();
       });
     }
   }, [scale, showGrid, screen, width, height]);

@@ -7,20 +7,6 @@ import {
   SpriteTile,
 } from "../../store/projectState";
 import { getArrayItem, getMatrixItem } from "../../utils/arrayAccess";
-import {
-  canvasToDataUrl,
-  createFloatingImage,
-  createOffscreenCanvasSurface,
-  fillRect,
-  FloatingImage,
-  moveFloatingImage,
-  removeFloatingImage,
-  setFillStyle,
-  setFilter,
-  setGlobalCompositeOperation,
-  setImageSmoothingEnabled,
-  withSavedContext,
-} from "../../utils/canvasRuntime";
 
 /**
  * 8x8タイルのゴースト（透明PNG）を生成し、ポインタに追従させて表示するためのフック
@@ -52,22 +38,22 @@ export const useGhost = ({
   };
 
   // 追加：ドラッグ中の8x8タイルのゴースト管理
-  const ghostImgRef = useRef<O.Option<FloatingImage>>(O.none);
+  const ghostImgRef = useRef<O.Option<HTMLImageElement>>(O.none);
   const dragInfoRef = useRef<O.Option<DragInfo>>(O.none);
 
   // 追加：8x8タイルをオフスクリーンに描画して dataURL を返す（透明背景）
   const makeTileGhostDataURL = useCallback(
     (tileX: number, tileY: number) => {
       const pad = 2; // 少し余白（視認性）
-      const surfaceOption = createOffscreenCanvasSurface(
-        8 * scale + pad * 2,
-        8 * scale + pad * 2,
-      );
-      if (O.isNone(surfaceOption)) {
+      const ghostCvs = document.createElement("canvas");
+      ghostCvs.width = 8 * scale + pad * 2;
+      ghostCvs.height = 8 * scale + pad * 2;
+      const gctxOption = O.fromNullable(ghostCvs.getContext("2d"));
+      if (O.isNone(gctxOption)) {
         return O.none;
       }
-      const surface = surfaceOption.value;
-      setImageSmoothingEnabled(surface, false);
+      const gctx = gctxOption.value;
+      gctx.imageSmoothingEnabled = false;
 
       // 透明背景に対象8x8を拡大描画
       Array.from({ length: 8 }, (_, yy) => yy).forEach((yy) => {
@@ -92,40 +78,49 @@ export const useGhost = ({
               return;
             }
 
-            setFillStyle(surface, nesIndexToCssHex(nesColorIndexOption.value));
-            fillRect(surface, pad + xx * scale, pad + yy * scale, scale, scale);
+            gctx.fillStyle = nesIndexToCssHex(nesColorIndexOption.value);
+            gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
           }
         });
       });
 
       // 薄い影（見やすさ）
-      withSavedContext(surface, () => {
-        setGlobalCompositeOperation(surface, "destination-over");
-        setFilter(surface, "drop-shadow(0 4px 10px rgba(0,0,0,.25))");
-        setFillStyle(surface, "rgba(0,0,0,0)");
-        fillRect(surface, 0, 0, 8 * scale + pad * 2, 8 * scale + pad * 2);
-      });
+      gctx.save();
+      gctx.globalCompositeOperation = "destination-over";
+      gctx.filter = "drop-shadow(0 4px 10px rgba(0,0,0,.25))";
+      gctx.fillStyle = "rgba(0,0,0,0)";
+      gctx.fillRect(0, 0, ghostCvs.width, ghostCvs.height);
+      gctx.restore();
 
-      return O.some(canvasToDataUrl(surface, "image/png"));
+      return O.some(ghostCvs.toDataURL("image/png"));
     },
     [scale, width, height, tile.pixels, palettes, currentSelectPalette],
   );
 
   // 追加：ゴースト要素の作成
   const createGhost = useCallback((imgURL: string) => {
-    ghostImgRef.current = O.some(createFloatingImage(imgURL));
+    const img = document.createElement("img");
+    img.src = imgURL;
+    img.style.position = "fixed";
+    img.style.pointerEvents = "none";
+    img.style.opacity = "0.9";
+    img.style.transform = "translate(-50%, -50%)"; // ポインタ中央合わせ
+    img.style.zIndex = "9999";
+    document.body.appendChild(img);
+    ghostImgRef.current = O.some(img);
   }, []);
 
   // 追加：ゴーストの位置更新（クライアント座標で）
   const moveGhost = useCallback((clientX: number, clientY: number) => {
     if (O.isNone(ghostImgRef.current)) return;
-    moveFloatingImage(ghostImgRef.current.value, clientX, clientY);
+    ghostImgRef.current.value.style.left = `${clientX}px`;
+    ghostImgRef.current.value.style.top = `${clientY}px`;
   }, []);
 
   // 追加：後始末
   const cleanupGhost = useCallback(() => {
     if (O.isSome(ghostImgRef.current)) {
-      removeFloatingImage(ghostImgRef.current.value);
+      ghostImgRef.current.value.remove();
     }
     ghostImgRef.current = O.none;
     dragInfoRef.current = O.none;

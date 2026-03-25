@@ -172,11 +172,7 @@ const config = [
       "src/components/ui/**/*.tsx",
       "src/components/hooks/swapPreview.ts",
       "src/components/hooks/swapPreview.test.ts",
-      "src/components/hooks/useGhost.ts",
-      "src/components/hooks/useScreenCanvas.ts",
-      "src/components/hooks/useSpriteCanvas.ts",
       "src/components/hooks/useSwap.ts",
-      "src/hooks/useExportImage.ts",
       "src/hooks/useImportImage.ts",
       "src/nes/chr.ts",
       "src/nes/chr.test.ts",
@@ -223,42 +219,10 @@ const config = [
     },
   },
   {
-    files: ["src/utils/canvasRuntime.ts"],
+    files: ["src/effects/**/*.ts", "src/effects/**/*.tsx"],
     rules: {
-      // Canvas/DOM操作の命令的代入は helper 境界へ隔離する
-      "functional/immutable-data": [
-        "error",
-        {
-          ignoreImmediateMutation: true,
-          ignoreNonConstDeclarations: true,
-          ignoreMapsAndSets: true,
-          ignoreIdentifierPattern: [
-            "canvas",
-            "context",
-            "image",
-            "document",
-            "body",
-          ],
-          ignoreAccessorPattern: [
-            "current",
-            "*.current",
-            "style",
-            "*.style",
-            "*.style.*",
-            "data",
-            "*.data",
-            "width",
-            "height",
-            "imageSmoothingEnabled",
-            "fillStyle",
-            "strokeStyle",
-            "lineWidth",
-            "globalCompositeOperation",
-            "filter",
-            "src",
-          ],
-        },
-      ],
+      // 副作用は src/effects 配下に閉じ込め、ここだけ命令的操作を許可する
+      "functional/immutable-data": "off",
     },
   },
 ];

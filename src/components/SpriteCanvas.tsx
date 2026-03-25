@@ -4,7 +4,7 @@ import {
   PaletteIndex,
   SpriteTile,
 } from "../store/projectState";
-import { useSpriteCanvas } from "./hooks/useSpriteCanvas";
+import { useSpriteCanvas } from "../effects/canvas/useSpriteCanvas";
 
 interface Props {
     isChangeOrderMode?: boolean; // 並べ替えモード

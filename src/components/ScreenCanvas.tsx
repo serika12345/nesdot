@@ -1,5 +1,5 @@
 import React from "react";
-import { useScreenCanvas } from "./hooks/useScreenCanvas";
+import { useScreenCanvas } from "../effects/canvas/useScreenCanvas";
 
 interface Props {
     scale?: number; // ピクセル拡大倍率

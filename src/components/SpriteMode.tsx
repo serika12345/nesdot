@@ -20,7 +20,7 @@ import {
   Toolbar,
   ToolButton,
 } from "../App.styles";
-import useExportImage from "../hooks/useExportImage";
+import useExportImage from "../effects/useExportImage";
 import useImportImage from "../hooks/useImportImage";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import { mergeScreenIntoNesOam } from "../screen/oamSync";
@@ -33,7 +33,7 @@ import {
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
 import { getArrayItem } from "../utils/arrayAccess";
-import { Tool } from "./hooks/useSpriteCanvas";
+import { Tool } from "../effects/canvas/useSpriteCanvas";
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
