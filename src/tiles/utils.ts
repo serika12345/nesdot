@@ -1,4 +1,5 @@
 // src/tiles/utils.ts
+import * as E from "fp-ts/Either";
 import {
   Backing,
   ColorIndexOfPalette,
@@ -6,7 +7,6 @@ import {
   SpriteTile,
   SpriteTileND,
 } from "../store/projectState";
-import * as E from "fp-ts/Either";
 
 /** 8の倍数であることを検査 */
 export function assertTileSize(w: number, h: number): E.Either<string, true> {
