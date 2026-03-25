@@ -201,4 +201,4 @@ nix develop -c zsh -lc 'pnpm verify:full'
 
 ## ライセンス
 
-MIT
+Apache License 2.0

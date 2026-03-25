@@ -30,7 +30,7 @@
     "name": "paseri3739",
     "email": "tael43@icloud.com"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
