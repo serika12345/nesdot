@@ -273,30 +273,48 @@ export const ScreenMode: React.FC = () => {
             <>
               <Field>
                 <FieldLabel>スプライト一覧</FieldLabel>
-                <SelectInput
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setSelectedSpriteIndex(
-                      next === "" ? O.none : O.some(Number(next)),
-                    );
-                  }}
-                  value={pipe(
-                    selectedSpriteIndex,
-                    O.match(
-                      () => "",
-                      (index) => String(index),
-                    ),
-                  )}
-                >
-                  {spritesOnScreen.length === 0 && (
-                    <option value="">スプライトが配置されていません</option>
-                  )}
-                  {spritesOnScreen.map((sprite, index) => (
-                    <option key={index} value={index}>
-                      {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
-                    </option>
-                  ))}
-                </SelectInput>
+                <div css={{ position: "relative" }}>
+                  <SelectInput
+                    css={{ paddingRight: 56 }}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSelectedSpriteIndex(
+                        next === "" ? O.none : O.some(Number(next)),
+                      );
+                    }}
+                    value={pipe(
+                      selectedSpriteIndex,
+                      O.match(
+                        () => "",
+                        (index) => String(index),
+                      ),
+                    )}
+                  >
+                    {spritesOnScreen.length === 0 && (
+                      <option value="">スプライトが配置されていません</option>
+                    )}
+                    {spritesOnScreen.map((sprite, index) => (
+                      <option key={index} value={index}>
+                        {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
+                      </option>
+                    ))}
+                  </SelectInput>
+                  <span
+                    aria-hidden="true"
+                    css={{
+                      position: "absolute",
+                      right: 18,
+                      top: "50%",
+                      width: 0,
+                      height: 0,
+                      borderLeft: "5px solid transparent",
+                      borderRight: "5px solid transparent",
+                      borderTop: "7px solid #334155",
+                      transform: "translateY(-35%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
               </Field>
 
               {pipe(
@@ -401,36 +419,55 @@ export const ScreenMode: React.FC = () => {
                         </Field>
                         <Field>
                           <FieldLabel>Priority</FieldLabel>
-                          <SelectInput
-                            value={selectedSprite.priority}
-                            onChange={(e) => {
-                              const nextPriority: SpritePriority =
-                                e.target.value === "behindBg"
-                                  ? "behindBg"
-                                  : "front";
-                              const newSprites = spritesOnScreen.map((s, i) =>
-                                i === selectedIndexValue
-                                  ? { ...s, priority: nextPriority }
-                                  : s,
-                              );
-                              const newScreen = {
-                                ...screen,
-                                sprites: newSprites,
-                              };
-                              const report = scan(newScreen);
-                              if (report.ok === false) {
-                                alert(
-                                  "優先度の更新に失敗しました。制約違反:\n" +
-                                    report.errors.join("\n"),
+                          <div css={{ position: "relative" }}>
+                            <SelectInput
+                              css={{ paddingRight: 56 }}
+                              value={selectedSprite.priority}
+                              onChange={(e) => {
+                                const nextPriority: SpritePriority =
+                                  e.target.value === "behindBg"
+                                    ? "behindBg"
+                                    : "front";
+                                const newSprites = spritesOnScreen.map(
+                                  (s, i) =>
+                                    i === selectedIndexValue
+                                      ? { ...s, priority: nextPriority }
+                                      : s,
                                 );
-                                return;
-                              }
-                              setScreenAndSyncNes(newScreen);
-                            }}
-                          >
-                            <option value="front">前面</option>
-                            <option value="behindBg">背景の後ろ</option>
-                          </SelectInput>
+                                const newScreen = {
+                                  ...screen,
+                                  sprites: newSprites,
+                                };
+                                const report = scan(newScreen);
+                                if (report.ok === false) {
+                                  alert(
+                                    "優先度の更新に失敗しました。制約違反:\n" +
+                                      report.errors.join("\n"),
+                                  );
+                                  return;
+                                }
+                                setScreenAndSyncNes(newScreen);
+                              }}
+                            >
+                              <option value="front">前面</option>
+                              <option value="behindBg">背景の後ろ</option>
+                            </SelectInput>
+                            <span
+                              aria-hidden="true"
+                              css={{
+                                position: "absolute",
+                                right: 18,
+                                top: "50%",
+                                width: 0,
+                                height: 0,
+                                borderLeft: "5px solid transparent",
+                                borderRight: "5px solid transparent",
+                                borderTop: "7px solid #334155",
+                                transform: "translateY(-35%)",
+                                pointerEvents: "none",
+                              }}
+                            />
+                          </div>
                         </Field>
                         <Field>
                           <FieldLabel>Flip</FieldLabel>
