@@ -26,3 +26,6 @@
 - **Immutable Operations**: Write all code using immutable operations. Avoid nested ternary operators to prevent reassignment; extract complex logic into separate functions. IIFE (Immediately Invoked Function Expressions) are acceptable for short logic blocks (a few lines).
 - **No Exceptions**: Do not use exceptions for control flow. Handle errors using functional error handling patterns.
 - **Functional Error Handling with fp-ts**: Use `fp-ts` library for error handling and functional programming utilities. Use monads (Option, Either, Task, etc.) only when exception handling or lazy evaluation is appropriate; not all values need to be wrapped in monads.
+- **No typeof/instanceof Operators**: Do not use runtime `typeof` or `instanceof` operators. Prefer explicit type-safe data flow and predicate functions. Type-level `typeof` (TypeScript type query) is allowed.
+- **No Truthy/Falsy Semantics**: Do not rely on truthy/falsy coercion. Use explicit boolean expressions and strict equality/inequality checks (`===`, `!==`).
+- **No Bare Value Conditions**: Prohibit patterns such as `if (value)` and `if (!value)` mechanically. Always compare explicitly (for example, `value === true`, `value !== ""`, `value !== 0`, `value !== null`).

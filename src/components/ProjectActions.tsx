@@ -120,12 +120,12 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
   }, []);
 
   useLayoutEffect(() => {
-    if (!menuOpen) return;
+    if (menuOpen === false) return;
     updateMenuPosition();
   }, [menuOpen, updateMenuPosition]);
 
   useEffect(() => {
-    if (!menuOpen) return;
+    if (menuOpen === false) return;
 
     const reposition = () => updateMenuPosition();
     window.addEventListener("resize", reposition);
@@ -138,49 +138,48 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
   }, [menuOpen, updateMenuPosition]);
 
   useEffect(() => {
-    if (!menuOpen) {
+    if (menuOpen === false) {
       setMenuPosition((prev) => ({ ...prev, ready: false }));
     }
   }, [menuOpen]);
 
-  const menu =
-    menuOpen && typeof document !== "undefined"
-      ? O.some(
-          createPortal(
-            <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
-              <ActionMenu
-                ref={(node) => {
-                  menuRef.current = O.fromNullable(node);
-                }}
-                role="menu"
-                aria-label="共有メニュー"
-                onPointerDown={(event) => event.stopPropagation()}
-                style={{
-                  top: menuPosition.top,
-                  left: menuPosition.left,
-                  width: menuPosition.width,
-                  visibility: menuPosition.ready ? "visible" : "hidden",
-                }}
-              >
-                {actions.map((action) => (
-                  <ActionMenuButton
-                    key={action.label}
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      action.onSelect();
-                    }}
-                  >
-                    <span>{action.label}</span>
-                    <ShareIcon size={14} />
-                  </ActionMenuButton>
-                ))}
-              </ActionMenu>
-            </ActionMenuOverlay>,
-            document.body,
-          ),
-        )
-      : O.none;
+  const menu = menuOpen
+    ? O.some(
+        createPortal(
+          <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
+            <ActionMenu
+              ref={(node) => {
+                menuRef.current = O.fromNullable(node);
+              }}
+              role="menu"
+              aria-label="共有メニュー"
+              onPointerDown={(event) => event.stopPropagation()}
+              style={{
+                top: menuPosition.top,
+                left: menuPosition.left,
+                width: menuPosition.width,
+                visibility: menuPosition.ready ? "visible" : "hidden",
+              }}
+            >
+              {actions.map((action) => (
+                <ActionMenuButton
+                  key={action.label}
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    action.onSelect();
+                  }}
+                >
+                  <span>{action.label}</span>
+                  <ShareIcon size={14} />
+                </ActionMenuButton>
+              ))}
+            </ActionMenu>
+          </ActionMenuOverlay>,
+          document.body,
+        ),
+      )
+    : O.none;
 
   return (
     <>

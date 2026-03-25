@@ -25,7 +25,9 @@ async function inspectUrl(url) {
 
     return { isRunning: true, isExpectedServer, url };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = Error.prototype.isPrototypeOf(error)
+      ? String(error.message)
+      : String(error);
     const isConnectionError =
       message.includes("ECONNREFUSED") ||
       message.includes("fetch failed") ||

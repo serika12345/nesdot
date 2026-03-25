@@ -53,8 +53,9 @@ export const useSpriteCanvas = ({
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
     const cvs = canvasRef.current.value;
-    const ctx = cvs.getContext("2d");
-    if (!ctx) return;
+    const ctxOption = O.fromNullable(cvs.getContext("2d"));
+    if (O.isNone(ctxOption)) return;
+    const ctx = ctxOption.value;
 
     cvs.width = width * scale;
     cvs.height = height * scale;
@@ -87,7 +88,7 @@ export const useSpriteCanvas = ({
     });
 
     // グリッド
-    if (showGrid) {
+    if (showGrid === true) {
       ctx.strokeStyle = "rgba(0,0,0,0.2)";
       ctx.lineWidth = 1;
       Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
@@ -176,7 +177,7 @@ export const useSpriteCanvas = ({
       handlePointer(e);
 
       // 追加：並べ替えモード開始時に8x8タイルのゴースト生成
-      if (isChangeOrderMode) {
+      if (isChangeOrderMode === true) {
         if (O.isNone(canvasRef.current)) {
           return;
         }

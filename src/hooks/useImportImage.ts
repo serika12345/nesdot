@@ -17,20 +17,29 @@ export default function useImportImage() {
         multiple: false,
         filters: [{ name: "JSON file", extensions: ["json"] }],
       });
+      const selectedOption = O.fromNullable(selected);
 
-      if (!selected) {
+      if (O.isNone(selectedOption)) {
+        return { status: "cancelled" };
+      }
+      const selectedValue = selectedOption.value;
+
+      if (selectedValue === "") {
         return { status: "cancelled" };
       }
 
-      if (Array.isArray(selected)) {
-        if (!selected[0]) {
+      if (Array.isArray(selectedValue)) {
+        if (selectedValue[0] === "") {
           return { status: "cancelled" };
         }
 
-        return { status: "selected", text: await readTextFile(selected[0]) };
+        return {
+          status: "selected",
+          text: await readTextFile(selectedValue[0]),
+        };
       }
 
-      return { status: "selected", text: await readTextFile(selected) };
+      return { status: "selected", text: await readTextFile(selectedValue) };
     } catch {
       return { status: "unavailable" };
     }
@@ -51,12 +60,15 @@ export default function useImportImage() {
       };
 
       input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) {
+        const fileOption = O.fromNullable(
+          (e.target as HTMLInputElement).files?.[0],
+        );
+        if (O.isNone(fileOption)) {
           cleanup();
           resolve(O.none);
           return;
         }
+        const file = fileOption.value;
 
         try {
           resolve(await file.text());

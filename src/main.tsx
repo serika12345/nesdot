@@ -1,8 +1,10 @@
+import * as O from "fp-ts/Option";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 
 const rootElement = document.getElementById("root");
+const rootElementOption = O.fromNullable(rootElement);
 
-if (rootElement) {
-  createRoot(rootElement).render(<App />);
+if (O.isSome(rootElementOption)) {
+  createRoot(rootElementOption.value).render(<App />);
 }

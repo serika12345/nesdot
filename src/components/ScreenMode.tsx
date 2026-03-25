@@ -84,11 +84,12 @@ export const ScreenMode: React.FC = () => {
   };
 
   const handleAddSprite = () => {
-    const spriteTile = sprites[spriteNumber];
-    if (!spriteTile) {
+    const spriteTileOption = O.fromNullable(sprites[spriteNumber]);
+    if (O.isNone(spriteTileOption)) {
       alert("指定されたスプライト番号のスプライトが存在しません");
       return;
     }
+    const spriteTile = spriteTileOption.value;
 
     const candidate: SpriteInScreen = {
       ...spriteTile,

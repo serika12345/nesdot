@@ -125,7 +125,7 @@ function growBackingIfNeeded(
   const needGrow =
     shiftX !== 0 || shiftY !== 0 || newRight > b.width || newBottom > b.height;
 
-  if (!needGrow) {
+  if (needGrow === false) {
     return { shiftX: 0, shiftY: 0 };
   }
 

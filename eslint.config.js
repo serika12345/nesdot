@@ -53,6 +53,12 @@ export default [
       // Immutable Operations: Avoid nested ternary operators
       "no-nested-ternary": "error",
 
+      // Strict equality only
+      eqeqeq: ["error", "always"],
+
+      // Disallow implicit truthy/falsy coercion
+      "no-implicit-coercion": "error",
+
       // No Exceptions: Disallow throw statements
       "no-throw-literal": "error",
 
@@ -78,6 +84,27 @@ export default [
           selector: "TSUndefinedKeyword",
           message:
             "Avoid `undefined` in type positions. Use Option-like patterns instead.",
+        },
+        {
+          selector: "IfStatement[test.type='Identifier']",
+          message:
+            "Do not use bare value conditions like `if (value)`. Use explicit strict comparisons.",
+        },
+        {
+          selector:
+            "IfStatement[test.type='UnaryExpression'][test.operator='!'][test.argument.type='Identifier']",
+          message:
+            "Do not use bare negation conditions like `if (!value)`. Use explicit strict comparisons.",
+        },
+        {
+          selector: 'UnaryExpression[operator="typeof"]',
+          message:
+            "Avoid using `typeof`. Prefer explicit, type-safe predicates and domain modeling.",
+        },
+        {
+          selector: 'BinaryExpression[operator="instanceof"]',
+          message:
+            "Avoid using `instanceof`. Prefer explicit, type-safe predicates and domain modeling.",
         },
         {
           selector:

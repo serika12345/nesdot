@@ -52,7 +52,7 @@ export const useGhost = ({
           const gx = tileX + xx;
           const gy = tileY + yy;
           const inBounds = gx >= 0 && gy >= 0 && gx < width && gy < height;
-          if (inBounds) {
+          if (inBounds === true) {
             const colorIdx = tile.pixels[gy][gx];
             if (colorIdx !== 0) {
               const hex =

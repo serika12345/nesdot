@@ -124,8 +124,7 @@ const idbStorage: StateStorage = {
       O.fromNullable(value),
       O.match(
         () => EMPTY_STORAGE_VALUE,
-        (stored) =>
-          typeof stored === "string" ? stored : JSON.stringify(stored),
+        (stored) => `${stored}`,
       ),
     );
   },
@@ -147,7 +146,10 @@ const persistOptions: PersistOptions<ProjectState> = {
   onRehydrateStorage: () => (state) => {
     // リハイドレート直前/直後のフック。マイグレーションや整合性チェックに使う。
     // 直後に _hydrated を立てて UI の初期化完了を通知
-    if (state) state._hydrated = true;
+    const stateOption = O.fromNullable(state);
+    if (O.isSome(stateOption)) {
+      stateOption.value._hydrated = true;
+    }
   },
 };
 
@@ -187,7 +189,7 @@ function flushNow() {
 }
 
 // ブラウザ/Tauri WebView のライフサイクルでフック
-if (typeof window !== "undefined") {
+if ("window" in globalThis) {
   window.addEventListener("beforeunload", flushNow);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") flushNow();

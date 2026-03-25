@@ -121,7 +121,7 @@ export const SpriteMode: React.FC = () => {
       cancelLabel: "キャンセル",
     }).catch(() => window.confirm(message));
 
-    if (shouldClear) {
+    if (shouldClear === true) {
       setTile(
         makeEmptyTile(activeTile.height, activeTile.paletteIndex),
         activeSprite,

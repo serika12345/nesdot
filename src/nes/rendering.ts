@@ -68,8 +68,9 @@ export function renderScreenToHexArray(
 
     Array.from({ length: sprite.height }, (_, pixelY) => pixelY).forEach(
       (pixelY) => {
-        const row = sprite.pixels[pixelY];
-        if (!row) return;
+        const rowOption = O.fromNullable(sprite.pixels[pixelY]);
+        if (O.isNone(rowOption)) return;
+        const row = rowOption.value;
 
         Array.from({ length: sprite.width }, (_, pixelX) => pixelX).forEach(
           (pixelX) => {

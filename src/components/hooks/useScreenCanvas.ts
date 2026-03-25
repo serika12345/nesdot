@@ -22,8 +22,9 @@ export const useScreenCanvas = ({
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
     const cvs = canvasRef.current.value;
-    const ctx = cvs.getContext("2d");
-    if (!ctx) return;
+    const ctxOption = O.fromNullable(cvs.getContext("2d"));
+    if (O.isNone(ctxOption)) return;
+    const ctx = ctxOption.value;
 
     cvs.width = width * scale;
     cvs.height = height * scale;
@@ -43,8 +44,11 @@ export const useScreenCanvas = ({
 
     // TODO: スプライト描画
     screen.sprites.forEach((sprite) => {
-      const spriteTile = useProjectState.getState().sprites[sprite.spriteIndex];
-      if (!spriteTile) return;
+      const spriteTileOption = O.fromNullable(
+        useProjectState.getState().sprites[sprite.spriteIndex],
+      );
+      if (O.isNone(spriteTileOption)) return;
+      const spriteTile = spriteTileOption.value;
       Array.from({ length: spriteTile.height }, (_, py) => py).forEach((py) => {
         Array.from({ length: spriteTile.width }, (_, px) => px).forEach(
           (px) => {
@@ -54,9 +58,7 @@ export const useScreenCanvas = ({
                 useProjectState.getState().palettes[sprite.paletteIndex][
                   colorIndex
                 ];
-              const hex = useProjectState.getState().palettes
-                ? NES_PALETTE_HEX[nesColorIndex]
-                : "#f0f";
+              const hex = NES_PALETTE_HEX[nesColorIndex];
               ctx.fillStyle = hex;
               ctx.fillRect(
                 (sprite.x + px) * scale,
@@ -71,7 +73,7 @@ export const useScreenCanvas = ({
     });
 
     // グリッド
-    if (showGrid) {
+    if (showGrid === true) {
       ctx.strokeStyle = "rgba(0,0,0,0.2)";
       ctx.lineWidth = 1;
       Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {

@@ -1,6 +1,7 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import {
@@ -31,12 +32,13 @@ export default function useExportImage() {
         defaultPath: defaultName,
         filters,
       });
+      const targetPathOption = O.fromNullable(targetPath);
 
-      if (!targetPath) {
+      if (O.isNone(targetPathOption) || targetPathOption.value === "") {
         return "cancelled";
       }
 
-      await writeFile(targetPath, bytes);
+      await writeFile(targetPathOption.value, bytes);
       return "saved";
     } catch {
       return "unavailable";
@@ -130,11 +132,12 @@ export default function useExportImage() {
     });
     const blob = await new Promise<Blob>((resolve, reject) => {
       cvs.toBlob((value) => {
-        if (!value) {
+        const valueOption = O.fromNullable(value);
+        if (O.isNone(valueOption)) {
           reject(new Error("PNG blob generation failed"));
           return;
         }
-        resolve(value);
+        resolve(valueOption.value);
       }, "image/png");
     });
 
@@ -156,10 +159,7 @@ export default function useExportImage() {
     const h = hexPixels.length;
     const w = h > 0 ? hexPixels[0].length : 0;
 
-    // 必要に応じてパレットガード
-    const colorOf = (hex: string) => {
-      return typeof hex === "string" ? hex : "#000";
-    };
+    const colorOf = (hex: string) => hex;
 
     const rects = Array.from({ length: h }, (_, y) => y)
       .flatMap((y) =>
