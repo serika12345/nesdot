@@ -74,6 +74,9 @@ describe("renderScreenToHexArray", () => {
       x: 0,
       y: 0,
       spriteIndex: 0,
+      priority: "front",
+      flipH: false,
+      flipV: false,
     };
     sprite.pixels[0][0] = 0;
     sprite.pixels[0][1] = 1;
@@ -84,27 +87,90 @@ describe("renderScreenToHexArray", () => {
     expect(rendered[0][1]).toBe(NES_PALETTE_HEX[1]);
   });
 
-  it("draws higher spriteIndex entries last when sprites overlap", () => {
+  it("draws lower OAM index (array order) entries in front when sprites overlap", () => {
     const nes = createDefaultNesProjectState();
-    const backSprite: SpriteInScreen = {
+    const lowOamSprite: SpriteInScreen = {
       ...createSpriteTile(1),
       x: 4,
       y: 4,
       spriteIndex: 0,
+      priority: "front",
+      flipH: false,
+      flipV: false,
     };
-    const frontSprite: SpriteInScreen = {
+    const highOamSprite: SpriteInScreen = {
       ...createSpriteTile(3),
       x: 4,
       y: 4,
       spriteIndex: 1,
+      priority: "front",
+      flipH: false,
+      flipV: false,
     };
 
     const rendered = renderScreenToHexArray(
-      createScreen([frontSprite, backSprite]),
+      createScreen([lowOamSprite, highOamSprite]),
       nes,
     );
 
-    expect(rendered[4][4]).toBe(NES_PALETTE_HEX[34]);
+    expect(rendered[4][4]).toBe(NES_PALETTE_HEX[1]);
+  });
+
+  it("keeps lower OAM sprite selected before applying behind-bg priority", () => {
+    const nes = createDefaultNesProjectState();
+    nes.universalBackgroundColor = 45;
+    nes.nameTable.tileIndices[0] = 0;
+    nes.attributeTable.bytes[0] = 0b00000001;
+    nes.backgroundPalettes[1] = [45, 2, 22, 35];
+    Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
+      nes.chrBytes[y] = 0b00000000;
+      nes.chrBytes[8 + y] = 0b11111111;
+    });
+
+    const behindBgSprite = {
+      ...createSpriteTile(1),
+      x: 0,
+      y: 0,
+      spriteIndex: 0,
+      priority: "behindBg",
+      flipH: false,
+      flipV: false,
+    };
+    const frontSprite = {
+      ...createSpriteTile(3),
+      x: 0,
+      y: 0,
+      spriteIndex: 1,
+      priority: "front",
+      flipH: false,
+      flipV: false,
+    };
+
+    const rendered = renderScreenToHexArray(
+      createScreen([behindBgSprite, frontSprite]),
+      nes,
+    );
+
+    expect(rendered[0][0]).toBe(NES_PALETTE_HEX[22]);
+  });
+
+  it("applies horizontal and vertical flip when drawing sprites", () => {
+    const nes = createDefaultNesProjectState();
+    const sprite = {
+      ...createSpriteTile(0),
+      x: 10,
+      y: 10,
+      spriteIndex: 0,
+      priority: "front",
+      flipH: true,
+      flipV: true,
+    };
+    sprite.pixels[0][0] = 1;
+
+    const rendered = renderScreenToHexArray(createScreen([sprite]), nes);
+
+    expect(rendered[10][10]).toBe(NES_PALETTE_HEX[0]);
+    expect(rendered[17][17]).toBe(NES_PALETTE_HEX[1]);
   });
 
   it("renders background directly from nameTable+attributeTable+CHR when NES state is provided", () => {

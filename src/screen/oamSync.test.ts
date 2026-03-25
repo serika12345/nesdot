@@ -11,6 +11,9 @@ const createSprite = (overrides: Partial<SpriteInScreen>): SpriteInScreen => ({
   x: 0,
   y: 0,
   spriteIndex: 0,
+  priority: "front",
+  flipH: false,
+  flipV: false,
   ...overrides,
 });
 
@@ -34,6 +37,22 @@ describe("toOamEntryFromScreenSprite", () => {
       y: 33,
       tileIndex: 56,
       attributeByte: 2,
+    });
+  });
+
+  it("encodes palette, priority and flip flags in attribute byte", () => {
+    const sprite = {
+      ...createSprite({ x: 12, y: 34, spriteIndex: 56, paletteIndex: 2 }),
+      priority: "behindBg",
+      flipH: true,
+      flipV: true,
+    };
+
+    expect(toOamEntryFromScreenSprite(sprite)).toEqual({
+      x: 12,
+      y: 33,
+      tileIndex: 56,
+      attributeByte: 226,
     });
   });
 });

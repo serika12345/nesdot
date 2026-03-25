@@ -38,6 +38,7 @@ import {
   getHexArrayForScreen,
   Screen,
   SpriteInScreen,
+  SpritePriority,
   useProjectState,
 } from "../store/projectState";
 import { ProjectActions } from "./ProjectActions";
@@ -113,6 +114,9 @@ export const ScreenMode: React.FC = () => {
       x,
       y,
       spriteIndex: spriteNumber,
+      priority: "front",
+      flipH: false,
+      flipV: false,
     };
     const newScreen = {
       ...screen,
@@ -289,7 +293,7 @@ export const ScreenMode: React.FC = () => {
                   )}
                   {spritesOnScreen.map((sprite, index) => (
                     <option key={index} value={index}>
-                      {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y}`}
+                      {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
                     </option>
                   ))}
                 </SelectInput>
@@ -316,6 +320,20 @@ export const ScreenMode: React.FC = () => {
                           <DetailKey>サイズ</DetailKey>
                           <DetailValue>
                             {selectedSprite.width}×{selectedSprite.height}
+                          </DetailValue>
+                        </DetailRow>
+                        <DetailRow>
+                          <DetailKey>優先度</DetailKey>
+                          <DetailValue>
+                            {selectedSprite.priority === "behindBg"
+                              ? "背景の後ろ"
+                              : "背景の前"}
+                          </DetailValue>
+                        </DetailRow>
+                        <DetailRow>
+                          <DetailKey>反転</DetailKey>
+                          <DetailValue>
+                            {`${selectedSprite.flipH === true ? "H" : "-"} / ${selectedSprite.flipV === true ? "V" : "-"}`}
                           </DetailValue>
                         </DetailRow>
                       </DetailList>
@@ -380,6 +398,86 @@ export const ScreenMode: React.FC = () => {
                               setScreenAndSyncNes(newScreen);
                             }}
                           />
+                        </Field>
+                        <Field>
+                          <FieldLabel>Priority</FieldLabel>
+                          <SelectInput
+                            value={selectedSprite.priority}
+                            onChange={(e) => {
+                              const nextPriority: SpritePriority =
+                                e.target.value === "behindBg"
+                                  ? "behindBg"
+                                  : "front";
+                              const newSprites = spritesOnScreen.map((s, i) =>
+                                i === selectedIndexValue
+                                  ? { ...s, priority: nextPriority }
+                                  : s,
+                              );
+                              const newScreen = {
+                                ...screen,
+                                sprites: newSprites,
+                              };
+                              const report = scan(newScreen);
+                              if (report.ok === false) {
+                                alert(
+                                  "優先度の更新に失敗しました。制約違反:\n" +
+                                    report.errors.join("\n"),
+                                );
+                                return;
+                              }
+                              setScreenAndSyncNes(newScreen);
+                            }}
+                          >
+                            <option value="front">前面</option>
+                            <option value="behindBg">背景の後ろ</option>
+                          </SelectInput>
+                        </Field>
+                        <Field>
+                          <FieldLabel>Flip</FieldLabel>
+                          <FieldGrid
+                            css={{
+                              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                            }}
+                          >
+                            <ToolButton
+                              type="button"
+                              active={selectedSprite.flipH === true}
+                              onClick={() => {
+                                const newSprites = spritesOnScreen.map(
+                                  (s, i) =>
+                                    i === selectedIndexValue
+                                      ? { ...s, flipH: s.flipH === false }
+                                      : s,
+                                );
+                                const newScreen = {
+                                  ...screen,
+                                  sprites: newSprites,
+                                };
+                                setScreenAndSyncNes(newScreen);
+                              }}
+                            >
+                              H反転
+                            </ToolButton>
+                            <ToolButton
+                              type="button"
+                              active={selectedSprite.flipV === true}
+                              onClick={() => {
+                                const newSprites = spritesOnScreen.map(
+                                  (s, i) =>
+                                    i === selectedIndexValue
+                                      ? { ...s, flipV: s.flipV === false }
+                                      : s,
+                                );
+                                const newScreen = {
+                                  ...screen,
+                                  sprites: newSprites,
+                                };
+                                setScreenAndSyncNes(newScreen);
+                              }}
+                            >
+                              V反転
+                            </ToolButton>
+                          </FieldGrid>
                         </Field>
                       </FieldGrid>
 

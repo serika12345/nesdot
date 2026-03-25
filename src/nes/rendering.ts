@@ -7,7 +7,7 @@ import {
   NesSpritePalettes,
   resolveBackgroundPaletteIndex,
 } from "../store/nesProjectState";
-import type { Screen, SpriteTile } from "../store/projectState";
+import type { Screen, SpritePriority, SpriteTile } from "../store/projectState";
 import { NES_PALETTE_HEX } from "./palette";
 
 const FALLBACK_HEX = "#000000";
@@ -46,34 +46,30 @@ export function renderScreenToHexArray(
 ): string[][] {
   const backgroundLayer = renderBackgroundLayerFromNesTables(screen, nesState);
   const spriteLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, (): O.Option<string> => O.none),
+    Array.from(
+      { length: screen.width },
+      (): O.Option<{ hex: string; priority: SpritePriority }> => O.none,
+    ),
   );
 
-  const spritesSorted = screen.sprites.reduce<typeof screen.sprites>(
-    (sorted, sprite) => {
-      const insertAt = sorted.findIndex(
-        (candidate) => candidate.spriteIndex > sprite.spriteIndex,
-      );
-
-      return insertAt === -1
-        ? [...sorted, sprite]
-        : [...sorted.slice(0, insertAt), sprite, ...sorted.slice(insertAt)];
-    },
-    [],
-  );
-
-  spritesSorted.forEach((sprite) => {
+  screen.sprites.forEach((sprite) => {
     const palette = nesState.spritePalettes[sprite.paletteIndex];
+    const spritePriority: SpritePriority =
+      sprite.priority === "behindBg" ? "behindBg" : "front";
+    const isFlipH = sprite.flipH === true;
+    const isFlipV = sprite.flipV === true;
 
     Array.from({ length: sprite.height }, (_, pixelY) => pixelY).forEach(
       (pixelY) => {
-        const rowOption = O.fromNullable(sprite.pixels[pixelY]);
+        const sourcePixelY = isFlipV ? sprite.height - 1 - pixelY : pixelY;
+        const rowOption = O.fromNullable(sprite.pixels[sourcePixelY]);
         if (O.isNone(rowOption)) return;
         const row = rowOption.value;
 
         Array.from({ length: sprite.width }, (_, pixelX) => pixelX).forEach(
           (pixelX) => {
-            const colorIndex = row[pixelX];
+            const sourcePixelX = isFlipH ? sprite.width - 1 - pixelX : pixelX;
+            const colorIndex = row[sourcePixelX];
             const colorIndexOption = O.fromNullable(colorIndex);
             if (O.isNone(colorIndexOption) || colorIndexOption.value === 0) {
               return;
@@ -90,9 +86,18 @@ export function renderScreenToHexArray(
             if (O.isNone(spriteRowOption)) {
               return;
             }
-            spriteRowOption.value[x] = O.some(
-              getPaletteHex(palette, colorIndexOption.value),
+            const targetPixel = pipe(
+              O.fromNullable(spriteRowOption.value[x]),
+              O.flatten,
             );
+            if (O.isSome(targetPixel)) {
+              return;
+            }
+
+            spriteRowOption.value[x] = O.some({
+              hex: getPaletteHex(palette, colorIndexOption.value),
+              priority: spritePriority,
+            });
           },
         );
       },
@@ -100,19 +105,28 @@ export function renderScreenToHexArray(
   });
 
   return Array.from({ length: screen.height }, (_, y) =>
-    Array.from({ length: screen.width }, (_, x) =>
-      pipe(
+    Array.from({ length: screen.width }, (_, x) => {
+      const backgroundPixel = pipe(
+        O.fromNullable(backgroundLayer[y]),
+        O.chain((row) => O.fromNullable(row[x])),
+        O.getOrElse(() => ({ hex: getHexAt(0), opaque: false })),
+      );
+      const spritePixelOption = pipe(
         O.fromNullable(spriteLayer[y]),
-        O.chain((row) => pipe(O.fromNullable(row[x]), O.flatten)),
-        O.getOrElse(() =>
-          pipe(
-            O.fromNullable(backgroundLayer[y]),
-            O.chain((row) => O.fromNullable(row[x])),
-            O.getOrElse(() => getHexAt(0)),
-          ),
-        ),
-      ),
-    ),
+        O.chain((row) => O.fromNullable(row[x])),
+        O.flatten,
+      );
+
+      if (O.isNone(spritePixelOption)) {
+        return backgroundPixel.hex;
+      }
+
+      const spritePixel = spritePixelOption.value;
+      const shouldShowBackground =
+        spritePixel.priority === "behindBg" && backgroundPixel.opaque === true;
+
+      return shouldShowBackground ? backgroundPixel.hex : spritePixel.hex;
+    }),
   );
 }
 
@@ -139,9 +153,12 @@ const getBackgroundColorIndexFromChr = (
 const renderBackgroundLayerFromNesTables = (
   screen: Screen,
   nesState: NesProjectState,
-): string[][] => {
+): Array<Array<{ hex: string; opaque: boolean }>> => {
   const backgroundLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => getHexAt(0)),
+    Array.from({ length: screen.width }, () => ({
+      hex: getHexAt(0),
+      opaque: false,
+    })),
   );
 
   Array.from({ length: 30 }, (_, tileY) => tileY).forEach((tileY) => {
@@ -189,7 +206,10 @@ const renderBackgroundLayerFromNesTables = (
             if (O.isNone(targetRowOption)) {
               return;
             }
-            targetRowOption.value[x] = getHexAt(nesColorIndex);
+            targetRowOption.value[x] = {
+              hex: getHexAt(nesColorIndex),
+              opaque: colorIndex !== 0,
+            };
           }
         });
       });

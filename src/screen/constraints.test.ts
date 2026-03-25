@@ -16,6 +16,9 @@ function createSprite(y: number, spriteIndex: number): SpriteInScreen {
     x: 0,
     y,
     spriteIndex,
+    priority: "front",
+    flipH: false,
+    flipV: false,
     pixels: Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 1)),
   };
 }

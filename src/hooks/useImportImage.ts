@@ -55,6 +55,9 @@ const SpriteInScreenSchema = SpriteTileSchema.extend({
   x: z.number().int(),
   y: z.number().int(),
   spriteIndex: z.number().int(),
+  priority: z.enum(["front", "behindBg"]),
+  flipH: z.boolean(),
+  flipV: z.boolean(),
 });
 
 const ScreenSchema = z.object({
@@ -136,6 +139,9 @@ const normalizeSpriteInScreen = (
   x: sprite.x,
   y: sprite.y,
   spriteIndex: sprite.spriteIndex,
+  priority: sprite.priority,
+  flipH: sprite.flipH,
+  flipV: sprite.flipV,
 });
 
 const normalizeNesSubPalette = (

@@ -19,11 +19,15 @@ import {
 
 export type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 export type PaletteIndex = 0 | 1 | 2 | 3;
+export type SpritePriority = "front" | "behindBg";
 
 export type SpriteInScreen = SpriteTile & {
   x: number;
   y: number;
   spriteIndex: number;
+  priority: SpritePriority;
+  flipH: boolean;
+  flipV: boolean;
 };
 
 export type Screen = {
