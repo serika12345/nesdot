@@ -3,6 +3,20 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
 import {
+  ColorIndexOfPalette,
+  getHexArrayForSpriteTile,
+  PaletteIndex,
+  SpriteTile,
+  useProjectState,
+} from "../../application/state/projectStore";
+import { NES_PALETTE_HEX } from "../../domain/nes/palette";
+import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
+import { makeTile, resizeTileND } from "../../domain/tiles/utils";
+import { Tool } from "../../infrastructure/browser/canvas/useSpriteCanvas";
+import useExportImage from "../../infrastructure/browser/useExportImage";
+import useImportImage from "../../infrastructure/browser/useImportImage";
+import { getArrayItem } from "../../shared/arrayAccess";
+import {
   Badge,
   CanvasViewport,
   CollapseToggle,
@@ -20,20 +34,6 @@ import {
   Toolbar,
   ToolButton,
 } from "../App.styles";
-import useExportImage from "../../infrastructure/browser/useExportImage";
-import useImportImage from "../../infrastructure/browser/useImportImage";
-import { NES_PALETTE_HEX } from "../../domain/nes/palette";
-import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
-import {
-  ColorIndexOfPalette,
-  getHexArrayForSpriteTile,
-  PaletteIndex,
-  SpriteTile,
-  useProjectState,
-} from "../../application/state/projectStore";
-import { makeTile, resizeTileND } from "../../domain/tiles/utils";
-import { getArrayItem } from "../../shared/arrayAccess";
-import { Tool } from "../../infrastructure/browser/canvas/useSpriteCanvas";
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
@@ -191,16 +191,34 @@ export const SpriteMode: React.FC = () => {
             </Field>
             <Field>
               <FieldLabel>パレット</FieldLabel>
-              <SelectInput
-                value={activePalette}
-                onChange={(e) => handlePaletteChange(e.target.value)}
-              >
-                {palettes.map((_, i) => (
-                  <option key={i} value={i}>
-                    パレット {i}
-                  </option>
-                ))}
-              </SelectInput>
+              <div css={{ position: "relative" }}>
+                <SelectInput
+                  css={{ paddingRight: 56 }}
+                  value={activePalette}
+                  onChange={(e) => handlePaletteChange(e.target.value)}
+                >
+                  {palettes.map((_, i) => (
+                    <option key={i} value={i}>
+                      パレット {i}
+                    </option>
+                  ))}
+                </SelectInput>
+                <span
+                  aria-hidden="true"
+                  css={{
+                    position: "absolute",
+                    right: 18,
+                    top: "50%",
+                    width: 0,
+                    height: 0,
+                    borderLeft: "5px solid transparent",
+                    borderRight: "5px solid transparent",
+                    borderTop: "7px solid #334155",
+                    transform: "translateY(-35%)",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
             </Field>
           </FieldGrid>
 
