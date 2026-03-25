@@ -1,41 +1,144 @@
 # Repository Instructions
 
-## Development Environment
+## 1. Execution Environment
 
 - Run all project commands inside the flake dev shell.
-- For one-shot commands, prefer `nix develop -c zsh -lc '<command>'`.
-- For longer workflows, start `nix develop` first and keep all subsequent commands inside that shell.
+- For one-shot commands, use `nix develop -c zsh -lc '<command>'`.
 - Do not run project tools such as `node`, `pnpm`, `cargo`, `rustc`, `tauri`, `vite`, or `tsc` directly from the host shell.
-- If a command fails outside the dev shell, rerun it through `nix develop` instead of working around the missing environment.
-- If a tool you want to use is not available in the current shell, you may invoke it via a temporary nix shell command (for example: `nix develop -c zsh -lc '<command>'`).
+- If a command fails outside the dev shell, rerun it inside the dev shell instead of working around the environment.
 
-## Coding Guidelines
+## 2. Priority Order
 
-- **Functional Programming**: Adopt functional programming paradigms throughout the codebase.
-- **I/O Separation**: Isolate I/O operations from pure functions; keep business logic pure.
-- **Function Size**: Pure functions must not exceed 100 lines of code.
-- **Type Safety**: Do not use `any` type; always use explicit types.
-- **No `as` Assertions**: Do not use TypeScript `as` type assertions. Prefer explicit type-safe data flow, type guards, and narrowed function interfaces.
-- **No Non-Null Assertions**: Do not use the `!` non-null assertion operator. Prefer explicit `Option` handling, guards, or early returns.
-- **Runtime Validation for External Data**: Validate all externally sourced data (for example `JSON.parse` results, file imports, storage reads, and network responses) with runtime checks before passing values into state setters or core domain functions.
-- **Runtime Validation Library**: Use `zod` for runtime validation schemas and parsing of external data.
-- **Strict Null Checks**: Keep `strictNullChecks` enabled and fix type issues through explicit narrowing rather than assertions.
-- **Type Safety Check Cycle**: In each implementation/verification cycle, run `pnpm typecheck:safety` and resolve reported issues before completion.
-- **Null Safety**: Avoid using `null` and `undefined`; prefer `Option`-like patterns or early returns.
-- **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
-- **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
-- **Web API Compatibility**: Use only widely available or newly available Web APIs. Avoid APIs with inconsistent browser support.
-- **Test-Driven Development**: Implement all features using test-driven development (TDD). Write tests first, then implement the code to pass those tests.
-- **Test Implementation First**: When tests themselves need to be modified, implement the test changes completely before making any source code changes.
-- **UI Change Validation**: After modifying UI-related code, run both `vitest` and E2E tests. Verify that no errors are emitted in the browser console during E2E execution.
-- **Immutability**: Always use `const` for variable declarations; never use `let` or `var`. Initialize arrays and collections completely at creation; never use `push()` or mutating methods afterward.
-- **Immutable Operations**: Write all code using immutable operations. Avoid nested ternary operators to prevent reassignment; extract complex logic into separate functions. IIFE (Immediately Invoked Function Expressions) are acceptable for short logic blocks (a few lines).
-- **No Exceptions**: Do not use exceptions for control flow. Handle errors using functional error handling patterns.
-- **Functional Error Handling with fp-ts**: Use `fp-ts` library for error handling and functional programming utilities. Use monads (Option, Either, Task, etc.) only when exception handling or lazy evaluation is appropriate; not all values need to be wrapped in monads.
-- **No typeof/instanceof Operators**: Do not use runtime `typeof` or `instanceof` operators. Prefer explicit type-safe data flow and predicate functions. Type-level `typeof` (TypeScript type query) is allowed.
-- **No Truthy/Falsy Semantics**: Do not rely on truthy/falsy coercion. Use explicit boolean expressions and strict equality/inequality checks (`===`, `!==`).
-- **No Bare Value Conditions**: Prohibit patterns such as `if (value)` and `if (!value)` mechanically. Always compare explicitly (for example, `value === true`, `value !== ""`, `value !== 0`, `value !== null`).
-- **No Implicit Coercion**: Do not use implicit type coercion operators or shorthand coercion patterns. Prefer explicit conversions and comparisons.
-- **React Hooks Rules**: Always follow the Rules of Hooks, and keep hook dependency arrays explicit and consistent with referenced values.
-- **No Unsafe Type Operations**: Avoid unsafe assignment/member access/calls/returns/arguments across untyped boundaries. Narrow unknown data before use and keep unsafe operations lint-clean.
-- **ESLint Compliance**: All code must pass ESLint checks without errors. Run `pnpm lint` in every implementation/verification cycle and resolve all reported issues before completion.
+When instructions conflict, follow this order:
+
+1. Commands that must pass mechanically (`lint`, `typecheck`, `test`, `e2e`)
+2. Existing repository architecture and public types
+3. Design principles in this file
+4. Local convenience
+
+Do not violate a mechanical gate to satisfy a style preference.
+
+## 3. Required Workflow
+
+For every task, follow this sequence:
+
+1. Read the relevant existing code before editing.
+2. Identify the smallest safe change.
+3. Add or update tests before changing implementation when the behavior is observable and testable.
+4. Implement the code.
+5. Run the required verification commands for the change scope.
+6. Do not finish while required commands are failing.
+
+## 4. Verification Matrix
+
+Run the minimum required checks below.
+
+### 4.1 Any code change
+- `pnpm lint`
+- `pnpm typecheck:safety`
+- `pnpm test`
+
+### 4.2 UI code change
+A UI change means edits under React components, hooks used by components, styling, rendering flow, or user interactions.
+
+Run:
+- `pnpm lint`
+- `pnpm typecheck:safety`
+- `pnpm test`
+- `pnpm test:e2e:console`
+
+If the change affects visible behavior or interaction flow, also run:
+- `pnpm test:e2e`
+
+### 4.3 Config or toolchain change
+For changes to lint config, tsconfig, vite config, playwright config, vitest config, package scripts, or nix/dev-shell settings, run all of:
+- `pnpm lint`
+- `pnpm typecheck:safety`
+- `pnpm test`
+- `pnpm test:e2e:console`
+
+## 5. Non-Negotiable Coding Constraints
+
+These constraints are expected to be enforced by repository configuration and must not be bypassed:
+
+- Do not use `any`.
+- Do not use TypeScript `as` assertions.
+- Do not use non-null assertions (`!`).
+- Do not use `let` or `var`; use `const`.
+- Do not use mutating array methods such as `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, or `reverse`.
+- Do not rely on truthy/falsy coercion. Use explicit boolean expressions.
+- Do not introduce lint disables unless explicitly requested and justified in code review.
+- Do not ignore failing tests or type errors.
+- Do not weaken tsconfig, ESLint rules, or tests just to make a change pass.
+
+## 6. External Data Boundaries
+
+Any data that crosses into the application from outside trusted in-memory domain values must be validated at runtime before use.
+
+Examples:
+- `JSON.parse`
+- file imports
+- local storage / IndexedDB reads
+- network responses
+- Tauri plugin results
+- browser APIs returning untyped data
+
+Rules:
+- Use `zod` for runtime validation.
+- Parse external data into validated domain values before passing it to state setters or core logic.
+- Keep unsafe operations localized at the boundary.
+- Prefer `unknown` at boundaries and narrow explicitly.
+
+## 7. Type and State Design
+
+- Prefer explicit domain types over broad structural objects.
+- Prefer small pure functions for domain transformations.
+- Isolate I/O from domain logic where practical.
+- Model absence explicitly. Prefer `Option`-like patterns or clear early returns over ad hoc nullable flows.
+- Use `fp-ts` where it improves boundary handling, composability, or error flow. Do not wrap every value in monads without reason.
+- Prefer immutable updates and derived values over stepwise mutation.
+
+## 8. React Guidance
+
+- Follow the Rules of Hooks.
+- Keep dependency arrays explicit and correct.
+- Do not introduce `useEffect` when derivation, event handlers, memoization, or state restructuring can solve the problem more directly.
+- Put domain logic outside components unless the logic is inherently view-local.
+- Keep components focused on rendering and orchestration.
+
+## 9. Testing Policy
+
+- When behavior is observable, add or update tests to describe the intended behavior.
+- Prefer unit tests for domain logic.
+- Use E2E only for integration points, user interactions, navigation, and browser/runtime validation.
+- When fixing a bug, first add a test that fails for the bug when practical.
+- Do not delete or loosen tests to make unrelated changes pass.
+
+## 10. Change Scope Discipline
+
+- Prefer minimal patches.
+- Do not perform broad refactors unless they are required for correctness or explicitly requested.
+- Do not rename public symbols, move files, or reshape modules without a concrete reason.
+- Preserve existing comments unless they are made incorrect by the change.
+
+## 11. Completion Criteria
+
+A task is not complete unless all of the following are true:
+
+- The requested change is implemented.
+- Required tests for the change scope pass.
+- Lint passes.
+- Type safety checks pass.
+- New external-data paths are validated.
+- No obvious unrelated regressions were introduced by the patch.
+
+## 12. Output Expectations for Coding Agents
+
+In the final report for a coding task, include:
+
+- what changed
+- which commands were run
+- whether they passed
+- any remaining risks or follow-up items
+
+Do not claim completion without reporting the verification results.

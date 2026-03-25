@@ -6,7 +6,6 @@ test("captures browser console and page errors", async ({ page }) => {
 
   page.on("console", (message) => {
     const line = `[browser:${message.type()}] ${message.text()}`;
-    // Print browser-side console logs in terminal so the agent can inspect them.
     console.log(line);
 
     if (message.type() === "error") {
@@ -24,9 +23,6 @@ test("captures browser console and page errors", async ({ page }) => {
   await expect(page.locator("body")).toBeVisible();
   await page.waitForTimeout(500);
 
-  if (consoleErrors.length > 0) {
-    console.log(`[summary] console error count: ${consoleErrors.length}`);
-  }
-
+  expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
 });

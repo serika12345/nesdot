@@ -5,5 +5,5 @@
     "exactOptionalPropertyTypes": true,
     "noEmit": true
   },
-  "include": ["src/hooks/useImportImage.ts"]
+  "include": ["src"]
 }

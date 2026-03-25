@@ -20,6 +20,9 @@
     "test:e2e": "playwright test",
     "test:e2e:console": "playwright test e2e/console.spec.ts --project=chromium",
     "test:e2e:headed": "playwright test e2e/console.spec.ts --project=chromium --headed",
+    "verify": "pnpm lint && pnpm typecheck:safety && pnpm test",
+    "verify:ui": "pnpm verify && pnpm test:e2e:console",
+    "verify:full": "pnpm verify:ui && pnpm test:e2e",
     "tauri": "tauri"
   },
   "keywords": [],

@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Run verify
+        run: nix develop -c zsh -lc 'pnpm install --frozen-lockfile && pnpm verify'
+
+      - name: Run UI console check
+        run: nix develop -c zsh -lc 'pnpm e2e:install && pnpm verify:ui'
