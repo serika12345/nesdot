@@ -17,6 +17,7 @@
 - **Null Safety**: Avoid using `null`; prefer `undefined`, `Option`-like patterns, or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
+- **Web API Compatibility**: Use only widely available or newly available Web APIs. Avoid APIs with inconsistent browser support.
 - **Test-Driven Development**: Implement all features using test-driven development (TDD). Write tests first, then implement the code to pass those tests.
 - **Test Implementation First**: When tests themselves need to be modified, implement the test changes completely before making any source code changes.
 - **Immutability**: Always use `const` for variable declarations; never use `let` or `var`. Initialize arrays and collections completely at creation; never use `push()` or mutating methods afterward.
