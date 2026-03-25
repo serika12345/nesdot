@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 export default [
   {
@@ -28,12 +29,53 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       import: importPlugin,
+      'react-hooks': reactHooksPlugin,
     },
     rules: {
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
       ...importPlugin.configs.recommended.rules,
       ...importPlugin.configs.typescript?.rules,
+
+      // TypeScript handles undefined symbols via type checking
+      'no-undef': 'off',
+
+      // Type Safety: Disallow any type
+      '@typescript-eslint/no-explicit-any': 'error',
+
+      // Immutability: Always use const, never use let or var
+      'prefer-const': 'error',
+      'no-var': 'error',
+
+      // Immutable Operations: Avoid nested ternary operators
+      'no-nested-ternary': 'error',
+
+      // No Exceptions: Disallow throw statements
+      'no-throw-literal': 'error',
+
+      // Immutability: Disallow let declarations and mutating operations
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'VariableDeclaration[kind="let"]',
+          message:
+            'Use `const` instead of `let`. If reassignment is needed, extract logic into separate functions.',
+        },
+        {
+          selector: 'Literal[value=null]',
+          message: 'Avoid using `null`. Use Option patterns or early returns instead.',
+        },
+        {
+          selector:
+            'CallExpression[callee.property.name="push"], CallExpression[callee.property.name="pop"], CallExpression[callee.property.name="shift"], CallExpression[callee.property.name="unshift"], CallExpression[callee.property.name="splice"], CallExpression[callee.property.name="sort"], CallExpression[callee.property.name="reverse"]',
+          message:
+            'Use immutable operations. Avoid mutating array methods like push(), splice(), etc. Use spread operator or functional methods instead.',
+        },
+      ],
+
+      // useEffect Usage: Minimize useEffect hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
     settings: {
       'import/resolver': {
