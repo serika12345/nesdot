@@ -1,124 +1,91 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
-import { ProjectState } from "../store/projectState";
+import { z } from "zod";
+import type { ProjectState } from "../store/projectState";
 
-const isIntegerInRange = (value: unknown, min: number, max: number): boolean =>
-  Number.isInteger(value) && Number(value) >= min && Number(value) <= max;
+const ColorIndexOfPaletteSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
 
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  Object.prototype.toString.call(value) === "[object Object]";
+const PaletteIndexSchema = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+]);
 
-const isPixels = (value: unknown, width: number, height: number): boolean =>
-  Array.isArray(value) &&
-  value.length === height &&
-  value.every(
-    (row) =>
-      Array.isArray(row) &&
-      row.length === width &&
-      row.every((cell) => isIntegerInRange(cell, 0, 3)),
-  );
+const NesColorIndexSchema = z.number().int().min(0).max(63);
 
-const isSpriteTile = (value: unknown): boolean => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
+const Palette4ColorsSchema = z.tuple([
+  NesColorIndexSchema,
+  NesColorIndexSchema,
+  NesColorIndexSchema,
+  NesColorIndexSchema,
+]);
 
-  const width = value.width;
-  const height = value.height;
-  const paletteIndex = value.paletteIndex;
-  const pixels = value.pixels;
+const PalettesSchema = z.tuple([
+  Palette4ColorsSchema,
+  Palette4ColorsSchema,
+  Palette4ColorsSchema,
+  Palette4ColorsSchema,
+]);
 
-  const isValidHeight = height === 8 || height === 16;
+const PixelRowSchema = z.array(ColorIndexOfPaletteSchema).length(8);
+const SpritePixelsSchema = z.array(PixelRowSchema);
 
-  return (
-    width === 8 &&
-    isValidHeight &&
-    isIntegerInRange(paletteIndex, 0, 3) &&
-    isPixels(pixels, 8, Number(height))
-  );
-};
+const SpriteTileSchema = z
+  .object({
+    width: z.literal(8),
+    height: z.union([z.literal(8), z.literal(16)]),
+    paletteIndex: PaletteIndexSchema,
+    pixels: SpritePixelsSchema,
+  })
+  .superRefine((value, ctx) => {
+    if (value.pixels.length !== value.height) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SpriteTile pixels length must match height",
+      });
+    }
+  });
 
-const isBackgroundTile = (value: unknown): boolean => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
+const BackgroundTileSchema = z.object({
+  width: z.literal(8),
+  height: z.literal(8),
+  paletteIndex: PaletteIndexSchema,
+  pixels: z.array(PixelRowSchema).length(8),
+});
 
-  return (
-    value.width === 8 &&
-    value.height === 8 &&
-    isIntegerInRange(value.paletteIndex, 0, 3) &&
-    isPixels(value.pixels, 8, 8)
-  );
-};
+const SpriteInScreenSchema = SpriteTileSchema.extend({
+  x: z.number().int(),
+  y: z.number().int(),
+  spriteIndex: z.number().int(),
+});
 
-const isSpriteInScreen = (value: unknown): boolean => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
+const ScreenSchema = z.object({
+  width: z.literal(256),
+  height: z.literal(240),
+  backgroundTiles: z.array(z.array(BackgroundTileSchema)),
+  sprites: z.array(SpriteInScreenSchema),
+});
 
-  return (
-    isSpriteTile(value) &&
-    Number.isInteger(value.x) &&
-    Number.isInteger(value.y) &&
-    Number.isInteger(value.spriteIndex)
-  );
-};
-
-const isScreen = (value: unknown): boolean => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
-
-  const backgroundTiles = value.backgroundTiles;
-  const sprites = value.sprites;
-
-  return (
-    value.width === 256 &&
-    value.height === 240 &&
-    Array.isArray(backgroundTiles) &&
-    backgroundTiles.every(
-      (row) =>
-        Array.isArray(row) && row.every((tile) => isBackgroundTile(tile)),
-    ) &&
-    Array.isArray(sprites) &&
-    sprites.every((sprite) => isSpriteInScreen(sprite))
-  );
-};
-
-const isPalette4Colors = (value: unknown): boolean =>
-  Array.isArray(value) &&
-  value.length === 4 &&
-  value.every((entry) => isIntegerInRange(entry, 0, 63));
-
-const isPalettes = (value: unknown): boolean =>
-  Array.isArray(value) &&
-  value.length === 4 &&
-  value.every((palette) => isPalette4Colors(palette));
-
-const isProjectState = (value: unknown): value is ProjectState => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
-
-  const screen = value.screen;
-  const palettes = value.palettes;
-  const sprites = value.sprites;
-
-  return (
-    isScreen(screen) &&
-    isPalettes(palettes) &&
-    Array.isArray(sprites) &&
-    sprites.length === 64 &&
-    sprites.every((sprite) => isSpriteTile(sprite))
-  );
-};
+const ProjectStateSchema = z.object({
+  screen: ScreenSchema,
+  palettes: PalettesSchema,
+  sprites: z.array(SpriteTileSchema).length(64),
+  _hydrated: z.boolean().optional(),
+});
 
 const parseProjectState = (text: string): O.Option<ProjectState> => {
   try {
     const parsed: unknown = JSON.parse(text);
-    if (isProjectState(parsed)) {
-      return O.some(parsed);
+    const result = ProjectStateSchema.safeParse(parsed);
+    if (result.success === true) {
+      return O.some(result.data);
     }
     return O.none;
   } catch {
