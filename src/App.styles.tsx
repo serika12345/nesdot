@@ -551,10 +551,15 @@ export const ScrollColumn = styled.div`
     min-height: 0;
     overflow: auto;
     display: grid;
+    grid-auto-rows: max-content;
     gap: 16px;
     align-content: start;
     padding-right: 4px;
     scrollbar-gutter: stable both-edges;
+
+    > * {
+        align-self: start;
+    }
 `;
 
 export const ScrollArea = styled.div`

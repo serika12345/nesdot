@@ -155,7 +155,7 @@ export const ScreenMode: React.FC = () => {
                         <PanelTitle>スクリーン配置</PanelTitle>
                     </PanelHeader>
 
-                    <MetricGrid>
+                    <MetricGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                         <MetricCard>
                             <MetricLabel>配置中</MetricLabel>
                             <MetricValue>{spritesOnScreen.length}/64</MetricValue>
@@ -166,9 +166,9 @@ export const ScreenMode: React.FC = () => {
                                 {screen.width}×{screen.height}
                             </MetricValue>
                         </MetricCard>
-                        <MetricCard>
+                        <MetricCard css={{ gridColumn: "1 / -1" }}>
                             <MetricLabel>制約</MetricLabel>
-                            <MetricValue>1ライン最大 8</MetricValue>
+                            <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>1ライン最大 8</MetricValue>
                         </MetricCard>
                     </MetricGrid>
 
