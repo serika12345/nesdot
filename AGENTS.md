@@ -20,6 +20,7 @@
 - **Runtime Validation for External Data**: Validate all externally sourced data (for example `JSON.parse` results, file imports, storage reads, and network responses) with runtime checks before passing values into state setters or core domain functions.
 - **Runtime Validation Library**: Use `zod` for runtime validation schemas and parsing of external data.
 - **Strict Null Checks**: Keep `strictNullChecks` enabled and fix type issues through explicit narrowing rather than assertions.
+- **Type Safety Check Cycle**: In each implementation/verification cycle, run `pnpm typecheck:safety` and resolve reported issues before completion.
 - **Null Safety**: Avoid using `null` and `undefined`; prefer `Option`-like patterns or early returns.
 - **useEffect Usage**: Minimize the use of `useEffect` hooks; prefer other patterns when possible.
 - **Browser-Only Execution**: Write no native code; ensure the application runs completely in the browser.
