@@ -9,6 +9,10 @@ import {
   StateStorage,
 } from "zustand/middleware";
 import {
+  resolveScreenRenderPalettes,
+  resolveSpriteRenderPalettes,
+} from "../nes/drawingPath";
+import {
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "../nes/rendering";
@@ -172,11 +176,15 @@ export const useProjectState = create<ProjectState>()(
 );
 
 export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
-  return renderSpriteTileToHexArray(tile, useProjectState.getState().palettes);
+  const state = useProjectState.getState();
+  const renderPalettes = resolveSpriteRenderPalettes(state.palettes, state.nes);
+  return renderSpriteTileToHexArray(tile, renderPalettes);
 };
 
 export const getHexArrayForScreen = (screen: Screen): string[][] => {
-  return renderScreenToHexArray(screen, useProjectState.getState().palettes);
+  const state = useProjectState.getState();
+  const renderPalettes = resolveScreenRenderPalettes(state.palettes, state.nes);
+  return renderScreenToHexArray(screen, renderPalettes);
 };
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---

@@ -1,5 +1,6 @@
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useRef } from "react";
+import { resolveSpriteRenderPalettes } from "../../nes/drawingPath";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { useProjectState } from "../../store/projectState";
 
@@ -54,10 +55,13 @@ export const useScreenCanvas = ({
           (px) => {
             const colorIndex = sprite.pixels[py][px];
             if (colorIndex !== 0) {
+              const state = useProjectState.getState();
+              const renderPalettes = resolveSpriteRenderPalettes(
+                state.palettes,
+                state.nes,
+              );
               const nesColorIndex =
-                useProjectState.getState().palettes[sprite.paletteIndex][
-                  colorIndex
-                ];
+                renderPalettes[sprite.paletteIndex][colorIndex];
               const hex = NES_PALETTE_HEX[nesColorIndex];
               ctx.fillStyle = hex;
               ctx.fillRect(
