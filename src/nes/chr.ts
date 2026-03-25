@@ -1,4 +1,4 @@
-import { ColorIndexOfPalette, SpriteTile } from "../../src/store/projectState";
+import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
 
 /**
  * 8x8 タイルを 16 バイトCHRに変換（先頭8B: bitplane0, 次の8B: bitplane1）

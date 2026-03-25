@@ -26,6 +26,7 @@ import {
 } from "../App.styles";
 import useExportImage from "../hooks/useExportImage";
 import useImportImage from "../hooks/useImportImage";
+import { MAX_SCREEN_SPRITES, MAX_SPRITES_PER_SCANLINE, scanScreenSpriteConstraints } from "../screen/constraints";
 import { getHexArrayForScreen, SpriteInScreen, useProjectState } from "../store/projectState";
 import { ProjectActions } from "./ProjectActions";
 import { ScreenCanvas } from "./ScreenCanvas";
@@ -47,42 +48,7 @@ export const ScreenMode: React.FC = () => {
     const projectState = useProjectState((s) => s);
     const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
     const { importJSON } = useImportImage();
-
-    const SCREEN_HEIGHT = screen.height;
-    const MAX_SPRITES = 64;
-    const MAX_PER_SCANLINE = 8;
-
-    type ScanReport = { ok: true } | { ok: false; errors: string[] };
-
-    const scan = (checkee = useProjectState.getState().screen): ScanReport => {
-        const errors: string[] = [];
-        const list = checkee.sprites;
-
-        if (list.length > MAX_SPRITES) {
-            errors.push(`スプライト総数が上限(${MAX_SPRITES})を超えています: ${list.length}`);
-        }
-
-        const scanlineCount = new Array<number>(SCREEN_HEIGHT).fill(0);
-        list.forEach((sp) => {
-            const y0 = Math.max(0, sp.y);
-            const y1 = Math.min(SCREEN_HEIGHT - 1, sp.y + sp.height - 1);
-            for (let yy = y0; yy <= y1; yy++) {
-                scanlineCount[yy]++;
-            }
-        });
-
-        const violLines: number[] = [];
-        for (let yy = 0; yy < SCREEN_HEIGHT; yy++) {
-            if (scanlineCount[yy] > MAX_PER_SCANLINE) violLines.push(yy);
-        }
-
-        if (violLines.length) {
-            const sample = violLines.slice(0, 10).join(", ");
-            errors.push(`同一スキャンライン上のスプライト数が上限(${MAX_PER_SCANLINE})を超えています。y=${sample}`);
-        }
-
-        return errors.length ? { ok: false, errors } : { ok: true };
-    };
+    const scan = (checkee = useProjectState.getState().screen) => scanScreenSpriteConstraints(checkee);
 
     const handleImport = async () => {
         try {
@@ -145,7 +111,9 @@ export const ScreenMode: React.FC = () => {
                     <MetricGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                         <MetricCard>
                             <MetricLabel>配置中</MetricLabel>
-                            <MetricValue>{spritesOnScreen.length}/64</MetricValue>
+                            <MetricValue>
+                                {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
+                            </MetricValue>
                         </MetricCard>
                         <MetricCard>
                             <MetricLabel>画面</MetricLabel>
@@ -155,7 +123,9 @@ export const ScreenMode: React.FC = () => {
                         </MetricCard>
                         <MetricCard css={{ gridColumn: "1 / -1" }}>
                             <MetricLabel>制約</MetricLabel>
-                            <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>1ライン最大 8</MetricValue>
+                            <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>
+                                1ライン最大 {MAX_SPRITES_PER_SCANLINE}
+                            </MetricValue>
                         </MetricCard>
                     </MetricGrid>
 

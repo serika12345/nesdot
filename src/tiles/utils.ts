@@ -28,24 +28,35 @@ export type ResizeAnchor =
     | "bottom"
     | "bottom-right";
 
-function computeOffset(anchor: ResizeAnchor, prev: number, next: number): number {
+function computeHorizontalPlacement(anchor: ResizeAnchor, prev: number, next: number): number {
     switch (anchor) {
         case "top-left":
-            return 0;
-        case "top":
-            return Math.floor((next - prev) / 2);
-        case "top-right":
-            return next - prev;
         case "left":
-            return Math.floor((next - prev) / 2);
-        case "center":
-            return Math.floor((next - prev) / 2);
-        case "right":
-            return next - prev;
         case "bottom-left":
             return 0;
+        case "top":
+        case "center":
         case "bottom":
             return Math.floor((next - prev) / 2);
+        case "top-right":
+        case "right":
+        case "bottom-right":
+            return next - prev;
+    }
+}
+
+function computeVerticalPlacement(anchor: ResizeAnchor, prev: number, next: number): number {
+    switch (anchor) {
+        case "top-left":
+        case "top":
+        case "top-right":
+            return 0;
+        case "left":
+        case "center":
+        case "right":
+            return Math.floor((next - prev) / 2);
+        case "bottom-left":
+        case "bottom":
         case "bottom-right":
             return next - prev;
     }
@@ -72,7 +83,13 @@ function ensureBacking(tile: SpriteTileND, fill: ColorIndexOfPalette): Backing {
  * バッファ拡張：ビューがはみ出す場合、裏キャンバスを必要サイズに拡張
  * 既存内容は保ち、足りない部分は fill で埋める
  */
-function growBackingIfNeeded(b: Backing, viewLeft: number, viewTop: number, viewRight: number, viewBottom: number) {
+function growBackingIfNeeded(
+    b: Backing,
+    viewLeft: number,
+    viewTop: number,
+    viewRight: number,
+    viewBottom: number
+): { shiftX: number; shiftY: number } {
     let needGrow = false;
     const newLeft = Math.min(0, viewLeft);
     const newTop = Math.min(0, viewTop);
@@ -84,7 +101,9 @@ function growBackingIfNeeded(b: Backing, viewLeft: number, viewTop: number, view
     const shiftY = newTop < 0 ? -newTop : 0;
     if (shiftX || shiftY || newRight > b.width || newBottom > b.height) needGrow = true;
 
-    if (!needGrow) return;
+    if (!needGrow) {
+        return { shiftX: 0, shiftY: 0 };
+    }
 
     const nextW = Math.max(newRight + shiftX, b.width + shiftX);
     const nextH = Math.max(newBottom + shiftY, b.height + shiftY);
@@ -106,6 +125,8 @@ function growBackingIfNeeded(b: Backing, viewLeft: number, viewTop: number, view
     b.height = nextH;
     b.offsetX += shiftX;
     b.offsetY += shiftY;
+
+    return { shiftX, shiftY };
 }
 
 /**
@@ -138,26 +159,37 @@ export function resizeTileND(
     const curViewLeft = backing.offsetX;
     const curViewTop = backing.offsetY;
 
-    // 「アンカーに応じた貼り付けオフセット」をビュー座標に変換
-    // dx, dy は「旧ビューの中で」貼り付け先を決めるための移動量
-    const dx = computeOffset(anchor, src.width, nextW);
-    const dy = computeOffset(anchor, src.height, nextH);
+    // アンカーに応じて、新ビュー内で旧ビューをどこに置くかを決める。
+    // 新ビュー原点はそのぶん逆方向へ動かす必要がある。
+    const dx = computeHorizontalPlacement(anchor, src.width, nextW);
+    const dy = computeVerticalPlacement(anchor, src.height, nextH);
 
     // 新ビューの左上（裏キャンバス座標）
-    const nextViewLeft = curViewLeft + dx;
-    const nextViewTop = curViewTop + dy;
-    const nextViewRight = nextViewLeft + nextW;
-    const nextViewBottom = nextViewTop + nextH;
+    const desiredNextViewLeft = curViewLeft - dx;
+    const desiredNextViewTop = curViewTop - dy;
+    const desiredNextViewRight = desiredNextViewLeft + nextW;
+    const desiredNextViewBottom = desiredNextViewTop + nextH;
 
     // 新ビューが裏キャンバスからはみ出すなら拡張
-    growBackingIfNeeded(backing, nextViewLeft, nextViewTop, nextViewRight, nextViewBottom);
+    const { shiftX, shiftY } = growBackingIfNeeded(
+        backing,
+        desiredNextViewLeft,
+        desiredNextViewTop,
+        desiredNextViewRight,
+        desiredNextViewBottom
+    );
+
+    const adjustedCurViewLeft = curViewLeft + shiftX;
+    const adjustedCurViewTop = curViewTop + shiftY;
+    const adjustedNextViewLeft = desiredNextViewLeft + shiftX;
+    const adjustedNextViewTop = desiredNextViewTop + shiftY;
 
     // 1) 旧ビューの可視領域の内容を裏キャンバスへ「確定書き戻し」
     //    （src.pixels が正なので、これでビュー外へ出る画素も保持される）
     for (let y = 0; y < src.height; y++) {
         for (let x = 0; x < src.width; x++) {
-            const bx = curViewLeft + x;
-            const by = curViewTop + y;
+            const bx = adjustedCurViewLeft + x;
+            const by = adjustedCurViewTop + y;
             if (by >= 0 && by < backing.height && bx >= 0 && bx < backing.width) {
                 backing.pixels[by][bx] = src.pixels[y][x];
             }
@@ -169,14 +201,14 @@ export function resizeTileND(
 
     // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
     for (let y = 0; y < nextH; y++) {
-        const by = nextViewTop + y;
+        const by = adjustedNextViewTop + y;
         const dstRow = dst.pixels[y];
         if (by < 0 || by >= backing.height) {
             // 全面 fill（makeTile 済みなので何もしない）
             continue;
         }
         for (let x = 0; x < nextW; x++) {
-            const bx = nextViewLeft + x;
+            const bx = adjustedNextViewLeft + x;
             if (bx < 0 || bx >= backing.width) continue;
             dstRow[x] = backing.pixels[by][bx];
         }
@@ -184,8 +216,8 @@ export function resizeTileND(
 
     // 4) 新タイルへ裏キャンバス参照を引き継ぎ、ビューの原点を更新
     dst.__backing = backing;
-    backing.offsetX = nextViewLeft;
-    backing.offsetY = nextViewTop;
+    backing.offsetX = adjustedNextViewLeft;
+    backing.offsetY = adjustedNextViewTop;
 
     return dst;
 }

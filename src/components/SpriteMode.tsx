@@ -37,7 +37,7 @@ import { SpriteCanvas } from "./SpriteCanvas";
 import { ChevronIcon } from "./ui/Icons";
 
 function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
-    return makeTile(height, 0, paletteIndex);
+    return makeTile(height, paletteIndex, 0);
 }
 
 export const SpriteMode: React.FC = () => {
