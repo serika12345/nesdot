@@ -1,5 +1,18 @@
 {
   "eslint.useFlatConfig": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "excludeDirectories": ["**/node_modules", "**/.git", "**/dist"]
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/dist/**": true,
+    "**/src-tauri/target/**": true
+  },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true

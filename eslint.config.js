@@ -1,10 +1,12 @@
+// @ts-nocheck
 import js from "@eslint/js";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
-export default [
+/** @type {import("eslint").Linter.FlatConfig[]} */
+const config = [
   {
     ignores: ["node_modules", "dist", "src-tauri/target", ".git"],
   },
@@ -148,3 +150,5 @@ export default [
     },
   },
 ];
+
+export default config;

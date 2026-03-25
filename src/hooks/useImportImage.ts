@@ -2,7 +2,12 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { z } from "zod";
-import type { ProjectState } from "../store/projectState";
+import type { NesProjectState, NesSubPalette } from "../store/nesProjectState";
+import type {
+  ProjectState,
+  SpriteInScreen,
+  SpriteTile,
+} from "../store/projectState";
 
 const ColorIndexOfPaletteSchema = z.union([
   z.literal(0),
@@ -115,13 +120,79 @@ const ProjectStateSchema = z.object({
 
 const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
+const normalizeSpriteTile = (
+  sprite: z.infer<typeof SpriteTileSchema>,
+): SpriteTile => ({
+  width: 8,
+  height: sprite.height,
+  paletteIndex: sprite.paletteIndex,
+  pixels: sprite.pixels,
+});
+
+const normalizeSpriteInScreen = (
+  sprite: z.infer<typeof SpriteInScreenSchema>,
+): SpriteInScreen => ({
+  ...normalizeSpriteTile(sprite),
+  x: sprite.x,
+  y: sprite.y,
+  spriteIndex: sprite.spriteIndex,
+});
+
+const normalizeNesSubPalette = (
+  palette: z.infer<typeof Palette4ColorsSchema>,
+): NesSubPalette => [palette[0], palette[1], palette[2], palette[3]];
+
+const normalizeNesProjectState = (
+  nes: z.infer<typeof NesProjectStateSchema>,
+): NesProjectState => ({
+  chrBytes: nes.chrBytes,
+  nameTable: {
+    widthTiles: 32,
+    heightTiles: 30,
+    tileIndices: nes.nameTable.tileIndices,
+  },
+  attributeTable: {
+    widthBytes: 8,
+    heightBytes: 8,
+    bytes: nes.attributeTable.bytes,
+  },
+  universalBackgroundColor: nes.universalBackgroundColor,
+  backgroundPalettes: [
+    normalizeNesSubPalette(nes.backgroundPalettes[0]),
+    normalizeNesSubPalette(nes.backgroundPalettes[1]),
+    normalizeNesSubPalette(nes.backgroundPalettes[2]),
+    normalizeNesSubPalette(nes.backgroundPalettes[3]),
+  ],
+  spritePalettes: [
+    normalizeNesSubPalette(nes.spritePalettes[0]),
+    normalizeNesSubPalette(nes.spritePalettes[1]),
+    normalizeNesSubPalette(nes.spritePalettes[2]),
+    normalizeNesSubPalette(nes.spritePalettes[3]),
+  ],
+  oam: nes.oam.map((entry) => ({
+    x: entry.x,
+    y: entry.y,
+    tileIndex: entry.tileIndex,
+    attributeByte: entry.attributeByte,
+  })),
+  ppuControl: {
+    spriteSize: nes.ppuControl.spriteSize,
+    backgroundPatternTable: nes.ppuControl.backgroundPatternTable,
+    spritePatternTable: nes.ppuControl.spritePatternTable,
+  },
+});
+
 const normalizeProjectState = (
   state: z.infer<typeof ProjectStateSchema>,
 ): ProjectState => {
   const baseState: Omit<ProjectState, "_hydrated"> = {
-    screen: state.screen,
-    sprites: state.sprites,
-    nes: state.nes,
+    screen: {
+      width: 256,
+      height: 240,
+      sprites: state.screen.sprites.map(normalizeSpriteInScreen),
+    },
+    sprites: state.sprites.map(normalizeSpriteTile),
+    nes: normalizeNesProjectState(state.nes),
   };
 
   return state._hydrated === undefined

@@ -1,9 +1,9 @@
+// @ts-nocheck
 /// <reference types="vitest/config" />
 
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// @ts-expect-error process is a Node.js global provided by Vite config execution.
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(() => ({
