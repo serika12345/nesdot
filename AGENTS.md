@@ -35,3 +35,6 @@
 - **No typeof/instanceof Operators**: Do not use runtime `typeof` or `instanceof` operators. Prefer explicit type-safe data flow and predicate functions. Type-level `typeof` (TypeScript type query) is allowed.
 - **No Truthy/Falsy Semantics**: Do not rely on truthy/falsy coercion. Use explicit boolean expressions and strict equality/inequality checks (`===`, `!==`).
 - **No Bare Value Conditions**: Prohibit patterns such as `if (value)` and `if (!value)` mechanically. Always compare explicitly (for example, `value === true`, `value !== ""`, `value !== 0`, `value !== null`).
+- **No Implicit Coercion**: Do not use implicit type coercion operators or shorthand coercion patterns. Prefer explicit conversions and comparisons.
+- **React Hooks Rules**: Always follow the Rules of Hooks, and keep hook dependency arrays explicit and consistent with referenced values.
+- **No Unsafe Type Operations**: Avoid unsafe assignment/member access/calls/returns/arguments across untyped boundaries. Narrow unknown data before use and keep unsafe operations lint-clean.
