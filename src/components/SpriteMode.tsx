@@ -242,7 +242,7 @@ export const SpriteMode: React.FC = () => {
                   title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
                   active={activeSlot === j}
                   transparent={j === 0}
-                  bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                  {...(j !== 0 ? { bg: NES_PALETTE_HEX[idx] } : {})}
                 />
                 <SlotLabel>スロット{j}</SlotLabel>
               </SlotGroup>
@@ -269,7 +269,7 @@ export const SpriteMode: React.FC = () => {
             </CollapseToggle>
           </div>
 
-          {isToolsOpen ? (
+          {isToolsOpen && (
             <div
               css={{
                 position: "absolute",
@@ -351,7 +351,7 @@ export const SpriteMode: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : undefined}
+          )}
 
           <SpriteCanvas
             isChangeOrderMode={isChangeOrderMode}

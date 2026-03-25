@@ -9,6 +9,8 @@ type NativeImportResult =
   | { status: "unavailable" };
 
 export default function useImportImage() {
+  const noopInputHandler = () => {};
+
   const readJsonWithNativeDialog = async (): Promise<NativeImportResult> => {
     try {
       const selected = await open({
@@ -43,8 +45,8 @@ export default function useImportImage() {
       document.body.appendChild(input);
 
       const cleanup = () => {
-        input.onchange = undefined;
-        input.oncancel = undefined;
+        input.onchange = noopInputHandler;
+        input.oncancel = noopInputHandler;
         document.body.removeChild(input);
       };
 

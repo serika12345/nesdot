@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import * as O from "fp-ts/Option";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { ColorIndexOfPalette, SpriteTile } from "../../store/projectState";
 
@@ -24,18 +25,16 @@ export const useGhost = ({
   palettes,
   currentSelectPalette,
 }: UseGhostParams) => {
+  type DragInfo = {
+    startTileX: number;
+    startTileY: number;
+    offsetX: number;
+    offsetY: number;
+  };
+
   // 追加：ドラッグ中の8x8タイルのゴースト管理
-  const ghostImgRef = useRef<HTMLImageElement | undefined>(undefined);
-  const dragInfoRef = useRef<
-    | {
-        startTileX: number; // 8の倍数の列
-        startTileY: number; // 8の倍数の行
-        // ポインタからタイル左上（キャンバス内表示位置＝スケール後）までのオフセット（CSS px）
-        offsetX: number;
-        offsetY: number;
-      }
-    | undefined
-  >(undefined);
+  const ghostImgRef = useRef<O.Option<HTMLImageElement>>(O.none);
+  const dragInfoRef = useRef<O.Option<DragInfo>>(O.none);
 
   // 追加：8x8タイルをオフスクリーンに描画して dataURL を返す（透明背景）
   const makeTileGhostDataURL = useCallback(
@@ -91,23 +90,23 @@ export const useGhost = ({
     img.style.transform = "translate(-50%, -50%)"; // ポインタ中央合わせ
     img.style.zIndex = "9999";
     document.body.appendChild(img);
-    ghostImgRef.current = img;
+    ghostImgRef.current = O.some(img);
   }, []);
 
   // 追加：ゴーストの位置更新（クライアント座標で）
   const moveGhost = useCallback((clientX: number, clientY: number) => {
-    const img = ghostImgRef.current;
-    if (!img) return;
-    img.style.left = `${clientX}px`;
-    img.style.top = `${clientY}px`;
+    if (O.isNone(ghostImgRef.current)) return;
+    ghostImgRef.current.value.style.left = `${clientX}px`;
+    ghostImgRef.current.value.style.top = `${clientY}px`;
   }, []);
 
   // 追加：後始末
   const cleanupGhost = useCallback(() => {
-    const img = ghostImgRef.current;
-    if (img?.parentNode) img.parentNode.removeChild(img);
-    ghostImgRef.current = undefined;
-    dragInfoRef.current = undefined;
+    if (O.isSome(ghostImgRef.current) && ghostImgRef.current.value.parentNode) {
+      ghostImgRef.current.value.parentNode.removeChild(ghostImgRef.current.value);
+    }
+    ghostImgRef.current = O.none;
+    dragInfoRef.current = O.none;
   }, []);
 
   /**
@@ -133,12 +132,12 @@ export const useGhost = ({
       // ポインタからタイル左上（表示上の位置）までのオフセット（CSS px）
       const tileLeft = canvasRect.left + startTileX * scale;
       const tileTop = canvasRect.top + startTileY * scale;
-      dragInfoRef.current = {
+      dragInfoRef.current = O.some({
         startTileX,
         startTileY,
         offsetX: e.clientX - tileLeft,
         offsetY: e.clientY - tileTop,
-      };
+      });
 
       // 初期位置
       moveGhost(e.clientX, e.clientY);

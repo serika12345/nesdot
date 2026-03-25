@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
+import * as O from "fp-ts/Option";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import {
   ColorIndexOfPalette,
@@ -32,7 +33,7 @@ export const useSpriteCanvas = ({
 }: UseCanvasParams) => {
   const palettes = useProjectState((s) => s.palettes);
   const tile = useProjectState((s) => s.sprites[target]);
-  const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
+  const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const width = tile.width;
   const height = tile.height;
@@ -50,8 +51,8 @@ export const useSpriteCanvas = ({
   // --- ここまで ---
 
   const drawAll = useCallback(() => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
+    if (O.isNone(canvasRef.current)) return;
+    const cvs = canvasRef.current.value;
     const ctx = cvs.getContext("2d");
     if (!ctx) return;
 
@@ -147,7 +148,8 @@ export const useSpriteCanvas = ({
 
   const handlePointer = useCallback(
     (e: React.PointerEvent) => {
-      const cvs = canvasRef.current!;
+      if (O.isNone(canvasRef.current)) return;
+      const cvs = canvasRef.current.value;
       const rect = cvs.getBoundingClientRect();
       const x = Math.floor((e.clientX - rect.left) / scale); // 列
       const y = Math.floor((e.clientY - rect.top) / scale); // 行
@@ -175,7 +177,10 @@ export const useSpriteCanvas = ({
 
       // 追加：並べ替えモード開始時に8x8タイルのゴースト生成
       if (isChangeOrderMode) {
-        const cvs = canvasRef.current!;
+        if (O.isNone(canvasRef.current)) {
+          return;
+        }
+        const cvs = canvasRef.current.value;
         const rect = cvs.getBoundingClientRect();
         const cellX = Math.floor((e.clientX - rect.left) / scale);
         const cellY = Math.floor((e.clientY - rect.top) / scale);
@@ -204,8 +209,12 @@ export const useSpriteCanvas = ({
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
       // 追加：並べ替えモード中は、ドロップ位置のタイルと開始位置のタイルを入れ替える
-      if (isChangeOrderMode && dragInfoRef.current) {
-        const cvs = canvasRef.current!;
+      if (isChangeOrderMode && O.isSome(dragInfoRef.current)) {
+        if (O.isNone(canvasRef.current)) {
+          cleanupGhost();
+          return;
+        }
+        const cvs = canvasRef.current.value;
         const rect = cvs.getBoundingClientRect();
         const dropCellX = Math.floor((e.clientX - rect.left) / scale);
         const dropCellY = Math.floor((e.clientY - rect.top) / scale);
@@ -214,7 +223,7 @@ export const useSpriteCanvas = ({
         const dropTileX = Math.floor(dropCellX / 8) * 8;
         const dropTileY = Math.floor(dropCellY / 8) * 8;
 
-        const { startTileX, startTileY } = dragInfoRef.current;
+        const { startTileX, startTileY } = dragInfoRef.current.value;
 
         // 同一タイルなら何もしない
         if (dropTileX !== startTileX || dropTileY !== startTileY) {
@@ -268,7 +277,9 @@ export const useSpriteCanvas = ({
 
   // Canvas にそのまま渡せる props を返す
   const canvasProps = {
-    ref: canvasRef,
+    ref: (node: HTMLCanvasElement | null) => {
+      canvasRef.current = O.fromNullable(node);
+    },
     onPointerDown,
     onPointerMove,
     onPointerUp,

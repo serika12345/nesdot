@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
+import * as O from "fp-ts/Option";
 import { NES_PALETTE_HEX } from "../../nes/palette";
 import { useProjectState } from "../../store/projectState";
 
@@ -13,14 +14,14 @@ export const useScreenCanvas = ({
   showGrid = true,
 }: UseCanvasParams) => {
   const screen = useProjectState((s) => s.screen);
-  const canvasRef = useRef<HTMLCanvasElement | undefined>(undefined);
+  const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const width = screen.width;
   const height = screen.height;
 
   const drawAll = useCallback(() => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
+    if (O.isNone(canvasRef.current)) return;
+    const cvs = canvasRef.current.value;
     const ctx = cvs.getContext("2d");
     if (!ctx) return;
 
@@ -120,7 +121,8 @@ export const useScreenCanvas = ({
 
   const handlePointer = useCallback(
     (e: React.PointerEvent) => {
-      const cvs = canvasRef.current!;
+      if (O.isNone(canvasRef.current)) return;
+      const cvs = canvasRef.current.value;
       const rect = cvs.getBoundingClientRect();
       const x = Math.floor((e.clientX - rect.left) / scale); // 列
       const y = Math.floor((e.clientY - rect.top) / scale); // 行
@@ -152,7 +154,9 @@ export const useScreenCanvas = ({
 
   // Canvas にそのまま渡せる props を返す
   const canvasProps = {
-    ref: canvasRef,
+    ref: (node: HTMLCanvasElement | null) => {
+      canvasRef.current = O.fromNullable(node);
+    },
     onPointerDown,
     onPointerMove,
     onPointerUp,

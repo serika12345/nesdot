@@ -40,6 +40,9 @@ export default [
       // TypeScript handles undefined symbols via type checking
       "no-undef": "off",
 
+      // Null Safety: Disallow undefined as a value
+      "no-undefined": "error",
+
       // Type Safety: Disallow any type
       "@typescript-eslint/no-explicit-any": "error",
 
@@ -65,6 +68,16 @@ export default [
           selector: "Literal[value=null]",
           message:
             "Avoid using `null`. Use Option patterns or early returns instead.",
+        },
+        {
+          selector: "Identifier[name='undefined']",
+          message:
+            "Avoid using `undefined`. Use Option patterns or early returns instead.",
+        },
+        {
+          selector: "TSUndefinedKeyword",
+          message:
+            "Avoid `undefined` in type positions. Use Option-like patterns instead.",
         },
         {
           selector:

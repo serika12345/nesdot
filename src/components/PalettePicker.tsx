@@ -55,7 +55,7 @@ export const PalettePicker: React.FC = () => {
                 </div>
                 <SelectionSwatch
                     transparent={activeSlot === 0}
-                    bg={activeSlot === 0 ? undefined : activeColorHex}
+                    {...(activeSlot !== 0 ? { bg: activeColorHex } : {})}
                     title={`#${activeColorIndex.toString(16).padStart(2, "0").toUpperCase()}`}
                 />
             </SelectionSummary>
@@ -86,11 +86,11 @@ export const PalettePicker: React.FC = () => {
                                     {palette.map((idx, j) => (
                                         <SlotGroup key={j} active={isActivePalette && activeSlot === j}>
                                             <SlotButton
-                                                onClick={j !== 0 ? () => handlePaletteClick(i, j) : undefined}
+                                                {...(j !== 0 ? { onClick: () => handlePaletteClick(i, j) } : {})}
                                                 title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
                                                 active={activeSlot === j && isActivePalette}
                                                 transparent={j === 0}
-                                                bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
+                                                {...(j !== 0 ? { bg: NES_PALETTE_HEX[idx] } : {})}
                                             />
                                             <SlotLabel>スロット{j}</SlotLabel>
                                         </SlotGroup>

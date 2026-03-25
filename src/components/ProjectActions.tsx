@@ -5,6 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import { createPortal } from "react-dom";
 import {
   ActionButtonsRow,
@@ -47,23 +49,33 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
     width: 220,
     ready: false,
   });
-  const triggerRef = useRef<HTMLButtonElement | undefined>(undefined);
-  const menuRef = useRef<HTMLDivElement | undefined>(undefined);
+  const triggerRef = useRef<O.Option<HTMLButtonElement>>(O.none);
+  const menuRef = useRef<O.Option<HTMLDivElement>>(O.none);
 
   const updateMenuPosition = useCallback(() => {
-    if (!triggerRef.current) return;
+    if (O.isNone(triggerRef.current)) return;
 
     const viewportPadding = 16;
-    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const triggerRect = triggerRef.current.value.getBoundingClientRect();
+    const menuWidth = pipe(
+      menuRef.current,
+      O.map((node) => node.offsetWidth),
+      O.getOrElse(() => 220),
+    );
+    const menuHeight = pipe(
+      menuRef.current,
+      O.map((node) => node.offsetHeight),
+      O.getOrElse(() => 0),
+    );
     const measuredWidth = Math.max(
       triggerRect.width,
-      menuRef.current?.offsetWidth ?? 220,
+      menuWidth,
     );
     const width = Math.min(
       measuredWidth,
       window.innerWidth - viewportPadding * 2,
     );
-    const measuredHeight = menuRef.current?.offsetHeight ?? 0;
+    const measuredHeight = menuHeight;
 
     const left = Math.max(
       viewportPadding,
@@ -136,11 +148,12 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
 
   const menu =
     menuOpen && typeof document !== "undefined"
-      ? createPortal(
+      ? O.some(
+          createPortal(
           <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
             <ActionMenu
               ref={(node) => {
-                menuRef.current = node ?? undefined;
+                menuRef.current = O.fromNullable(node);
               }}
               role="menu"
               aria-label="共有メニュー"
@@ -168,8 +181,9 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
             </ActionMenu>
           </ActionMenuOverlay>,
           document.body,
+        ),
         )
-      : undefined;
+      : O.none;
 
   return (
     <>
@@ -177,7 +191,7 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
         <ActionButtonsRow>
           <IconActionButton
             ref={(node) => {
-              triggerRef.current = node ?? undefined;
+              triggerRef.current = O.fromNullable(node);
             }}
             type="button"
             active={menuOpen}
@@ -201,7 +215,7 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
         </ActionButtonsRow>
       </ActionCluster>
 
-      {menu}
+      {O.isSome(menu) ? menu.value : false}
     </>
   );
 };
