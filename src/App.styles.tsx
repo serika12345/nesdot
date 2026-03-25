@@ -416,6 +416,12 @@ export const ActionMenu = styled.div`
     z-index: 9999;
 `;
 
+export const ActionMenuOverlay = styled.div`
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+`;
+
 export const ActionMenuButton = styled.button`
     appearance: none;
     width: 100%;

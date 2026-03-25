@@ -4,6 +4,7 @@ import {
     ActionButtonsRow,
     ActionCluster,
     ActionMenu,
+    ActionMenuOverlay,
     ActionMenuButton,
     IconActionButton,
     IconLabel,
@@ -36,7 +37,6 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
         width: 220,
         ready: false,
     });
-    const rootRef = useRef<HTMLDivElement | null>(null);
     const triggerRef = useRef<HTMLButtonElement | null>(null);
     const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -67,24 +67,15 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
     }, []);
 
     useEffect(() => {
-        const handlePointerDown = (event: PointerEvent) => {
-            const target = event.target as Node;
-            if (rootRef.current?.contains(target)) return;
-            if (menuRef.current?.contains(target)) return;
-            setMenuOpen(false);
-        };
-
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setMenuOpen(false);
             }
         };
 
-        window.addEventListener("pointerdown", handlePointerDown);
         window.addEventListener("keydown", handleKeyDown);
 
         return () => {
-            window.removeEventListener("pointerdown", handlePointerDown);
             window.removeEventListener("keydown", handleKeyDown);
         };
     }, []);
@@ -116,38 +107,41 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({ actions, onImpor
     const menu =
         menuOpen && typeof document !== "undefined"
             ? createPortal(
-                  <ActionMenu
-                      ref={menuRef}
-                      role="menu"
-                      aria-label="共有メニュー"
-                      style={{
-                          top: menuPosition.top,
-                          left: menuPosition.left,
-                          width: menuPosition.width,
-                          visibility: menuPosition.ready ? "visible" : "hidden",
-                      }}
-                  >
-                      {actions.map((action) => (
-                          <ActionMenuButton
-                              key={action.label}
-                              type="button"
-                              onClick={() => {
-                                  setMenuOpen(false);
-                                  action.onSelect();
-                              }}
-                          >
-                              <span>{action.label}</span>
-                              <ShareIcon size={14} />
-                          </ActionMenuButton>
-                      ))}
-                  </ActionMenu>,
+                  <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
+                      <ActionMenu
+                          ref={menuRef}
+                          role="menu"
+                          aria-label="共有メニュー"
+                          onPointerDown={(event) => event.stopPropagation()}
+                          style={{
+                              top: menuPosition.top,
+                              left: menuPosition.left,
+                              width: menuPosition.width,
+                              visibility: menuPosition.ready ? "visible" : "hidden",
+                          }}
+                      >
+                          {actions.map((action) => (
+                              <ActionMenuButton
+                                  key={action.label}
+                                  type="button"
+                                  onClick={() => {
+                                      setMenuOpen(false);
+                                      action.onSelect();
+                                  }}
+                              >
+                                  <span>{action.label}</span>
+                                  <ShareIcon size={14} />
+                              </ActionMenuButton>
+                          ))}
+                      </ActionMenu>
+                  </ActionMenuOverlay>,
                   document.body
               )
             : null;
 
     return (
         <>
-            <ActionCluster ref={rootRef}>
+            <ActionCluster>
                 <ActionButtonsRow>
                     <IconActionButton
                         ref={triggerRef}
