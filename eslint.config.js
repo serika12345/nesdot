@@ -172,6 +172,9 @@ const config = [
       "src/components/ui/**/*.tsx",
       "src/components/hooks/swapPreview.ts",
       "src/components/hooks/swapPreview.test.ts",
+      "src/components/hooks/useGhost.ts",
+      "src/components/hooks/useScreenCanvas.ts",
+      "src/components/hooks/useSpriteCanvas.ts",
       "src/components/hooks/useSwap.ts",
       "src/hooks/useExportImage.ts",
       "src/hooks/useImportImage.ts",
@@ -220,13 +223,9 @@ const config = [
     },
   },
   {
-    files: [
-      "src/components/hooks/useGhost.ts",
-      "src/components/hooks/useScreenCanvas.ts",
-      "src/components/hooks/useSpriteCanvas.ts",
-    ],
+    files: ["src/utils/canvasRuntime.ts"],
     rules: {
-      // Canvas/DOM操作は命令的代入が本質のため、ここだけ許可アクセサを限定して運用
+      // Canvas/DOM操作の命令的代入は helper 境界へ隔離する
       "functional/immutable-data": [
         "error",
         {
@@ -234,16 +233,11 @@ const config = [
           ignoreNonConstDeclarations: true,
           ignoreMapsAndSets: true,
           ignoreIdentifierPattern: [
-            "cvs",
-            "ctx",
-            "ghostCvs",
-            "gctx",
-            "img",
-            "canvasRef",
-            "ghostImgRef",
-            "dragInfoRef",
-            "hoverTileRef",
-            "paintingRef",
+            "canvas",
+            "context",
+            "image",
+            "document",
+            "body",
           ],
           ignoreAccessorPattern: [
             "current",

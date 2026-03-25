@@ -15,6 +15,12 @@ import {
   SpriteTile,
 } from "../store/projectState";
 import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
+import {
+  canvasToBlob,
+  createImageData,
+  createOffscreenCanvasSurface,
+  putImageData,
+} from "../utils/canvasRuntime";
 
 type FileFilter = {
   name: string;
@@ -159,16 +165,16 @@ export default function useExportImage() {
     const h = hexPixels.length;
     const w = getHexGridWidth(hexPixels);
     const transparentHex = nesIndexToCssHex(0);
-    const cvs = document.createElement("canvas");
     const scaledWidth = w * scale;
     const scaledHeight = h * scale;
-    cvs.setAttribute("width", `${scaledWidth}`);
-    cvs.setAttribute("height", `${scaledHeight}`);
-    const ctxOption = O.fromNullable(cvs.getContext("2d"));
-    if (O.isNone(ctxOption)) {
+    const surfaceOption = createOffscreenCanvasSurface(
+      scaledWidth,
+      scaledHeight,
+    );
+    if (O.isNone(surfaceOption)) {
       return;
     }
-    const ctx = ctxOption.value;
+    const surface = surfaceOption.value;
 
     const rgbaValues = Array.from({ length: scaledHeight }, (_, yy) => {
       const y = Math.floor(yy / scale);
@@ -187,22 +193,9 @@ export default function useExportImage() {
       }).flat();
     }).flat();
 
-    const imageData = new ImageData(
-      Uint8ClampedArray.from(rgbaValues),
-      scaledWidth,
-      scaledHeight,
-    );
-    ctx.putImageData(imageData, 0, 0);
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      cvs.toBlob((value) => {
-        const valueOption = O.fromNullable(value);
-        if (O.isNone(valueOption)) {
-          reject(new Error("PNG blob generation failed"));
-          return;
-        }
-        resolve(valueOption.value);
-      }, "image/png");
-    });
+    const imageData = createImageData(rgbaValues, scaledWidth, scaledHeight);
+    putImageData(surface, imageData, 0, 0);
+    const blob = await canvasToBlob(surface, "image/png");
 
     const name = fileName ?? `image_${w}x${h}.png`;
     const saveResult = await saveBytesNative(await blobToBytes(blob), name, [
