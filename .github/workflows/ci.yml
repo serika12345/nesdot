@@ -17,7 +17,7 @@ jobs:
       - uses: cachix/install-nix-action@v31
 
       - name: Run verify
-        run: nix develop -c zsh -lc 'pnpm install --frozen-lockfile && pnpm verify'
+        run: nix develop -c bash -lc 'pnpm install --frozen-lockfile && pnpm verify'
 
       - name: Run UI console check
-        run: nix develop -c zsh -lc 'pnpm e2e:install && pnpm verify:ui'
+        run: nix develop -c bash -lc 'pnpm e2e:install && pnpm verify:ui'
