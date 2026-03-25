@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
+import React, { useState } from "react";
 import {
     Badge,
     CanvasViewport,
@@ -30,9 +30,9 @@ import {
     useProjectState,
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
-import { ProjectActions } from "./ProjectActions";
-import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { Tool } from "./hooks/useSpriteCanvas";
+import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
+import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
 import { ChevronIcon } from "./ui/Icons";
 
