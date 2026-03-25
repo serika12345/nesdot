@@ -2,6 +2,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { z } from "zod";
+import { CharacterJsonData, useCharacterState } from "../store/characterState";
 import type { NesProjectState, NesSubPalette } from "../store/nesProjectState";
 import type {
   ProjectState,
@@ -121,6 +122,40 @@ const ProjectStateSchema = z.object({
   _hydrated: z.boolean().optional(),
 });
 
+const CharacterCellSchema = z.union([
+  z.object({ kind: z.literal("empty") }),
+  z.object({
+    kind: z.literal("sprite"),
+    spriteIndex: z.number().int().min(0).max(63),
+  }),
+]);
+
+const CharacterSetSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    rows: z.number().int().min(1),
+    cols: z.number().int().min(1),
+    cells: z.array(CharacterCellSchema),
+  })
+  .superRefine((value, ctx) => {
+    if (value.cells.length !== value.rows * value.cols) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "CharacterSet cells length must match rows*cols",
+      });
+    }
+  });
+
+const CharacterJsonDataSchema = z.object({
+  characterSets: z.array(CharacterSetSchema),
+  selectedCharacterId: z.string().optional(),
+});
+
+const ProjectImportSchema = ProjectStateSchema.extend({
+  characters: CharacterJsonDataSchema.optional(),
+});
+
 const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
 const normalizeSpriteTile = (
@@ -206,12 +241,34 @@ const normalizeProjectState = (
     : { ...baseState, _hydrated: state._hydrated };
 };
 
-const parseProjectState = (text: string): O.Option<ProjectState> => {
+const normalizeCharacterJsonData = (
+  characters: z.infer<typeof CharacterJsonDataSchema>,
+): CharacterJsonData => ({
+  characterSets: characters.characterSets,
+  ...(characters.selectedCharacterId === undefined
+    ? {}
+    : { selectedCharacterId: characters.selectedCharacterId }),
+});
+
+interface ParsedProjectImport {
+  projectState: ProjectState;
+  characterData: CharacterJsonData;
+}
+
+const parseProjectState = (text: string): O.Option<ParsedProjectImport> => {
   try {
     const parsed: unknown = JSON.parse(text);
-    const schemaResult = ProjectStateSchema.safeParse(parsed);
+    const schemaResult = ProjectImportSchema.safeParse(parsed);
     if (schemaResult.success === true) {
-      return O.some(normalizeProjectState(schemaResult.data));
+      const normalizedProject = normalizeProjectState(schemaResult.data);
+      const normalizedCharacterData =
+        schemaResult.data.characters === undefined
+          ? { characterSets: [] }
+          : normalizeCharacterJsonData(schemaResult.data.characters);
+      return O.some({
+        projectState: normalizedProject,
+        characterData: normalizedCharacterData,
+      });
     }
     return O.none;
   } catch {
@@ -325,7 +382,10 @@ export default function useImportImage() {
         alert("JSON の形式が不正です。インポートを中止しました。");
         return false;
       }
-      onImport(parsedOption.value);
+      onImport(parsedOption.value.projectState);
+      useCharacterState
+        .getState()
+        .setFromJson(parsedOption.value.characterData);
       return true;
     }
 
@@ -343,7 +403,8 @@ export default function useImportImage() {
       alert("JSON の形式が不正です。インポートを中止しました。");
       return false;
     }
-    onImport(parsedOption.value);
+    onImport(parsedOption.value.projectState);
+    useCharacterState.getState().setFromJson(parsedOption.value.characterData);
     return true;
   };
 

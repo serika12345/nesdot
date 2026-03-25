@@ -5,6 +5,10 @@ import * as O from "fp-ts/Option";
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
 import { NES_PALETTE_HEX } from "../nes/palette";
 import {
+  toCharacterJsonData,
+  useCharacterState,
+} from "../store/characterState";
+import {
   ColorIndexOfPalette,
   PaletteIndex,
   ProjectState,
@@ -219,7 +223,14 @@ export default function useExportImage() {
   };
 
   const exportJSON = async (projectState: ProjectState) => {
-    const json = JSON.stringify(projectState);
+    const characterJson = toCharacterJsonData({
+      characterSets: useCharacterState.getState().characterSets,
+      selectedCharacterId: useCharacterState.getState().selectedCharacterId,
+    });
+    const json = JSON.stringify({
+      ...projectState,
+      characters: characterJson,
+    });
     const fileName = "project.json";
     const bytes = new TextEncoder().encode(json);
     const saveResult = await saveBytesNative(bytes, fileName, [

@@ -1,3 +1,4 @@
+import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { create } from "zustand";
 import {
@@ -17,6 +18,12 @@ interface CharacterState {
   resizeSet: (id: string, rows: number, cols: number) => void;
   setCell: (id: string, index: number, cell: CharacterCell) => void;
   deleteSet: (id: string) => void;
+  setFromJson: (data: CharacterJsonData) => void;
+}
+
+export interface CharacterJsonData {
+  characterSets: CharacterSet[];
+  selectedCharacterId?: string;
 }
 
 const createSetId = (): string =>
@@ -42,7 +49,48 @@ const pickNextSelected = (
     return O.some(selected);
   }
 
-  return O.some(nextSets[0].id);
+  return pipe(
+    O.fromNullable(nextSets[0]),
+    O.map((nextSet) => nextSet.id),
+  );
+};
+
+export const toCharacterJsonData = (params: {
+  characterSets: CharacterSet[];
+  selectedCharacterId: O.Option<string>;
+}): CharacterJsonData =>
+  pipe(
+    params.selectedCharacterId,
+    O.match(
+      () => ({ characterSets: params.characterSets }),
+      (selectedCharacterId) => ({
+        characterSets: params.characterSets,
+        selectedCharacterId,
+      }),
+    ),
+  );
+
+export const fromCharacterJsonData = (
+  data: CharacterJsonData,
+): {
+  characterSets: CharacterSet[];
+  selectedCharacterId: O.Option<string>;
+} => {
+  const selectedOption = O.fromNullable(data.selectedCharacterId);
+  const validatedSelection = pipe(
+    selectedOption,
+    O.filter((selectedId) =>
+      data.characterSets.some((characterSet) => characterSet.id === selectedId),
+    ),
+  );
+
+  return {
+    characterSets: data.characterSets,
+    selectedCharacterId: pickNextSelected(
+      validatedSelection,
+      data.characterSets,
+    ),
+  };
 };
 
 export const useCharacterState = create<CharacterState>()((set) => ({
@@ -112,5 +160,8 @@ export const useCharacterState = create<CharacterState>()((set) => ({
         ),
       };
     });
+  },
+  setFromJson: (data) => {
+    set(fromCharacterJsonData(data));
   },
 }));
