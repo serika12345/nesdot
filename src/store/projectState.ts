@@ -119,7 +119,10 @@ const persistOptions: PersistOptions<ProjectState> = {
     // 直後に _hydrated を立てて UI の初期化完了を通知
     const stateOption = O.fromNullable(state);
     if (O.isSome(stateOption)) {
-      stateOption.value._hydrated = true;
+      useProjectState.setState((prev) => ({
+        ...prev,
+        _hydrated: true,
+      }));
     }
   },
 };

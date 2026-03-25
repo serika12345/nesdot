@@ -16,31 +16,28 @@ export const getGroupBounds = (
   sprites: SpriteInScreen[],
   selectedIndices: Set<number>,
 ): GroupBounds => {
-  const bounds = (() => {
-    const initial = {
+  return Array.from(selectedIndices).reduce<GroupBounds>(
+    (acc, index) => {
+      const spriteOption = O.fromNullable(sprites[index]);
+      if (O.isNone(spriteOption)) {
+        return acc;
+      }
+      const sprite = spriteOption.value;
+
+      return {
+        minX: Math.min(acc.minX, sprite.x),
+        minY: Math.min(acc.minY, sprite.y),
+        maxX: Math.max(acc.maxX, sprite.x + sprite.width),
+        maxY: Math.max(acc.maxY, sprite.y + sprite.height),
+      };
+    },
+    {
       minX: Infinity,
       minY: Infinity,
       maxX: -Infinity,
       maxY: -Infinity,
-    };
-
-    selectedIndices.forEach((index) => {
-      const spriteOption = O.fromNullable(sprites[index]);
-      if (O.isNone(spriteOption)) {
-        return;
-      }
-      const sprite = spriteOption.value;
-
-      initial.minX = Math.min(initial.minX, sprite.x);
-      initial.minY = Math.min(initial.minY, sprite.y);
-      initial.maxX = Math.max(initial.maxX, sprite.x + sprite.width);
-      initial.maxY = Math.max(initial.maxY, sprite.y + sprite.height);
-    });
-
-    return initial;
-  })();
-
-  return bounds;
+    },
+  );
 };
 
 /**

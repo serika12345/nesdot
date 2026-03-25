@@ -100,11 +100,9 @@ export const ScreenMode: React.FC = () => {
   };
 
   const removeFromGroupSelection = (index: number): void => {
-    setSelectedSpriteIndices((prev) => {
-      const next = new Set(prev);
-      next.delete(index);
-      return next;
-    });
+    setSelectedSpriteIndices(
+      (prev) => new Set(Array.from(prev).filter((value) => value !== index)),
+    );
   };
 
   const clearGroupSelection = (): void => {

@@ -1,5 +1,5 @@
-import * as O from "fp-ts/Option";
 import { isLeft } from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import { SpriteTileND } from "../store/projectState";
 import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
@@ -108,17 +108,27 @@ describe("resizeTileND", () => {
   });
 
   it("positions content according to the requested anchor when expanding", () => {
-    const tile: SpriteTileND = makeTile(8, 1, 0);
-    const firstRowOption = getArrayItem(tile.pixels, 0);
-    const lastRowOption = getArrayItem(tile.pixels, 7);
+    const baseTile: SpriteTileND = makeTile(8, 1, 0);
+    const firstRowOption = getArrayItem(baseTile.pixels, 0);
+    const lastRowOption = getArrayItem(baseTile.pixels, 7);
     expect(O.isSome(firstRowOption)).toBe(true);
     expect(O.isSome(lastRowOption)).toBe(true);
     if (O.isNone(firstRowOption) || O.isNone(lastRowOption)) {
       return;
     }
 
-    firstRowOption.value[0] = 1;
-    lastRowOption.value[0] = 2;
+    const tile: SpriteTileND = {
+      ...baseTile,
+      pixels: baseTile.pixels.map((row, y) => {
+        if (y === 0) {
+          return row.map((value, x) => (x === 0 ? 1 : value));
+        }
+        if (y === 7) {
+          return row.map((value, x) => (x === 0 ? 2 : value));
+        }
+        return row;
+      }),
+    };
 
     const expanded = resizeTileND(tile, 8, 16, { anchor: "bottom", fill: 0 });
 

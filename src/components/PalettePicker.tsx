@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
 import { CollapseToggle } from "../App.styles";
-import { nesIndexToCssHex, NES_PALETTE_HEX } from "../nes/palette";
+import { NES_PALETTE_HEX, nesIndexToCssHex } from "../nes/palette";
 import {
   NesBackgroundPalettes,
   NesColorIndex,
@@ -63,13 +63,33 @@ export const PalettePicker: React.FC = () => {
   };
 
   const setSlot = (slotIndex: ColorIndexOfPalette, idx: NesColorIndex) => {
-    const next: NesBackgroundPalettes = [
+    const updateSubPalette = (
+      palette: NesSubPalette,
+      paletteIndex: number,
+    ): NesSubPalette => {
+      if (paletteIndex !== activePalette) {
+        return palette;
+      }
+      return [
+        slotIndex === 0 ? idx : palette[0],
+        slotIndex === 1 ? idx : palette[1],
+        slotIndex === 2 ? idx : palette[2],
+        slotIndex === 3 ? idx : palette[3],
+      ];
+    };
+
+    const base: NesBackgroundPalettes = [
       clonePalette(palettes[0]),
       clonePalette(palettes[1]),
       clonePalette(palettes[2]),
       clonePalette(palettes[3]),
     ];
-    next[activePalette][slotIndex] = idx;
+    const next: NesBackgroundPalettes = [
+      updateSubPalette(base[0], 0),
+      updateSubPalette(base[1], 1),
+      updateSubPalette(base[2], 2),
+      updateSubPalette(base[3], 3),
+    ];
     const state = useProjectState.getState();
     useProjectState.setState({
       nes: {

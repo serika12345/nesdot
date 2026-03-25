@@ -1,6 +1,6 @@
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
-import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import React, { useState } from "react";
 import {
   Badge,
@@ -68,8 +68,9 @@ export const SpriteMode: React.FC = () => {
   const screen = useProjectState((s) => s.screen);
 
   const setTile = (t: SpriteTile, index: number) => {
-    const newSprites = [...sprites];
-    newSprites[index] = t;
+    const newSprites = sprites.map((sprite, spriteIndex) =>
+      spriteIndex === index ? t : sprite,
+    );
     useProjectState.setState({ sprites: newSprites });
 
     const newScreen = {

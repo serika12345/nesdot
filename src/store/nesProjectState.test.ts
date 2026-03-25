@@ -37,8 +37,13 @@ describe("nesProjectState", () => {
   });
 
   it("resolves palette index from each quadrant of an attribute byte", () => {
-    const table = createEmptyAttributeTable();
-    table.bytes[0] = 0b11_10_01_00;
+    const baseTable = createEmptyAttributeTable();
+    const table = {
+      ...baseTable,
+      bytes: baseTable.bytes.map((value, index) =>
+        index === 0 ? 0b11_10_01_00 : value,
+      ),
+    };
 
     expect(resolveBackgroundPaletteIndex(table, 0, 0)).toEqual(E.right(0));
     expect(resolveBackgroundPaletteIndex(table, 2, 0)).toEqual(E.right(1));

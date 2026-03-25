@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { ColorIndexOfPalette } from "../store/projectState";
-import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
+import { getMatrixItem } from "../utils/arrayAccess";
 
 export function swap8x8Blocks(
   srcPixels: ColorIndexOfPalette[][],
@@ -9,31 +9,35 @@ export function swap8x8Blocks(
   bx: number,
   by: number,
 ): ColorIndexOfPalette[][] {
-  const next: ColorIndexOfPalette[][] = srcPixels.map((row) => row.slice());
+  const isIn8x8 = (x: number, y: number, left: number, top: number): boolean =>
+    x >= left && x < left + 8 && y >= top && y < top + 8;
 
-  Array.from({ length: 8 }, (_, dy) => dy).forEach((dy) => {
-    Array.from({ length: 8 }, (_, dx) => dx).forEach((dx) => {
-      const sourceY = ay + dy;
-      const sourceX = ax + dx;
-      const targetY = by + dy;
-      const targetX = bx + dx;
+  const readPixel = (
+    pixels: ColorIndexOfPalette[][],
+    x: number,
+    y: number,
+  ): O.Option<ColorIndexOfPalette> => getMatrixItem(pixels, y, x);
 
-      if (sourceY < 0 || sourceY >= next.length) return;
-      if (targetY < 0 || targetY >= next.length) return;
-      const sourceRowOption = getArrayItem(next, sourceY);
-      const targetRowOption = getArrayItem(next, targetY);
-      if (O.isNone(sourceRowOption) || O.isNone(targetRowOption)) return;
-      if (sourceX < 0 || sourceX >= sourceRowOption.value.length) return;
-      if (targetX < 0 || targetX >= targetRowOption.value.length) return;
+  return srcPixels.map((row, y) =>
+    row.map((pixel, x) => {
+      const inA = isIn8x8(x, y, ax, ay);
+      const inB = isIn8x8(x, y, bx, by);
 
-      const sourcePixelOption = getMatrixItem(next, sourceY, sourceX);
-      const targetPixelOption = getMatrixItem(next, targetY, targetX);
-      if (O.isNone(sourcePixelOption) || O.isNone(targetPixelOption)) return;
+      if (inA === true) {
+        const mappedX = bx + (x - ax);
+        const mappedY = by + (y - ay);
+        const mappedPixel = readPixel(srcPixels, mappedX, mappedY);
+        return O.getOrElse(() => pixel)(mappedPixel);
+      }
 
-      sourceRowOption.value[sourceX] = targetPixelOption.value;
-      targetRowOption.value[targetX] = sourcePixelOption.value;
-    });
-  });
+      if (inB === true) {
+        const mappedX = ax + (x - bx);
+        const mappedY = ay + (y - by);
+        const mappedPixel = readPixel(srcPixels, mappedX, mappedY);
+        return O.getOrElse(() => pixel)(mappedPixel);
+      }
 
-  return next;
+      return pixel;
+    }),
+  );
 }

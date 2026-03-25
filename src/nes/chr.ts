@@ -11,14 +11,11 @@ export function tile8x8ToChr(tile: SpriteTile): E.Either<string, Uint8Array> {
   if (tile.width !== 8 || tile.height !== 8) {
     return E.left("tile8x8ToChr: 8x8のみ対応");
   }
-  const plane0 = new Uint8Array(8);
-  const plane1 = new Uint8Array(8);
-
-  Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
+  const packedRows = Array.from({ length: 8 }, (_, y) => y).map((y) => {
     const bits = Array.from({ length: 8 }, (_, x) => {
-      const pix: ColorIndexOfPalette = O.getOrElse((): ColorIndexOfPalette => 0)(
-        getMatrixItem(tile.pixels, y, x),
-      );
+      const pix: ColorIndexOfPalette = O.getOrElse(
+        (): ColorIndexOfPalette => 0,
+      )(getMatrixItem(tile.pixels, y, x));
       return {
         b0: pix & 1,
         b1: (pix >> 1) & 1,
@@ -33,14 +30,14 @@ export function tile8x8ToChr(tile: SpriteTile): E.Either<string, Uint8Array> {
       }),
       { p0: 0, p1: 0 },
     );
-
-    plane0[y] = packed.p0;
-    plane1[y] = packed.p1;
+    return packed;
   });
 
-  const out = new Uint8Array(16);
-  out.set(plane0, 0);
-  out.set(plane1, 8);
+  const out = new Uint8Array(
+    packedRows
+      .flatMap((packed) => [packed.p0])
+      .concat(packedRows.flatMap((packed) => [packed.p1])),
+  );
   return E.right(out);
 }
 
@@ -68,8 +65,6 @@ export function tile8x16ToChr(
   if (E.isLeft(bottomChr)) {
     return bottomChr;
   }
-  const out = new Uint8Array(32);
-  out.set(topChr.right, 0);
-  out.set(bottomChr.right, 16);
+  const out = new Uint8Array([...topChr.right, ...bottomChr.right]);
   return E.right(out);
 }
