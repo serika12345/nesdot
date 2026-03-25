@@ -6,6 +6,7 @@ import {
   SpriteTile,
   useProjectState,
 } from "../../store/projectState";
+import { getSwapPreviewTile } from "./swapPreview";
 import { useGhost } from "./useGhost";
 import { useSwap } from "./useSwap";
 
@@ -34,6 +35,9 @@ export const useSpriteCanvas = ({
   const palettes = useProjectState((s) => s.palettes);
   const tile = useProjectState((s) => s.sprites[target]);
   const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
+  const hoverTileRef = useRef<O.Option<{ tileX: number; tileY: number }>>(
+    O.none,
+  );
 
   const width = tile.width;
   const height = tile.height;
@@ -124,7 +128,65 @@ export const useSpriteCanvas = ({
         ctx.stroke();
       });
     }
-  }, [tile, palettes, scale, showGrid, width, height, currentSelectPalette]);
+
+    if (isChangeOrderMode === true && O.isSome(dragInfoRef.current)) {
+      const drawTileFrame = (
+        tileX: number,
+        tileY: number,
+        stroke: string,
+        fill: string,
+        dash: number[],
+      ) => {
+        ctx.save();
+        ctx.setLineDash(dash);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = stroke;
+        ctx.fillStyle = fill;
+        ctx.fillRect(tileX * scale, tileY * scale, 8 * scale, 8 * scale);
+        ctx.strokeRect(
+          tileX * scale + 1,
+          tileY * scale + 1,
+          8 * scale - 2,
+          8 * scale - 2,
+        );
+        ctx.restore();
+      };
+
+      const { startTileX, startTileY } = dragInfoRef.current.value;
+      drawTileFrame(
+        startTileX,
+        startTileY,
+        "rgba(245, 158, 11, 0.95)",
+        "rgba(245, 158, 11, 0.16)",
+        [4, 4],
+      );
+
+      if (O.isSome(hoverTileRef.current)) {
+        const { tileX, tileY } = hoverTileRef.current.value;
+        const isSameTile = tileX === startTileX && tileY === startTileY;
+
+        if (isSameTile === false) {
+          drawTileFrame(
+            tileX,
+            tileY,
+            "rgba(14, 165, 233, 0.98)",
+            "rgba(14, 165, 233, 0.18)",
+            [],
+          );
+        }
+      }
+    }
+  }, [
+    tile,
+    palettes,
+    scale,
+    showGrid,
+    width,
+    height,
+    currentSelectPalette,
+    isChangeOrderMode,
+    dragInfoRef,
+  ]);
 
   useEffect(() => {
     drawAll();
@@ -162,10 +224,12 @@ export const useSpriteCanvas = ({
         // 並べ替えモード中はポインタ座標に常時追従させる。
         // 条件付きにすると一部領域で更新されず、途中で引っかかったように見える。
         moveGhost(e.clientX, e.clientY);
+        hoverTileRef.current = getSwapPreviewTile(x, y, width, height);
+        drawAll();
         return;
       }
     },
-    [scale, applyAt, isChangeOrderMode, moveGhost],
+    [scale, applyAt, isChangeOrderMode, moveGhost, width, height, drawAll],
   );
 
   const onPointerDown = useCallback(
@@ -184,9 +248,19 @@ export const useSpriteCanvas = ({
         const cellX = Math.floor((e.clientX - rect.left) / scale);
         const cellY = Math.floor((e.clientY - rect.top) / scale);
         beginGhostAtCell(e, rect, cellX, cellY); // ← フックAPI呼び出し
+        hoverTileRef.current = getSwapPreviewTile(cellX, cellY, width, height);
+        drawAll();
       }
     },
-    [handlePointer, isChangeOrderMode, scale, beginGhostAtCell],
+    [
+      handlePointer,
+      isChangeOrderMode,
+      scale,
+      beginGhostAtCell,
+      width,
+      height,
+      drawAll,
+    ],
   );
 
   const onPointerMove = handlePointer;
@@ -194,12 +268,16 @@ export const useSpriteCanvas = ({
   const onPointerCancel = useCallback(() => {
     paintingRef.current = false;
     cleanupGhost();
-  }, [cleanupGhost]);
+    hoverTileRef.current = O.none;
+    drawAll();
+  }, [cleanupGhost, drawAll]);
 
   const onLostPointerCapture = useCallback(() => {
     paintingRef.current = false;
     cleanupGhost();
-  }, [cleanupGhost]);
+    hoverTileRef.current = O.none;
+    drawAll();
+  }, [cleanupGhost, drawAll]);
 
   // 既存：onPointerUp を差し替え
   const onPointerUp = useCallback(
@@ -254,6 +332,8 @@ export const useSpriteCanvas = ({
 
       // 追加：ゴーストの後始末
       cleanupGhost();
+      hoverTileRef.current = O.none;
+      drawAll();
     },
     [
       isChangeOrderMode,
@@ -266,6 +346,7 @@ export const useSpriteCanvas = ({
       scale,
       dragInfoRef,
       swap,
+      drawAll,
     ],
   );
 
