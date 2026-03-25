@@ -16,10 +16,10 @@ export function swap8x8Blocks(
       const targetY = by + dy;
       const targetX = bx + dx;
 
-      if (sourceY < 0 || sourceY >= next.length) continue;
-      if (targetY < 0 || targetY >= next.length) continue;
-      if (sourceX < 0 || sourceX >= next[sourceY].length) continue;
-      if (targetX < 0 || targetX >= next[targetY].length) continue;
+      if (sourceY < 0 || sourceY >= next.length) return;
+      if (targetY < 0 || targetY >= next.length) return;
+      if (sourceX < 0 || sourceX >= next[sourceY].length) return;
+      if (targetX < 0 || targetX >= next[targetY].length) return;
 
       const tmp = next[sourceY][sourceX];
       next[sourceY][sourceX] = next[targetY][targetX];
