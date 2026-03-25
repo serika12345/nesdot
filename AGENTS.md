@@ -21,3 +21,5 @@
 - **Test Implementation First**: When tests themselves need to be modified, implement the test changes completely before making any source code changes.
 - **Immutability**: Always use `const` for variable declarations; never use `let` or `var`. Initialize arrays and collections completely at creation; never use `push()` or mutating methods afterward.
 - **Immutable Operations**: Write all code using immutable operations. Avoid nested ternary operators to prevent reassignment; extract complex logic into separate functions. IIFE (Immediately Invoked Function Expressions) are acceptable for short logic blocks (a few lines).
+- **No Exceptions**: Do not use exceptions for control flow. Handle errors using functional error handling patterns.
+- **Functional Error Handling with fp-ts**: Use `fp-ts` library for error handling and functional programming utilities. Use monads (Option, Either, Task, etc.) only when exception handling or lazy evaluation is appropriate; not all values need to be wrapped in monads.
