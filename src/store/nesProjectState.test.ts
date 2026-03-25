@@ -16,7 +16,9 @@ describe("nesProjectState", () => {
     const state = createDefaultNesProjectState();
 
     expect(state.nameTable.tileIndices).toHaveLength(NES_NAME_TABLE_TILE_COUNT);
-    expect(state.attributeTable.bytes).toHaveLength(NES_ATTRIBUTE_TABLE_BYTE_COUNT);
+    expect(state.attributeTable.bytes).toHaveLength(
+      NES_ATTRIBUTE_TABLE_BYTE_COUNT,
+    );
     expect(state.oam).toHaveLength(NES_OAM_ENTRY_COUNT);
   });
 
