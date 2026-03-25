@@ -160,19 +160,41 @@ export const ScreenMode: React.FC = () => {
           <MetricGrid
             css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
           >
-            <MetricCard>
+            <MetricCard
+              css={{
+                background: "transparent",
+                border: "none",
+                boxShadow: "none",
+                padding: 0,
+              }}
+            >
               <MetricLabel>配置中</MetricLabel>
               <MetricValue>
                 {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
               </MetricValue>
             </MetricCard>
-            <MetricCard>
+            <MetricCard
+              css={{
+                background: "transparent",
+                border: "none",
+                boxShadow: "none",
+                padding: 0,
+              }}
+            >
               <MetricLabel>画面</MetricLabel>
               <MetricValue>
                 {screen.width}×{screen.height}
               </MetricValue>
             </MetricCard>
-            <MetricCard css={{ gridColumn: "1 / -1" }}>
+            <MetricCard
+              css={{
+                gridColumn: "1 / -1",
+                background: "transparent",
+                border: "none",
+                boxShadow: "none",
+                padding: 0,
+              }}
+            >
               <MetricLabel>制約</MetricLabel>
               <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>
                 1ライン最大 {MAX_SPRITES_PER_SCANLINE}
