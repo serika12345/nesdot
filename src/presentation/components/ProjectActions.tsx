@@ -26,7 +26,7 @@ type ActionItem = {
 
 type ProjectActionsProps = {
   actions: ActionItem[];
-  onImport: () => void;
+  onImport?: () => void;
   importLabel?: string;
 };
 
@@ -202,12 +202,14 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
             <ChevronIcon open={menuOpen} />
           </IconActionButton>
 
-          <IconActionButton type="button" onClick={onImport}>
-            <IconLabel>
-              <ImportIcon />
-              {importLabel}
-            </IconLabel>
-          </IconActionButton>
+          {typeof onImport === "function" && (
+            <IconActionButton type="button" onClick={onImport}>
+              <IconLabel>
+                <ImportIcon />
+                {importLabel}
+              </IconLabel>
+            </IconActionButton>
+          )}
         </ActionButtonsRow>
       </ActionCluster>
 

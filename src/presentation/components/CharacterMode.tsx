@@ -9,6 +9,7 @@ import {
   CharacterCell,
   CharacterSet,
 } from "../../domain/characters/characterSet";
+import useExportImage from "../../infrastructure/browser/useExportImage";
 import {
   Badge,
   DetailList,
@@ -34,6 +35,7 @@ import {
   CharacterEditorView,
   resolveCharacterEditorView,
 } from "./characterEditorView";
+import { ProjectActions } from "./ProjectActions";
 
 const toCellDisplayValue = (cell: CharacterCell): string =>
   cell.kind === "empty" ? "" : String(cell.spriteIndex);
@@ -77,6 +79,7 @@ export const CharacterMode: React.FC = () => {
   const deleteSet = useCharacterState((s) => s.deleteSet);
   const sprites = useProjectState((s) => s.sprites);
   const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const { exportPng, exportSvgSimple, exportCharacterJson } = useExportImage();
 
   const editorView = resolveCharacterEditorView(
     requestedEditorView,
@@ -418,6 +421,52 @@ export const CharacterMode: React.FC = () => {
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>キャラクタープレビュー</PanelTitle>
+            <ProjectActions
+              actions={pipe(
+                activeSet,
+                O.match(
+                  () => [],
+                  (characterSet) => [
+                    {
+                      label: "PNGエクスポート",
+                      onSelect: () => {
+                        if (previewState.kind !== "ready") {
+                          return;
+                        }
+                        void exportPng(
+                          previewState.grid,
+                          `${characterSet.name}.png`,
+                        );
+                      },
+                    },
+                    {
+                      label: "SVGエクスポート",
+                      onSelect: () => {
+                        if (previewState.kind !== "ready") {
+                          return;
+                        }
+                        void exportSvgSimple(
+                          previewState.grid,
+                          8,
+                          `${characterSet.name}.svg`,
+                        );
+                      },
+                    },
+                    {
+                      label: "キャラクターJSON書き出し",
+                      onSelect: () =>
+                        void exportCharacterJson(
+                          {
+                            characterSets: [characterSet],
+                            selectedCharacterId: characterSet.id,
+                          },
+                          `${characterSet.name}.json`,
+                        ),
+                    },
+                  ],
+                ),
+              )}
+            />
           </PanelHeaderRow>
         </PanelHeader>
 

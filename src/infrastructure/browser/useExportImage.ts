@@ -2,12 +2,13 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
-import { tile8x16ToChr, tile8x8ToChr } from "../../domain/nes/chr";
-import { nesIndexToCssHex } from "../../domain/nes/palette";
 import {
+  CharacterJsonData,
   toCharacterJsonData,
   useCharacterState,
 } from "../../application/state/characterStore";
+import { tile8x16ToChr, tile8x8ToChr } from "../../domain/nes/chr";
+import { nesIndexToCssHex } from "../../domain/nes/palette";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
@@ -308,10 +309,26 @@ export default function useExportImage() {
     }
   };
 
+  const exportCharacterJson = async (
+    characterData: CharacterJsonData,
+    fileName = "character.json",
+  ) => {
+    const json = JSON.stringify(characterData);
+    const bytes = new TextEncoder().encode(json);
+    const saveResult = await saveBytesNative(bytes, fileName, [
+      { name: "JSON file", extensions: ["json"] },
+    ]);
+    if (saveResult === "unavailable") {
+      const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+      downloadBlob(blob, fileName);
+    }
+  };
+
   return {
     exportChr,
     exportPng,
     exportSvgSimple,
     exportJSON,
+    exportCharacterJson,
   };
 }
