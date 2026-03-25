@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-    Badge,
     CanvasViewport,
     CollapseToggle,
     DetailKey,
@@ -17,7 +16,6 @@ import {
     MetricValue,
     NumberInput,
     Panel,
-    PanelDescription,
     PanelHeader,
     PanelHeaderRow,
     PanelTitle,
@@ -142,7 +140,6 @@ export const ScreenMode: React.FC = () => {
                 <Panel>
                     <PanelHeader>
                         <PanelHeaderRow>
-                            <Badge tone={scanReport.ok ? "accent" : "danger"}>{scanReport.ok ? "Constraint OK" : "Needs Attention"}</Badge>
                             <ProjectActions
                                 actions={[
                                     { label: "PNGエクスポート", onSelect: () => exportPng(getHexArrayForScreen(screen)) },
@@ -180,14 +177,12 @@ export const ScreenMode: React.FC = () => {
                 <Panel>
                     <PanelHeader>
                         <PanelHeaderRow>
-                            <Badge tone="neutral">Placement</Badge>
                             <CollapseToggle type="button" open={isPlacementOpen} onClick={() => setIsPlacementOpen((prev) => !prev)}>
                                 {isPlacementOpen ? "閉じる" : "開く"}
                                 <ChevronIcon open={isPlacementOpen} />
                             </CollapseToggle>
                         </PanelHeaderRow>
                         <PanelTitle>スプライト追加</PanelTitle>
-                        <PanelDescription>番号と座標を指定して画面に追加します。制約は追加前に検証されます。</PanelDescription>
                     </PanelHeader>
 
                     {isPlacementOpen ? (
@@ -226,14 +221,12 @@ export const ScreenMode: React.FC = () => {
                 <Panel>
                     <PanelHeader>
                         <PanelHeaderRow>
-                            <Badge tone="neutral">Selection</Badge>
                             <CollapseToggle type="button" open={isSelectionOpen} onClick={() => setIsSelectionOpen((prev) => !prev)}>
                                 {isSelectionOpen ? "閉じる" : "開く"}
                                 <ChevronIcon open={isSelectionOpen} />
                             </CollapseToggle>
                         </PanelHeaderRow>
                         <PanelTitle>選択中のスプライト</PanelTitle>
-                        <PanelDescription>一覧から選択し、位置の微調整や削除を行います。</PanelDescription>
                     </PanelHeader>
 
                     {isSelectionOpen ? (
@@ -341,11 +334,7 @@ export const ScreenMode: React.FC = () => {
 
             <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
-                    <PanelHeaderRow>
-                        <Badge tone="neutral">Preview</Badge>
-                        <Badge tone="accent">2x Scale</Badge>
-                    </PanelHeaderRow>
-                    <PanelTitle>Screen Preview</PanelTitle>
+                    <PanelTitle>画面プレビュー</PanelTitle>
                 </PanelHeader>
 
                 <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>

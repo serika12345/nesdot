@@ -5,7 +5,6 @@ import { ScreenMode } from "./components/ScreenMode";
 import { SpriteMode } from "./components/SpriteMode";
 import {
     Container,
-    Eyebrow,
     globalStyles,
     LeftPane,
     ModeSwitcherCard,
@@ -37,7 +36,6 @@ export const App: React.FC = () => {
                         <ModeSwitcherCard>
                             <ModeSwitcherLayout>
                                 <ModeSwitcherHeader>
-                                    <Eyebrow>Editor Mode</Eyebrow>
                                     <ModeSwitcherTitle>作業モード</ModeSwitcherTitle>
                                 </ModeSwitcherHeader>
                                 <SegmentedControl>
@@ -53,7 +51,6 @@ export const App: React.FC = () => {
 
                         <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
                             <PanelHeader>
-                                <Eyebrow>Palette Console</Eyebrow>
                                 <PanelTitle>NES パレット</PanelTitle>
                             </PanelHeader>
                             <ScrollArea>

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import {
-    Badge,
     CanvasViewport,
     CollapseToggle,
     DetailKey,
@@ -118,7 +117,6 @@ export const SpriteMode: React.FC = () => {
             <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
                 <PanelHeader>
                     <PanelHeaderRow>
-                        <Badge tone="accent">{isChangeOrderMode ? "Reorder Mode" : "Brush Mode"}</Badge>
                         <ProjectActions
                             actions={[
                                 { label: "CHRエクスポート", onSelect: () => exportChr(activeTile, activePalette) },
@@ -150,7 +148,7 @@ export const SpriteMode: React.FC = () => {
                             <SelectInput value={activePalette} onChange={(e) => handlePaletteChange(e.target.value)}>
                                 {palettes.map((_, i) => (
                                     <option key={i} value={i}>
-                                        Palette {i}
+                                        パレット {i}
                                     </option>
                                 ))}
                             </SelectInput>
@@ -179,14 +177,14 @@ export const SpriteMode: React.FC = () => {
                         </MetricCard>
                         <MetricCard>
                             <MetricLabel>選択スロット</MetricLabel>
-                            <MetricValue>slot {activeSlot}</MetricValue>
+                            <MetricValue>スロット {activeSlot}</MetricValue>
                         </MetricCard>
                     </MetricGrid>
 
                     <DetailList>
                         <DetailRow>
                             <DetailKey>表示パレット</DetailKey>
-                            <DetailValue>Palette {activePalette}</DetailValue>
+                            <DetailValue>パレット {activePalette}</DetailValue>
                         </DetailRow>
                         <DetailRow>
                             <DetailKey>描画モード</DetailKey>
@@ -199,17 +197,12 @@ export const SpriteMode: React.FC = () => {
             <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <PanelHeader>
                     <PanelHeaderRow>
-                        <div css={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                            <Badge tone="neutral">Canvas</Badge>
-                            <Badge tone="accent">Always On</Badge>
-                            <Badge tone={isChangeOrderMode ? "accent" : "neutral"}>Tools</Badge>
-                        </div>
                         <CollapseToggle type="button" open={isToolsOpen} onClick={() => setIsToolsOpen((prev) => !prev)}>
                             {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
                             <ChevronIcon open={isToolsOpen} />
                         </CollapseToggle>
                     </PanelHeaderRow>
-                    <PanelTitle>Sprite Canvas</PanelTitle>
+                    <PanelTitle>スプライトキャンバス</PanelTitle>
                 </PanelHeader>
 
                 {isToolsOpen ? (
@@ -282,10 +275,7 @@ export const SpriteMode: React.FC = () => {
                     }}
                 >
                     <PanelHeaderRow>
-                        <div css={{ display: "grid", gap: 8 }}>
-                            <Badge tone="neutral">Palette Slots</Badge>
-                            <FieldLabel>現在のスロット</FieldLabel>
-                        </div>
+                        <FieldLabel>現在のスロット</FieldLabel>
                         <CollapseToggle type="button" open={isPaletteOpen} onClick={() => setIsPaletteOpen((prev) => !prev)}>
                             {isPaletteOpen ? "スロットを閉じる" : "スロットを開く"}
                             <ChevronIcon open={isPaletteOpen} />
@@ -304,12 +294,12 @@ export const SpriteMode: React.FC = () => {
                                 <SlotGroup key={j} active={activeSlot === j}>
                                     <SlotButton
                                         onClick={() => handlePaletteClick(j)}
-                                        title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                        title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
                                         active={activeSlot === j}
                                         transparent={j === 0}
                                         bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
                                     />
-                                    <SlotLabel>slot{j}</SlotLabel>
+                                    <SlotLabel>スロット{j}</SlotLabel>
                                 </SlotGroup>
                             ))}
                         </div>
@@ -319,7 +309,7 @@ export const SpriteMode: React.FC = () => {
                         <DetailRow>
                             <DetailKey>選択中</DetailKey>
                             <DetailValue>
-                                Palette {activePalette} / slot {activeSlot}
+                                パレット {activePalette} / スロット {activeSlot}
                             </DetailValue>
                         </DetailRow>
                         <DetailRow>

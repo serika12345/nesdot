@@ -7,9 +7,7 @@ import {
     Grid,
     LibraryCaption,
     LibraryHeader,
-    LibraryTitle,
     Note,
-    PaletteCaption,
     PaletteCard,
     PaletteHeader,
     PaletteList,
@@ -17,7 +15,6 @@ import {
     PaletteStatus,
     Root,
     ScrollWrap,
-    SelectionLabel,
     SelectionSummary,
     SelectionSwatch,
     SelectionValue,
@@ -54,10 +51,7 @@ export const PalettePicker: React.FC = () => {
         <Root>
             <SelectionSummary>
                 <div>
-                    <SelectionLabel>現在の編集先</SelectionLabel>
-                    <SelectionValue>
-                        Palette {activePalette} / Slot {activeSlot}
-                    </SelectionValue>
+                    <SelectionValue>パレット {activePalette} / スロット {activeSlot}</SelectionValue>
                 </div>
                 <SelectionSwatch
                     transparent={activeSlot === 0}
@@ -85,11 +79,7 @@ export const PalettePicker: React.FC = () => {
                         return (
                             <PaletteCard key={i} active={isActivePalette}>
                                 <PaletteHeader>
-                                    <div>
-                                        <PaletteName>Palette {i}</PaletteName>
-                                        <PaletteCaption>{isActivePalette ? "編集中のパレット" : "クリックで切り替え"}</PaletteCaption>
-                                    </div>
-                                    <PaletteStatus active={isActivePalette}>{isActivePalette ? "Active" : "Idle"}</PaletteStatus>
+                                    <PaletteName>パレット {i}</PaletteName>
                                 </PaletteHeader>
 
                                 <SlotRow>
@@ -97,12 +87,12 @@ export const PalettePicker: React.FC = () => {
                                         <SlotGroup key={j} active={isActivePalette && activeSlot === j}>
                                             <SlotButton
                                                 onClick={j !== 0 ? () => handlePaletteClick(i, j) : undefined}
-                                                title={j === 0 ? "Slot 0: Transparent" : `Slot ${j}`}
+                                                title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
                                                 active={activeSlot === j && isActivePalette}
                                                 transparent={j === 0}
                                                 bg={j === 0 ? undefined : NES_PALETTE_HEX[idx]}
                                             />
-                                            <SlotLabel>slot{j}</SlotLabel>
+                                            <SlotLabel>スロット{j}</SlotLabel>
                                         </SlotGroup>
                                     ))}
                                 </SlotRow>
@@ -115,12 +105,7 @@ export const PalettePicker: React.FC = () => {
             {isLibraryOpen && (
                 <ScrollWrap>
                     <LibraryHeader>
-                        <div>
-                            <LibraryTitle>NES Color Library</LibraryTitle>
-                            <LibraryCaption>
-                                Palette {activePalette} / Slot {activeSlot} に割り当てる色を選択
-                            </LibraryCaption>
-                        </div>
+                        <LibraryCaption>パレット {activePalette} / スロット {activeSlot} に割り当てる色を選択</LibraryCaption>
                         <PaletteStatus active>
                             #{activeColorIndex.toString(16).padStart(2, "0").toUpperCase()}
                         </PaletteStatus>
@@ -139,7 +124,7 @@ export const PalettePicker: React.FC = () => {
                 </ScrollWrap>
             )}
 
-            <Note>注意: Slot0は「透明扱い」です。実際の色は描画しません（チェッカ柄表示）。</Note>
+            <Note>注意: スロット0は「透明扱い」です。実際の色は描画しません（チェッカ柄表示）。</Note>
         </Root>
     );
 };
