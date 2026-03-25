@@ -3,7 +3,7 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { tile8x16ToChr, tile8x8ToChr } from "../nes/chr";
-import { NES_PALETTE_HEX } from "../nes/palette";
+import { nesIndexToCssHex } from "../nes/palette";
 import {
   toCharacterJsonData,
   useCharacterState,
@@ -14,6 +14,7 @@ import {
   ProjectState,
   SpriteTile,
 } from "../store/projectState";
+import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
 
 type FileFilter = {
   name: string;
@@ -25,6 +26,28 @@ type NativeSaveResult = "saved" | "cancelled" | "unavailable";
 export default function useExportImage() {
   const blobToBytes = async (blob: Blob) =>
     new Uint8Array(await blob.arrayBuffer());
+
+  const createFilledRow = (width: number): ColorIndexOfPalette[] =>
+    Array.from({ length: width }, (): ColorIndexOfPalette => 0);
+
+  const getSpriteRow = (
+    pixels: ColorIndexOfPalette[][],
+    rowIndex: number,
+    width: number,
+  ): ColorIndexOfPalette[] =>
+    O.getOrElse(() => createFilledRow(width))(getArrayItem(pixels, rowIndex));
+
+  const getHexGridWidth = (hexPixels: string[][]): number =>
+    O.match(
+      () => 0,
+      (row: string[]) => row.length,
+    )(getArrayItem(hexPixels, 0));
+
+  const getHexPixel = (
+    hexPixels: string[][],
+    y: number,
+    x: number,
+  ): O.Option<string> => getMatrixItem(hexPixels, y, x);
 
   const saveBytesNative = async (
     bytes: Uint8Array,
@@ -57,7 +80,7 @@ export default function useExportImage() {
         const tx = blockX * 8;
         const subPixels: ColorIndexOfPalette[][] = Array.from(
           { length: 8 },
-          (_, y) => tile.pixels[ty + y].slice(tx, tx + 8),
+          (_, y) => getSpriteRow(tile.pixels, ty + y, tile.width).slice(tx, tx + 8),
         );
         return tile8x8ToChr({
           width: 8,
@@ -114,7 +137,8 @@ export default function useExportImage() {
     // 簡易PNG出力：キャンバスをオフスクリーンで再描画してダウンロード
     const scale = 8;
     const h = hexPixels.length;
-    const w = h > 0 ? hexPixels[0].length : 0;
+    const w = getHexGridWidth(hexPixels);
+    const transparentHex = nesIndexToCssHex(0);
     const cvs = document.createElement("canvas");
     cvs.width = w * scale;
     cvs.height = h * scale;
@@ -127,14 +151,17 @@ export default function useExportImage() {
 
     // 透明はalpha=0、他はパレット色
     Array.from({ length: h }, (_, y) => y).forEach((y) => {
-      const row = hexPixels[y];
       Array.from({ length: w }, (_, x) => x).forEach((x) => {
-        const hex = row[x];
-        if (hex === NES_PALETTE_HEX[0]) {
+        const hexOption = getHexPixel(hexPixels, y, x);
+        if (O.isNone(hexOption)) {
+          return;
+        }
+
+        if (hexOption.value === transparentHex) {
           // 透明
           ctx.clearRect(x * scale, y * scale, scale, scale);
         } else {
-          ctx.fillStyle = hex;
+          ctx.fillStyle = hexOption.value;
           ctx.fillRect(x * scale, y * scale, scale, scale);
         }
       });
@@ -166,18 +193,26 @@ export default function useExportImage() {
     fileName?: string,
   ) => {
     const h = hexPixels.length;
-    const w = h > 0 ? hexPixels[0].length : 0;
+    const w = getHexGridWidth(hexPixels);
+    const transparentHex = nesIndexToCssHex(0);
 
     const colorOf = (hex: string) => hex;
 
     const rects = Array.from({ length: h }, (_, y) => y)
       .flatMap((y) =>
         Array.from({ length: w }, (_, x) => x)
-          .filter((x) => hexPixels[y][x] !== NES_PALETTE_HEX[0])
-          .map(
-            (x) =>
-              `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(hexPixels[y][x])}"/>`,
-          ),
+          .map((x) => {
+            const hexOption = getHexPixel(hexPixels, y, x);
+            if (
+              O.isNone(hexOption) ||
+              hexOption.value === transparentHex
+            ) {
+              return "";
+            }
+
+            return `<rect x="${x}" y="${y}" width="1" height="1" fill="${colorOf(hexOption.value)}"/>`;
+          })
+          .filter((line) => line !== ""),
       )
       .join("\n");
 

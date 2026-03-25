@@ -1,12 +1,14 @@
+import * as O from "fp-ts/Option";
 import React, { useState } from "react";
-import { useProjectState } from "../../src/store/projectState";
 import { CollapseToggle } from "../App.styles";
-import { NES_PALETTE_HEX } from "../nes/palette";
+import { nesIndexToCssHex, NES_PALETTE_HEX } from "../nes/palette";
 import {
   NesBackgroundPalettes,
   NesColorIndex,
+  NesPaletteIndex,
   NesSubPalette,
 } from "../store/nesProjectState";
+import { ColorIndexOfPalette, useProjectState } from "../store/projectState";
 import {
   ColorCell,
   Grid,
@@ -32,14 +34,27 @@ import { ChevronIcon } from "./ui/Icons";
 
 export const PalettePicker: React.FC = () => {
   const palettes = useProjectState((s) => s.nes.backgroundPalettes);
-  const [activePalette, setActivePalette] = useState<number>(0);
-  const [activeSlot, setActiveSlot] = useState<number>(1); // 0は透明スロット扱い
+  const [activePalette, setActivePalette] = useState<NesPaletteIndex>(0);
+  const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1); // 0は透明スロット扱い
   const [isPaletteListOpen, setIsPaletteListOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
-  const handlePaletteClick = (activePalette: number, activeSlot: number) => {
-    setActivePalette(activePalette);
-    setActiveSlot(activeSlot);
+  const toIndex4 = (value: number): O.Option<ColorIndexOfPalette> => {
+    if (value === 0 || value === 1 || value === 2 || value === 3) {
+      return O.some(value);
+    }
+    return O.none;
+  };
+
+  const handlePaletteClick = (nextPalette: number, nextSlot: number) => {
+    const paletteIndexOption = toIndex4(nextPalette);
+    const slotIndexOption = toIndex4(nextSlot);
+    if (O.isNone(paletteIndexOption) || O.isNone(slotIndexOption)) {
+      return;
+    }
+
+    setActivePalette(paletteIndexOption.value);
+    setActiveSlot(slotIndexOption.value);
     setIsLibraryOpen(true);
   };
 
@@ -47,7 +62,7 @@ export const PalettePicker: React.FC = () => {
     return [palette[0], palette[1], palette[2], palette[3]];
   };
 
-  const setSlot = (slotIndex: number, idx: NesColorIndex) => {
+  const setSlot = (slotIndex: ColorIndexOfPalette, idx: NesColorIndex) => {
     const next: NesBackgroundPalettes = [
       clonePalette(palettes[0]),
       clonePalette(palettes[1]),
@@ -76,7 +91,7 @@ export const PalettePicker: React.FC = () => {
   };
 
   const activeColorIndex = palettes[activePalette][activeSlot];
-  const activeColorHex = NES_PALETTE_HEX[activeColorIndex];
+  const activeColorHex = nesIndexToCssHex(activeColorIndex);
 
   return (
     <Root>
@@ -136,7 +151,7 @@ export const PalettePicker: React.FC = () => {
                         title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
                         active={activeSlot === j && isActivePalette}
                         transparent={j === 0}
-                        {...(j !== 0 ? { bg: NES_PALETTE_HEX[idx] } : {})}
+                        {...(j !== 0 ? { bg: nesIndexToCssHex(idx) } : {})}
                       />
                       <SlotLabel>スロット{j}</SlotLabel>
                     </SlotGroup>

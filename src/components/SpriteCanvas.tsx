@@ -1,5 +1,9 @@
 import React from "react";
-import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
+import {
+  ColorIndexOfPalette,
+  PaletteIndex,
+  SpriteTile,
+} from "../store/projectState";
 import { useSpriteCanvas } from "./hooks/useSpriteCanvas";
 
 interface Props {
@@ -8,7 +12,7 @@ interface Props {
     scale?: number; // ピクセル拡大倍率
     showGrid?: boolean;
     tool: "pen" | "eraser";
-    currentSelectPalette: ColorIndexOfPalette;
+    currentSelectPalette: PaletteIndex;
     activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
     onChange: (next: SpriteTile, currentSprite: number) => void;
 }

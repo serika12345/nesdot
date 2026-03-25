@@ -1,5 +1,7 @@
+import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import { ColorIndexOfPalette } from "../store/projectState";
+import { getMatrixItem } from "../utils/arrayAccess";
 import { swap8x8Blocks } from "./swap";
 
 function toColorIndexOfPalette(value: number): ColorIndexOfPalette {
@@ -23,11 +25,11 @@ describe("swap8x8Blocks", () => {
 
     const swapped = swap8x8Blocks(pixels, 0, 0, 8, 8);
 
-    expect(swapped[0][0]).toBe(3);
-    expect(swapped[8][8]).toBe(0);
-    expect(swapped[0][8]).toBe(1);
-    expect(swapped[8][0]).toBe(2);
-    expect(pixels[0][0]).toBe(0);
-    expect(pixels[8][8]).toBe(3);
+    expect(getMatrixItem(swapped, 0, 0)).toEqual(O.some(3));
+    expect(getMatrixItem(swapped, 8, 8)).toEqual(O.some(0));
+    expect(getMatrixItem(swapped, 0, 8)).toEqual(O.some(1));
+    expect(getMatrixItem(swapped, 8, 0)).toEqual(O.some(2));
+    expect(getMatrixItem(pixels, 0, 0)).toEqual(O.some(0));
+    expect(getMatrixItem(pixels, 8, 8)).toEqual(O.some(3));
   });
 });

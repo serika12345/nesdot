@@ -41,12 +41,15 @@ describe("toOamEntryFromScreenSprite", () => {
   });
 
   it("encodes palette, priority and flip flags in attribute byte", () => {
-    const sprite = {
-      ...createSprite({ x: 12, y: 34, spriteIndex: 56, paletteIndex: 2 }),
+    const sprite = createSprite({
+      x: 12,
+      y: 34,
+      spriteIndex: 56,
+      paletteIndex: 2,
       priority: "behindBg",
       flipH: true,
       flipV: true,
-    };
+    });
 
     expect(toOamEntryFromScreenSprite(sprite)).toEqual({
       x: 12,

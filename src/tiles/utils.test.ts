@@ -1,6 +1,8 @@
+import * as O from "fp-ts/Option";
 import { isLeft } from "fp-ts/Either";
 import { describe, expect, it } from "vitest";
 import { SpriteTileND } from "../store/projectState";
+import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
 import { assertTileSize, makeTile, resizeTileND } from "./utils";
 
 function createTallTile(): SpriteTileND {
@@ -65,13 +67,21 @@ describe("resizeTileND", () => {
 
   it("positions content according to the requested anchor when expanding", () => {
     const tile: SpriteTileND = makeTile(8, 1, 0);
-    tile.pixels[0][0] = 1;
-    tile.pixels[7][0] = 2;
+    const firstRowOption = getArrayItem(tile.pixels, 0);
+    const lastRowOption = getArrayItem(tile.pixels, 7);
+    expect(O.isSome(firstRowOption)).toBe(true);
+    expect(O.isSome(lastRowOption)).toBe(true);
+    if (O.isNone(firstRowOption) || O.isNone(lastRowOption)) {
+      return;
+    }
+
+    firstRowOption.value[0] = 1;
+    lastRowOption.value[0] = 2;
 
     const expanded = resizeTileND(tile, 8, 16, { anchor: "bottom", fill: 0 });
 
-    expect(expanded.pixels[0][0]).toBe(0);
-    expect(expanded.pixels[8][0]).toBe(1);
-    expect(expanded.pixels[15][0]).toBe(2);
+    expect(getMatrixItem(expanded.pixels, 0, 0)).toEqual(O.some(0));
+    expect(getMatrixItem(expanded.pixels, 8, 0)).toEqual(O.some(1));
+    expect(getMatrixItem(expanded.pixels, 15, 0)).toEqual(O.some(2));
   });
 });

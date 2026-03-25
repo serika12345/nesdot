@@ -4,6 +4,20 @@ import styled from "@emotion/styled";
 type ButtonTone = "neutral" | "primary" | "danger";
 type BadgeTone = "neutral" | "accent" | "danger";
 
+const buttonStyleOptions = (active?: boolean, tone?: ButtonTone) => ({
+  ...(active === true ? { active: true } : {}),
+  ...(active === false ? { active: false } : {}),
+  ...(tone === "neutral" || tone === "primary" || tone === "danger"
+    ? { tone }
+    : {}),
+});
+
+const badgeStyleOptions = (tone?: BadgeTone) => ({
+  ...(tone === "neutral" || tone === "accent" || tone === "danger"
+    ? { tone }
+    : {}),
+});
+
 const buttonStyles = ({
   active = false,
   tone = "neutral",
@@ -41,7 +55,11 @@ const buttonStyles = ({
   `;
 };
 
-const badgeStyles = ({ tone = "neutral" }: { tone?: BadgeTone }) => {
+const badgeStyles = ({
+  tone = "neutral",
+}: {
+  tone?: BadgeTone;
+}) => {
   if (tone === "accent") {
     return css`
       color: #0f766e;
@@ -215,7 +233,7 @@ export const SegmentedButton = styled.button<{ active?: boolean }>`
     transform 160ms ease,
     box-shadow 160ms ease,
     background 160ms ease;
-  ${({ active }) => buttonStyles({ active })}
+  ${({ active }) => buttonStyles(buttonStyleOptions(active))}
 
   &:hover {
     transform: translateY(-1px);
@@ -343,7 +361,7 @@ export const ToolButton = styled.button<{
     box-shadow 160ms ease,
     background 160ms ease,
     opacity 160ms ease;
-  ${({ active, tone }) => buttonStyles({ active, tone })}
+  ${({ active, tone }) => buttonStyles(buttonStyleOptions(active, tone))}
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -567,7 +585,7 @@ export const Badge = styled.span<{ tone?: BadgeTone }>`
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  ${({ tone }) => badgeStyles({ tone })}
+  ${({ tone }) => badgeStyles(badgeStyleOptions(tone))}
 `;
 
 export const SplitLayout = styled.div`

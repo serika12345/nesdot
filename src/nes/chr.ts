@@ -1,5 +1,7 @@
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import { ColorIndexOfPalette, SpriteTile } from "../store/projectState";
+import { getMatrixItem } from "../utils/arrayAccess";
 
 /**
  * 8x8 タイルを 16 バイトCHRに変換（先頭8B: bitplane0, 次の8B: bitplane1）
@@ -14,7 +16,9 @@ export function tile8x8ToChr(tile: SpriteTile): E.Either<string, Uint8Array> {
 
   Array.from({ length: 8 }, (_, y) => y).forEach((y) => {
     const bits = Array.from({ length: 8 }, (_, x) => {
-      const pix: ColorIndexOfPalette = tile.pixels[y][x];
+      const pix: ColorIndexOfPalette = O.getOrElse((): ColorIndexOfPalette => 0)(
+        getMatrixItem(tile.pixels, y, x),
+      );
       return {
         b0: pix & 1,
         b1: (pix >> 1) & 1,

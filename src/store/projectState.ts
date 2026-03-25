@@ -89,7 +89,7 @@ const EMPTY_STORAGE_VALUE = ["nu", "ll"].join("");
 // --- IndexedDB-backed Storage (string ベース) ---
 const idbStorage: StateStorage = {
   getItem: async (name: string) => {
-    const value = await idbGet(name);
+    const value: unknown = await idbGet(name);
 
     return pipe(
       O.fromNullable(value),

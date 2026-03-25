@@ -1,11 +1,15 @@
 import * as O from "fp-ts/Option";
+import { pipe } from "fp-ts/function";
 import React, { useCallback, useEffect, useRef } from "react";
-import { NES_PALETTE_HEX } from "../../nes/palette";
+import { nesIndexToCssHex } from "../../nes/palette";
 import {
   ColorIndexOfPalette,
+  PaletteIndex,
   SpriteTile,
   useProjectState,
 } from "../../store/projectState";
+import { makeTile } from "../../tiles/utils";
+import { getArrayItem, getMatrixItem } from "../../utils/arrayAccess";
 import { getSwapPreviewTile } from "./swapPreview";
 import { useGhost } from "./useGhost";
 import { useSwap } from "./useSwap";
@@ -17,10 +21,12 @@ export interface UseCanvasParams {
   scale?: number; // ピクセル拡大倍率
   showGrid?: boolean;
   tool: Tool;
-  currentSelectPalette: ColorIndexOfPalette;
+  currentSelectPalette: PaletteIndex;
   activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
   onChange: (next: SpriteTile, currentSprite: number) => void; // 更新を状態に伝える
 }
+
+const FALLBACK_TILE: SpriteTile = makeTile(8, 0);
 
 export const useSpriteCanvas = ({
   isChangeOrderMode = false,
@@ -33,7 +39,12 @@ export const useSpriteCanvas = ({
   onChange,
 }: UseCanvasParams) => {
   const palettes = useProjectState((s) => s.nes.spritePalettes);
-  const tile = useProjectState((s) => s.sprites[target]);
+  const tile = useProjectState((s) =>
+    pipe(
+      getArrayItem(s.sprites, target),
+      O.getOrElse(() => FALLBACK_TILE),
+    ),
+  );
   const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
   const hoverTileRef = useRef<O.Option<{ tileX: number; tileY: number }>>(
     O.none,
@@ -53,6 +64,15 @@ export const useSpriteCanvas = ({
   });
   const { swap } = useSwap();
   // --- ここまで ---
+
+  const getSelectedColorHex = useCallback(
+    (colorIndex: ColorIndexOfPalette): O.Option<string> =>
+      pipe(
+        getArrayItem(palettes[currentSelectPalette], colorIndex),
+        O.map((nesColorIndex) => nesIndexToCssHex(nesColorIndex)),
+      ),
+    [palettes, currentSelectPalette],
+  );
 
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
@@ -80,14 +100,21 @@ export const useSpriteCanvas = ({
     // ピクセル描画
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {
-        const HexToColorIndex = tile.pixels[y][x];
-        if (HexToColorIndex !== 0) {
-          // スプライト編集時はパレット切り替えに追従させる
-          const hex =
-            NES_PALETTE_HEX[palettes[currentSelectPalette][HexToColorIndex]];
-          ctx.fillStyle = hex;
-          ctx.fillRect(x * scale, y * scale, scale, scale);
+        const colorIndexOption = getMatrixItem(tile.pixels, y, x);
+        if (
+          O.isNone(colorIndexOption) ||
+          colorIndexOption.value === 0
+        ) {
+          return;
         }
+
+        const hexOption = getSelectedColorHex(colorIndexOption.value);
+        if (O.isNone(hexOption)) {
+          return;
+        }
+
+        ctx.fillStyle = hexOption.value;
+        ctx.fillRect(x * scale, y * scale, scale, scale);
       });
     });
 
@@ -178,14 +205,13 @@ export const useSpriteCanvas = ({
     }
   }, [
     tile,
-    palettes,
     scale,
     showGrid,
     width,
     height,
-    currentSelectPalette,
     isChangeOrderMode,
     dragInfoRef,
+    getSelectedColorHex,
   ]);
 
   useEffect(() => {
@@ -197,11 +223,17 @@ export const useSpriteCanvas = ({
   const applyAt = useCallback(
     (px: number, py: number) => {
       if (px < 0 || py < 0 || px >= width || py >= height) return;
+      const nextColorIndex = tool === "pen" ? activeColorIndex : 0;
       const next: SpriteTile = {
         ...tile,
-        pixels: tile.pixels.map((row) => row.slice()),
+        pixels: tile.pixels.map((row, rowIndex) =>
+          rowIndex === py
+            ? row.map((value, columnIndex) =>
+                columnIndex === px ? nextColorIndex : value,
+              )
+            : row.slice(),
+        ),
       };
-      next.pixels[py][px] = tool === "pen" ? activeColorIndex : 0;
       onChange(next, target);
     },
     [tile, tool, activeColorIndex, onChange, width, height, target],

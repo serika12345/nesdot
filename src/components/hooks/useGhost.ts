@@ -1,7 +1,12 @@
 import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
-import { NES_PALETTE_HEX } from "../../nes/palette";
-import { ColorIndexOfPalette, SpriteTile } from "../../store/projectState";
+import { nesIndexToCssHex } from "../../nes/palette";
+import { NesSpritePalettes } from "../../store/nesProjectState";
+import {
+  PaletteIndex,
+  SpriteTile,
+} from "../../store/projectState";
+import { getArrayItem, getMatrixItem } from "../../utils/arrayAccess";
 
 /**
  * 8x8タイルのゴースト（透明PNG）を生成し、ポインタに追従させて表示するためのフック
@@ -13,8 +18,8 @@ export interface UseGhostParams {
   width: number; // スプライト全体の幅（px）
   height: number; // スプライト全体の高さ（px）
   tile: SpriteTile; // ピクセル配列
-  palettes: number[][]; // パレット配列（useProjectStateの型に合わせる）
-  currentSelectPalette: ColorIndexOfPalette;
+  palettes: NesSpritePalettes; // パレット配列（useProjectStateの型に合わせる）
+  currentSelectPalette: PaletteIndex;
 }
 
 export const useGhost = ({
@@ -57,13 +62,24 @@ export const useGhost = ({
           const gy = tileY + yy;
           const inBounds = gx >= 0 && gy >= 0 && gx < width && gy < height;
           if (inBounds === true) {
-            const colorIdx = tile.pixels[gy][gx];
-            if (colorIdx !== 0) {
-              const hex =
-                NES_PALETTE_HEX[palettes[currentSelectPalette][colorIdx]];
-              gctx.fillStyle = hex;
-              gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
+            const colorIdxOption = getMatrixItem(tile.pixels, gy, gx);
+            if (
+              O.isNone(colorIdxOption) ||
+              colorIdxOption.value === 0
+            ) {
+              return;
             }
+
+            const nesColorIndexOption = getArrayItem(
+              palettes[currentSelectPalette],
+              colorIdxOption.value,
+            );
+            if (O.isNone(nesColorIndexOption)) {
+              return;
+            }
+
+            gctx.fillStyle = nesIndexToCssHex(nesColorIndexOption.value);
+            gctx.fillRect(pad + xx * scale, pad + yy * scale, scale, scale);
           }
         });
       });

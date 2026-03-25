@@ -1,4 +1,6 @@
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
+import * as O from "fp-ts/Option";
+import { pipe } from "fp-ts/function";
 import React, { useState } from "react";
 import {
   Badge,
@@ -30,6 +32,7 @@ import {
   useProjectState,
 } from "../store/projectState";
 import { makeTile, resizeTileND } from "../tiles/utils";
+import { getArrayItem } from "../utils/arrayAccess";
 import { Tool } from "./hooks/useSpriteCanvas";
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
@@ -54,7 +57,12 @@ export const SpriteMode: React.FC = () => {
   const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
   const [activeSprite, setActiveSprite] = useState<number>(0);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
-  const activeTile = useProjectState((s) => s.sprites[activeSprite]);
+  const activeTile = useProjectState((s) =>
+    pipe(
+      getArrayItem(s.sprites, activeSprite),
+      O.getOrElse(() => makeEmptyTile(8, activePalette)),
+    ),
+  );
   const palettes = useProjectState((s) => s.nes.spritePalettes);
   const sprites = useProjectState((s) => s.sprites);
   const screen = useProjectState((s) => s.screen);
@@ -96,15 +104,18 @@ export const SpriteMode: React.FC = () => {
   };
 
   const handleSpriteChange = (index: string) => {
-    const i = parseInt(index);
+    const i = Number.parseInt(index, 10);
     if (i < 0 || i >= 64 || Number.isNaN(i)) return;
     setActiveSprite(i);
-    const targetSprite = sprites[i];
-    setActivePalette(targetSprite.paletteIndex);
+    const targetSpriteOption = getArrayItem(sprites, i);
+    if (O.isNone(targetSpriteOption)) {
+      return;
+    }
+    setActivePalette(targetSpriteOption.value.paletteIndex);
   };
 
   const handlePaletteChange = (index: string) => {
-    const i = parseInt(index);
+    const i = Number.parseInt(index, 10);
     const paletteIndex = toPaletteIndex(i);
     if (paletteIndex === false) {
       return;
@@ -127,7 +138,13 @@ export const SpriteMode: React.FC = () => {
           ...data,
           nes: syncedNes,
         });
-        const nextPalette = data.sprites[activeSprite]?.paletteIndex ?? 0;
+        const nextPalette = pipe(
+          getArrayItem(data.sprites, activeSprite),
+          O.match(
+            (): PaletteIndex => 0,
+            (sprite): PaletteIndex => sprite.paletteIndex,
+          ),
+        );
         setActivePalette(nextPalette);
       });
     } catch (err) {

@@ -1,5 +1,6 @@
 // src/tiles/utils.ts
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import {
   Backing,
   ColorIndexOfPalette,
@@ -7,6 +8,7 @@ import {
   SpriteTile,
   SpriteTileND,
 } from "../store/projectState";
+import { getArrayItem, getMatrixItem } from "../utils/arrayAccess";
 
 /** 8の倍数であることを検査 */
 export function assertTileSize(w: number, h: number): E.Either<string, true> {
@@ -138,7 +140,13 @@ function growBackingIfNeeded(
   // 旧バッファを（shiftX, shiftY）だけ平行移動して貼り付け
   Array.from({ length: b.height }, (_, y) => y).forEach((y) => {
     Array.from({ length: b.width }, (_, x) => x).forEach((x) => {
-      next[y + shiftY][x + shiftX] = b.pixels[y][x];
+      const nextRowOption = getArrayItem(next, y + shiftY);
+      const sourcePixelOption = getMatrixItem(b.pixels, y, x);
+      if (O.isNone(nextRowOption) || O.isNone(sourcePixelOption)) {
+        return;
+      }
+
+      nextRowOption.value[x + shiftX] = sourcePixelOption.value;
     });
   });
   b.pixels = next;
@@ -214,7 +222,13 @@ export function resizeTileND(
       const bx = adjustedCurViewLeft + x;
       const by = adjustedCurViewTop + y;
       if (by >= 0 && by < backing.height && bx >= 0 && bx < backing.width) {
-        backing.pixels[by][bx] = src.pixels[y][x];
+        const backingRowOption = getArrayItem(backing.pixels, by);
+        const sourcePixelOption = getMatrixItem(src.pixels, y, x);
+        if (O.isNone(backingRowOption) || O.isNone(sourcePixelOption)) {
+          return;
+        }
+
+        backingRowOption.value[bx] = sourcePixelOption.value;
       }
     });
   });
@@ -225,15 +239,23 @@ export function resizeTileND(
   // 3) 裏キャンバスから新ビュー領域を読み出して dst へコピー（未定義は fill）
   Array.from({ length: nextH }, (_, y) => y).forEach((y) => {
     const by = adjustedNextViewTop + y;
-    const dstRow = dst.pixels[y];
+    const dstRowOption = getArrayItem(dst.pixels, y);
     if (by < 0 || by >= backing.height) {
       // 全面 fill（makeTile 済みなので何もしない）
+      return;
+    }
+    if (O.isNone(dstRowOption)) {
       return;
     }
     Array.from({ length: nextW }, (_, x) => x).forEach((x) => {
       const bx = adjustedNextViewLeft + x;
       if (bx < 0 || bx >= backing.width) return;
-      dstRow[x] = backing.pixels[by][bx];
+      const sourcePixelOption = getMatrixItem(backing.pixels, by, bx);
+      if (O.isNone(sourcePixelOption)) {
+        return;
+      }
+
+      dstRowOption.value[x] = sourcePixelOption.value;
     });
   });
 
