@@ -2,9 +2,6 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { z } from "zod";
-import {
-  NesProjectState,
-} from "../store/nesProjectState";
 import type { ProjectState } from "../store/projectState";
 
 const ColorIndexOfPaletteSchema = z.union([
