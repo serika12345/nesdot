@@ -1,8 +1,56 @@
 import js from "@eslint/js";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
+import functionalPlugin from "eslint-plugin-functional";
 import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+
+const restrictedSyntaxCommon = [
+  {
+    selector: "Literal[value=null]",
+    message:
+      "Avoid using `null`. Prefer explicit optional modeling or early returns.",
+  },
+  {
+    selector: "Identifier[name='undefined']",
+    message:
+      "Avoid using `undefined`. Prefer explicit optional modeling or early returns.",
+  },
+  {
+    selector: "TSUndefinedKeyword",
+    message:
+      "Avoid `undefined` in type positions. Prefer explicit optional/domain modeling.",
+  },
+  {
+    selector: "IfStatement[test.type='Identifier']",
+    message:
+      "Do not use bare value conditions like `if (value)`. Use explicit comparisons.",
+  },
+  {
+    selector:
+      "IfStatement[test.type='UnaryExpression'][test.operator='!'][test.argument.type='Identifier']",
+    message:
+      "Do not use bare negation conditions like `if (!value)`. Use explicit comparisons.",
+  },
+  {
+    selector: "TSAsExpression",
+    message:
+      "Do not use `as` type assertions. Prefer narrowing, validated boundaries, or redesigned interfaces.",
+  },
+];
+
+const restrictedSyntaxDomainOnly = [
+  {
+    selector: 'UnaryExpression[operator="typeof"]',
+    message:
+      "Avoid runtime `typeof` in domain/application code. Prefer validated boundaries and explicit predicates.",
+  },
+  {
+    selector: 'BinaryExpression[operator="instanceof"]',
+    message:
+      "Avoid `instanceof` in domain/application code. Prefer validated boundaries and explicit predicates.",
+  },
+];
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
 const config = [
@@ -37,6 +85,7 @@ const config = [
     },
     plugins: {
       "@typescript-eslint": tsPlugin,
+      functional: functionalPlugin,
       import: importPlugin,
       "react-hooks": reactHooksPlugin,
     },
@@ -53,72 +102,16 @@ const config = [
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/prefer-as-const": "off",
 
-      "prefer-const": "error",
       "no-var": "error",
       "no-nested-ternary": "error",
       eqeqeq: ["error", "always"],
       "no-implicit-coercion": "error",
       "no-param-reassign": ["error", { props: true }],
 
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "ThrowStatement",
-          message:
-            "Do not throw exceptions from application code. Prefer explicit error values and boundary handling.",
-        },
-        {
-          selector: 'VariableDeclaration[kind="let"]',
-          message:
-            "Use `const` instead of `let`. If reassignment seems necessary, restructure the logic.",
-        },
-        {
-          selector: "Literal[value=null]",
-          message:
-            "Avoid using `null`. Prefer explicit optional modeling or early returns.",
-        },
-        {
-          selector: "Identifier[name='undefined']",
-          message:
-            "Avoid using `undefined`. Prefer explicit optional modeling or early returns.",
-        },
-        {
-          selector: "TSUndefinedKeyword",
-          message:
-            "Avoid `undefined` in type positions. Prefer explicit optional/domain modeling.",
-        },
-        {
-          selector: "IfStatement[test.type='Identifier']",
-          message:
-            "Do not use bare value conditions like `if (value)`. Use explicit comparisons.",
-        },
-        {
-          selector:
-            "IfStatement[test.type='UnaryExpression'][test.operator='!'][test.argument.type='Identifier']",
-          message:
-            "Do not use bare negation conditions like `if (!value)`. Use explicit comparisons.",
-        },
-        {
-          selector: 'UnaryExpression[operator="typeof"]',
-          message:
-            "Avoid runtime `typeof`. Prefer validated boundaries and explicit predicates.",
-        },
-        {
-          selector: 'BinaryExpression[operator="instanceof"]',
-          message:
-            "Avoid `instanceof`. Prefer validated boundaries and explicit predicates.",
-        },
-        {
-          selector: "TSAsExpression",
-          message:
-            "Do not use `as` type assertions. Prefer narrowing, validated boundaries, or redesigned interfaces.",
-        },
-        {
-          selector:
-            'CallExpression[callee.property.name="push"], CallExpression[callee.property.name="pop"], CallExpression[callee.property.name="shift"], CallExpression[callee.property.name="unshift"], CallExpression[callee.property.name="splice"], CallExpression[callee.property.name="sort"], CallExpression[callee.property.name="reverse"]',
-          message: "Use immutable operations. Avoid mutating array methods.",
-        },
-      ],
+      "functional/no-let": "error",
+      "functional/no-throw-statements": "error",
+
+      "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
 
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
@@ -128,6 +121,23 @@ const config = [
         typescript: true,
         node: true,
       },
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/hooks/useImportImage.ts", "src/hooks/useExportImage.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...restrictedSyntaxCommon,
+        ...restrictedSyntaxDomainOnly,
+      ],
+    },
+  },
+  {
+    files: ["src/hooks/useImportImage.ts", "src/hooks/useExportImage.ts"],
+    rules: {
+      "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
     },
   },
   {
@@ -143,6 +153,39 @@ const config = [
       "@typescript-eslint/no-unsafe-return": "error",
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-call": "error",
+    },
+  },
+  {
+    files: [
+      "src/characters/**/*.ts",
+      "src/nes/drawingPath.ts",
+      "src/nes/drawingPath.test.ts",
+      "src/nes/palette.ts",
+      "src/screen/constraints.ts",
+      "src/screen/constraints.test.ts",
+      "src/screen/oamSync.ts",
+      "src/screen/oamSync.test.ts",
+      "src/store/characterState.ts",
+      "src/store/characterState.test.ts",
+    ],
+    rules: {
+      "functional/immutable-data": [
+        "error",
+        {
+          ignoreImmediateMutation: true,
+          ignoreNonConstDeclarations: true,
+          ignoreMapsAndSets: true,
+          ignoreAccessorPattern: [
+            "current",
+            "*.current",
+            "style",
+            "*.style",
+            "*.style.*",
+            "data",
+            "*.data",
+          ],
+        },
+      ],
     },
   },
 ];
