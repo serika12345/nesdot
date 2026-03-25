@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createDefaultNesProjectState } from "../store/nesProjectState";
 import {
   BackgroundTile,
   ColorIndexOfPalette,
@@ -116,5 +117,24 @@ describe("renderScreenToHexArray", () => {
     );
 
     expect(rendered[4][4]).toBe(NES_PALETTE_HEX[34]);
+  });
+
+  it("renders background directly from nameTable+attributeTable+CHR when NES state is provided", () => {
+    const nes = createDefaultNesProjectState();
+    nes.universalBackgroundColor = 45;
+    nes.nameTable.tileIndices[0] = 0;
+    nes.attributeTable.bytes[0] = 0b00000010;
+    nes.backgroundPalettes[2] = [45, 5, 6, 7];
+    nes.chrBytes[0] = 0b10000000;
+    nes.chrBytes[8] = 0b10000000;
+
+    const rendered = renderScreenToHexArray(
+      createScreen([], []),
+      nes.backgroundPalettes,
+      nes,
+    );
+
+    expect(rendered[0][0]).toBe(NES_PALETTE_HEX[7]);
+    expect(rendered[0][1]).toBe(NES_PALETTE_HEX[45]);
   });
 });

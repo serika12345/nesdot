@@ -184,7 +184,7 @@ export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
 export const getHexArrayForScreen = (screen: Screen): string[][] => {
   const state = useProjectState.getState();
   const renderPalettes = resolveScreenRenderPalettes(state.palettes, state.nes);
-  return renderScreenToHexArray(screen, renderPalettes);
+  return renderScreenToHexArray(screen, renderPalettes, state.nes);
 };
 
 // --- 終了/バックグラウンド時の明示フラッシュ（安全側） ---
