@@ -46,7 +46,6 @@ export type SpriteInScreen = SpriteTile & {
 export type Screen = {
   width: 256;
   height: 240;
-  backgroundTiles: BackgroundTile[][];
   sprites: SpriteInScreen[];
 };
 
@@ -55,13 +54,6 @@ export interface SpriteTile {
   height: 8 | 16; // 8の倍数であること
   // ピクセル値は0..3（=パレット内インデックス）
   paletteIndex: PaletteIndex; // 0..3
-  pixels: ColorIndexOfPalette[][];
-}
-
-export interface BackgroundTile {
-  width: 8;
-  height: 8;
-  paletteIndex: PaletteIndex;
   pixels: ColorIndexOfPalette[][];
 }
 
@@ -99,16 +91,6 @@ const DEFAULT_STATE: ProjectState = {
   screen: {
     width: 256,
     height: 240,
-    backgroundTiles: Array.from({ length: 30 }, () =>
-      Array.from({ length: 32 }, () => ({
-        width: 8,
-        height: 8,
-        paletteIndex: 0,
-        pixels: Array.from({ length: 8 }, () =>
-          Array.from({ length: 8 }, () => 0),
-        ),
-      })),
-    ),
     sprites: [], // TODO: 64個まで登録できるようにする
   },
   // NES標準パレット（0は透明スロット扱い）

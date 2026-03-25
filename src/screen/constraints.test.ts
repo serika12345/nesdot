@@ -22,7 +22,6 @@ function createScreen(sprites: SpriteInScreen[]): Screen {
   return {
     width: 256,
     height: 240,
-    backgroundTiles: [],
     sprites,
   };
 }

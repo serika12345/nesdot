@@ -31,14 +31,10 @@ function createSpriteTile(fill: ColorIndexOfPalette = 0): SpriteTile {
   };
 }
 
-function createScreen(
-  sprites: SpriteInScreen[],
-  backgroundTiles: Screen["backgroundTiles"],
-): Screen {
+function createScreen(sprites: SpriteInScreen[]): Screen {
   return {
     width: 256,
     height: 240,
-    backgroundTiles,
     sprites,
   };
 }
@@ -81,7 +77,7 @@ describe("renderScreenToHexArray", () => {
     sprite.pixels[0][1] = 1;
 
     const rendered = renderScreenToHexArray(
-      createScreen([sprite], []),
+      createScreen([sprite]),
       nes.backgroundPalettes,
       nes,
     );
@@ -106,7 +102,7 @@ describe("renderScreenToHexArray", () => {
     };
 
     const rendered = renderScreenToHexArray(
-      createScreen([frontSprite, backSprite], []),
+      createScreen([frontSprite, backSprite]),
       palettes,
       nes,
     );
@@ -124,7 +120,7 @@ describe("renderScreenToHexArray", () => {
     nes.chrBytes[8] = 0b10000000;
 
     const rendered = renderScreenToHexArray(
-      createScreen([], []),
+      createScreen([]),
       nes.backgroundPalettes,
       nes,
     );

@@ -54,13 +54,6 @@ const SpriteTileSchema = z
     }
   });
 
-const BackgroundTileSchema = z.object({
-  width: z.literal(8),
-  height: z.literal(8),
-  paletteIndex: PaletteIndexSchema,
-  pixels: z.array(PixelRowSchema).length(8),
-});
-
 const SpriteInScreenSchema = SpriteTileSchema.extend({
   x: z.number().int(),
   y: z.number().int(),
@@ -70,7 +63,6 @@ const SpriteInScreenSchema = SpriteTileSchema.extend({
 const ScreenSchema = z.object({
   width: z.literal(256),
   height: z.literal(240),
-  backgroundTiles: z.array(z.array(BackgroundTileSchema)),
   sprites: z.array(SpriteInScreenSchema),
 });
 
