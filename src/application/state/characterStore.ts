@@ -2,21 +2,23 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { create } from "zustand";
 import {
-  CharacterCell,
   CharacterSet,
+  CharacterSprite,
+  addCharacterSprite,
   createCharacterSet,
-  resizeCharacterSet,
-  setCharacterCell,
+  removeCharacterSprite,
+  setCharacterSprite,
 } from "../../domain/characters/characterSet";
 
 interface CharacterState {
   characterSets: CharacterSet[];
   selectedCharacterId: O.Option<string>;
-  createSet: (params: { name: string; rows: number; cols: number }) => string;
+  createSet: (params: { name: string }) => string;
   selectSet: (id: O.Option<string>) => void;
   renameSet: (id: string, name: string) => void;
-  resizeSet: (id: string, rows: number, cols: number) => void;
-  setCell: (id: string, index: number, cell: CharacterCell) => void;
+  addSprite: (id: string, sprite: CharacterSprite) => void;
+  setSprite: (id: string, index: number, sprite: CharacterSprite) => void;
+  removeSprite: (id: string, index: number) => void;
   deleteSet: (id: string) => void;
   setFromJson: (data: CharacterJsonData) => void;
 }
@@ -101,13 +103,11 @@ export const fromCharacterJsonData = (
 export const useCharacterState = create<CharacterState>()((set) => ({
   characterSets: [],
   selectedCharacterId: O.none,
-  createSet: ({ name, rows, cols }) => {
+  createSet: ({ name }) => {
     const id = createSetId();
     const nextSet = createCharacterSet({
       id,
       name: name !== "" ? name : "New Character",
-      rows,
-      cols,
     });
 
     set((state) => ({
@@ -129,23 +129,37 @@ export const useCharacterState = create<CharacterState>()((set) => ({
       ),
     }));
   },
-  resizeSet: (id, rows, cols) => {
+  addSprite: (id, sprite) => {
     set((state) => ({
       characterSets: state.characterSets.map((characterSet) =>
         characterSet.id === id
-          ? resizeCharacterSet(characterSet, rows, cols)
+          ? addCharacterSprite(characterSet, sprite)
           : characterSet,
       ),
     }));
   },
-  setCell: (id, index, cell) => {
+  setSprite: (id, index, sprite) => {
     set((state) => ({
       characterSets: state.characterSets.map((characterSet) => {
         if (characterSet.id !== id) {
           return characterSet;
         }
 
-        const updated = setCharacterCell(characterSet, index, cell);
+        const updated = setCharacterSprite(characterSet, index, sprite);
+        return O.getOrElse<CharacterSet>(() => characterSet)(
+          O.fromEither(updated),
+        );
+      }),
+    }));
+  },
+  removeSprite: (id, index) => {
+    set((state) => ({
+      characterSets: state.characterSets.map((characterSet) => {
+        if (characterSet.id !== id) {
+          return characterSet;
+        }
+
+        const updated = removeCharacterSprite(characterSet, index);
         return O.getOrElse<CharacterSet>(() => characterSet)(
           O.fromEither(updated),
         );

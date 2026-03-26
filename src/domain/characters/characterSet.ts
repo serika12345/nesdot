@@ -1,23 +1,28 @@
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { renderSpriteTileToHexArray } from "../nes/rendering";
 import { NesSpritePalettes } from "../nes/nesProject";
+import { renderSpriteTileToHexArray } from "../nes/rendering";
 import { SpriteInScreen, SpriteTile } from "../project/project";
 
-export type CharacterCell =
-  | { kind: "empty" }
-  | {
-      kind: "sprite";
-      spriteIndex: number;
-    };
+export interface CharacterSprite {
+  spriteIndex: number;
+  x: number;
+  y: number;
+  layer: number;
+}
+
+export interface CharacterSpriteInput {
+  spriteIndex: number;
+  x?: number;
+  y?: number;
+  layer?: number;
+}
 
 export interface CharacterSet {
   id: string;
   name: string;
-  rows: number;
-  cols: number;
-  cells: CharacterCell[];
+  sprites: CharacterSprite[];
 }
 
 export interface ExpandCharacterInput {
@@ -32,125 +37,137 @@ export interface BuildCharacterPreviewInput {
   transparentHex: string;
 }
 
-const EMPTY_CELL: CharacterCell = { kind: "empty" };
+interface OrderedSpritePlacement {
+  index: number;
+  layer: number;
+}
 
-const isPositiveInteger = (value: number): boolean =>
-  Number.isInteger(value) && value > 0;
+interface PositionedScreenSprite extends OrderedSpritePlacement {
+  sprite: SpriteInScreen;
+}
 
-const cellCount = (rows: number, cols: number): number => rows * cols;
+interface PreviewPlacement extends OrderedSpritePlacement {
+  x: number;
+  y: number;
+  tile: SpriteTile;
+  hexPixels: string[][];
+}
 
-const toCellIndex = (row: number, col: number, cols: number): number =>
-  row * cols + col;
+const normalizeNonNegativeInt = (value: O.Option<number>): number =>
+  pipe(
+    value,
+    O.filter((n) => Number.isInteger(n) && n >= 0),
+    O.getOrElse(() => 0),
+  );
 
-const normalizeCells = (
-  rows: number,
-  cols: number,
-  cells: CharacterCell[],
-): CharacterCell[] => {
-  const expected = cellCount(rows, cols);
-  return Array.from({ length: expected }, (_, index) => {
-    const cellOption = O.fromNullable(cells[index]);
-    return pipe(
-      cellOption,
-      O.getOrElse(() => EMPTY_CELL),
-    );
-  });
+const normalizeSprite = (sprite: CharacterSpriteInput): CharacterSprite => ({
+  spriteIndex: normalizeNonNegativeInt(O.some(sprite.spriteIndex)),
+  x: normalizeNonNegativeInt(O.fromNullable(sprite.x)),
+  y: normalizeNonNegativeInt(O.fromNullable(sprite.y)),
+  layer: normalizeNonNegativeInt(O.fromNullable(sprite.layer)),
+});
+
+const shouldComeBefore = (
+  next: OrderedSpritePlacement,
+  current: OrderedSpritePlacement,
+): boolean => {
+  if (next.layer !== current.layer) {
+    return next.layer < current.layer;
+  }
+
+  return next.index < current.index;
+};
+
+const insertOrdered = <T extends OrderedSpritePlacement>(
+  items: T[],
+  next: T,
+): T[] => {
+  const insertIndex = items.findIndex((current) =>
+    shouldComeBefore(next, current),
+  );
+
+  if (insertIndex < 0) {
+    return [...items, next];
+  }
+
+  return [...items.slice(0, insertIndex), next, ...items.slice(insertIndex)];
 };
 
 const toScreenSprite = (
-  cell: Extract<CharacterCell, { kind: "sprite" }>,
-  row: number,
-  col: number,
+  sprite: CharacterSprite,
+  index: number,
   input: ExpandCharacterInput,
-): E.Either<string, SpriteInScreen> => {
-  const spriteTileOption = O.fromNullable(input.sprites[cell.spriteIndex]);
+): E.Either<string, PositionedScreenSprite> => {
+  const spriteTileOption = O.fromNullable(input.sprites[sprite.spriteIndex]);
   if (O.isNone(spriteTileOption)) {
-    return E.left(`sprite index out of range: ${cell.spriteIndex}`);
+    return E.left(`sprite index out of range: ${sprite.spriteIndex}`);
   }
-  const spriteTile = spriteTileOption.value;
 
   return E.right({
-    ...spriteTile,
-    x: input.baseX + col * 8,
-    y: input.baseY + row * 8,
-    spriteIndex: cell.spriteIndex,
-    priority: "front",
-    flipH: false,
-    flipV: false,
+    index,
+    layer: sprite.layer,
+    sprite: {
+      ...spriteTileOption.value,
+      x: input.baseX + sprite.x,
+      y: input.baseY + sprite.y,
+      spriteIndex: sprite.spriteIndex,
+      priority: "front",
+      flipH: false,
+      flipV: false,
+    },
   });
 };
 
 export const createCharacterSet = (params: {
   id: string;
   name: string;
-  rows: number;
-  cols: number;
-  cells?: CharacterCell[];
-}): CharacterSet => {
-  const safeRows = isPositiveInteger(params.rows) ? params.rows : 1;
-  const safeCols = isPositiveInteger(params.cols) ? params.cols : 1;
+  sprites?: CharacterSpriteInput[];
+}): CharacterSet => ({
+  id: params.id,
+  name: params.name,
+  sprites: (params.sprites ?? []).map(normalizeSprite),
+});
 
-  return {
-    id: params.id,
-    name: params.name,
-    rows: safeRows,
-    cols: safeCols,
-    cells: normalizeCells(safeRows, safeCols, params.cells ?? []),
-  };
-};
-
-export const resizeCharacterSet = (
+export const addCharacterSprite = (
   target: CharacterSet,
-  nextRows: number,
-  nextCols: number,
-): CharacterSet => {
-  const safeRows = isPositiveInteger(nextRows) ? nextRows : target.rows;
-  const safeCols = isPositiveInteger(nextCols) ? nextCols : target.cols;
+  sprite: CharacterSpriteInput,
+): CharacterSet => ({
+  ...target,
+  sprites: [...target.sprites, normalizeSprite(sprite)],
+});
 
-  const copiedCells = Array.from(
-    { length: cellCount(safeRows, safeCols) },
-    (_, nextIndex) => {
-      const row = Math.floor(nextIndex / safeCols);
-      const col = nextIndex % safeCols;
-      const inOldBounds = row < target.rows && col < target.cols;
-
-      if (inOldBounds === false) {
-        return EMPTY_CELL;
-      }
-
-      const oldIndex = toCellIndex(row, col, target.cols);
-      const oldCellOption = O.fromNullable(target.cells[oldIndex]);
-      return pipe(
-        oldCellOption,
-        O.getOrElse(() => EMPTY_CELL),
-      );
-    },
-  );
-
-  return {
-    ...target,
-    rows: safeRows,
-    cols: safeCols,
-    cells: copiedCells,
-  };
-};
-
-export const setCharacterCell = (
+export const setCharacterSprite = (
   target: CharacterSet,
   index: number,
-  nextCell: CharacterCell,
+  nextSprite: CharacterSpriteInput,
 ): E.Either<string, CharacterSet> => {
   const isValidIndex =
-    Number.isInteger(index) && index >= 0 && index < target.cells.length;
+    Number.isInteger(index) && index >= 0 && index < target.sprites.length;
   if (isValidIndex === false) {
-    return E.left(`cell index out of range: ${index}`);
+    return E.left(`sprite index out of range: ${index}`);
   }
 
   return E.right({
     ...target,
-    cells: target.cells.map((cell, cellIndex) =>
-      cellIndex === index ? nextCell : cell,
+    sprites: target.sprites.map((sprite, spriteIndex) =>
+      spriteIndex === index ? normalizeSprite(nextSprite) : sprite,
     ),
+  });
+};
+
+export const removeCharacterSprite = (
+  target: CharacterSet,
+  index: number,
+): E.Either<string, CharacterSet> => {
+  const isValidIndex =
+    Number.isInteger(index) && index >= 0 && index < target.sprites.length;
+  if (isValidIndex === false) {
+    return E.left(`sprite index out of range: ${index}`);
+  }
+
+  return E.right({
+    ...target,
+    sprites: target.sprites.filter((_, spriteIndex) => spriteIndex !== index),
   });
 };
 
@@ -158,98 +175,94 @@ export const expandCharacterToScreenSprites = (
   target: CharacterSet,
   input: ExpandCharacterInput,
 ): E.Either<string, SpriteInScreen[]> => {
-  const seed: E.Either<string, SpriteInScreen[]> = E.right([]);
+  const seed: E.Either<string, PositionedScreenSprite[]> = E.right([]);
 
-  return target.cells.reduce((acc, cell, index) => {
+  const expanded = target.sprites.reduce((acc, sprite, index) => {
     if (E.isLeft(acc)) {
       return acc;
     }
 
-    if (cell.kind === "empty") {
-      return acc;
+    const positioned = toScreenSprite(sprite, index, input);
+    if (E.isLeft(positioned)) {
+      return E.left(positioned.left);
     }
 
-    const row = Math.floor(index / target.cols);
-    const col = index % target.cols;
-    const nextSprite = toScreenSprite(cell, row, col, input);
-    if (E.isLeft(nextSprite)) {
-      return E.left(nextSprite.left);
-    }
-
-    return E.right([...acc.right, nextSprite.right]);
+    return E.right([...acc.right, positioned.right]);
   }, seed);
-};
 
-interface PreviewPlacement {
-  row: number;
-  col: number;
-  tile: SpriteTile;
-  hexPixels: string[][];
-}
+  if (E.isLeft(expanded)) {
+    return expanded;
+  }
+
+  const emptyOrdered: PositionedScreenSprite[] = [];
+  const ordered = expanded.right.reduce(
+    (acc, sprite) => insertOrdered(acc, sprite),
+    emptyOrdered,
+  );
+
+  return E.right(ordered.map((item) => item.sprite));
+};
 
 export const buildCharacterPreviewHexGrid = (
   target: CharacterSet,
   input: BuildCharacterPreviewInput,
 ): E.Either<string, string[][]> => {
-  const placements = target.cells.reduce(
-    (acc: E.Either<string, PreviewPlacement[]>, cell, index) => {
-      if (E.isLeft(acc)) {
-        return acc;
-      }
+  const seed: E.Either<string, PreviewPlacement[]> = E.right([]);
 
-      if (cell.kind === "empty") {
-        return acc;
-      }
+  const placements = target.sprites.reduce((acc, sprite, index) => {
+    if (E.isLeft(acc)) {
+      return acc;
+    }
 
-      const tileOption = O.fromNullable(input.sprites[cell.spriteIndex]);
-      if (O.isNone(tileOption)) {
-        return E.left(`sprite index out of range: ${cell.spriteIndex}`);
-      }
-      const tile = tileOption.value;
+    const tileOption = O.fromNullable(input.sprites[sprite.spriteIndex]);
+    if (O.isNone(tileOption)) {
+      return E.left(`sprite index out of range: ${sprite.spriteIndex}`);
+    }
 
-      const row = Math.floor(index / target.cols);
-      const col = index % target.cols;
-      const hexPixels = renderSpriteTileToHexArray(tile, input.palettes);
-      const nextPlacement: PreviewPlacement = {
-        row,
-        col,
-        tile,
-        hexPixels,
-      };
+    const nextPlacement: PreviewPlacement = {
+      index,
+      layer: sprite.layer,
+      x: sprite.x,
+      y: sprite.y,
+      tile: tileOption.value,
+      hexPixels: renderSpriteTileToHexArray(tileOption.value, input.palettes),
+    };
 
-      return E.right([...acc.right, nextPlacement]);
-    },
-    E.right<string, PreviewPlacement[]>([]),
-  );
+    return E.right([...acc.right, nextPlacement]);
+  }, seed);
 
   if (E.isLeft(placements)) {
     return placements;
   }
 
-  const width = target.cols * 8;
-  const baseHeight = target.rows * 8;
-  const height = placements.right.reduce(
-    (acc, placement) =>
-      Math.max(acc, placement.row * 8 + placement.tile.height),
-    baseHeight,
+  const emptyPlacements: PreviewPlacement[] = [];
+  const ordered = placements.right.reduce(
+    (acc, placement) => insertOrdered(acc, placement),
+    emptyPlacements,
+  );
+
+  const width = ordered.reduce(
+    (acc, placement) => Math.max(acc, placement.x + placement.tile.width),
+    8,
+  );
+  const height = ordered.reduce(
+    (acc, placement) => Math.max(acc, placement.y + placement.tile.height),
+    8,
   );
 
   const initGrid = Array.from({ length: height }, () =>
     Array.from({ length: width }, () => input.transparentHex),
   );
 
-  const composedGrid = placements.right.reduce((grid, placement) => {
-    const top = placement.row * 8;
-    const left = placement.col * 8;
-
+  const composed = ordered.reduceRight((grid, placement) => {
     return placement.tile.pixels.reduce((accRows, pixelRow, pixelY) => {
       return pixelRow.reduce((accPixels, colorIndex, pixelX) => {
         if (colorIndex === 0) {
           return accPixels;
         }
 
-        const targetY = top + pixelY;
-        const targetX = left + pixelX;
+        const targetY = placement.y + pixelY;
+        const targetX = placement.x + pixelX;
         const rowOption = O.fromNullable(placement.hexPixels[pixelY]);
         const colorOption = pipe(
           rowOption,
@@ -269,5 +282,5 @@ export const buildCharacterPreviewHexGrid = (
     }, grid);
   }, initGrid);
 
-  return E.right(composedGrid);
+  return E.right(composed);
 };

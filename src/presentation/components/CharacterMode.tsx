@@ -6,8 +6,8 @@ import { useCharacterState } from "../../application/state/characterStore";
 import { useProjectState } from "../../application/state/projectStore";
 import {
   buildCharacterPreviewHexGrid,
-  CharacterCell,
   CharacterSet,
+  CharacterSprite,
 } from "../../domain/characters/characterSet";
 import useExportImage from "../../infrastructure/browser/useExportImage";
 import {
@@ -37,22 +37,30 @@ import {
 } from "./characterEditorView";
 import { ProjectActions } from "./ProjectActions";
 
-const toCellDisplayValue = (cell: CharacterCell): string =>
-  cell.kind === "empty" ? "" : String(cell.spriteIndex);
-
 const toNumber = (value: string): O.Option<number> => {
   if (value === "") {
     return O.none;
   }
+
   const parsed = Number(value);
   if (Number.isInteger(parsed) === false) {
     return O.none;
   }
+
   return O.some(parsed);
 };
 
-const createCellLabel = (row: number, col: number): string =>
-  `r${row + 1} c${col + 1}`;
+const getPreviewGridWidth = (grid: string[][]): number =>
+  pipe(
+    O.fromNullable(grid[0]),
+    O.match(
+      () => 0,
+      (firstRow) => firstRow.length,
+    ),
+  );
+
+const isInRange = (value: number, min: number, max: number): boolean =>
+  value >= min && value <= max;
 
 type CharacterPreviewState =
   | { kind: "none" }
@@ -66,16 +74,19 @@ export const CharacterMode: React.FC = () => {
   const [requestedEditorView, setRequestedEditorView] =
     useState<CharacterEditorView>("create");
   const [newName, setNewName] = useState("New Character");
-  const [newRows, setNewRows] = useState(2);
-  const [newCols, setNewCols] = useState(2);
+  const [newSpriteIndex, setNewSpriteIndex] = useState(0);
+  const [newSpriteX, setNewSpriteX] = useState(0);
+  const [newSpriteY, setNewSpriteY] = useState(0);
+  const [newSpriteLayer, setNewSpriteLayer] = useState(0);
 
   const characterSets = useCharacterState((s) => s.characterSets);
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
   const createSet = useCharacterState((s) => s.createSet);
   const selectSet = useCharacterState((s) => s.selectSet);
   const renameSet = useCharacterState((s) => s.renameSet);
-  const resizeSet = useCharacterState((s) => s.resizeSet);
-  const setCell = useCharacterState((s) => s.setCell);
+  const addSprite = useCharacterState((s) => s.addSprite);
+  const setSprite = useCharacterState((s) => s.setSprite);
+  const removeSprite = useCharacterState((s) => s.removeSprite);
   const deleteSet = useCharacterState((s) => s.deleteSet);
   const sprites = useProjectState((s) => s.sprites);
   const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
@@ -127,38 +138,63 @@ export const CharacterMode: React.FC = () => {
     [activeSet, sprites, spritePalettes],
   );
 
+  const previewWidth =
+    previewState.kind === "ready" ? getPreviewGridWidth(previewState.grid) : 0;
+
   const handleCreate = () => {
-    if (newRows <= 0 || newCols <= 0) {
-      return;
-    }
-    createSet({
-      name: newName,
-      rows: newRows,
-      cols: newCols,
-    });
+    createSet({ name: newName });
     setRequestedEditorView("edit");
   };
 
-  const handleCellChange = (
+  const handleAddSprite = (setId: string) => {
+    if (
+      isInRange(newSpriteIndex, 0, 63) === false ||
+      isInRange(newSpriteX, 0, 255) === false ||
+      isInRange(newSpriteY, 0, 239) === false ||
+      isInRange(newSpriteLayer, 0, 63) === false
+    ) {
+      return;
+    }
+
+    addSprite(setId, {
+      spriteIndex: newSpriteIndex,
+      x: newSpriteX,
+      y: newSpriteY,
+      layer: newSpriteLayer,
+    });
+  };
+
+  const handleUpdateSprite = (
     setId: string,
-    cellIndex: number,
+    index: number,
+    current: CharacterSprite,
+    field: "spriteIndex" | "x" | "y" | "layer",
     rawValue: string,
   ) => {
     const parsed = toNumber(rawValue);
+    if (O.isNone(parsed)) {
+      return;
+    }
 
-    pipe(
-      parsed,
-      O.match(
-        () => setCell(setId, cellIndex, { kind: "empty" }),
-        (spriteIndex) => {
-          const isInRange = spriteIndex >= 0 && spriteIndex < 64;
-          if (isInRange === false) {
-            return;
-          }
-          setCell(setId, cellIndex, { kind: "sprite", spriteIndex });
-        },
-      ),
-    );
+    const nextValue = parsed.value;
+    const nextSprite: CharacterSprite = {
+      spriteIndex: field === "spriteIndex" ? nextValue : current.spriteIndex,
+      x: field === "x" ? nextValue : current.x,
+      y: field === "y" ? nextValue : current.y,
+      layer: field === "layer" ? nextValue : current.layer,
+    };
+
+    const isValid =
+      isInRange(nextSprite.spriteIndex, 0, 63) &&
+      isInRange(nextSprite.x, 0, 255) &&
+      isInRange(nextSprite.y, 0, 239) &&
+      isInRange(nextSprite.layer, 0, 63);
+
+    if (isValid === false) {
+      return;
+    }
+
+    setSprite(setId, index, nextSprite);
   };
 
   return (
@@ -196,7 +232,7 @@ export const CharacterMode: React.FC = () => {
           {editorView === "create" && (
             <>
               <HelperText>
-                新規セットのサイズを決めて作成します。作成後は編集モードに切り替わります。
+                新規キャラクターセットを作成します。作成後に座標ベースでスプライトを追加できます。
               </HelperText>
               <FieldGrid
                 css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
@@ -208,26 +244,6 @@ export const CharacterMode: React.FC = () => {
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>行</FieldLabel>
-                  <NumberInput
-                    type="number"
-                    value={newRows}
-                    min={1}
-                    max={16}
-                    onChange={(e) => setNewRows(Number(e.target.value))}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>列</FieldLabel>
-                  <NumberInput
-                    type="number"
-                    value={newCols}
-                    min={1}
-                    max={16}
-                    onChange={(e) => setNewCols(Number(e.target.value))}
                   />
                 </Field>
                 <div css={{ display: "grid", alignItems: "end" }}>
@@ -267,8 +283,7 @@ export const CharacterMode: React.FC = () => {
                     )}
                     {characterSets.map((characterSet) => (
                       <option key={characterSet.id} value={characterSet.id}>
-                        {characterSet.name} ({characterSet.rows}x
-                        {characterSet.cols})
+                        {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
                       </option>
                     ))}
                   </SelectInput>
@@ -316,38 +331,6 @@ export const CharacterMode: React.FC = () => {
                             }
                           />
                         </Field>
-                        <Field>
-                          <FieldLabel>行数</FieldLabel>
-                          <NumberInput
-                            type="number"
-                            min={1}
-                            max={16}
-                            value={characterSet.rows}
-                            onChange={(e) =>
-                              resizeSet(
-                                characterSet.id,
-                                Number(e.target.value),
-                                characterSet.cols,
-                              )
-                            }
-                          />
-                        </Field>
-                        <Field>
-                          <FieldLabel>列数</FieldLabel>
-                          <NumberInput
-                            type="number"
-                            min={1}
-                            max={16}
-                            value={characterSet.cols}
-                            onChange={(e) =>
-                              resizeSet(
-                                characterSet.id,
-                                characterSet.rows,
-                                Number(e.target.value),
-                              )
-                            }
-                          />
-                        </Field>
                         <div css={{ display: "grid", alignItems: "end" }}>
                           <ToolButton
                             type="button"
@@ -361,52 +344,179 @@ export const CharacterMode: React.FC = () => {
 
                       <DetailList>
                         <DetailRow>
-                          <FieldLabel>セル設定 (0-63)</FieldLabel>
+                          <FieldLabel>スプライト一覧</FieldLabel>
                           <Badge tone="accent">
-                            {characterSet.rows}x{characterSet.cols}
+                            {characterSet.sprites.length} sprites
                           </Badge>
                         </DetailRow>
                       </DetailList>
 
-                      <div
+                      <FieldGrid
                         css={{
-                          display: "grid",
-                          gridTemplateColumns: `repeat(${characterSet.cols}, minmax(0, 1fr))`,
-                          gap: 8,
+                          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                         }}
                       >
-                        {characterSet.cells.map((cell, index) => {
-                          const row = Math.floor(index / characterSet.cols);
-                          const col = index % characterSet.cols;
-                          return (
-                            <Field
-                              key={[characterSet.id, `${index}`].join("-")}
+                        <Field>
+                          <FieldLabel>sprite</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            min={0}
+                            max={63}
+                            value={newSpriteIndex}
+                            onChange={(e) =>
+                              setNewSpriteIndex(Number(e.target.value))
+                            }
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel>x</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            min={0}
+                            max={255}
+                            value={newSpriteX}
+                            onChange={(e) =>
+                              setNewSpriteX(Number(e.target.value))
+                            }
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel>y</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            min={0}
+                            max={239}
+                            value={newSpriteY}
+                            onChange={(e) =>
+                              setNewSpriteY(Number(e.target.value))
+                            }
+                          />
+                        </Field>
+                        <Field>
+                          <FieldLabel>layer</FieldLabel>
+                          <NumberInput
+                            type="number"
+                            min={0}
+                            max={63}
+                            value={newSpriteLayer}
+                            onChange={(e) =>
+                              setNewSpriteLayer(Number(e.target.value))
+                            }
+                          />
+                        </Field>
+                        <div css={{ gridColumn: "1 / -1", display: "grid" }}>
+                          <ToolButton
+                            type="button"
+                            tone="primary"
+                            onClick={() => handleAddSprite(characterSet.id)}
+                          >
+                            スプライトを追加
+                          </ToolButton>
+                        </div>
+                      </FieldGrid>
+
+                      <div css={{ display: "grid", gap: 8 }}>
+                        {characterSet.sprites.map((sprite, index) => (
+                          <Field
+                            key={[characterSet.id, `${index}`].join("-")}
+                            css={{
+                              border: "1px solid rgba(148, 163, 184, 0.2)",
+                              borderRadius: 12,
+                              padding: 10,
+                            }}
+                          >
+                            <FieldLabel>{`sprite ${index + 1}`}</FieldLabel>
+                            <FieldGrid
+                              css={{
+                                gridTemplateColumns:
+                                  "repeat(4, minmax(0, 1fr)) auto",
+                                alignItems: "end",
+                              }}
                             >
-                              <FieldLabel>
-                                {createCellLabel(row, col)}
-                              </FieldLabel>
-                              <NumberInput
-                                type="number"
-                                min={0}
-                                max={63}
-                                value={toCellDisplayValue(cell)}
-                                onChange={(e) =>
-                                  handleCellChange(
-                                    characterSet.id,
-                                    index,
-                                    e.target.value,
-                                  )
+                              <Field>
+                                <FieldLabel>sprite</FieldLabel>
+                                <NumberInput
+                                  type="number"
+                                  min={0}
+                                  max={63}
+                                  value={sprite.spriteIndex}
+                                  onChange={(e) =>
+                                    handleUpdateSprite(
+                                      characterSet.id,
+                                      index,
+                                      sprite,
+                                      "spriteIndex",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                              <Field>
+                                <FieldLabel>x</FieldLabel>
+                                <NumberInput
+                                  type="number"
+                                  min={0}
+                                  max={255}
+                                  value={sprite.x}
+                                  onChange={(e) =>
+                                    handleUpdateSprite(
+                                      characterSet.id,
+                                      index,
+                                      sprite,
+                                      "x",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                              <Field>
+                                <FieldLabel>y</FieldLabel>
+                                <NumberInput
+                                  type="number"
+                                  min={0}
+                                  max={239}
+                                  value={sprite.y}
+                                  onChange={(e) =>
+                                    handleUpdateSprite(
+                                      characterSet.id,
+                                      index,
+                                      sprite,
+                                      "y",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                              <Field>
+                                <FieldLabel>layer</FieldLabel>
+                                <NumberInput
+                                  type="number"
+                                  min={0}
+                                  max={63}
+                                  value={sprite.layer}
+                                  onChange={(e) =>
+                                    handleUpdateSprite(
+                                      characterSet.id,
+                                      index,
+                                      sprite,
+                                      "layer",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                              <ToolButton
+                                type="button"
+                                tone="danger"
+                                onClick={() =>
+                                  removeSprite(characterSet.id, index)
                                 }
-                                placeholder="empty"
-                              />
-                              <DetailValue css={{ justifySelf: "start" }}>
-                                {cell.kind === "empty"
-                                  ? "未設定"
-                                  : `sprite #${cell.spriteIndex}`}
-                              </DetailValue>
-                            </Field>
-                          );
-                        })}
+                              >
+                                削除
+                              </ToolButton>
+                            </FieldGrid>
+                          </Field>
+                        ))}
                       </div>
                     </>
                   ),
@@ -486,8 +596,7 @@ export const CharacterMode: React.FC = () => {
               <DetailRow>
                 <FieldLabel>プレビューサイズ</FieldLabel>
                 <Badge tone="accent">
-                  {previewState.characterSet.cols * 8}x
-                  {previewState.grid.length}
+                  {previewWidth}x{previewState.grid.length}
                 </Badge>
               </DetailRow>
             </DetailList>
@@ -507,7 +616,7 @@ export const CharacterMode: React.FC = () => {
               <div
                 css={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${previewState.characterSet.cols * 8}, ${PREVIEW_PIXEL_SIZE}px)`,
+                  gridTemplateColumns: `repeat(${previewWidth}, ${PREVIEW_PIXEL_SIZE}px)`,
                   width: "fit-content",
                 }}
               >
@@ -540,12 +649,13 @@ export const CharacterMode: React.FC = () => {
         <DetailList>
           <DetailRow>
             <DetailValue css={{ textAlign: "left" }}>
-              キャラクターセットは既存スプライト番号の行列です。画面配置では基準座標から8px刻みで展開されます。
+              キャラクターセットは座標指定のスプライト集合です。x/y
+              で配置し、layer は小さいほど前面になります。
             </DetailValue>
           </DetailRow>
           <DetailRow>
             <DetailValue css={{ textAlign: "left" }}>
-              セルを空欄にすると、その位置にはスプライトを配置しません。
+              画面へ追加する際は、スクリーン側でスキャンライン制約を検査します。
             </DetailValue>
           </DetailRow>
         </DetailList>

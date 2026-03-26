@@ -2,6 +2,28 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
+import { useCharacterState } from "../../application/state/characterStore";
+import {
+  getHexArrayForScreen,
+  Screen,
+  SpriteInScreen,
+  SpritePriority,
+  useProjectState,
+} from "../../application/state/projectStore";
+import { expandCharacterToScreenSprites } from "../../domain/characters/characterSet";
+import {
+  MAX_SCREEN_SPRITES,
+  MAX_SPRITES_PER_SCANLINE,
+  scanNesSpriteConstraints,
+} from "../../domain/screen/constraints";
+import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
+import {
+  getGroupBounds,
+  isValidGroupMovement,
+  moveGroupByDelta,
+} from "../../domain/screen/spriteGroup";
+import useExportImage from "../../infrastructure/browser/useExportImage";
+import useImportImage from "../../infrastructure/browser/useImportImage";
 import {
   CanvasViewport,
   CollapseToggle,
@@ -27,28 +49,6 @@ import {
   SplitLayout,
   ToolButton,
 } from "../App.styles";
-import { expandCharacterToScreenSprites } from "../../domain/characters/characterSet";
-import useExportImage from "../../infrastructure/browser/useExportImage";
-import useImportImage from "../../infrastructure/browser/useImportImage";
-import {
-  MAX_SCREEN_SPRITES,
-  MAX_SPRITES_PER_SCANLINE,
-  scanNesSpriteConstraints,
-} from "../../domain/screen/constraints";
-import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
-import {
-  getGroupBounds,
-  isValidGroupMovement,
-  moveGroupByDelta,
-} from "../../domain/screen/spriteGroup";
-import { useCharacterState } from "../../application/state/characterStore";
-import {
-  getHexArrayForScreen,
-  Screen,
-  SpriteInScreen,
-  SpritePriority,
-  useProjectState,
-} from "../../application/state/projectStore";
 import { ProjectActions } from "./ProjectActions";
 import { ScreenCanvas } from "./ScreenCanvas";
 import { ChevronIcon } from "./ui/Icons";
@@ -373,7 +373,7 @@ export const ScreenMode: React.FC = () => {
                   )}
                   {characterSets.map((characterSet) => (
                     <option key={characterSet.id} value={characterSet.id}>
-                      {`${characterSet.name} (${characterSet.rows}x${characterSet.cols})`}
+                      {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
                     </option>
                   ))}
                 </SelectInput>
@@ -439,7 +439,7 @@ export const ScreenMode: React.FC = () => {
               ),
               (characterSet) => (
                 <HelperText>
-                  {`${characterSet.rows}x${characterSet.cols} のセットを (${characterBaseX}, ${characterBaseY}) に配置します。`}
+                  {`${characterSet.sprites.length} sprites を (${characterBaseX}, ${characterBaseY}) に配置します。`}
                 </HelperText>
               ),
             ),

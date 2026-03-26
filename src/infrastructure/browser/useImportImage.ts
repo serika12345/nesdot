@@ -3,8 +3,14 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
 import { z } from "zod";
-import { CharacterJsonData, useCharacterState } from "../../application/state/characterStore";
-import type { NesProjectState, NesSubPalette } from "../../domain/nes/nesProject";
+import {
+  CharacterJsonData,
+  useCharacterState,
+} from "../../application/state/characterStore";
+import type {
+  NesProjectState,
+  NesSubPalette,
+} from "../../domain/nes/nesProject";
 import type {
   ProjectState,
   SpriteInScreen,
@@ -123,30 +129,18 @@ const ProjectStateSchema = z.object({
   _hydrated: z.boolean().optional(),
 });
 
-const CharacterCellSchema = z.union([
-  z.object({ kind: z.literal("empty") }),
-  z.object({
-    kind: z.literal("sprite"),
-    spriteIndex: z.number().int().min(0).max(63),
-  }),
-]);
+const CharacterSpriteSchema = z.object({
+  spriteIndex: z.number().int().min(0).max(63),
+  x: z.number().int().min(0).max(255),
+  y: z.number().int().min(0).max(239),
+  layer: z.number().int().min(0).max(63),
+});
 
-const CharacterSetSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    rows: z.number().int().min(1),
-    cols: z.number().int().min(1),
-    cells: z.array(CharacterCellSchema),
-  })
-  .superRefine((value, ctx) => {
-    if (value.cells.length !== value.rows * value.cols) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "CharacterSet cells length must match rows*cols",
-      });
-    }
-  });
+const CharacterSetSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  sprites: z.array(CharacterSpriteSchema),
+});
 
 const CharacterJsonDataSchema = z.object({
   characterSets: z.array(CharacterSetSchema),

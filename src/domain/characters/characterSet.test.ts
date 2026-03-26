@@ -1,58 +1,59 @@
 import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import { createDefaultNesProjectState } from "../nes/nesProject";
 import { makeTile } from "../tiles/utils";
 import {
+  addCharacterSprite,
   buildCharacterPreviewHexGrid,
-  CharacterCell,
-  CharacterSet,
   createCharacterSet,
   expandCharacterToScreenSprites,
-  resizeCharacterSet,
-  setCharacterCell,
+  removeCharacterSprite,
+  setCharacterSprite,
 } from "./characterSet";
 
-const emptyCell: CharacterCell = { kind: "empty" };
-
-const createCells = (cells: CharacterCell[]): CharacterCell[] => cells;
-
-const createCharacter = (): CharacterSet =>
+const createCharacter = () =>
   createCharacterSet({
     id: "hero",
     name: "Hero",
-    rows: 2,
-    cols: 2,
-    cells: createCells([
-      { kind: "sprite", spriteIndex: 0 },
-      emptyCell,
-      { kind: "sprite", spriteIndex: 1 },
-      { kind: "sprite", spriteIndex: 2 },
-    ]),
+    sprites: [
+      { spriteIndex: 0, x: 0, y: 0, layer: 0 },
+      { spriteIndex: 1, x: 8, y: 0, layer: 1 },
+    ],
   });
 
 describe("characterSet", () => {
-  it("creates missing cells as empty", () => {
+  it("creates empty set by default", () => {
     const set = createCharacterSet({
       id: "ch-1",
       name: "test",
-      rows: 2,
-      cols: 2,
-      cells: [{ kind: "sprite", spriteIndex: 3 }],
     });
 
-    expect(set.cells).toHaveLength(4);
-    expect(set.cells[0]).toEqual({ kind: "sprite", spriteIndex: 3 });
-    expect(set.cells[1]).toEqual({ kind: "empty" });
-    expect(set.cells[2]).toEqual({ kind: "empty" });
-    expect(set.cells[3]).toEqual({ kind: "empty" });
+    expect(set.sprites).toEqual([]);
   });
 
-  it("updates a target cell with validation", () => {
+  it("adds a sprite with normalized values", () => {
+    const set = createCharacterSet({ id: "c1", name: "c1" });
+    const updated = addCharacterSprite(set, {
+      spriteIndex: 3,
+      x: 12,
+      y: 34,
+      layer: 2,
+    });
+
+    expect(updated.sprites).toEqual([
+      { spriteIndex: 3, x: 12, y: 34, layer: 2 },
+    ]);
+  });
+
+  it("updates a target sprite with validation", () => {
     const original = createCharacter();
-    const result = setCharacterCell(original, 1, {
-      kind: "sprite",
+    const result = setCharacterSprite(original, 1, {
       spriteIndex: 7,
+      x: 22,
+      y: 14,
+      layer: 4,
     });
 
     expect(E.isRight(result)).toBe(true);
@@ -60,32 +61,56 @@ describe("characterSet", () => {
       return;
     }
 
-    expect(result.right.cells[1]).toEqual({
-      kind: "sprite",
+    expect(result.right.sprites[1]).toEqual({
       spriteIndex: 7,
+      x: 22,
+      y: 14,
+      layer: 4,
     });
-    expect(original.cells[1]).toEqual({ kind: "empty" });
+    expect(original.sprites[1]).toEqual({
+      spriteIndex: 1,
+      x: 8,
+      y: 0,
+      layer: 1,
+    });
 
-    const invalid = setCharacterCell(original, 99, emptyCell);
+    const invalid = setCharacterSprite(original, 99, {
+      spriteIndex: 0,
+      x: 0,
+      y: 0,
+      layer: 0,
+    });
     expect(E.isLeft(invalid)).toBe(true);
   });
 
-  it("resizes while preserving overlap and fills new cells as empty", () => {
+  it("removes a target sprite with validation", () => {
     const original = createCharacter();
-    const resized = resizeCharacterSet(original, 3, 3);
+    const result = removeCharacterSprite(original, 0);
 
-    expect(resized.rows).toBe(3);
-    expect(resized.cols).toBe(3);
-    expect(resized.cells).toHaveLength(9);
-    expect(resized.cells[0]).toEqual({ kind: "sprite", spriteIndex: 0 });
-    expect(resized.cells[3]).toEqual({ kind: "sprite", spriteIndex: 1 });
-    expect(resized.cells[4]).toEqual({ kind: "sprite", spriteIndex: 2 });
-    expect(resized.cells[8]).toEqual({ kind: "empty" });
+    expect(E.isRight(result)).toBe(true);
+    if (E.isLeft(result)) {
+      return;
+    }
+
+    expect(result.right.sprites).toHaveLength(1);
+    expect(result.right.sprites[0]).toEqual({
+      spriteIndex: 1,
+      x: 8,
+      y: 0,
+      layer: 1,
+    });
   });
 
-  it("expands to screen sprites using 8px grid and skips empty cells", () => {
-    const character = createCharacter();
-    const sprites = [makeTile(8, 0), makeTile(8, 1), makeTile(16, 2)];
+  it("expands to screen sprites using per-sprite coordinates", () => {
+    const character = createCharacterSet({
+      id: "expand",
+      name: "expand",
+      sprites: [
+        { spriteIndex: 0, x: 1, y: 2, layer: 3 },
+        { spriteIndex: 1, x: 9, y: 12, layer: 1 },
+      ],
+    });
+    const sprites = [makeTile(8, 0), makeTile(16, 1)];
 
     const result = expandCharacterToScreenSprites(character, {
       baseX: 40,
@@ -98,22 +123,16 @@ describe("characterSet", () => {
       return;
     }
 
-    expect(result.right).toHaveLength(3);
+    expect(result.right).toHaveLength(2);
     expect(result.right[0]).toMatchObject({
-      x: 40,
-      y: 56,
-      spriteIndex: 0,
+      spriteIndex: 1,
+      x: 49,
+      y: 68,
     });
     expect(result.right[1]).toMatchObject({
-      x: 40,
-      y: 64,
-      spriteIndex: 1,
-    });
-    expect(result.right[2]).toMatchObject({
-      x: 48,
-      y: 64,
-      spriteIndex: 2,
-      height: 16,
+      spriteIndex: 0,
+      x: 41,
+      y: 58,
     });
   });
 
@@ -121,24 +140,28 @@ describe("characterSet", () => {
     const set = createCharacterSet({
       id: "invalid",
       name: "invalid",
-      rows: 1,
-      cols: 1,
-      cells: [{ kind: "sprite", spriteIndex: 99 }],
+      sprites: [{ spriteIndex: 99, x: 0, y: 0, layer: 0 }],
     });
-    const sprites = [makeTile(8, 0)];
 
     const result = expandCharacterToScreenSprites(set, {
       baseX: 0,
       baseY: 0,
-      sprites,
+      sprites: [makeTile(8, 0)],
     });
 
     expect(E.isLeft(result)).toBe(true);
   });
 
   it("builds preview grid with composed sprite pixels", () => {
-    const character = createCharacter();
-    const sprites = [makeTile(8, 0, 1), makeTile(8, 1, 2), makeTile(16, 2, 3)];
+    const character = createCharacterSet({
+      id: "preview",
+      name: "preview",
+      sprites: [
+        { spriteIndex: 0, x: 0, y: 0, layer: 1 },
+        { spriteIndex: 1, x: 4, y: 4, layer: 0 },
+      ],
+    });
+    const sprites = [makeTile(8, 0, 1), makeTile(16, 1, 2)];
     const palettes = createDefaultNesProjectState().spritePalettes;
     const transparentHex = "#00000000";
 
@@ -153,36 +176,32 @@ describe("characterSet", () => {
       return;
     }
 
+    expect(result.right.length).toBeGreaterThanOrEqual(20);
     const firstRow = O.fromNullable(result.right[0]);
-    const eleventhRow = O.fromNullable(result.right[10]);
-    const twentyFirstRow = O.fromNullable(result.right[20]);
-
     expect(O.isSome(firstRow)).toBe(true);
-    expect(O.isSome(eleventhRow)).toBe(true);
-    expect(O.isSome(twentyFirstRow)).toBe(true);
-    if (
-      O.isNone(firstRow) ||
-      O.isNone(eleventhRow) ||
-      O.isNone(twentyFirstRow)
-    ) {
+    if (O.isNone(firstRow)) {
       return;
     }
 
-    expect(result.right).toHaveLength(24);
-    expect(firstRow.value).toHaveLength(16);
-    expect(firstRow.value[0]).not.toBe(transparentHex);
-    expect(firstRow.value[12]).toBe(transparentHex);
-    expect(eleventhRow.value[0]).not.toBe(transparentHex);
-    expect(twentyFirstRow.value[8]).not.toBe(transparentHex);
+    expect(firstRow.value.length).toBeGreaterThanOrEqual(12);
+
+    const overlapPixel = pipe(
+      O.fromNullable(result.right[6]),
+      O.chain((row) => O.fromNullable(row[6])),
+    );
+    expect(O.isSome(overlapPixel)).toBe(true);
+    if (O.isNone(overlapPixel)) {
+      return;
+    }
+
+    expect(overlapPixel.value).not.toBe(transparentHex);
   });
 
   it("returns left when preview references a missing sprite", () => {
     const character = createCharacterSet({
       id: "preview-invalid",
       name: "preview-invalid",
-      rows: 1,
-      cols: 1,
-      cells: [{ kind: "sprite", spriteIndex: 42 }],
+      sprites: [{ spriteIndex: 42, x: 0, y: 0, layer: 0 }],
     });
     const palettes = createDefaultNesProjectState().spritePalettes;
 
