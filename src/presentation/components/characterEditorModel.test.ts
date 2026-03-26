@@ -4,8 +4,10 @@ import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntries,
   getNextCharacterSpriteLayer,
+  nudgeCharacterSprite,
   resolveCharacterStagePoint,
   resolveSelectionAfterSpriteRemoval,
+  shiftCharacterSpriteLayer,
 } from "./characterEditorModel";
 
 describe("characterEditorModel", () => {
@@ -81,5 +83,57 @@ describe("characterEditorModel", () => {
         maxY: 239,
       }),
     ).toEqual({ x: 0, y: 239 });
+  });
+
+  it("nudges a sprite by one pixel and clamps within stage bounds", () => {
+    expect(
+      nudgeCharacterSprite(
+        { spriteIndex: 0, x: 10, y: 12, layer: 3 },
+        "left",
+        255,
+        239,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 9, y: 12, layer: 3 });
+
+    expect(
+      nudgeCharacterSprite(
+        { spriteIndex: 0, x: 0, y: 0, layer: 3 },
+        "up",
+        255,
+        239,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 0, y: 0, layer: 3 });
+
+    expect(
+      nudgeCharacterSprite(
+        { spriteIndex: 0, x: 255, y: 239, layer: 3 },
+        "down",
+        255,
+        239,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 255, y: 239, layer: 3 });
+  });
+
+  it("shifts a sprite layer and clamps it to the NES range", () => {
+    expect(
+      shiftCharacterSpriteLayer(
+        { spriteIndex: 0, x: 8, y: 8, layer: 4 },
+        1,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 5 });
+
+    expect(
+      shiftCharacterSpriteLayer(
+        { spriteIndex: 0, x: 8, y: 8, layer: 0 },
+        -1,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 0 });
+
+    expect(
+      shiftCharacterSpriteLayer(
+        { spriteIndex: 0, x: 8, y: 8, layer: 63 },
+        1,
+      ),
+    ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 63 });
   });
 });

@@ -21,6 +21,8 @@ export interface ResolveCharacterStagePointInput {
   maxY: number;
 }
 
+export type CharacterSpriteNudgeDirection = "left" | "right" | "up" | "down";
+
 interface OrderedCharacterLayerEntry extends CharacterLayerEntry {
   layer: number;
 }
@@ -141,4 +143,49 @@ export const resolveCharacterStagePoint = (
     input.minY,
     input.maxY,
   ),
+});
+
+export const nudgeCharacterSprite = (
+  sprite: CharacterSprite,
+  direction: CharacterSpriteNudgeDirection,
+  maxX: number,
+  maxY: number,
+): CharacterSprite => {
+  const nextX = (() => {
+    if (direction === "left") {
+      return clamp(sprite.x - 1, 0, maxX);
+    }
+
+    if (direction === "right") {
+      return clamp(sprite.x + 1, 0, maxX);
+    }
+
+    return sprite.x;
+  })();
+
+  const nextY = (() => {
+    if (direction === "up") {
+      return clamp(sprite.y - 1, 0, maxY);
+    }
+
+    if (direction === "down") {
+      return clamp(sprite.y + 1, 0, maxY);
+    }
+
+    return sprite.y;
+  })();
+
+  return {
+    ...sprite,
+    x: nextX,
+    y: nextY,
+  };
+};
+
+export const shiftCharacterSpriteLayer = (
+  sprite: CharacterSprite,
+  amount: number,
+): CharacterSprite => ({
+  ...sprite,
+  layer: clamp(sprite.layer + amount, 0, 63),
 });

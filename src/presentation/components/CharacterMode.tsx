@@ -3,6 +3,7 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useCharacterState } from "../../application/state/characterStore";
 import {
   PaletteIndex,
@@ -48,10 +49,11 @@ import {
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import {
   ensureSelectedCharacterSpriteIndex,
-  getCharacterLayerEntries,
   getNextCharacterSpriteLayer,
+  nudgeCharacterSprite,
   resolveCharacterStagePoint,
   resolveSelectionAfterSpriteRemoval,
+  shiftCharacterSpriteLayer,
 } from "./characterEditorModel";
 import { ProjectActions } from "./ProjectActions";
 
@@ -65,6 +67,8 @@ const STAGE_MAX_HEIGHT = 960;
 const STAGE_MIN_SCALE = 1;
 const STAGE_MAX_SCALE = 6;
 const STAGE_DEFAULT_SCALE = 2;
+const STAGE_CONTEXT_MENU_WIDTH = 180;
+const STAGE_CONTEXT_MENU_HEIGHT = 280;
 const LIBRARY_PREVIEW_SCALE = 3;
 const INSPECTOR_PREVIEW_SCALE = 4;
 const DECOMPOSITION_COLOR_SLOTS: ReadonlyArray<1 | 2 | 3> = [1, 2, 3];
@@ -177,6 +181,12 @@ interface DecompositionRegionDragState {
   pointerId: number;
   offsetX: number;
   offsetY: number;
+}
+
+interface SpriteContextMenuState {
+  clientX: number;
+  clientY: number;
+  spriteEditorIndex: number;
 }
 
 type CharacterPreviewState =
@@ -332,6 +342,9 @@ export const CharacterMode: React.FC = () => {
   const [selectedSpriteEditorIndex, setSelectedSpriteEditorIndex] = useState<
     O.Option<number>
   >(O.none);
+  const [spriteContextMenu, setSpriteContextMenu] = useState<
+    O.Option<SpriteContextMenuState>
+  >(O.none);
   const [decompositionTool, setDecompositionTool] =
     useState<DecompositionTool>("pen");
   const [decompositionPaletteIndex, setDecompositionPaletteIndex] =
@@ -417,17 +430,13 @@ export const CharacterMode: React.FC = () => {
     [activeSet, validSelectedSpriteEditorIndex],
   );
 
-  const layerEntries = useMemo(
-    () =>
-      pipe(
-        activeSet,
-        O.match(
-          () => [],
-          (characterSet) => getCharacterLayerEntries(characterSet.sprites),
-        ),
-      ),
-    [activeSet],
-  );
+  useEffect(() => {
+    if (editorMode === "compose" && O.isSome(selectedSprite)) {
+      return;
+    }
+
+    setSpriteContextMenu(O.none);
+  }, [editorMode, selectedSprite]);
 
   const projectSpriteSizeLocked = useMemo(
     () =>
@@ -995,65 +1004,71 @@ export const CharacterMode: React.FC = () => {
     setViewportPanState(O.none);
   };
 
-  const handleUpdateSprite = (
-    setId: string,
-    index: number,
-    current: CharacterSprite,
-    field: "spriteIndex" | "x" | "y" | "layer",
-    rawValue: string,
-  ) => {
-    const parsed = toNumber(rawValue);
-    if (O.isNone(parsed)) {
-      return;
-    }
-
-    const nextValue = parsed.value;
-    const nextSprite: CharacterSprite = {
-      spriteIndex: field === "spriteIndex" ? nextValue : current.spriteIndex,
-      x: field === "x" ? nextValue : current.x,
-      y: field === "y" ? nextValue : current.y,
-      layer: field === "layer" ? nextValue : current.layer,
-    };
-
-    const isValid =
-      isInRange(nextSprite.spriteIndex, 0, 63) &&
-      isInRange(nextSprite.x, 0, stageWidth - 1) &&
-      isInRange(nextSprite.y, 0, stageHeight - 1) &&
-      isInRange(nextSprite.layer, 0, 63);
-
-    if (isValid === false) {
-      return;
-    }
-
-    setSprite(setId, index, nextSprite);
+  const focusStageElement = () => {
+    pipe(
+      stageElementRef.current,
+      O.map((stageElement) => stageElement.focus()),
+    );
   };
 
-  const handleUpdateSelectedSprite = (
-    field: "spriteIndex" | "x" | "y" | "layer",
-    rawValue: string,
+  const withSpriteIndex = (
+    spriteEditorIndex: O.Option<number>,
+    onSelect: (entry: {
+      setId: string;
+      spriteCount: number;
+      index: number;
+      sprite: CharacterSprite;
+    }) => void,
   ) => {
     pipe(
       activeSet,
       O.chain((characterSet) =>
         pipe(
-          selectedSprite,
-          O.map((entry) => ({
-            characterSetId: characterSet.id,
-            index: entry.index,
-            sprite: entry.sprite,
-          })),
+          spriteEditorIndex,
+          O.chain((index) =>
+            pipe(
+              O.fromNullable(characterSet.sprites[index]),
+              O.map((sprite) => ({
+                setId: characterSet.id,
+                spriteCount: characterSet.sprites.length,
+                index,
+                sprite,
+              })),
+            ),
+          ),
         ),
       ),
-      O.map((entry) =>
-        handleUpdateSprite(
-          entry.characterSetId,
-          entry.index,
-          entry.sprite,
-          field,
-          rawValue,
-        ),
-      ),
+      O.map(onSelect),
     );
+  };
+
+  const withSelectedSprite = (
+    onSelect: (entry: {
+      setId: string;
+      spriteCount: number;
+      index: number;
+      sprite: CharacterSprite;
+    }) => void,
+  ) => withSpriteIndex(validSelectedSpriteEditorIndex, onSelect);
+
+  const updateSpriteAtIndex = (
+    spriteEditorIndex: O.Option<number>,
+    transform: (sprite: CharacterSprite) => CharacterSprite,
+  ) => {
+    withSpriteIndex(spriteEditorIndex, (entry) => {
+      const nextSprite = transform(entry.sprite);
+      const isValid =
+        isInRange(nextSprite.spriteIndex, 0, 63) &&
+        isInRange(nextSprite.x, 0, stageWidth - 1) &&
+        isInRange(nextSprite.y, 0, stageHeight - 1) &&
+        isInRange(nextSprite.layer, 0, 63);
+
+      if (isValid === false) {
+        return;
+      }
+
+      setSprite(entry.setId, entry.index, nextSprite);
+    });
   };
 
   const handleRemoveCharacterSprite = (
@@ -1070,6 +1085,155 @@ export const CharacterMode: React.FC = () => {
       ),
     );
     setDragState(O.none);
+  };
+
+  const handleDeleteSelectedSprite = () => {
+    setSpriteContextMenu(O.none);
+    withSelectedSprite((entry) =>
+      handleRemoveCharacterSprite(entry.setId, entry.index, entry.spriteCount),
+    );
+  };
+
+  const handleNudgeSelectedSprite = (
+    direction: "left" | "right" | "up" | "down",
+  ) => {
+    setSpriteContextMenu(O.none);
+    updateSpriteAtIndex(validSelectedSpriteEditorIndex, (sprite) =>
+      nudgeCharacterSprite(sprite, direction, stageWidth - 1, stageHeight - 1),
+    );
+  };
+
+  const handleDeleteContextMenuSprite = () => {
+    const spriteEditorIndex = pipe(
+      spriteContextMenu,
+      O.map((menuState) => menuState.spriteEditorIndex),
+    );
+    setSpriteContextMenu(O.none);
+    withSpriteIndex(spriteEditorIndex, (entry) =>
+      handleRemoveCharacterSprite(entry.setId, entry.index, entry.spriteCount),
+    );
+  };
+
+  const handleNudgeContextMenuSprite = (
+    direction: "left" | "right" | "up" | "down",
+  ) => {
+    const spriteEditorIndex = pipe(
+      spriteContextMenu,
+      O.map((menuState) => menuState.spriteEditorIndex),
+    );
+    setSpriteContextMenu(O.none);
+    updateSpriteAtIndex(spriteEditorIndex, (sprite) =>
+      nudgeCharacterSprite(sprite, direction, stageWidth - 1, stageHeight - 1),
+    );
+  };
+
+  const handleShiftContextMenuSpriteLayer = (amount: number) => {
+    const spriteEditorIndex = pipe(
+      spriteContextMenu,
+      O.map((menuState) => menuState.spriteEditorIndex),
+    );
+    setSpriteContextMenu(O.none);
+    updateSpriteAtIndex(spriteEditorIndex, (sprite) =>
+      shiftCharacterSpriteLayer(sprite, amount),
+    );
+  };
+
+  const openSpriteContextMenu = (
+    clientX: number,
+    clientY: number,
+    spriteEditorIndex: number,
+  ) => {
+    focusStageElement();
+    setSpriteContextMenu(
+      O.some({
+        clientX,
+        clientY,
+        spriteEditorIndex,
+      }),
+    );
+  };
+
+  const handleStageBackgroundPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    if (event.currentTarget !== event.target) {
+      return;
+    }
+
+    focusStageElement();
+    setSpriteContextMenu(O.none);
+
+    if (event.button === 0) {
+      setSelectedSpriteEditorIndex(O.none);
+    }
+  };
+
+  const handleStageContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.currentTarget !== event.target) {
+      return;
+    }
+
+    pipe(
+      validSelectedSpriteEditorIndex,
+      O.map((spriteEditorIndex) =>
+        openSpriteContextMenu(event.clientX, event.clientY, spriteEditorIndex),
+      ),
+    );
+  };
+
+  const handleStageKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setSpriteContextMenu(O.none);
+      return;
+    }
+
+    if (O.isNone(selectedSprite)) {
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      handleNudgeSelectedSprite("left");
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      handleNudgeSelectedSprite("right");
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      handleNudgeSelectedSprite("up");
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      handleNudgeSelectedSprite("down");
+      return;
+    }
+
+    if (event.key === "Backspace" || event.key === "Delete") {
+      event.preventDefault();
+      handleDeleteSelectedSprite();
+    }
   };
 
   const handleDecompositionCanvasPointerDown = (
@@ -1259,6 +1423,9 @@ export const CharacterMode: React.FC = () => {
     }
 
     const stageRect = stageRectOption.value;
+    event.preventDefault();
+    focusStageElement();
+    setSpriteContextMenu(O.none);
     setSelectedSpriteEditorIndex(O.some(spriteEditorIndex));
     setDragState(
       O.some({
@@ -1268,6 +1435,16 @@ export const CharacterMode: React.FC = () => {
         offsetY: event.clientY - (stageRect.top + sprite.y * stageScale),
       }),
     );
+  };
+
+  const handleSpriteContextMenu = (
+    event: React.MouseEvent<HTMLDivElement>,
+    spriteEditorIndex: number,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedSpriteEditorIndex(O.some(spriteEditorIndex));
+    openSpriteContextMenu(event.clientX, event.clientY, spriteEditorIndex);
   };
 
   const handleStagePointerMove = (
@@ -1493,6 +1670,140 @@ export const CharacterMode: React.FC = () => {
     }
   };
 
+  const spriteContextMenuPortal =
+    typeof document === "undefined"
+      ? O.none
+      : pipe(
+          spriteContextMenu,
+          O.map((menuState) => {
+            const viewportWidth =
+              typeof window === "undefined" ? menuState.clientX : window.innerWidth;
+            const viewportHeight =
+              typeof window === "undefined" ? menuState.clientY : window.innerHeight;
+            const left = Math.max(
+              12,
+              Math.min(
+                menuState.clientX,
+                viewportWidth - STAGE_CONTEXT_MENU_WIDTH - 12,
+              ),
+            );
+            const top = Math.max(
+              12,
+              Math.min(
+                menuState.clientY,
+                viewportHeight - STAGE_CONTEXT_MENU_HEIGHT - 12,
+              ),
+            );
+            const menuActions: ReadonlyArray<{
+              label: string;
+              onSelect: () => void;
+              tone?: "default" | "danger";
+            }> = [
+              {
+                label: "左へ移動",
+                onSelect: () => handleNudgeContextMenuSprite("left"),
+              },
+              {
+                label: "右へ移動",
+                onSelect: () => handleNudgeContextMenuSprite("right"),
+              },
+              {
+                label: "上へ移動",
+                onSelect: () => handleNudgeContextMenuSprite("up"),
+              },
+              {
+                label: "下へ移動",
+                onSelect: () => handleNudgeContextMenuSprite("down"),
+              },
+              {
+                label: "レイヤーを上げる",
+                onSelect: () => handleShiftContextMenuSpriteLayer(1),
+              },
+              {
+                label: "レイヤーを下げる",
+                onSelect: () => handleShiftContextMenuSpriteLayer(-1),
+              },
+              {
+                label: "削除",
+                onSelect: handleDeleteContextMenuSprite,
+                tone: "danger",
+              },
+            ];
+
+            return createPortal(
+              <div
+                onPointerDown={() => setSpriteContextMenu(O.none)}
+                css={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 320,
+                }}
+              >
+                <div
+                  role="menu"
+                  aria-label="スプライトメニュー"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  css={{
+                    position: "fixed",
+                    left,
+                    top,
+                    width: STAGE_CONTEXT_MENU_WIDTH,
+                    display: "grid",
+                    gap: 4,
+                    padding: 8,
+                    borderRadius: 18,
+                    background:
+                      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
+                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                    boxShadow: "0 22px 44px rgba(15, 23, 42, 0.22)",
+                  }}
+                >
+                  {menuActions.map((action) => (
+                    <button
+                      key={action.label}
+                      type="button"
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        action.onSelect();
+                        focusStageElement();
+                      }}
+                      css={{
+                        appearance: "none",
+                        border: "none",
+                        borderRadius: 12,
+                        padding: "10px 12px",
+                        textAlign: "left",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        letterSpacing: "0.01em",
+                        color:
+                          action.tone === "danger"
+                            ? "rgb(190, 24, 93)"
+                            : "var(--ink-strong)",
+                        background:
+                          action.tone === "danger"
+                            ? "rgba(255, 241, 242, 0.96)"
+                            : "rgba(248, 250, 252, 0.96)",
+                        transition: "background 140ms ease, color 140ms ease",
+                        "&:hover": {
+                          background:
+                            action.tone === "danger"
+                              ? "rgba(255, 228, 230, 0.98)"
+                              : "rgba(226, 232, 240, 0.92)",
+                        },
+                      }}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>,
+              document.body,
+            );
+          }),
+        );
+
   return (
     <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
       <PanelHeader>
@@ -1548,6 +1859,7 @@ export const CharacterMode: React.FC = () => {
       </PanelHeader>
 
       <div
+        onPointerDownCapture={() => setSpriteContextMenu(O.none)}
         onPointerMoveCapture={handleWorkspacePointerMove}
         onPointerUpCapture={handleWorkspacePointerEnd}
         onPointerCancelCapture={handleWorkspacePointerEnd}
@@ -1644,7 +1956,9 @@ export const CharacterMode: React.FC = () => {
             minHeight: 0,
             display: "grid",
             gridTemplateColumns:
-              "minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 320px)",
+              editorMode === "compose"
+                ? "minmax(220px, 280px) minmax(0, 1fr)"
+                : "minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 320px)",
             gap: 16,
             alignContent: "start",
             overflow: "auto",
@@ -2112,10 +2426,14 @@ export const CharacterMode: React.FC = () => {
                     stageElementRef.current = O.fromNullable(element);
                   }}
                   aria-label="キャラクターステージ"
+                  tabIndex={editorMode === "compose" ? 0 : -1}
+                  onPointerDown={handleStageBackgroundPointerDown}
                   onPointerMove={handleStagePointerMove}
                   onPointerUp={handleStagePointerEnd}
                   onPointerCancel={handleStagePointerEnd}
                   onPointerLeave={handleStagePointerEnd}
+                  onContextMenu={handleStageContextMenu}
+                  onKeyDown={handleStageKeyDown}
                   css={{
                     position: "relative",
                     width: stageWidth * stageScale,
@@ -2133,6 +2451,10 @@ export const CharacterMode: React.FC = () => {
                     transform: isStageDropActive ? "scale(1.01)" : "none",
                     transition:
                       "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+                    "&:focus-visible": {
+                      outline: "2px solid rgba(15, 118, 110, 0.92)",
+                      outlineOffset: 4,
+                    },
                     "&::before": {
                       content: '""',
                       position: "absolute",
@@ -2181,7 +2503,8 @@ export const CharacterMode: React.FC = () => {
                           <div
                             key={`stage-sprite-${spriteEditorIndex}`}
                             role="button"
-                            tabIndex={0}
+                            tabIndex={-1}
+                            aria-pressed={isSelected}
                             aria-label={`配置スプライト ${spriteEditorIndex}`}
                             onPointerDown={(event) =>
                               handleSpritePointerDown(
@@ -2190,14 +2513,9 @@ export const CharacterMode: React.FC = () => {
                                 sprite,
                               )
                             }
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                setSelectedSpriteEditorIndex(
-                                  O.some(spriteEditorIndex),
-                                );
-                              }
-                            }}
+                            onContextMenu={(event) =>
+                              handleSpriteContextMenu(event, spriteEditorIndex)
+                            }
                             css={{
                               position: "absolute",
                               left: sprite.x * stageScale,
@@ -2340,308 +2658,19 @@ export const CharacterMode: React.FC = () => {
             </CanvasViewport>
           </div>
 
-          <div
-            css={{
-              ...sidebarStyles,
-              "@media (max-width: 1500px)": {
-                gridColumn: "1 / -1",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              },
-              "@media (max-width: 980px)": {
-                gridTemplateColumns: "minmax(0, 1fr)",
-              },
-            }}
-          >
-            {editorMode === "compose" ? (
-              <>
-                <div css={editorCardStyles}>
-                  <PanelHeaderRow>
-                    <FieldLabel>選択中のスプライト</FieldLabel>
-                    <Badge tone="neutral">
-                      {pipe(
-                        validSelectedSpriteEditorIndex,
-                        O.match(
-                          () => "none",
-                          (value) => `#${value}`,
-                        ),
-                      )}
-                    </Badge>
-                  </PanelHeaderRow>
-
-                  <div
-                    css={{
-                      minHeight: 108,
-                      borderRadius: 18,
-                      display: "grid",
-                      placeItems: "center",
-                      background:
-                        "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-                      border: "1px solid rgba(148, 163, 184, 0.18)",
-                    }}
-                  >
-                    {pipe(
-                      selectedSprite,
-                      O.match(
-                        () => <></>,
-                        (entry) =>
-                          renderSpritePixels(
-                            entry.sprite.spriteIndex,
-                            INSPECTOR_PREVIEW_SCALE,
-                          ),
-                      ),
-                    )}
-                  </div>
-
-                  <FieldGrid
-                    css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-                  >
-                    <Field>
-                      <FieldLabel>sprite</FieldLabel>
-                      <NumberInput
-                        aria-label="選択中スプライト番号"
-                        type="number"
-                        min={0}
-                        max={63}
-                        disabled={O.isNone(selectedSprite)}
-                        value={pipe(
-                          selectedSprite,
-                          O.match(
-                            () => "",
-                            (entry) => `${entry.sprite.spriteIndex}`,
-                          ),
-                        )}
-                        onChange={(event) =>
-                          handleUpdateSelectedSprite(
-                            "spriteIndex",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel>layer</FieldLabel>
-                      <NumberInput
-                        aria-label="選択中レイヤー"
-                        type="number"
-                        min={0}
-                        max={63}
-                        disabled={O.isNone(selectedSprite)}
-                        value={pipe(
-                          selectedSprite,
-                          O.match(
-                            () => "",
-                            (entry) => `${entry.sprite.layer}`,
-                          ),
-                        )}
-                        onChange={(event) =>
-                          handleUpdateSelectedSprite("layer", event.target.value)
-                        }
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel>x</FieldLabel>
-                      <NumberInput
-                        aria-label="選択中X座標"
-                        type="number"
-                        min={0}
-                        max={stageWidth - 1}
-                        disabled={O.isNone(selectedSprite)}
-                        value={pipe(
-                          selectedSprite,
-                          O.match(
-                            () => "",
-                            (entry) => `${entry.sprite.x}`,
-                          ),
-                        )}
-                        onChange={(event) =>
-                          handleUpdateSelectedSprite("x", event.target.value)
-                        }
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel>y</FieldLabel>
-                      <NumberInput
-                        aria-label="選択中Y座標"
-                        type="number"
-                        min={0}
-                        max={stageHeight - 1}
-                        disabled={O.isNone(selectedSprite)}
-                        value={pipe(
-                          selectedSprite,
-                          O.match(
-                            () => "",
-                            (entry) => `${entry.sprite.y}`,
-                          ),
-                        )}
-                        onChange={(event) =>
-                          handleUpdateSelectedSprite("y", event.target.value)
-                        }
-                      />
-                    </Field>
-                  </FieldGrid>
-
-                  <ToolButton
-                    type="button"
-                    tone="danger"
-                    disabled={O.isNone(activeSet) || O.isNone(selectedSprite)}
-                    onClick={() =>
-                      pipe(
-                        activeSet,
-                        O.chain((characterSet) =>
-                          pipe(
-                            selectedSprite,
-                            O.map((entry) => ({
-                              setId: characterSet.id,
-                              index: entry.index,
-                              count: characterSet.sprites.length,
-                            })),
-                          ),
-                        ),
-                        O.map((entry) =>
-                          handleRemoveCharacterSprite(
-                            entry.setId,
-                            entry.index,
-                            entry.count,
-                          ),
-                        ),
-                      )
-                    }
-                  >
-                    選択中スプライトを削除
-                  </ToolButton>
-                </div>
-
-                <div
-                  css={{
-                    ...editorCardStyles,
-                    gridTemplateRows: "auto minmax(0, 1fr)",
-                  }}
-                >
-                  <PanelHeaderRow>
-                    <FieldLabel>レイヤー一覧</FieldLabel>
-                    <Badge tone="accent">{layerEntries.length} layers</Badge>
-                  </PanelHeaderRow>
-
-                  <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
-                    <div css={{ display: "grid", gap: 10 }}>
-                      {layerEntries.map((entry) => {
-                        const isSelected = pipe(
-                          validSelectedSpriteEditorIndex,
-                          O.match(
-                            () => false,
-                            (value) => value === entry.index,
-                          ),
-                        );
-
-                        return (
-                          <div
-                            key={`layer-entry-${entry.index}`}
-                            css={{
-                              display: "grid",
-                              gridTemplateColumns: "minmax(0, 1fr) auto",
-                              gap: 10,
-                              alignItems: "stretch",
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setSelectedSpriteEditorIndex(O.some(entry.index))
-                              }
-                              css={{
-                                appearance: "none",
-                                display: "grid",
-                                gridTemplateColumns: "72px minmax(0, 1fr)",
-                                gap: 12,
-                                alignItems: "center",
-                                padding: 12,
-                                borderRadius: 18,
-                                border: isSelected
-                                  ? "1px solid rgba(15, 118, 110, 0.38)"
-                                  : "1px solid rgba(148, 163, 184, 0.2)",
-                                background: isSelected
-                                  ? "rgba(240, 253, 250, 0.96)"
-                                  : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
-                                color: "var(--ink-strong)",
-                                textAlign: "left",
-                                boxShadow: isSelected
-                                  ? "0 18px 32px rgba(15, 118, 110, 0.12)"
-                                  : "0 10px 18px rgba(15, 23, 42, 0.06)",
-                              }}
-                            >
-                              <div
-                                css={{
-                                  minHeight: 56,
-                                  display: "grid",
-                                  placeItems: "center",
-                                  borderRadius: 14,
-                                  background:
-                                    "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
-                                }}
-                              >
-                                {renderSpritePixels(
-                                  entry.sprite.spriteIndex,
-                                  LIBRARY_PREVIEW_SCALE,
-                                )}
-                              </div>
-                              <div css={{ display: "grid", gap: 6 }}>
-                                <div
-                                  css={{
-                                    fontSize: 13,
-                                    fontWeight: 800,
-                                    letterSpacing: "0.02em",
-                                  }}
-                                >
-                                  {`Sprite ${entry.index}`}
-                                </div>
-                                <div
-                                  css={{
-                                    display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: 8,
-                                  }}
-                                >
-                                  <Badge tone="neutral">
-                                    {`x:${entry.sprite.x}`}
-                                  </Badge>
-                                  <Badge tone="neutral">
-                                    {`y:${entry.sprite.y}`}
-                                  </Badge>
-                                  <Badge tone="accent">
-                                    {`layer:${entry.sprite.layer}`}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </button>
-
-                            <ToolButton
-                              type="button"
-                              tone="danger"
-                              css={{ padding: "10px 12px" }}
-                              onClick={() =>
-                                pipe(
-                                  activeSet,
-                                  O.map((characterSet) =>
-                                    handleRemoveCharacterSprite(
-                                      characterSet.id,
-                                      entry.index,
-                                      characterSet.sprites.length,
-                                    ),
-                                  ),
-                                )
-                              }
-                            >
-                              削除
-                            </ToolButton>
-                          </div>
-                        );
-                      })}
-
-                    </div>
-                  </ScrollArea>
-                </div>
-              </>
-            ) : (
+          {editorMode === "decompose" && (
+            <div
+              css={{
+                ...sidebarStyles,
+                "@media (max-width: 1500px)": {
+                  gridColumn: "1 / -1",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                },
+                "@media (max-width: 980px)": {
+                  gridTemplateColumns: "minmax(0, 1fr)",
+                },
+              }}
+            >
               <>
                 <div css={editorCardStyles}>
                   <PanelHeaderRow>
@@ -2903,8 +2932,8 @@ export const CharacterMode: React.FC = () => {
                   </ScrollArea>
                 </div>
               </>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {editorMode === "compose" &&
@@ -2939,6 +2968,14 @@ export const CharacterMode: React.FC = () => {
               ),
             ),
           )}
+
+        {pipe(
+          spriteContextMenuPortal,
+          O.match(
+            () => <></>,
+            (menu) => menu,
+          ),
+        )}
       </div>
     </Panel>
   );

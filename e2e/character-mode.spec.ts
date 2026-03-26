@@ -16,6 +16,53 @@ const getLocatorPoint = async (
     { x, y },
   );
 
+const getLocatorRect = async (locator: Locator) =>
+  locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+
+const tapLocator = async (locator: Locator, pointerId: number) => {
+  const rect = await getLocatorRect(locator);
+  const clientX = rect.left + rect.width / 2;
+  const clientY = rect.top + rect.height / 2;
+
+  await locator.dispatchEvent("pointerdown", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX,
+    clientY,
+  });
+  await locator.dispatchEvent("pointerup", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    clientX,
+    clientY,
+  });
+};
+
+const openLocatorContextMenu = async (locator: Locator) => {
+  const rect = await getLocatorRect(locator);
+
+  await locator.dispatchEvent("contextmenu", {
+    button: 2,
+    buttons: 0,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+  });
+};
+
 const clickCanvasPixel = async (
   locator: Locator,
   pixelX: number,
@@ -220,67 +267,129 @@ test("character mode supports drag and drop placement and stage movement", async
     clientY: stageRect.top + 140,
   });
 
-  const placedSprite = page.getByRole("button", { name: "配置スプライト 0" });
-
-  await expect(placedSprite).toBeVisible();
-  await expect(page.getByLabel("選択中スプライト番号")).toHaveValue("0");
-  const initialX = Number(
-    await page.getByLabel("選択中X座標").inputValue(),
-  );
-  const initialY = Number(
-    await page.getByLabel("選択中Y座標").inputValue(),
-  );
-
-  expect(initialX).toBeGreaterThanOrEqual(55);
-  expect(initialX).toBeLessThanOrEqual(58);
-  expect(initialY).toBeGreaterThanOrEqual(42);
-  expect(initialY).toBeLessThanOrEqual(44);
-
-  const placedSpriteRect = await placedSprite.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
-  });
-
-  await placedSprite.dispatchEvent("pointerdown", {
-    pointerId: 3,
+  await librarySprite.dispatchEvent("pointerdown", {
+    pointerId: 4,
     pointerType: "mouse",
     isPrimary: true,
     button: 0,
     buttons: 1,
-    clientX: placedSpriteRect.left + placedSpriteRect.width / 2,
-    clientY: placedSpriteRect.top + placedSpriteRect.height / 2,
+    clientX: libraryRect.left + libraryRect.width / 2,
+    clientY: libraryRect.top + libraryRect.height / 2,
   });
-  await stage.dispatchEvent("pointermove", {
-    pointerId: 3,
+  await librarySprite.dispatchEvent("pointermove", {
+    pointerId: 4,
     pointerType: "mouse",
     isPrimary: true,
     button: 0,
     buttons: 1,
-    clientX: placedSpriteRect.left + placedSpriteRect.width / 2 + 24,
-    clientY: placedSpriteRect.top + placedSpriteRect.height / 2 + 20,
+    clientX: stageRect.left + 220,
+    clientY: stageRect.top + 180,
   });
-  await stage.dispatchEvent("pointerup", {
-    pointerId: 3,
+  await librarySprite.dispatchEvent("pointerup", {
+    pointerId: 4,
     pointerType: "mouse",
     isPrimary: true,
     button: 0,
     buttons: 0,
-    clientX: placedSpriteRect.left + placedSpriteRect.width / 2 + 24,
-    clientY: placedSpriteRect.top + placedSpriteRect.height / 2 + 20,
+    clientX: stageRect.left + 220,
+    clientY: stageRect.top + 180,
   });
 
-  const movedX = Number(await page.getByLabel("選択中X座標").inputValue());
-  const movedY = Number(await page.getByLabel("選択中Y座標").inputValue());
+  const placedSprite = page.getByRole("button", { name: "配置スプライト 0" });
+  const secondPlacedSprite = page.getByRole("button", { name: "配置スプライト 1" });
 
-  expect(movedX).toBeGreaterThanOrEqual(initialX + 7);
-  expect(movedX).toBeLessThanOrEqual(initialX + 9);
-  expect(movedY).toBeGreaterThanOrEqual(initialY + 6);
-  expect(movedY).toBeLessThanOrEqual(initialY + 8);
+  await expect(placedSprite).toBeVisible();
+  await expect(secondPlacedSprite).toBeVisible();
+  await expect(page.getByText("選択中のスプライト")).toHaveCount(0);
+  await expect(page.getByText("レイヤー一覧")).toHaveCount(0);
+
+  const initialSpriteMetrics = await placedSprite.evaluate((element) => {
+    const computed = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return {
+      left: Number.parseFloat(computed.left),
+      top: Number.parseFloat(computed.top),
+      zIndex: computed.zIndex,
+      rectLeft: rect.left,
+      rectTop: rect.top,
+      rectWidth: rect.width,
+      rectHeight: rect.height,
+    };
+  });
+
+  await tapLocator(placedSprite, 9);
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
+
+  await expect
+    .poll(async () =>
+      placedSprite.evaluate((element) =>
+        Number.parseFloat(window.getComputedStyle(element).left),
+      ),
+    )
+    .toBe(initialSpriteMetrics.left + 3);
+  await expect
+    .poll(async () =>
+      placedSprite.evaluate((element) =>
+        Number.parseFloat(window.getComputedStyle(element).top),
+      ),
+    )
+    .toBe(initialSpriteMetrics.top + 3);
+
+  const nudgedSpriteMetrics = await placedSprite.evaluate((element) => {
+    const computed = window.getComputedStyle(element);
+    return {
+      left: Number.parseFloat(computed.left),
+      top: Number.parseFloat(computed.top),
+    };
+  });
+
+  await openLocatorContextMenu(placedSprite);
+  await expect(page.getByRole("menu", { name: "スプライトメニュー" })).toBeVisible();
+  await page.getByRole("button", { name: "右へ移動" }).dispatchEvent("pointerdown", {
+    pointerId: 11,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+  });
+
+  await expect
+    .poll(async () =>
+      placedSprite.evaluate((element) =>
+        Number.parseFloat(window.getComputedStyle(element).left),
+      ),
+    )
+    .toBe(nudgedSpriteMetrics.left + 3);
+  await expect
+    .poll(async () =>
+      placedSprite.evaluate((element) =>
+        Number.parseFloat(window.getComputedStyle(element).top),
+      ),
+    )
+    .toBe(nudgedSpriteMetrics.top);
+
+  await openLocatorContextMenu(placedSprite);
+  await page
+    .getByRole("button", { name: "レイヤーを上げる" })
+    .dispatchEvent("pointerdown", {
+      pointerId: 12,
+      pointerType: "mouse",
+      isPrimary: true,
+      button: 0,
+      buttons: 1,
+    });
+
+  await expect
+    .poll(async () =>
+      placedSprite.evaluate((element) => window.getComputedStyle(element).zIndex),
+    )
+    .toBe("2");
+
+  await tapLocator(secondPlacedSprite, 10);
+  await page.keyboard.press("Backspace");
+  await expect(secondPlacedSprite).toHaveCount(0);
+  await expect(placedSprite).toBeVisible();
 });
 
 test("character decomposition blocks mixed palettes and applies split regions", async ({
