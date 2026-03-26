@@ -24,6 +24,7 @@ export type {
   ColorIndexOfPalette,
   PaletteIndex,
   ProjectState,
+  ProjectSpriteSize,
   Screen,
   SpriteInScreen,
   SpritePriority,

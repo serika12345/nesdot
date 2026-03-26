@@ -2,15 +2,31 @@ import { type CSSObject } from "@emotion/react";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCharacterState } from "../../application/state/characterStore";
-import { useProjectState } from "../../application/state/projectStore";
+import {
+  PaletteIndex,
+  ProjectSpriteSize,
+  useProjectState,
+} from "../../application/state/projectStore";
+import {
+  CharacterDecompositionAnalysis,
+  CharacterDecompositionCanvas,
+  CharacterDecompositionIssue,
+  CharacterDecompositionPixel,
+  CharacterDecompositionRegion,
+  analyzeCharacterDecomposition,
+  applyCharacterDecomposition,
+} from "../../domain/characters/characterDecomposition";
 import {
   buildCharacterPreviewHexGrid,
   CharacterSet,
   CharacterSprite,
 } from "../../domain/characters/characterSet";
+import { nesIndexToCssHex } from "../../domain/nes/palette";
 import { renderSpriteTileToHexArray } from "../../domain/nes/rendering";
+import { createEmptySpriteTile } from "../../domain/project/project";
+import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
 import useExportImage from "../../infrastructure/browser/useExportImage";
 import {
   Badge,
@@ -20,7 +36,6 @@ import {
   Field,
   FieldGrid,
   FieldLabel,
-  HelperText,
   NumberInput,
   Panel,
   PanelHeader,
@@ -30,6 +45,7 @@ import {
   SelectInput,
   ToolButton,
 } from "../App.styles";
+import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntries,
@@ -51,6 +67,81 @@ const STAGE_MAX_SCALE = 6;
 const STAGE_DEFAULT_SCALE = 2;
 const LIBRARY_PREVIEW_SCALE = 3;
 const INSPECTOR_PREVIEW_SCALE = 4;
+const DECOMPOSITION_COLOR_SLOTS: ReadonlyArray<1 | 2 | 3> = [1, 2, 3];
+const TRANSPARENT_DECOMPOSITION_PIXEL: CharacterDecompositionPixel = {
+  kind: "transparent",
+};
+
+const createDecompositionCanvas = (
+  width: number,
+  height: number,
+): CharacterDecompositionCanvas => ({
+  width,
+  height,
+  pixels: Array.from({ length: height }, () =>
+    Array.from({ length: width }, () => TRANSPARENT_DECOMPOSITION_PIXEL),
+  ),
+});
+
+const resizeDecompositionCanvas = (
+  current: CharacterDecompositionCanvas,
+  nextWidth: number,
+  nextHeight: number,
+): CharacterDecompositionCanvas => ({
+  width: nextWidth,
+  height: nextHeight,
+  pixels: Array.from({ length: nextHeight }, (_, y) =>
+    Array.from(
+      { length: nextWidth },
+      (_, x) => current.pixels[y]?.[x] ?? TRANSPARENT_DECOMPOSITION_PIXEL,
+    ),
+  ),
+});
+
+const isSameDecompositionPixel = (
+  left: CharacterDecompositionPixel,
+  right: CharacterDecompositionPixel,
+): boolean => {
+  if (left.kind !== right.kind) {
+    return false;
+  }
+
+  if (left.kind === "transparent") {
+    return true;
+  }
+
+  if (right.kind === "transparent") {
+    return false;
+  }
+
+  return (
+    left.paletteIndex === right.paletteIndex &&
+    left.colorIndex === right.colorIndex
+  );
+};
+
+const paintDecompositionPixel = (
+  canvas: CharacterDecompositionCanvas,
+  x: number,
+  y: number,
+  pixel: CharacterDecompositionPixel,
+): CharacterDecompositionCanvas => {
+  const currentPixel = canvas.pixels[y]?.[x] ?? TRANSPARENT_DECOMPOSITION_PIXEL;
+  if (isSameDecompositionPixel(currentPixel, pixel)) {
+    return canvas;
+  }
+
+  return {
+    ...canvas,
+    pixels: canvas.pixels.map((row, rowIndex) =>
+      rowIndex === y
+        ? row.map((currentRowPixel, columnIndex) =>
+            columnIndex === x ? pixel : currentRowPixel,
+          )
+        : row,
+    ),
+  };
+};
 
 interface DragState {
   spriteEditorIndex: number;
@@ -77,10 +168,24 @@ interface ViewportPanState {
   startScrollTop: number;
 }
 
+interface DecompositionDrawState {
+  pointerId: number;
+}
+
+interface DecompositionRegionDragState {
+  regionId: string;
+  pointerId: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 type CharacterPreviewState =
   | { kind: "none" }
   | { kind: "error"; message: string }
   | { kind: "ready"; characterSet: CharacterSet; grid: string[][] };
+
+type CharacterEditorMode = "compose" | "decompose";
+type DecompositionTool = "pen" | "eraser" | "region";
 
 const editorCardStyles: CSSObject = {
   position: "relative",
@@ -96,9 +201,15 @@ const editorCardStyles: CSSObject = {
 };
 
 const sidebarStyles: CSSObject = {
+  minWidth: 0,
   minHeight: 0,
   display: "grid",
+  gridAutoRows: "max-content",
+  alignContent: "start",
   gap: 16,
+  overflow: "auto",
+  paddingRight: 4,
+  scrollbarGutter: "stable both-edges",
 };
 
 const isInRange = (value: number, min: number, max: number): boolean =>
@@ -131,8 +242,83 @@ const trySetPointerCapture = (
   }
 };
 
+const clampDecompositionRegion = (
+  region: CharacterDecompositionRegion,
+  width: number,
+  height: number,
+  spriteSize: ProjectSpriteSize,
+): CharacterDecompositionRegion => ({
+  ...region,
+  x: clamp(region.x, 0, Math.max(width - 8, 0)),
+  y: clamp(region.y, 0, Math.max(height - spriteSize, 0)),
+});
+
+const clampDecompositionRegions = (
+  regions: CharacterDecompositionRegion[],
+  width: number,
+  height: number,
+  spriteSize: ProjectSpriteSize,
+): CharacterDecompositionRegion[] =>
+  regions.map((region) =>
+    clampDecompositionRegion(region, width, height, spriteSize),
+  );
+
+const isSpriteTileEmpty = (pixels: number[][]): boolean =>
+  pixels.every((row) => row.every((colorIndex) => colorIndex === 0));
+
+const isProjectSpriteSizeLocked = (
+  sprites: ReturnType<typeof useProjectState.getState>["sprites"],
+  screenSpriteCount: number,
+  characterSets: CharacterSet[],
+): boolean =>
+  screenSpriteCount > 0 ||
+  sprites.some((sprite) => isSpriteTileEmpty(sprite.pixels) === false) ||
+  characterSets.some((characterSet) => characterSet.sprites.length > 0);
+
+const getIssueLabel = (issue: CharacterDecompositionIssue): string => {
+  if (issue === "mixed-palette") {
+    return "複数パレット";
+  }
+
+  if (issue === "overlap") {
+    return "重なり";
+  }
+
+  if (issue === "out-of-bounds") {
+    return "範囲外";
+  }
+
+  return "空領域";
+};
+
+const getRegionStatusLabel = (
+  region: CharacterDecompositionAnalysis["regions"][number],
+): string => {
+  if (region.issues.length > 0) {
+    const issueOption = O.fromNullable(region.issues[0]);
+    return pipe(
+      issueOption,
+      O.match(
+        () => "空領域",
+        (issue) => getIssueLabel(issue),
+      ),
+    );
+  }
+
+  if (region.resolution.kind === "existing") {
+    return `再利用 #${region.resolution.spriteIndex}`;
+  }
+
+  if (region.resolution.kind === "planned") {
+    return "新規追加";
+  }
+
+  return "未解決";
+};
+
 export const CharacterMode: React.FC = () => {
   const [newName, setNewName] = useState("New Character");
+  const [editorMode, setEditorMode] = useState<CharacterEditorMode>("compose");
   const [stageWidth, setStageWidth] = useState(STAGE_WIDTH);
   const [stageHeight, setStageHeight] = useState(STAGE_HEIGHT);
   const [stageScale, setStageScale] = useState(STAGE_DEFAULT_SCALE);
@@ -146,8 +332,28 @@ export const CharacterMode: React.FC = () => {
   const [selectedSpriteEditorIndex, setSelectedSpriteEditorIndex] = useState<
     O.Option<number>
   >(O.none);
+  const [decompositionTool, setDecompositionTool] =
+    useState<DecompositionTool>("pen");
+  const [decompositionPaletteIndex, setDecompositionPaletteIndex] =
+    useState<PaletteIndex>(0);
+  const [decompositionColorIndex, setDecompositionColorIndex] = useState<1 | 2 | 3>(1);
+  const [decompositionCanvas, setDecompositionCanvas] = useState(
+    createDecompositionCanvas(STAGE_WIDTH, STAGE_HEIGHT),
+  );
+  const [decompositionRegions, setDecompositionRegions] = useState<
+    CharacterDecompositionRegion[]
+  >([]);
+  const [decompositionDrawState, setDecompositionDrawState] = useState<
+    O.Option<DecompositionDrawState>
+  >(O.none);
+  const [decompositionRegionDragState, setDecompositionRegionDragState] =
+    useState<O.Option<DecompositionRegionDragState>>(O.none);
+  const [selectedRegionId, setSelectedRegionId] = useState<O.Option<string>>(
+    O.none,
+  );
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
+  const decompositionCanvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const characterSets = useCharacterState((s) => s.characterSets);
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
@@ -159,7 +365,9 @@ export const CharacterMode: React.FC = () => {
   const removeSprite = useCharacterState((s) => s.removeSprite);
   const deleteSet = useCharacterState((s) => s.deleteSet);
 
+  const projectSpriteSize = useProjectState((s) => s.spriteSize);
   const sprites = useProjectState((s) => s.sprites);
+  const screen = useProjectState((s) => s.screen);
   const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
   const { exportPng, exportSvgSimple, exportCharacterJson } = useExportImage();
 
@@ -221,6 +429,42 @@ export const CharacterMode: React.FC = () => {
     [activeSet],
   );
 
+  const projectSpriteSizeLocked = useMemo(
+    () =>
+      isProjectSpriteSizeLocked(
+        sprites,
+        screen.sprites.length,
+        characterSets,
+      ),
+    [characterSets, screen.sprites.length, sprites],
+  );
+
+  const decompositionAnalysis = useMemo(
+    () =>
+      analyzeCharacterDecomposition({
+        canvas: decompositionCanvas,
+        regions: decompositionRegions,
+        spriteSize: projectSpriteSize,
+        sprites,
+      }),
+    [decompositionCanvas, decompositionRegions, projectSpriteSize, sprites],
+  );
+
+  const selectedRegionAnalysis = useMemo(
+    () =>
+      pipe(
+        selectedRegionId,
+        O.chain((regionId) =>
+          O.fromNullable(
+            decompositionAnalysis.regions.find(
+              (regionAnalysis) => regionAnalysis.region.id === regionId,
+            ),
+          ),
+        ),
+      ),
+    [decompositionAnalysis.regions, selectedRegionId],
+  );
+
   const previewState: CharacterPreviewState = useMemo(
     () =>
       pipe(
@@ -265,31 +509,65 @@ export const CharacterMode: React.FC = () => {
     ),
   );
 
-  const previewSizeLabel = (() => {
-    if (previewState.kind !== "ready") {
-      return "0×0";
+  const decompositionValidRegionCount = decompositionAnalysis.regions.filter(
+    (region) => region.issues.length === 0,
+  ).length;
+  const decompositionInvalidRegionCount =
+    decompositionAnalysis.regions.length - decompositionValidRegionCount;
+
+  const decompositionCanvasCursor = (() => {
+    if (decompositionTool === "region") {
+      return "copy";
     }
 
-    const firstRow = previewState.grid[0];
-    const width = firstRow?.length ?? 0;
-    return `${width}×${previewState.grid.length}`;
+    if (decompositionTool === "eraser") {
+      return "cell";
+    }
+
+    return "crosshair";
   })();
 
-  const stageHelperMessage = pipe(
-    activeSet,
-    O.match(
-      () => "左のセット欄でキャラクターセットを作成してください。",
-      (characterSet) =>
-        characterSet.sprites.length === 0
-          ? "左のスプライトライブラリからステージ中央へドラッグして配置を始めます。"
-          : "",
-    ),
-  );
+  useEffect(() => {
+    if (O.isNone(decompositionCanvasRef.current)) {
+      return;
+    }
 
-  const stageStatusMessage =
-    previewState.kind === "error"
-      ? `プレビュー生成に失敗しました: ${previewState.message}`
-      : "中央のステージで位置をドラッグ調整できます。Ctrl+ホイールで拡大縮小し、中ボタンドラッグで領域移動できます。";
+    const canvasElement = decompositionCanvasRef.current.value;
+    const contextOption = O.fromNullable(canvasElement.getContext("2d"));
+    if (O.isNone(contextOption)) {
+      return;
+    }
+
+    const context = contextOption.value;
+    const scaledWidth = stageWidth * stageScale;
+    const scaledHeight = stageHeight * stageScale;
+    const rgbaValues = decompositionCanvas.pixels.flatMap((pixelRow) =>
+      Array.from({ length: stageScale }, () =>
+        pixelRow.flatMap((pixel) => {
+          if (pixel.kind === "transparent") {
+            return Array.from({ length: stageScale }, () => [0, 0, 0, 0]).flat();
+          }
+
+          const hex = nesIndexToCssHex(
+            spritePalettes[pixel.paletteIndex][pixel.colorIndex],
+          );
+          const r = Number.parseInt(hex.slice(1, 3), 16);
+          const g = Number.parseInt(hex.slice(3, 5), 16);
+          const b = Number.parseInt(hex.slice(5, 7), 16);
+
+          return Array.from({ length: stageScale }, () => [r, g, b, 255]).flat();
+        }),
+      ).flat(),
+    );
+    const imageData = new ImageData(
+      Uint8ClampedArray.from(rgbaValues),
+      scaledWidth,
+      scaledHeight,
+    );
+
+    context.clearRect(0, 0, scaledWidth, scaledHeight);
+    context.putImageData(imageData, 0, 0);
+  }, [decompositionCanvas, spritePalettes, stageHeight, stageScale, stageWidth]);
 
   const getStageRect = (): O.Option<DOMRect> =>
     pipe(
@@ -299,6 +577,33 @@ export const CharacterMode: React.FC = () => {
 
   const getViewportElement = (): O.Option<HTMLDivElement> =>
     viewportElementRef.current;
+
+  const resolveDecompositionStagePoint = (
+    clientX: number,
+    clientY: number,
+    offsetX = 0,
+    offsetY = 0,
+    maxX = stageWidth - 1,
+    maxY = stageHeight - 1,
+  ): O.Option<{ x: number; y: number }> =>
+    pipe(
+      getStageRect(),
+      O.map((stageRect) =>
+        resolveCharacterStagePoint({
+          clientX,
+          clientY,
+          stageLeft: stageRect.left,
+          stageTop: stageRect.top,
+          stageScale,
+          offsetX,
+          offsetY,
+          minX: 0,
+          maxX,
+          minY: 0,
+          maxY,
+        }),
+      ),
+    );
 
   const updateStageScale = (
     nextScale: number,
@@ -404,8 +709,11 @@ export const CharacterMode: React.FC = () => {
     };
   };
 
-  const renderSpritePixels = (spriteIndex: number, scale: number) => {
-    const tileOption = O.fromNullable(sprites[spriteIndex]);
+  const renderTilePixels = (
+    tileOption: O.Option<(typeof sprites)[number]>,
+    scale: number,
+    keyPrefix: string,
+  ) => {
     if (O.isNone(tileOption)) {
       return (
         <div
@@ -447,7 +755,7 @@ export const CharacterMode: React.FC = () => {
             const isTransparent = colorIndex === 0;
             return (
               <div
-                key={`pixel-${spriteIndex}-${rowIndex}-${columnIndex}`}
+                key={`pixel-${keyPrefix}-${rowIndex}-${columnIndex}`}
                 css={{
                   width: scale,
                   height: scale,
@@ -461,9 +769,17 @@ export const CharacterMode: React.FC = () => {
     );
   };
 
+  const renderSpritePixels = (spriteIndex: number, scale: number) =>
+    renderTilePixels(
+      O.fromNullable(sprites[spriteIndex]),
+      scale,
+      `sprite-${spriteIndex}`,
+    );
+
   const handleCreateSet = () => {
     createSet({ name: newName });
     setSelectedSpriteEditorIndex(O.none);
+    setSelectedRegionId(O.none);
     setDragState(O.none);
     setLibraryDragState(O.none);
   };
@@ -471,6 +787,7 @@ export const CharacterMode: React.FC = () => {
   const handleSelectSet = (value: string) => {
     selectSet(value === "" ? O.none : O.some(value));
     setSelectedSpriteEditorIndex(O.none);
+    setSelectedRegionId(O.none);
     setDragState(O.none);
     setLibraryDragState(O.none);
   };
@@ -478,8 +795,47 @@ export const CharacterMode: React.FC = () => {
   const handleDeleteSet = (setId: string) => {
     deleteSet(setId);
     setSelectedSpriteEditorIndex(O.none);
+    setSelectedRegionId(O.none);
     setDragState(O.none);
     setLibraryDragState(O.none);
+  };
+
+  const handleProjectSpriteSizeChange = (nextSpriteSize: ProjectSpriteSize) => {
+    if (
+      projectSpriteSizeLocked === true ||
+      projectSpriteSize === nextSpriteSize
+    ) {
+      return;
+    }
+
+    const currentState = useProjectState.getState();
+    const nextSprites = currentState.sprites.map((sprite) =>
+      createEmptySpriteTile(nextSpriteSize, sprite.paletteIndex),
+    );
+    const nextScreen = {
+      ...currentState.screen,
+      sprites: [],
+    };
+    const nextNes = mergeScreenIntoNesOam(
+      {
+        ...currentState.nes,
+        ppuControl: {
+          ...currentState.nes.ppuControl,
+          spriteSize: nextSpriteSize,
+        },
+      },
+      nextScreen,
+    );
+
+    useProjectState.setState({
+      spriteSize: nextSpriteSize,
+      sprites: nextSprites,
+      screen: nextScreen,
+      nes: nextNes,
+    });
+    setSelectedSpriteEditorIndex(O.none);
+    setDecompositionRegions([]);
+    setSelectedRegionId(O.none);
   };
 
   const handleZoomOut = () => {
@@ -521,6 +877,17 @@ export const CharacterMode: React.FC = () => {
 
     const nextWidth = clamp(parsed.value, STAGE_MIN_WIDTH, STAGE_MAX_WIDTH);
     setStageWidth(nextWidth);
+    setDecompositionCanvas((current) =>
+      resizeDecompositionCanvas(current, nextWidth, stageHeight),
+    );
+    setDecompositionRegions((current) =>
+      clampDecompositionRegions(
+        current,
+        nextWidth,
+        stageHeight,
+        projectSpriteSize,
+      ),
+    );
     pipe(
       activeSet,
       O.map((characterSet) =>
@@ -543,6 +910,17 @@ export const CharacterMode: React.FC = () => {
 
     const nextHeight = clamp(parsed.value, STAGE_MIN_HEIGHT, STAGE_MAX_HEIGHT);
     setStageHeight(nextHeight);
+    setDecompositionCanvas((current) =>
+      resizeDecompositionCanvas(current, stageWidth, nextHeight),
+    );
+    setDecompositionRegions((current) =>
+      clampDecompositionRegions(
+        current,
+        stageWidth,
+        nextHeight,
+        projectSpriteSize,
+      ),
+    );
     pipe(
       activeSet,
       O.map((characterSet) =>
@@ -694,11 +1072,161 @@ export const CharacterMode: React.FC = () => {
     setDragState(O.none);
   };
 
+  const handleDecompositionCanvasPointerDown = (
+    event: React.PointerEvent<HTMLCanvasElement>,
+  ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const pointOption =
+      decompositionTool === "region"
+        ? resolveDecompositionStagePoint(
+            event.clientX,
+            event.clientY,
+            0,
+            0,
+            stageWidth - 8,
+            stageHeight - projectSpriteSize,
+          )
+        : resolveDecompositionStagePoint(event.clientX, event.clientY);
+    if (O.isNone(pointOption)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (decompositionTool === "region") {
+      const nextRegion = clampDecompositionRegion(
+        {
+          id: ["region", `${Date.now()}`, `${Math.random()}`].join("-"),
+          x: pointOption.value.x,
+          y: pointOption.value.y,
+        },
+        stageWidth,
+        stageHeight,
+        projectSpriteSize,
+      );
+      setDecompositionRegions((current) => [...current, nextRegion]);
+      setSelectedRegionId(O.some(nextRegion.id));
+      return;
+    }
+
+    const nextPixel: CharacterDecompositionPixel =
+      decompositionTool === "eraser"
+        ? TRANSPARENT_DECOMPOSITION_PIXEL
+        : {
+            kind: "color",
+            paletteIndex: decompositionPaletteIndex,
+            colorIndex: decompositionColorIndex,
+          };
+    setDecompositionCanvas((current) =>
+      paintDecompositionPixel(
+        current,
+        pointOption.value.x,
+        pointOption.value.y,
+        nextPixel,
+      ),
+    );
+    setDecompositionDrawState(O.some({ pointerId: event.pointerId }));
+    trySetPointerCapture(event.currentTarget, event.pointerId);
+  };
+
+  const handleDecompositionRegionPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    region: CharacterDecompositionRegion,
+  ) => {
+    if (decompositionTool !== "region" || event.button !== 0) {
+      return;
+    }
+
+    const stageRectOption = getStageRect();
+    if (O.isNone(stageRectOption)) {
+      return;
+    }
+
+    event.preventDefault();
+    setSelectedRegionId(O.some(region.id));
+    setDecompositionRegionDragState(
+      O.some({
+        regionId: region.id,
+        pointerId: event.pointerId,
+        offsetX: event.clientX - (stageRectOption.value.left + region.x * stageScale),
+        offsetY: event.clientY - (stageRectOption.value.top + region.y * stageScale),
+      }),
+    );
+    trySetPointerCapture(event.currentTarget, event.pointerId);
+  };
+
+  const handleRemoveSelectedRegion = () => {
+    pipe(
+      selectedRegionId,
+      O.map((regionId) => {
+        setDecompositionRegions((current) =>
+          current.filter((region) => region.id !== regionId),
+        );
+        setSelectedRegionId(O.none);
+      }),
+    );
+  };
+
+  const handleApplyDecomposition = () => {
+    pipe(
+      activeSet,
+      O.map((characterSet) => {
+        const result = applyCharacterDecomposition({
+          canvas: decompositionCanvas,
+          regions: decompositionRegions,
+          spriteSize: projectSpriteSize,
+          sprites,
+        });
+
+        if (E.isLeft(result)) {
+          return;
+        }
+
+        const nextScreen = {
+          ...screen,
+          sprites: screen.sprites.map((screenSprite) => {
+            const nextTileOption = O.fromNullable(
+              result.right.sprites[screenSprite.spriteIndex],
+            );
+            if (O.isNone(nextTileOption)) {
+              return screenSprite;
+            }
+
+            return {
+              ...screenSprite,
+              ...nextTileOption.value,
+            };
+          }),
+        };
+        const currentProjectState = useProjectState.getState();
+        useProjectState.setState({
+          sprites: result.right.sprites,
+          screen: nextScreen,
+          nes: mergeScreenIntoNesOam(currentProjectState.nes, nextScreen),
+        });
+
+        useCharacterState.setState((state) => ({
+          characterSets: state.characterSets.map((currentCharacterSet) =>
+            currentCharacterSet.id === characterSet.id
+              ? {
+                  ...currentCharacterSet,
+                  sprites: result.right.characterSprites,
+                }
+              : currentCharacterSet,
+          ),
+        }));
+      }),
+    );
+  };
+
   const handleLibraryPointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
     spriteIndex: number,
   ) => {
-    if (event.button !== 0 || O.isNone(activeSet)) {
+    if (event.button !== 0 || O.isNone(activeSet) || editorMode !== "compose") {
       return;
     }
 
@@ -745,6 +1273,10 @@ export const CharacterMode: React.FC = () => {
   const handleStagePointerMove = (
     event: React.PointerEvent<HTMLDivElement>,
   ) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
     if (O.isNone(dragState) || O.isNone(activeSet)) {
       return;
     }
@@ -793,6 +1325,10 @@ export const CharacterMode: React.FC = () => {
   };
 
   const handleStagePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
     if (O.isNone(dragState)) {
       return;
     }
@@ -823,61 +1359,138 @@ export const CharacterMode: React.FC = () => {
   const handleWorkspacePointerMove = (
     event: React.PointerEvent<HTMLDivElement>,
   ) => {
-    if (O.isNone(libraryDragState)) {
-      return;
-    }
+    if (O.isSome(libraryDragState)) {
+      if (libraryDragState.value.pointerId !== event.pointerId) {
+        return;
+      }
 
-    if (libraryDragState.value.pointerId !== event.pointerId) {
-      return;
-    }
-
-    setLibraryDragState(
-      O.some(
-        createLibraryDragState(
-          libraryDragState.value.spriteIndex,
-          libraryDragState.value.pointerId,
-          event.clientX,
-          event.clientY,
+      setLibraryDragState(
+        O.some(
+          createLibraryDragState(
+            libraryDragState.value.spriteIndex,
+            libraryDragState.value.pointerId,
+            event.clientX,
+            event.clientY,
+          ),
         ),
-      ),
-    );
+      );
+      return;
+    }
+
+    if (editorMode === "decompose" && O.isSome(decompositionDrawState)) {
+      if (decompositionDrawState.value.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const pointOption = resolveDecompositionStagePoint(
+        event.clientX,
+        event.clientY,
+      );
+      if (O.isNone(pointOption)) {
+        return;
+      }
+
+      const nextPixel: CharacterDecompositionPixel =
+        decompositionTool === "eraser"
+          ? TRANSPARENT_DECOMPOSITION_PIXEL
+          : {
+              kind: "color",
+              paletteIndex: decompositionPaletteIndex,
+              colorIndex: decompositionColorIndex,
+            };
+      setDecompositionCanvas((current) =>
+        paintDecompositionPixel(
+          current,
+          pointOption.value.x,
+          pointOption.value.y,
+          nextPixel,
+        ),
+      );
+      return;
+    }
+
+    if (editorMode === "decompose" && O.isSome(decompositionRegionDragState)) {
+      if (decompositionRegionDragState.value.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const pointOption = resolveDecompositionStagePoint(
+        event.clientX,
+        event.clientY,
+        decompositionRegionDragState.value.offsetX,
+        decompositionRegionDragState.value.offsetY,
+        stageWidth - 8,
+        stageHeight - projectSpriteSize,
+      );
+      if (O.isNone(pointOption)) {
+        return;
+      }
+
+      setDecompositionRegions((current) =>
+        current.map((region) =>
+          region.id === decompositionRegionDragState.value.regionId
+            ? {
+                ...region,
+                x: pointOption.value.x,
+                y: pointOption.value.y,
+              }
+            : region,
+        ),
+      );
+    }
   };
 
   const handleWorkspacePointerEnd = (
     event: React.PointerEvent<HTMLDivElement>,
   ) => {
-    if (O.isNone(libraryDragState)) {
+    if (O.isSome(libraryDragState)) {
+      if (libraryDragState.value.pointerId !== event.pointerId) {
+        return;
+      }
+
+      const completedDrag = createLibraryDragState(
+        libraryDragState.value.spriteIndex,
+        libraryDragState.value.pointerId,
+        event.clientX,
+        event.clientY,
+      );
+
+      pipe(
+        activeSet,
+        O.map((characterSet) => {
+          if (completedDrag.isOverStage === false) {
+            return;
+          }
+
+          addSprite(characterSet.id, {
+            spriteIndex: completedDrag.spriteIndex,
+            x: completedDrag.stageX,
+            y: completedDrag.stageY,
+            layer: getNextCharacterSpriteLayer(characterSet.sprites),
+          });
+          setSelectedSpriteEditorIndex(O.some(characterSet.sprites.length));
+        }),
+      );
+      setLibraryDragState(O.none);
       return;
     }
 
-    if (libraryDragState.value.pointerId !== event.pointerId) {
+    if (O.isSome(decompositionDrawState)) {
+      if (decompositionDrawState.value.pointerId !== event.pointerId) {
+        return;
+      }
+
+      setDecompositionDrawState(O.none);
       return;
     }
 
-    const completedDrag = createLibraryDragState(
-      libraryDragState.value.spriteIndex,
-      libraryDragState.value.pointerId,
-      event.clientX,
-      event.clientY,
-    );
-
-    pipe(
-      activeSet,
-      O.map((characterSet) => {
-        if (completedDrag.isOverStage === false) {
+    if (O.isSome(decompositionRegionDragState)) {
+      if (decompositionRegionDragState.value.pointerId !== event.pointerId) {
           return;
         }
 
-        addSprite(characterSet.id, {
-          spriteIndex: completedDrag.spriteIndex,
-          x: completedDrag.stageX,
-          y: completedDrag.stageY,
-          layer: getNextCharacterSpriteLayer(characterSet.sprites),
-        });
-        setSelectedSpriteEditorIndex(O.some(characterSet.sprites.length));
-      }),
-    );
-    setLibraryDragState(O.none);
+      setDecompositionRegionDragState(O.none);
+    }
   };
 
   return (
@@ -947,7 +1560,7 @@ export const CharacterMode: React.FC = () => {
       >
         <FieldGrid
           css={{
-            gridTemplateColumns: "minmax(0, 1.2fr) auto minmax(0, 1fr)",
+            gridTemplateColumns: "minmax(0, 1.2fr) auto minmax(0, 1fr) auto",
             alignItems: "end",
             "@media (max-width: 1200px)": {
               gridTemplateColumns: "minmax(0, 1fr) auto",
@@ -1010,15 +1623,32 @@ export const CharacterMode: React.FC = () => {
               />
             </div>
           </Field>
+          <ToolButton
+            type="button"
+            tone="danger"
+            disabled={O.isNone(activeSet)}
+            onClick={() => {
+              if (activeSetId === "") {
+                return;
+              }
+              handleDeleteSet(activeSetId);
+            }}
+          >
+            セットを削除
+          </ToolButton>
         </FieldGrid>
 
         <div
+          aria-label="キャラクター編集ワークスペース"
           css={{
             minHeight: 0,
             display: "grid",
             gridTemplateColumns:
-              "minmax(240px, 280px) minmax(0, 1fr) minmax(260px, 320px)",
+              "minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 320px)",
             gap: 16,
+            alignContent: "start",
+            overflow: "auto",
+            scrollbarGutter: "stable both-edges",
             "@media (max-width: 1500px)": {
               gridTemplateColumns: "minmax(220px, 260px) minmax(0, 1fr)",
               gridTemplateRows: "minmax(440px, 1fr) auto",
@@ -1049,46 +1679,84 @@ export const CharacterMode: React.FC = () => {
                 />
               </Field>
 
-              <DetailList>
-                <DetailRow>
-                  <FieldLabel>構成スプライト</FieldLabel>
-                  <Badge tone="accent">{activeSetSpriteCount} sprites</Badge>
-                </DetailRow>
-                <DetailRow>
-                  <FieldLabel>プレビューサイズ</FieldLabel>
-                  <Badge tone="neutral">{previewSizeLabel}</Badge>
-                </DetailRow>
-              </DetailList>
+              <Field css={{ display: "grid", gap: 10 }}>
+                <FieldLabel>編集モード</FieldLabel>
+                <div
+                  css={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  <ToolButton
+                    type="button"
+                    aria-label="編集モード 合成"
+                    active={editorMode === "compose"}
+                    onClick={() => setEditorMode("compose")}
+                  >
+                    合成
+                  </ToolButton>
+                  <ToolButton
+                    type="button"
+                    aria-label="編集モード 分解"
+                    active={editorMode === "decompose"}
+                    onClick={() => setEditorMode("decompose")}
+                  >
+                    分解
+                  </ToolButton>
+                </div>
+              </Field>
 
-              <ToolButton
-                type="button"
-                tone="danger"
-                disabled={O.isNone(activeSet)}
-                onClick={() => {
-                  if (activeSetId === "") {
-                    return;
-                  }
-                  handleDeleteSet(activeSetId);
-                }}
-              >
-                セットを削除
-              </ToolButton>
+              <Field css={{ display: "grid", gap: 10 }}>
+                <PanelHeaderRow>
+                  <FieldLabel>スプライト単位</FieldLabel>
+                  <Badge tone={projectSpriteSizeLocked ? "neutral" : "accent"}>
+                    {projectSpriteSizeLocked === true ? "locked" : "editable"}
+                  </Badge>
+                </PanelHeaderRow>
+                <div
+                  css={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  <ToolButton
+                    type="button"
+                    aria-label="プロジェクトスプライトサイズ 8x8"
+                    active={projectSpriteSize === 8}
+                    disabled={
+                      projectSpriteSizeLocked === true && projectSpriteSize !== 8
+                    }
+                    onClick={() => handleProjectSpriteSizeChange(8)}
+                  >
+                    8×8
+                  </ToolButton>
+                  <ToolButton
+                    type="button"
+                    aria-label="プロジェクトスプライトサイズ 8x16"
+                    active={projectSpriteSize === 16}
+                    disabled={
+                      projectSpriteSizeLocked === true && projectSpriteSize !== 16
+                    }
+                    onClick={() => handleProjectSpriteSizeChange(16)}
+                  >
+                    8×16
+                  </ToolButton>
+                </div>
+              </Field>
+
             </div>
 
             <div
               css={{
                 ...editorCardStyles,
-                gridTemplateRows: "auto auto minmax(0, 1fr)",
+                gridTemplateRows: "auto minmax(0, 1fr)",
               }}
             >
               <PanelHeaderRow>
                 <FieldLabel>スプライトライブラリ</FieldLabel>
-                <Badge tone="neutral">{sprites.length} slots</Badge>
               </PanelHeaderRow>
-
-              <HelperText>
-                一覧からステージへドラッグして追加します。配置後は中央で直接動かせます。
-              </HelperText>
 
               <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
                 <div
@@ -1132,7 +1800,10 @@ export const CharacterMode: React.FC = () => {
                             ? "rgba(240, 253, 250, 0.96)"
                             : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
                           color: "var(--ink-strong)",
-                          cursor: O.isSome(activeSet) ? "grab" : "default",
+                          cursor:
+                            editorMode === "compose" && O.isSome(activeSet)
+                              ? "grab"
+                              : "default",
                           userSelect: "none",
                           touchAction: "none",
                           transition:
@@ -1181,7 +1852,10 @@ export const CharacterMode: React.FC = () => {
           <div
             css={{
               ...editorCardStyles,
-              gridTemplateRows: "auto minmax(0, 1fr)",
+              gridTemplateRows:
+                editorMode === "compose"
+                  ? "auto minmax(0, 1fr)"
+                  : "auto auto minmax(0, 1fr)",
             }}
           >
             <div
@@ -1195,21 +1869,24 @@ export const CharacterMode: React.FC = () => {
                 },
               }}
             >
-              <div css={{ display: "grid", gap: 8 }}>
-                <PanelHeaderRow>
-                  <FieldLabel>プレビューキャンバス</FieldLabel>
-                  <Badge tone="accent">{activeSetSpriteCount} items</Badge>
-                </PanelHeaderRow>
-                <HelperText>
-                  サイズ指定に対応したプレビューです。Ctrl+ホイールで拡大縮小し、中ボタンドラッグで表示領域を移動できます。
-                </HelperText>
-              </div>
+              <PanelHeaderRow>
+                <FieldLabel>
+                  {editorMode === "compose"
+                    ? "プレビューキャンバス"
+                    : "分解キャンバス"}
+                </FieldLabel>
+                <Badge tone="accent">
+                  {editorMode === "compose"
+                    ? `${activeSetSpriteCount} items`
+                    : `${decompositionRegions.length} regions`}
+                </Badge>
+              </PanelHeaderRow>
 
               <div
                 css={{
                   display: "grid",
                   gridTemplateColumns:
-                    "repeat(2, minmax(96px, 120px)) auto minmax(120px, 1fr) auto auto",
+                    "repeat(2, minmax(96px, 120px)) auto auto auto",
                   gap: 10,
                   alignItems: "center",
                   "@media (max-width: 700px)": {
@@ -1239,20 +1916,6 @@ export const CharacterMode: React.FC = () => {
                   }
                 />
                 <Badge tone="neutral">{`${stageScale}x`}</Badge>
-                <NumberInput
-                  aria-label="ステージズーム"
-                  type="range"
-                  min={STAGE_MIN_SCALE}
-                  max={STAGE_MAX_SCALE}
-                  step={1}
-                  value={stageScale}
-                  onChange={(event) =>
-                    updateStageScale(
-                      clamp(Number(event.target.value), STAGE_MIN_SCALE, STAGE_MAX_SCALE),
-                      O.none,
-                    )
-                  }
-                />
                 <ToolButton type="button" onClick={handleZoomOut}>
                   -
                 </ToolButton>
@@ -1261,6 +1924,155 @@ export const CharacterMode: React.FC = () => {
                 </ToolButton>
               </div>
             </div>
+
+            {editorMode === "decompose" && (
+              <div
+                css={{
+                  display: "grid",
+                  gap: 12,
+                  padding: 12,
+                  borderRadius: 18,
+                  background:
+                    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
+                  border: "1px solid rgba(148, 163, 184, 0.18)",
+                }}
+              >
+                <PanelHeaderRow>
+                  <FieldLabel>分解ツール</FieldLabel>
+                  <Badge tone="neutral">
+                    {projectSpriteSize === 8 ? "8×8" : "8×16"}
+                  </Badge>
+                </PanelHeaderRow>
+
+                <div
+                  css={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(3, minmax(0, 120px)) minmax(160px, 1fr)",
+                    gap: 10,
+                    alignItems: "center",
+                    "@media (max-width: 980px)": {
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    },
+                  }}
+                >
+                  <ToolButton
+                    type="button"
+                    aria-label="分解ツール ペン"
+                    active={decompositionTool === "pen"}
+                    onClick={() => setDecompositionTool("pen")}
+                  >
+                    ペン
+                  </ToolButton>
+                  <ToolButton
+                    type="button"
+                    aria-label="分解ツール 消しゴム"
+                    active={decompositionTool === "eraser"}
+                    onClick={() => setDecompositionTool("eraser")}
+                  >
+                    消しゴム
+                  </ToolButton>
+                  <ToolButton
+                    type="button"
+                    aria-label="分解ツール 切り取り"
+                    active={decompositionTool === "region"}
+                    onClick={() => setDecompositionTool("region")}
+                  >
+                    切り取り
+                  </ToolButton>
+                  <div
+                    css={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(120px, 1fr) auto",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div css={{ position: "relative" }}>
+                      <SelectInput
+                        aria-label="分解描画パレット"
+                        css={{ paddingRight: 56 }}
+                        value={decompositionPaletteIndex}
+                        onChange={(event) => {
+                          const parsed = Number(event.target.value);
+                          if (
+                            parsed === 0 ||
+                            parsed === 1 ||
+                            parsed === 2 ||
+                            parsed === 3
+                          ) {
+                            setDecompositionPaletteIndex(parsed);
+                          }
+                        }}
+                      >
+                        {spritePalettes.map((_, paletteIndex) => (
+                          <option key={paletteIndex} value={paletteIndex}>
+                            パレット {paletteIndex}
+                          </option>
+                        ))}
+                      </SelectInput>
+                      <span
+                        aria-hidden="true"
+                        css={{
+                          position: "absolute",
+                          right: 18,
+                          top: "50%",
+                          width: 0,
+                          height: 0,
+                          borderLeft: "5px solid transparent",
+                          borderRight: "5px solid transparent",
+                          borderTop: "7px solid #334155",
+                          transform: "translateY(-35%)",
+                          pointerEvents: "none",
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      css={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                        gap: 8,
+                      }}
+                    >
+                      {DECOMPOSITION_COLOR_SLOTS.map((slotIndex) => {
+                        const tone =
+                          decompositionColorIndex === slotIndex &&
+                          decompositionTool !== "eraser";
+                        const colorHex = nesIndexToCssHex(
+                          spritePalettes[decompositionPaletteIndex][slotIndex],
+                        );
+
+                        return (
+                          <SlotGroup
+                            key={`decompose-slot-${slotIndex}`}
+                            active={tone}
+                          >
+                            <SlotButton
+                              type="button"
+                              aria-label={`分解色スロット ${slotIndex}`}
+                              bg={colorHex}
+                              active={tone}
+                              onClick={() => {
+                                if (
+                                  slotIndex === 1 ||
+                                  slotIndex === 2 ||
+                                  slotIndex === 3
+                                ) {
+                                  setDecompositionColorIndex(slotIndex);
+                                  setDecompositionTool("pen");
+                                }
+                              }}
+                            />
+                            <SlotLabel>{`slot${slotIndex}`}</SlotLabel>
+                          </SlotGroup>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <CanvasViewport
               ref={(element: HTMLDivElement | null) => {
@@ -1348,125 +2160,181 @@ export const CharacterMode: React.FC = () => {
                     },
                   }}
                 >
-                  {pipe(
-                    activeSet,
-                    O.match(
-                      () => [],
-                      (characterSet) => characterSet.sprites,
-                    ),
-                  ).map((sprite, spriteEditorIndex) => {
-                    const isSelected = pipe(
-                      validSelectedSpriteEditorIndex,
-                      O.match(
-                        () => false,
-                        (value) => value === spriteEditorIndex,
-                      ),
-                    );
-
-                    return (
-                      <div
-                        key={`stage-sprite-${spriteEditorIndex}`}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`配置スプライト ${spriteEditorIndex}`}
-                        onPointerDown={(event) =>
-                          handleSpritePointerDown(
-                            event,
-                            spriteEditorIndex,
-                            sprite,
-                          )
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            setSelectedSpriteEditorIndex(
-                              O.some(spriteEditorIndex),
-                            );
-                          }
-                        }}
-                        css={{
-                          position: "absolute",
-                          left: sprite.x * stageScale,
-                          top: sprite.y * stageScale,
-                          zIndex: sprite.layer + 1,
-                          cursor: "grab",
-                          outline: isSelected
-                            ? "2px solid rgba(15, 118, 110, 0.9)"
-                            : "1px solid rgba(148, 163, 184, 0.32)",
-                          borderRadius: 8,
-                          boxShadow: isSelected
-                            ? "0 0 0 6px rgba(15, 118, 110, 0.14)"
-                            : "0 8px 14px rgba(15, 23, 42, 0.12)",
-                          background: "rgba(255, 255, 255, 0.84)",
-                          padding: 2,
-                        }}
-                      >
-                        {renderSpritePixels(sprite.spriteIndex, stageScale)}
-                      </div>
-                    );
-                  })}
-
-                  {pipe(
-                    libraryDragState,
-                    O.match(
-                      () => <></>,
-                      (drag) => {
-                        if (drag.isOverStage === false) {
-                          return <></>;
-                        }
+                  {editorMode === "compose" ? (
+                    <>
+                      {pipe(
+                        activeSet,
+                        O.match(
+                          () => [],
+                          (characterSet) => characterSet.sprites,
+                        ),
+                      ).map((sprite, spriteEditorIndex) => {
+                        const isSelected = pipe(
+                          validSelectedSpriteEditorIndex,
+                          O.match(
+                            () => false,
+                            (value) => value === spriteEditorIndex,
+                          ),
+                        );
 
                         return (
                           <div
-                            key={`library-preview-${drag.spriteIndex}`}
+                            key={`stage-sprite-${spriteEditorIndex}`}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`配置スプライト ${spriteEditorIndex}`}
+                            onPointerDown={(event) =>
+                              handleSpritePointerDown(
+                                event,
+                                spriteEditorIndex,
+                                sprite,
+                              )
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedSpriteEditorIndex(
+                                  O.some(spriteEditorIndex),
+                                );
+                              }
+                            }}
                             css={{
                               position: "absolute",
-                              left: drag.stageX * stageScale,
-                              top: drag.stageY * stageScale,
-                              opacity: 0.6,
-                              pointerEvents: "none",
-                              outline: "2px dashed rgba(15, 118, 110, 0.72)",
+                              left: sprite.x * stageScale,
+                              top: sprite.y * stageScale,
+                              zIndex: sprite.layer + 1,
+                              cursor: "grab",
+                              outline: isSelected
+                                ? "2px solid rgba(15, 118, 110, 0.9)"
+                                : "1px solid rgba(148, 163, 184, 0.32)",
                               borderRadius: 8,
-                              boxShadow: "0 0 0 6px rgba(15, 118, 110, 0.12)",
-                              background: "rgba(255, 255, 255, 0.72)",
+                              boxShadow: isSelected
+                                ? "0 0 0 6px rgba(15, 118, 110, 0.14)"
+                                : "0 8px 14px rgba(15, 23, 42, 0.12)",
+                              background: "rgba(255, 255, 255, 0.84)",
                               padding: 2,
                             }}
                           >
-                            {renderSpritePixels(drag.spriteIndex, stageScale)}
+                            {renderSpritePixels(sprite.spriteIndex, stageScale)}
                           </div>
                         );
-                      },
-                    ),
+                      })}
+
+                      {pipe(
+                        libraryDragState,
+                        O.match(
+                          () => <></>,
+                          (drag) => {
+                            if (drag.isOverStage === false) {
+                              return <></>;
+                            }
+
+                            return (
+                              <div
+                                key={`library-preview-${drag.spriteIndex}`}
+                                css={{
+                                  position: "absolute",
+                                  left: drag.stageX * stageScale,
+                                  top: drag.stageY * stageScale,
+                                  opacity: 0.6,
+                                  pointerEvents: "none",
+                                  outline: "2px dashed rgba(15, 118, 110, 0.72)",
+                                  borderRadius: 8,
+                                  boxShadow: "0 0 0 6px rgba(15, 118, 110, 0.12)",
+                                  background: "rgba(255, 255, 255, 0.72)",
+                                  padding: 2,
+                                }}
+                              >
+                                {renderSpritePixels(drag.spriteIndex, stageScale)}
+                              </div>
+                            );
+                          },
+                        ),
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <canvas
+                        ref={(element: HTMLCanvasElement | null) => {
+                          decompositionCanvasRef.current = O.fromNullable(element);
+                        }}
+                        aria-label="分解描画キャンバス"
+                        width={stageWidth * stageScale}
+                        height={stageHeight * stageScale}
+                        onPointerDown={handleDecompositionCanvasPointerDown}
+                        css={{
+                          position: "absolute",
+                          inset: 0,
+                          width: "100%",
+                          height: "100%",
+                          imageRendering: "pixelated",
+                          cursor: decompositionCanvasCursor,
+                        }}
+                      />
+
+                      {decompositionAnalysis.regions.map((regionAnalysis, regionIndex) => {
+                        const isSelected = pipe(
+                          selectedRegionId,
+                          O.match(
+                            () => false,
+                            (regionId) => regionId === regionAnalysis.region.id,
+                          ),
+                        );
+                        const hasIssues = regionAnalysis.issues.length > 0;
+
+                        return (
+                          <button
+                            key={regionAnalysis.region.id}
+                            type="button"
+                            aria-label={`切り取り領域 ${regionIndex}`}
+                            onPointerDown={(event) =>
+                              handleDecompositionRegionPointerDown(
+                                event,
+                                regionAnalysis.region,
+                              )
+                            }
+                            onClick={() =>
+                              setSelectedRegionId(O.some(regionAnalysis.region.id))
+                            }
+                            css={{
+                              position: "absolute",
+                              left: regionAnalysis.region.x * stageScale,
+                              top: regionAnalysis.region.y * stageScale,
+                              width: 8 * stageScale,
+                              height: projectSpriteSize * stageScale,
+                              display: "grid",
+                              alignContent: "space-between",
+                              justifyItems: "start",
+                              padding: 6,
+                              border: hasIssues
+                                ? "2px solid rgba(190, 24, 93, 0.92)"
+                                : "2px solid rgba(15, 118, 110, 0.92)",
+                              background: hasIssues
+                                ? "rgba(255, 241, 242, 0.18)"
+                                : "rgba(240, 253, 250, 0.18)",
+                              boxShadow: isSelected
+                                ? "0 0 0 6px rgba(15, 118, 110, 0.12)"
+                                : "none",
+                              cursor:
+                                decompositionTool === "region"
+                                  ? "grab"
+                                  : "default",
+                              pointerEvents:
+                                decompositionTool === "region" ? "auto" : "none",
+                            }}
+                          >
+                            <Badge tone={hasIssues ? "danger" : "accent"}>
+                              {`#${regionIndex}`}
+                            </Badge>
+                            <Badge tone={hasIssues ? "danger" : "neutral"}>
+                              {getRegionStatusLabel(regionAnalysis)}
+                            </Badge>
+                          </button>
+                        );
+                      })}
+                    </>
                   )}
 
-                  {stageHelperMessage !== "" && (
-                    <div
-                      css={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "grid",
-                        placeItems: "center",
-                        padding: 24,
-                        pointerEvents: "none",
-                      }}
-                    >
-                      <div
-                        css={{
-                          maxWidth: 320,
-                          padding: "16px 18px",
-                          borderRadius: 18,
-                          background: "rgba(255, 255, 255, 0.92)",
-                          border: "1px solid rgba(148, 163, 184, 0.18)",
-                          boxShadow: "0 18px 36px rgba(15, 23, 42, 0.12)",
-                          textAlign: "center",
-                          color: "var(--ink-soft)",
-                          fontSize: 14,
-                          lineHeight: 1.7,
-                        }}
-                      >
-                        {stageHelperMessage}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </CanvasViewport>
@@ -1484,250 +2352,522 @@ export const CharacterMode: React.FC = () => {
               },
             }}
           >
-            <div css={editorCardStyles}>
-              <PanelHeaderRow>
-                <FieldLabel>選択中のスプライト</FieldLabel>
-                <Badge tone="neutral">
-                  {pipe(
-                    validSelectedSpriteEditorIndex,
-                    O.match(
-                      () => "none",
-                      (value) => `#${value}`,
-                    ),
-                  )}
-                </Badge>
-              </PanelHeaderRow>
+            {editorMode === "compose" ? (
+              <>
+                <div css={editorCardStyles}>
+                  <PanelHeaderRow>
+                    <FieldLabel>選択中のスプライト</FieldLabel>
+                    <Badge tone="neutral">
+                      {pipe(
+                        validSelectedSpriteEditorIndex,
+                        O.match(
+                          () => "none",
+                          (value) => `#${value}`,
+                        ),
+                      )}
+                    </Badge>
+                  </PanelHeaderRow>
 
-              <div
-                css={{
-                  minHeight: 108,
-                  borderRadius: 18,
-                  display: "grid",
-                  placeItems: "center",
-                  background:
-                    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-                  border: "1px solid rgba(148, 163, 184, 0.18)",
-                }}
-              >
-                {pipe(
-                  selectedSprite,
-                  O.match(
-                    () => (
-                      <HelperText>
-                        ステージか右下のレイヤー一覧から対象を選択してください。
-                      </HelperText>
-                    ),
-                    (entry) =>
-                      renderSpritePixels(
-                        entry.sprite.spriteIndex,
-                        INSPECTOR_PREVIEW_SCALE,
-                      ),
-                  ),
-                )}
-              </div>
-
-              <FieldGrid
-                css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-              >
-                <Field>
-                  <FieldLabel>sprite</FieldLabel>
-                  <NumberInput
-                    aria-label="選択中スプライト番号"
-                    type="number"
-                    min={0}
-                    max={63}
-                    disabled={O.isNone(selectedSprite)}
-                    value={pipe(
+                  <div
+                    css={{
+                      minHeight: 108,
+                      borderRadius: 18,
+                      display: "grid",
+                      placeItems: "center",
+                      background:
+                        "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+                      border: "1px solid rgba(148, 163, 184, 0.18)",
+                    }}
+                  >
+                    {pipe(
                       selectedSprite,
                       O.match(
-                        () => "",
-                        (entry) => `${entry.sprite.spriteIndex}`,
+                        () => <></>,
+                        (entry) =>
+                          renderSpritePixels(
+                            entry.sprite.spriteIndex,
+                            INSPECTOR_PREVIEW_SCALE,
+                          ),
                       ),
                     )}
-                    onChange={(event) =>
-                      handleUpdateSelectedSprite(
-                        "spriteIndex",
-                        event.target.value,
+                  </div>
+
+                  <FieldGrid
+                    css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
+                  >
+                    <Field>
+                      <FieldLabel>sprite</FieldLabel>
+                      <NumberInput
+                        aria-label="選択中スプライト番号"
+                        type="number"
+                        min={0}
+                        max={63}
+                        disabled={O.isNone(selectedSprite)}
+                        value={pipe(
+                          selectedSprite,
+                          O.match(
+                            () => "",
+                            (entry) => `${entry.sprite.spriteIndex}`,
+                          ),
+                        )}
+                        onChange={(event) =>
+                          handleUpdateSelectedSprite(
+                            "spriteIndex",
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>layer</FieldLabel>
+                      <NumberInput
+                        aria-label="選択中レイヤー"
+                        type="number"
+                        min={0}
+                        max={63}
+                        disabled={O.isNone(selectedSprite)}
+                        value={pipe(
+                          selectedSprite,
+                          O.match(
+                            () => "",
+                            (entry) => `${entry.sprite.layer}`,
+                          ),
+                        )}
+                        onChange={(event) =>
+                          handleUpdateSelectedSprite("layer", event.target.value)
+                        }
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>x</FieldLabel>
+                      <NumberInput
+                        aria-label="選択中X座標"
+                        type="number"
+                        min={0}
+                        max={stageWidth - 1}
+                        disabled={O.isNone(selectedSprite)}
+                        value={pipe(
+                          selectedSprite,
+                          O.match(
+                            () => "",
+                            (entry) => `${entry.sprite.x}`,
+                          ),
+                        )}
+                        onChange={(event) =>
+                          handleUpdateSelectedSprite("x", event.target.value)
+                        }
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>y</FieldLabel>
+                      <NumberInput
+                        aria-label="選択中Y座標"
+                        type="number"
+                        min={0}
+                        max={stageHeight - 1}
+                        disabled={O.isNone(selectedSprite)}
+                        value={pipe(
+                          selectedSprite,
+                          O.match(
+                            () => "",
+                            (entry) => `${entry.sprite.y}`,
+                          ),
+                        )}
+                        onChange={(event) =>
+                          handleUpdateSelectedSprite("y", event.target.value)
+                        }
+                      />
+                    </Field>
+                  </FieldGrid>
+
+                  <ToolButton
+                    type="button"
+                    tone="danger"
+                    disabled={O.isNone(activeSet) || O.isNone(selectedSprite)}
+                    onClick={() =>
+                      pipe(
+                        activeSet,
+                        O.chain((characterSet) =>
+                          pipe(
+                            selectedSprite,
+                            O.map((entry) => ({
+                              setId: characterSet.id,
+                              index: entry.index,
+                              count: characterSet.sprites.length,
+                            })),
+                          ),
+                        ),
+                        O.map((entry) =>
+                          handleRemoveCharacterSprite(
+                            entry.setId,
+                            entry.index,
+                            entry.count,
+                          ),
+                        ),
                       )
                     }
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>layer</FieldLabel>
-                  <NumberInput
-                    aria-label="選択中レイヤー"
-                    type="number"
-                    min={0}
-                    max={63}
-                    disabled={O.isNone(selectedSprite)}
-                    value={pipe(
-                      selectedSprite,
-                      O.match(
-                        () => "",
-                        (entry) => `${entry.sprite.layer}`,
-                      ),
-                    )}
-                    onChange={(event) =>
-                      handleUpdateSelectedSprite("layer", event.target.value)
-                    }
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>x</FieldLabel>
-                  <NumberInput
-                    aria-label="選択中X座標"
-                    type="number"
-                    min={0}
-                    max={stageWidth - 1}
-                    disabled={O.isNone(selectedSprite)}
-                    value={pipe(
-                      selectedSprite,
-                      O.match(
-                        () => "",
-                        (entry) => `${entry.sprite.x}`,
-                      ),
-                    )}
-                    onChange={(event) =>
-                      handleUpdateSelectedSprite("x", event.target.value)
-                    }
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>y</FieldLabel>
-                  <NumberInput
-                    aria-label="選択中Y座標"
-                    type="number"
-                    min={0}
-                    max={stageHeight - 1}
-                    disabled={O.isNone(selectedSprite)}
-                    value={pipe(
-                      selectedSprite,
-                      O.match(
-                        () => "",
-                        (entry) => `${entry.sprite.y}`,
-                      ),
-                    )}
-                    onChange={(event) =>
-                      handleUpdateSelectedSprite("y", event.target.value)
-                    }
-                  />
-                </Field>
-              </FieldGrid>
+                  >
+                    選択中スプライトを削除
+                  </ToolButton>
+                </div>
 
-              <ToolButton
-                type="button"
-                tone="danger"
-                disabled={O.isNone(activeSet) || O.isNone(selectedSprite)}
-                onClick={() =>
-                  pipe(
-                    activeSet,
-                    O.chain((characterSet) =>
-                      pipe(
-                        selectedSprite,
-                        O.map((entry) => ({
-                          setId: characterSet.id,
-                          index: entry.index,
-                          count: characterSet.sprites.length,
-                        })),
-                      ),
-                    ),
-                    O.map((entry) =>
-                      handleRemoveCharacterSprite(
-                        entry.setId,
-                        entry.index,
-                        entry.count,
-                      ),
-                    ),
-                  )
-                }
-              >
-                選択中スプライトを削除
-              </ToolButton>
-            </div>
+                <div
+                  css={{
+                    ...editorCardStyles,
+                    gridTemplateRows: "auto minmax(0, 1fr)",
+                  }}
+                >
+                  <PanelHeaderRow>
+                    <FieldLabel>レイヤー一覧</FieldLabel>
+                    <Badge tone="accent">{layerEntries.length} layers</Badge>
+                  </PanelHeaderRow>
 
-            <div
-              css={{
-                ...editorCardStyles,
-                gridTemplateRows: "auto minmax(0, 1fr)",
-              }}
-            >
-              <PanelHeaderRow>
-                <FieldLabel>レイヤー一覧</FieldLabel>
-                <Badge tone="accent">{layerEntries.length} layers</Badge>
-              </PanelHeaderRow>
+                  <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
+                    <div css={{ display: "grid", gap: 10 }}>
+                      {layerEntries.map((entry) => {
+                        const isSelected = pipe(
+                          validSelectedSpriteEditorIndex,
+                          O.match(
+                            () => false,
+                            (value) => value === entry.index,
+                          ),
+                        );
 
-              <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
-                <div css={{ display: "grid", gap: 10 }}>
-                  {layerEntries.map((entry) => {
-                    const isSelected = pipe(
-                      validSelectedSpriteEditorIndex,
-                      O.match(
-                        () => false,
-                        (value) => value === entry.index,
-                      ),
-                    );
-
-                    return (
-                      <div
-                        key={`layer-entry-${entry.index}`}
-                        css={{
-                          display: "grid",
-                          gridTemplateColumns: "minmax(0, 1fr) auto",
-                          gap: 10,
-                          alignItems: "stretch",
-                        }}
-                      >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedSpriteEditorIndex(O.some(entry.index))
-                          }
-                          css={{
-                            appearance: "none",
-                            display: "grid",
-                            gridTemplateColumns: "72px minmax(0, 1fr)",
-                            gap: 12,
-                            alignItems: "center",
-                            padding: 12,
-                            borderRadius: 18,
-                            border: isSelected
-                              ? "1px solid rgba(15, 118, 110, 0.38)"
-                              : "1px solid rgba(148, 163, 184, 0.2)",
-                            background: isSelected
-                              ? "rgba(240, 253, 250, 0.96)"
-                              : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
-                            color: "var(--ink-strong)",
-                            textAlign: "left",
-                            boxShadow: isSelected
-                              ? "0 18px 32px rgba(15, 118, 110, 0.12)"
-                              : "0 10px 18px rgba(15, 23, 42, 0.06)",
-                          }}
-                        >
+                        return (
                           <div
+                            key={`layer-entry-${entry.index}`}
                             css={{
-                              minHeight: 56,
                               display: "grid",
-                              placeItems: "center",
-                              borderRadius: 14,
-                              background:
-                                "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: 10,
+                              alignItems: "stretch",
                             }}
                           >
-                            {renderSpritePixels(
-                              entry.sprite.spriteIndex,
-                              LIBRARY_PREVIEW_SCALE,
-                            )}
-                          </div>
-                          <div css={{ display: "grid", gap: 6 }}>
-                            <div
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSelectedSpriteEditorIndex(O.some(entry.index))
+                              }
                               css={{
-                                fontSize: 13,
-                                fontWeight: 800,
-                                letterSpacing: "0.02em",
+                                appearance: "none",
+                                display: "grid",
+                                gridTemplateColumns: "72px minmax(0, 1fr)",
+                                gap: 12,
+                                alignItems: "center",
+                                padding: 12,
+                                borderRadius: 18,
+                                border: isSelected
+                                  ? "1px solid rgba(15, 118, 110, 0.38)"
+                                  : "1px solid rgba(148, 163, 184, 0.2)",
+                                background: isSelected
+                                  ? "rgba(240, 253, 250, 0.96)"
+                                  : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
+                                color: "var(--ink-strong)",
+                                textAlign: "left",
+                                boxShadow: isSelected
+                                  ? "0 18px 32px rgba(15, 118, 110, 0.12)"
+                                  : "0 10px 18px rgba(15, 23, 42, 0.06)",
                               }}
                             >
-                              {`Sprite ${entry.index}`}
-                            </div>
+                              <div
+                                css={{
+                                  minHeight: 56,
+                                  display: "grid",
+                                  placeItems: "center",
+                                  borderRadius: 14,
+                                  background:
+                                    "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
+                                }}
+                              >
+                                {renderSpritePixels(
+                                  entry.sprite.spriteIndex,
+                                  LIBRARY_PREVIEW_SCALE,
+                                )}
+                              </div>
+                              <div css={{ display: "grid", gap: 6 }}>
+                                <div
+                                  css={{
+                                    fontSize: 13,
+                                    fontWeight: 800,
+                                    letterSpacing: "0.02em",
+                                  }}
+                                >
+                                  {`Sprite ${entry.index}`}
+                                </div>
+                                <div
+                                  css={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 8,
+                                  }}
+                                >
+                                  <Badge tone="neutral">
+                                    {`x:${entry.sprite.x}`}
+                                  </Badge>
+                                  <Badge tone="neutral">
+                                    {`y:${entry.sprite.y}`}
+                                  </Badge>
+                                  <Badge tone="accent">
+                                    {`layer:${entry.sprite.layer}`}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </button>
+
+                            <ToolButton
+                              type="button"
+                              tone="danger"
+                              css={{ padding: "10px 12px" }}
+                              onClick={() =>
+                                pipe(
+                                  activeSet,
+                                  O.map((characterSet) =>
+                                    handleRemoveCharacterSprite(
+                                      characterSet.id,
+                                      entry.index,
+                                      characterSet.sprites.length,
+                                    ),
+                                  ),
+                                )
+                              }
+                            >
+                              削除
+                            </ToolButton>
+                          </div>
+                        );
+                      })}
+
+                    </div>
+                  </ScrollArea>
+                </div>
+              </>
+            ) : (
+              <>
+                <div css={editorCardStyles}>
+                  <PanelHeaderRow>
+                    <FieldLabel>選択中の領域</FieldLabel>
+                    <Badge tone="neutral">
+                      {pipe(
+                        selectedRegionId,
+                        O.match(
+                          () => "none",
+                          (value) => value,
+                        ),
+                      )}
+                    </Badge>
+                  </PanelHeaderRow>
+
+                  <div
+                    css={{
+                      minHeight: 108,
+                      borderRadius: 18,
+                      display: "grid",
+                      placeItems: "center",
+                      background:
+                        "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+                      border: "1px solid rgba(148, 163, 184, 0.18)",
+                    }}
+                  >
+                    {pipe(
+                      selectedRegionAnalysis,
+                      O.match(
+                        () => <></>,
+                        (regionAnalysis) =>
+                          renderTilePixels(
+                            regionAnalysis.tile,
+                            INSPECTOR_PREVIEW_SCALE,
+                            `region-${regionAnalysis.region.id}`,
+                          ),
+                      ),
+                    )}
+                  </div>
+
+                  <DetailList>
+                    <DetailRow>
+                      <FieldLabel>領域数</FieldLabel>
+                      <Badge tone="accent">
+                        {decompositionAnalysis.regions.length}
+                      </Badge>
+                    </DetailRow>
+                    <DetailRow>
+                      <FieldLabel>有効 / 無効</FieldLabel>
+                      <Badge
+                        tone={
+                          decompositionInvalidRegionCount > 0
+                            ? "danger"
+                            : "neutral"
+                        }
+                      >
+                        {`${decompositionValidRegionCount} / ${decompositionInvalidRegionCount}`}
+                      </Badge>
+                    </DetailRow>
+                    <DetailRow>
+                      <FieldLabel>再利用 / 新規</FieldLabel>
+                      <Badge tone="neutral">
+                        {`${decompositionAnalysis.reusableSpriteCount} / ${decompositionAnalysis.requiredNewSpriteCount}`}
+                      </Badge>
+                    </DetailRow>
+                  </DetailList>
+
+                  {pipe(
+                    selectedRegionAnalysis,
+                    O.match(
+                      () => <></>,
+                      (regionAnalysis) => (
+                        <div css={{ display: "grid", gap: 10 }}>
+                          <FieldGrid
+                            css={{
+                              gridTemplateColumns:
+                                "repeat(2, minmax(0, 1fr))",
+                            }}
+                          >
+                            <Field>
+                              <FieldLabel>x</FieldLabel>
+                              <NumberInput
+                                aria-label="選択中領域X座標"
+                                type="number"
+                                value={regionAnalysis.region.x}
+                                readOnly
+                              />
+                            </Field>
+                            <Field>
+                              <FieldLabel>y</FieldLabel>
+                              <NumberInput
+                                aria-label="選択中領域Y座標"
+                                type="number"
+                                value={regionAnalysis.region.y}
+                                readOnly
+                              />
+                            </Field>
+                          </FieldGrid>
+
+                          <DetailList>
+                            <DetailRow>
+                              <FieldLabel>状態</FieldLabel>
+                              <Badge
+                                tone={
+                                  regionAnalysis.issues.length > 0
+                                    ? "danger"
+                                    : "accent"
+                                }
+                              >
+                                {getRegionStatusLabel(regionAnalysis)}
+                              </Badge>
+                            </DetailRow>
+                            <DetailRow>
+                              <FieldLabel>issues</FieldLabel>
+                              <Badge
+                                tone={
+                                  regionAnalysis.issues.length > 0
+                                    ? "danger"
+                                    : "neutral"
+                                }
+                              >
+                                {regionAnalysis.issues.length > 0
+                                  ? regionAnalysis.issues
+                                      .map(getIssueLabel)
+                                      .join(", ")
+                                  : "none"}
+                              </Badge>
+                            </DetailRow>
+                          </DetailList>
+                        </div>
+                      ),
+                    ),
+                  )}
+
+                  <div
+                    css={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    <ToolButton
+                      type="button"
+                      tone="danger"
+                      disabled={O.isNone(selectedRegionId)}
+                      onClick={handleRemoveSelectedRegion}
+                    >
+                      選択中領域を削除
+                    </ToolButton>
+                    <ToolButton
+                      type="button"
+                      tone="primary"
+                      disabled={
+                        O.isNone(activeSet) ||
+                        decompositionRegions.length === 0 ||
+                        decompositionAnalysis.canApply === false
+                      }
+                      onClick={handleApplyDecomposition}
+                    >
+                      分解して現在のセットへ反映
+                    </ToolButton>
+                  </div>
+                </div>
+
+                <div
+                  css={{
+                    ...editorCardStyles,
+                    gridTemplateRows: "auto minmax(0, 1fr)",
+                  }}
+                >
+                  <PanelHeaderRow>
+                    <FieldLabel>切り取り領域一覧</FieldLabel>
+                    <Badge tone="accent">
+                      {decompositionAnalysis.regions.length} regions
+                    </Badge>
+                  </PanelHeaderRow>
+
+                  <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
+                    <div css={{ display: "grid", gap: 10 }}>
+                      {decompositionAnalysis.regions.map((regionAnalysis, regionIndex) => {
+                        const isSelected = pipe(
+                          selectedRegionId,
+                          O.match(
+                            () => false,
+                            (regionId) => regionId === regionAnalysis.region.id,
+                          ),
+                        );
+
+                        return (
+                          <button
+                            key={regionAnalysis.region.id}
+                            type="button"
+                            onClick={() =>
+                              setSelectedRegionId(O.some(regionAnalysis.region.id))
+                            }
+                            css={{
+                              appearance: "none",
+                              display: "grid",
+                              gap: 10,
+                              padding: 12,
+                              borderRadius: 18,
+                              border: isSelected
+                                ? "1px solid rgba(15, 118, 110, 0.38)"
+                                : "1px solid rgba(148, 163, 184, 0.2)",
+                              background: isSelected
+                                ? "rgba(240, 253, 250, 0.96)"
+                                : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
+                              color: "var(--ink-strong)",
+                              textAlign: "left",
+                              boxShadow: isSelected
+                                ? "0 18px 32px rgba(15, 118, 110, 0.12)"
+                                : "0 10px 18px rgba(15, 23, 42, 0.06)",
+                            }}
+                          >
+                            <PanelHeaderRow>
+                              <FieldLabel>{`領域 ${regionIndex}`}</FieldLabel>
+                              <Badge
+                                tone={
+                                  regionAnalysis.issues.length > 0
+                                    ? "danger"
+                                    : "accent"
+                                }
+                              >
+                                {getRegionStatusLabel(regionAnalysis)}
+                              </Badge>
+                            </PanelHeaderRow>
                             <div
                               css={{
                                 display: "flex",
@@ -1736,95 +2876,69 @@ export const CharacterMode: React.FC = () => {
                               }}
                             >
                               <Badge tone="neutral">
-                                {`x:${entry.sprite.x}`}
+                                {`x:${regionAnalysis.region.x}`}
                               </Badge>
                               <Badge tone="neutral">
-                                {`y:${entry.sprite.y}`}
+                                {`y:${regionAnalysis.region.y}`}
                               </Badge>
-                              <Badge tone="accent">
-                                {`layer:${entry.sprite.layer}`}
+                              <Badge
+                                tone={
+                                  regionAnalysis.issues.length > 0
+                                    ? "danger"
+                                    : "neutral"
+                                }
+                              >
+                                {regionAnalysis.issues.length > 0
+                                  ? regionAnalysis.issues
+                                      .map(getIssueLabel)
+                                      .join(", ")
+                                  : "valid"}
                               </Badge>
                             </div>
-                          </div>
-                        </button>
+                          </button>
+                        );
+                      })}
 
-                        <ToolButton
-                          type="button"
-                          tone="danger"
-                          css={{ padding: "10px 12px" }}
-                          onClick={() =>
-                            pipe(
-                              activeSet,
-                              O.map((characterSet) =>
-                                handleRemoveCharacterSprite(
-                                  characterSet.id,
-                                  entry.index,
-                                  characterSet.sprites.length,
-                                ),
-                              ),
-                            )
-                          }
-                        >
-                          削除
-                        </ToolButton>
-                      </div>
-                    );
-                  })}
-
-                  {layerEntries.length === 0 && (
-                    <div
-                      css={{
-                        padding: 18,
-                        borderRadius: 18,
-                        border: "1px dashed rgba(148, 163, 184, 0.28)",
-                        color: "var(--ink-soft)",
-                        fontSize: 14,
-                        lineHeight: 1.7,
-                        background: "rgba(255, 255, 255, 0.72)",
-                      }}
-                    >
-                      まだスプライトがありません。左のライブラリからドラッグして構成を作ります。
                     </div>
-                  )}
+                  </ScrollArea>
                 </div>
-              </ScrollArea>
-            </div>
+              </>
+            )}
           </div>
         </div>
 
-        <HelperText>{stageStatusMessage}</HelperText>
-
-        {pipe(
-          libraryDragState,
-          O.match(
-            () => <></>,
-            (drag) => (
-              <div
-                aria-label="ライブラリドラッグプレビュー"
-                css={{
-                  position: "fixed",
-                  left: drag.clientX + 18,
-                  top: drag.clientY + 18,
-                  zIndex: 200,
-                  pointerEvents: "none",
-                  display: "grid",
-                  placeItems: "center",
-                  width: 64,
-                  minHeight: 64,
-                  padding: 10,
-                  borderRadius: 18,
-                  background:
-                    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-                  border: "1px solid rgba(148, 163, 184, 0.18)",
-                  boxShadow: "0 18px 34px rgba(15, 23, 42, 0.18)",
-                  opacity: 0.92,
-                }}
-              >
-                {renderSpritePixels(drag.spriteIndex, LIBRARY_PREVIEW_SCALE)}
-              </div>
+        {editorMode === "compose" &&
+          pipe(
+            libraryDragState,
+            O.match(
+              () => <></>,
+              (drag) => (
+                <div
+                  aria-label="ライブラリドラッグプレビュー"
+                  css={{
+                    position: "fixed",
+                    left: drag.clientX + 18,
+                    top: drag.clientY + 18,
+                    zIndex: 200,
+                    pointerEvents: "none",
+                    display: "grid",
+                    placeItems: "center",
+                    width: 64,
+                    minHeight: 64,
+                    padding: 10,
+                    borderRadius: 18,
+                    background:
+                      "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+                    border: "1px solid rgba(148, 163, 184, 0.18)",
+                    boxShadow: "0 18px 34px rgba(15, 23, 42, 0.18)",
+                    opacity: 0.92,
+                  }}
+                >
+                  {renderSpritePixels(drag.spriteIndex, LIBRARY_PREVIEW_SCALE)}
+                </div>
+              ),
             ),
-          ),
-        )}
+          )}
       </div>
     </Panel>
   );

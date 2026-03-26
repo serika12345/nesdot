@@ -290,6 +290,7 @@ export default function useExportImage() {
       selectedCharacterId: useCharacterState.getState().selectedCharacterId,
     });
     const exportedProjectState: ProjectState = {
+      spriteSize: projectState.spriteSize,
       screen: projectState.screen,
       sprites: projectState.sprites,
       nes: projectState.nes,

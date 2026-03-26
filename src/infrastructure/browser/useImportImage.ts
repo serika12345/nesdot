@@ -123,10 +123,32 @@ const NesProjectStateSchema = z.object({
 });
 
 const ProjectStateSchema = z.object({
+  spriteSize: z.union([z.literal(8), z.literal(16)]),
   screen: ScreenSchema,
   sprites: z.array(SpriteTileSchema).length(64),
   nes: NesProjectStateSchema,
   _hydrated: z.boolean().optional(),
+}).superRefine((value, ctx) => {
+  if (value.nes.ppuControl.spriteSize !== value.spriteSize) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "ProjectState spriteSize must match NES ppuControl spriteSize",
+    });
+  }
+
+  if (value.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "ProjectState sprites must match project spriteSize",
+    });
+  }
+
+  if (value.screen.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Screen sprites must match project spriteSize",
+    });
+  }
 });
 
 const CharacterSpriteSchema = z.object({
@@ -221,14 +243,22 @@ const normalizeNesProjectState = (
 const normalizeProjectState = (
   state: z.infer<typeof ProjectStateSchema>,
 ): ProjectState => {
+  const normalizedNes = normalizeNesProjectState(state.nes);
   const baseState: ProjectState = {
+    spriteSize: state.spriteSize,
     screen: {
       width: 256,
       height: 240,
       sprites: state.screen.sprites.map(normalizeSpriteInScreen),
     },
     sprites: state.sprites.map(normalizeSpriteTile),
-    nes: normalizeNesProjectState(state.nes),
+    nes: {
+      ...normalizedNes,
+      ppuControl: {
+        ...normalizedNes.ppuControl,
+        spriteSize: state.spriteSize,
+      },
+    },
   };
 
   return baseState;

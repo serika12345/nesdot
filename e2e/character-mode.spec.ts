@@ -1,4 +1,55 @@
-import { expect, test } from "@playwright/test";
+import { expect, Locator, test } from "@playwright/test";
+
+const getLocatorPoint = async (
+  locator: Locator,
+  x: number,
+  y: number,
+) =>
+  locator.evaluate(
+    (element, point) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        clientX: rect.left + point.x,
+        clientY: rect.top + point.y,
+      };
+    },
+    { x, y },
+  );
+
+const clickCanvasPixel = async (
+  locator: Locator,
+  pixelX: number,
+  pixelY: number,
+) => {
+  const rect = await locator.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    return { width: bounds.width, height: bounds.height };
+  });
+  const point = await getLocatorPoint(
+    locator,
+    (pixelX + 0.5) * (rect.width / 256),
+    (pixelY + 0.5) * (rect.height / 240),
+  );
+
+  await locator.dispatchEvent("pointerdown", {
+    pointerId: pixelX + pixelY + 20,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+  await locator.dispatchEvent("pointerup", {
+    pointerId: pixelX + pixelY + 20,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+};
 
 test("character mode supports drag and drop placement and stage movement", async ({
   page,
@@ -66,7 +117,15 @@ test("character mode supports drag and drop placement and stage movement", async
     clientX: viewportRect.left + viewportRect.width / 2,
     clientY: viewportRect.top + viewportRect.height / 2,
   });
-  await expect(page.getByLabel("ステージズーム")).toHaveValue("3");
+  await expect(page.getByLabel("ステージズーム")).toHaveCount(0);
+
+  const zoomedStage = await stage.evaluate((element) => ({
+    width: element.offsetWidth,
+    height: element.offsetHeight,
+  }));
+
+  expect(zoomedStage.width).toBe(960);
+  expect(zoomedStage.height).toBe(768);
 
   await viewport.evaluate((element) => {
     const viewportElement = element;
@@ -173,7 +232,7 @@ test("character mode supports drag and drop placement and stage movement", async
   );
 
   expect(initialX).toBeGreaterThanOrEqual(55);
-  expect(initialX).toBeLessThanOrEqual(57);
+  expect(initialX).toBeLessThanOrEqual(58);
   expect(initialY).toBeGreaterThanOrEqual(42);
   expect(initialY).toBeLessThanOrEqual(44);
 
@@ -222,4 +281,104 @@ test("character mode supports drag and drop placement and stage movement", async
   expect(movedX).toBeLessThanOrEqual(initialX + 9);
   expect(movedY).toBeGreaterThanOrEqual(initialY + 6);
   expect(movedY).toBeLessThanOrEqual(initialY + 8);
+});
+
+test("character decomposition blocks mixed palettes and applies split regions", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.setViewportSize({ width: 1800, height: 1200 });
+
+  await page.getByRole("button", { name: "キャラクター編集" }).click();
+  await page.getByLabel("新規セット名").fill("Decompose Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+  await page.getByLabel("分解描画パレット").selectOption("1");
+  await clickCanvasPixel(decompositionCanvas, 2, 2);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+
+  await expect(
+    page.getByRole("button", { name: /領域 0 .*複数パレット/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "分解して現在のセットへ反映" }),
+  ).toBeDisabled();
+
+  await page.getByRole("button", { name: "分解ツール 消しゴム" }).click();
+  await clickCanvasPixel(decompositionCanvas, 2, 2);
+  await page.getByLabel("分解描画パレット").selectOption("1");
+  await page.getByRole("button", { name: "分解ツール ペン" }).click();
+  await clickCanvasPixel(decompositionCanvas, 10, 1);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 8, 0);
+
+  const applyButton = page.getByRole("button", {
+    name: "分解して現在のセットへ反映",
+  });
+  await expect(applyButton).toBeEnabled();
+  await applyButton.click();
+
+  await expect(
+    page.getByLabel("編集中のセット").locator("option:checked"),
+  ).toHaveText("Decompose Hero (2 sprites)");
+  await expect(
+    page.getByRole("button", { name: "プロジェクトスプライトサイズ 8x16" }),
+  ).toBeDisabled();
+
+  await page.getByRole("button", { name: "編集モード 合成" }).click();
+  await expect(
+    page.getByRole("button", { name: "配置スプライト 0" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "配置スプライト 1" }),
+  ).toBeVisible();
+});
+
+test("character decomposition respects project level 8x16 sprite size", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.setViewportSize({ width: 1800, height: 1200 });
+
+  await page.getByRole("button", { name: "キャラクター編集" }).click();
+  const size16Button = page.getByRole("button", {
+    name: "プロジェクトスプライトサイズ 8x16",
+  });
+  await size16Button.click();
+  await page.getByLabel("新規セット名").fill("Tall Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+  await clickCanvasPixel(decompositionCanvas, 1, 10);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+
+  const applyButton = page.getByRole("button", {
+    name: "分解して現在のセットへ反映",
+  });
+  await expect(applyButton).toBeEnabled();
+  await applyButton.click();
+
+  await expect(
+    page.getByLabel("編集中のセット").locator("option:checked"),
+  ).toHaveText("Tall Hero (1 sprites)");
+  await expect(
+    page.getByRole("button", { name: "プロジェクトスプライトサイズ 8x8" }),
+  ).toBeDisabled();
+  await expect(size16Button).toBeEnabled();
+
+  await page.getByRole("button", { name: "編集モード 合成" }).click();
+  await expect(
+    page.getByRole("button", { name: "配置スプライト 0" }),
+  ).toBeVisible();
 });

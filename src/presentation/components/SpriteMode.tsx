@@ -6,12 +6,13 @@ import {
   ColorIndexOfPalette,
   getHexArrayForSpriteTile,
   PaletteIndex,
+  ProjectSpriteSize,
   SpriteTile,
   useProjectState,
 } from "../../application/state/projectStore";
 import { NES_PALETTE_HEX } from "../../domain/nes/palette";
 import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
-import { makeTile, resizeTileND } from "../../domain/tiles/utils";
+import { makeTile } from "../../domain/tiles/utils";
 import { Tool } from "../../infrastructure/browser/canvas/useSpriteCanvas";
 import useExportImage from "../../infrastructure/browser/useExportImage";
 import useImportImage from "../../infrastructure/browser/useImportImage";
@@ -39,7 +40,10 @@ import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
 import { ChevronIcon } from "./ui/Icons";
 
-function makeEmptyTile(height: 8 | 16, paletteIndex: PaletteIndex): SpriteTile {
+function makeEmptyTile(
+  height: ProjectSpriteSize,
+  paletteIndex: PaletteIndex,
+): SpriteTile {
   return makeTile(height, paletteIndex, 0);
 }
 
@@ -57,10 +61,11 @@ export const SpriteMode: React.FC = () => {
   const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
   const [activeSprite, setActiveSprite] = useState<number>(0);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const projectSpriteSize = useProjectState((s) => s.spriteSize);
   const activeTile = useProjectState((s) =>
     pipe(
       getArrayItem(s.sprites, activeSprite),
-      O.getOrElse(() => makeEmptyTile(8, activePalette)),
+      O.getOrElse(() => makeEmptyTile(projectSpriteSize, activePalette)),
     ),
   );
   const palettes = useProjectState((s) => s.nes.spritePalettes);
@@ -91,17 +96,6 @@ export const SpriteMode: React.FC = () => {
       return;
     }
     setActiveSlot(slot);
-  };
-
-  const setHeight = (nextH: 8 | 16) => {
-    if (Number.isNaN(nextH) || nextH < 8 || nextH % 8 !== 0) return;
-    setTile(
-      resizeTileND(activeTile, activeTile.width, nextH, {
-        anchor: "top-left",
-        fill: 0,
-      }),
-      activeSprite,
-    );
   };
 
   const handleSpriteChange = (index: string) => {
@@ -223,20 +217,11 @@ export const SpriteMode: React.FC = () => {
           </FieldGrid>
 
           <Toolbar>
-            <ToolButton
-              type="button"
-              onClick={() => setHeight(8)}
-              active={activeTile.height === 8}
-            >
-              8×8
-            </ToolButton>
-            <ToolButton
-              type="button"
-              onClick={() => setHeight(16)}
-              active={activeTile.height === 16}
-            >
-              8×16
-            </ToolButton>
+            <Badge tone="accent">
+              {projectSpriteSize === 8
+                ? "Project Sprite Size 8×8"
+                : "Project Sprite Size 8×16"}
+            </Badge>
           </Toolbar>
         </ScrollArea>
       </Panel>
