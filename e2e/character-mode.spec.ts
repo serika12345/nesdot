@@ -34,10 +34,91 @@ test("character mode supports drag and drop placement and stage movement", async
   await page.getByLabel("新規セット名").fill("Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
 
+  const viewport = page.getByLabel("プレビューキャンバスビュー");
   const stage = page.getByLabel("キャラクターステージ");
   const librarySprite = page.getByRole("button", {
     name: "ライブラリスプライト 0",
   });
+
+  await page.getByLabel("プレビューキャンバス幅").fill("320");
+  await page.getByLabel("プレビューキャンバス高さ").fill("256");
+  await expect(page.getByLabel("プレビューキャンバス幅")).toHaveValue("320");
+  await expect(page.getByLabel("プレビューキャンバス高さ")).toHaveValue("256");
+
+  const resizedStage = await stage.evaluate((element) => ({
+    width: element.offsetWidth,
+    height: element.offsetHeight,
+    borderRadius: window.getComputedStyle(element).borderRadius,
+  }));
+
+  expect(resizedStage.width).toBe(640);
+  expect(resizedStage.height).toBe(512);
+  expect(resizedStage.borderRadius).toBe("0px");
+
+  const viewportRect = await viewport.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+  });
+
+  await viewport.dispatchEvent("wheel", {
+    ctrlKey: true,
+    deltaY: -120,
+    clientX: viewportRect.left + viewportRect.width / 2,
+    clientY: viewportRect.top + viewportRect.height / 2,
+  });
+  await expect(page.getByLabel("ステージズーム")).toHaveValue("3");
+
+  await viewport.evaluate((element) => {
+    const viewportElement = element;
+    viewportElement.scrollTo({ left: 120, top: 80 });
+  });
+
+  const initialViewportScroll = await viewport.evaluate((element) => ({
+    left: element.scrollLeft,
+    top: element.scrollTop,
+  }));
+
+  await viewport.dispatchEvent("pointerdown", {
+    pointerId: 7,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 1,
+    buttons: 4,
+    clientX: viewportRect.left + 220,
+    clientY: viewportRect.top + 200,
+  });
+  await viewport.dispatchEvent("pointermove", {
+    pointerId: 7,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 1,
+    buttons: 4,
+    clientX: viewportRect.left + 180,
+    clientY: viewportRect.top + 170,
+  });
+  await viewport.dispatchEvent("pointerup", {
+    pointerId: 7,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 1,
+    buttons: 0,
+    clientX: viewportRect.left + 180,
+    clientY: viewportRect.top + 170,
+  });
+
+  const movedViewportScroll = await viewport.evaluate((element) => ({
+    left: element.scrollLeft,
+    top: element.scrollTop,
+  }));
+
+  expect(movedViewportScroll.left).toBeGreaterThan(initialViewportScroll.left);
+  expect(movedViewportScroll.top).toBeGreaterThan(initialViewportScroll.top);
+
+  await viewport.evaluate((element) => {
+    const viewportElement = element;
+    viewportElement.scrollTo({ left: 0, top: 0 });
+  });
+
   const stageRect = await stage.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     return { left: rect.left, top: rect.top };
@@ -91,10 +172,10 @@ test("character mode supports drag and drop placement and stage movement", async
     await page.getByLabel("選択中Y座標").inputValue(),
   );
 
-  expect(initialX).toBeGreaterThanOrEqual(85);
-  expect(initialX).toBeLessThanOrEqual(88);
-  expect(initialY).toBeGreaterThanOrEqual(65);
-  expect(initialY).toBeLessThanOrEqual(68);
+  expect(initialX).toBeGreaterThanOrEqual(55);
+  expect(initialX).toBeLessThanOrEqual(57);
+  expect(initialY).toBeGreaterThanOrEqual(42);
+  expect(initialY).toBeLessThanOrEqual(44);
 
   const placedSpriteRect = await placedSprite.evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -137,8 +218,8 @@ test("character mode supports drag and drop placement and stage movement", async
   const movedX = Number(await page.getByLabel("選択中X座標").inputValue());
   const movedY = Number(await page.getByLabel("選択中Y座標").inputValue());
 
-  expect(movedX).toBeGreaterThanOrEqual(initialX + 10);
-  expect(movedX).toBeLessThanOrEqual(initialX + 14);
-  expect(movedY).toBeGreaterThanOrEqual(initialY + 8);
-  expect(movedY).toBeLessThanOrEqual(initialY + 12);
+  expect(movedX).toBeGreaterThanOrEqual(initialX + 7);
+  expect(movedX).toBeLessThanOrEqual(initialX + 9);
+  expect(movedY).toBeGreaterThanOrEqual(initialY + 6);
+  expect(movedY).toBeLessThanOrEqual(initialY + 8);
 });

@@ -42,6 +42,10 @@ import { ProjectActions } from "./ProjectActions";
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 const STAGE_WIDTH = 256;
 const STAGE_HEIGHT = 240;
+const STAGE_MIN_WIDTH = 64;
+const STAGE_MAX_WIDTH = 1024;
+const STAGE_MIN_HEIGHT = 64;
+const STAGE_MAX_HEIGHT = 960;
 const STAGE_MIN_SCALE = 1;
 const STAGE_MAX_SCALE = 6;
 const STAGE_DEFAULT_SCALE = 2;
@@ -63,6 +67,14 @@ interface LibraryDragState {
   isOverStage: boolean;
   stageX: number;
   stageY: number;
+}
+
+interface ViewportPanState {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startScrollLeft: number;
+  startScrollTop: number;
 }
 
 type CharacterPreviewState =
@@ -109,7 +121,7 @@ const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
 
 const trySetPointerCapture = (
-  target: HTMLButtonElement,
+  target: HTMLElement,
   pointerId: number,
 ): void => {
   try {
@@ -121,15 +133,21 @@ const trySetPointerCapture = (
 
 export const CharacterMode: React.FC = () => {
   const [newName, setNewName] = useState("New Character");
+  const [stageWidth, setStageWidth] = useState(STAGE_WIDTH);
+  const [stageHeight, setStageHeight] = useState(STAGE_HEIGHT);
   const [stageScale, setStageScale] = useState(STAGE_DEFAULT_SCALE);
   const [dragState, setDragState] = useState<O.Option<DragState>>(O.none);
   const [libraryDragState, setLibraryDragState] = useState<
     O.Option<LibraryDragState>
   >(O.none);
+  const [viewportPanState, setViewportPanState] = useState<
+    O.Option<ViewportPanState>
+  >(O.none);
   const [selectedSpriteEditorIndex, setSelectedSpriteEditorIndex] = useState<
     O.Option<number>
   >(O.none);
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
+  const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
 
   const characterSets = useCharacterState((s) => s.characterSets);
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
@@ -271,13 +289,54 @@ export const CharacterMode: React.FC = () => {
   const stageStatusMessage =
     previewState.kind === "error"
       ? `プレビュー生成に失敗しました: ${previewState.message}`
-      : "中央のステージで位置をドラッグ調整できます。右のインスペクタで数値とレイヤーを微調整します。";
+      : "中央のステージで位置をドラッグ調整できます。Ctrl+ホイールで拡大縮小し、中ボタンドラッグで領域移動できます。";
 
   const getStageRect = (): O.Option<DOMRect> =>
     pipe(
       stageElementRef.current,
       O.map((stage) => stage.getBoundingClientRect()),
     );
+
+  const getViewportElement = (): O.Option<HTMLDivElement> =>
+    viewportElementRef.current;
+
+  const updateStageScale = (
+    nextScale: number,
+    anchor: O.Option<{ clientX: number; clientY: number }> = O.none,
+  ) => {
+    setStageScale((current) => {
+      const clampedScale = clamp(nextScale, STAGE_MIN_SCALE, STAGE_MAX_SCALE);
+
+      if (clampedScale === current) {
+        return current;
+      }
+
+      if (O.isNone(anchor)) {
+        return clampedScale;
+      }
+
+      pipe(
+        getViewportElement(),
+        O.map((viewportElement) => {
+          const viewport = viewportElement;
+          const rect = viewport.getBoundingClientRect();
+          const relativeX = anchor.value.clientX - rect.left;
+          const relativeY = anchor.value.clientY - rect.top;
+          const currentStageX = viewport.scrollLeft + relativeX;
+          const currentStageY = viewport.scrollTop + relativeY;
+
+          window.requestAnimationFrame(() => {
+            viewport.scrollTo({
+              left: (currentStageX / current) * clampedScale - relativeX,
+              top: (currentStageY / current) * clampedScale - relativeY,
+            });
+          });
+        }),
+      );
+
+      return clampedScale;
+    });
+  };
 
   const createLibraryDragState = (
     spriteIndex: number,
@@ -329,9 +388,9 @@ export const CharacterMode: React.FC = () => {
       offsetX: (tile.width * stageScale) / 2,
       offsetY: (tile.height * stageScale) / 2,
       minX: 0,
-      maxX: 255,
+      maxX: stageWidth - 1,
       minY: 0,
-      maxY: 239,
+      maxY: stageHeight - 1,
     });
 
     return {
@@ -424,15 +483,138 @@ export const CharacterMode: React.FC = () => {
   };
 
   const handleZoomOut = () => {
-    setStageScale((current) =>
-      clamp(current - 1, STAGE_MIN_SCALE, STAGE_MAX_SCALE),
-    );
+    updateStageScale(stageScale - 1, O.none);
   };
 
   const handleZoomIn = () => {
-    setStageScale((current) =>
-      clamp(current + 1, STAGE_MIN_SCALE, STAGE_MAX_SCALE),
+    updateStageScale(stageScale + 1, O.none);
+  };
+
+  const clampSpritesToStage = (
+    setId: string,
+    currentSprites: CharacterSprite[],
+    nextWidth: number,
+    nextHeight: number,
+  ) => {
+    currentSprites.forEach((sprite, index) => {
+      const nextX = clamp(sprite.x, 0, nextWidth - 1);
+      const nextY = clamp(sprite.y, 0, nextHeight - 1);
+
+      if (nextX === sprite.x && nextY === sprite.y) {
+        return;
+      }
+
+      setSprite(setId, index, {
+        ...sprite,
+        x: nextX,
+        y: nextY,
+      });
+    });
+  };
+
+  const handleStageWidthChange = (rawValue: string) => {
+    const parsed = toNumber(rawValue);
+
+    if (O.isNone(parsed)) {
+      return;
+    }
+
+    const nextWidth = clamp(parsed.value, STAGE_MIN_WIDTH, STAGE_MAX_WIDTH);
+    setStageWidth(nextWidth);
+    pipe(
+      activeSet,
+      O.map((characterSet) =>
+        clampSpritesToStage(
+          characterSet.id,
+          characterSet.sprites,
+          nextWidth,
+          stageHeight,
+        ),
+      ),
     );
+  };
+
+  const handleStageHeightChange = (rawValue: string) => {
+    const parsed = toNumber(rawValue);
+
+    if (O.isNone(parsed)) {
+      return;
+    }
+
+    const nextHeight = clamp(parsed.value, STAGE_MIN_HEIGHT, STAGE_MAX_HEIGHT);
+    setStageHeight(nextHeight);
+    pipe(
+      activeSet,
+      O.map((characterSet) =>
+        clampSpritesToStage(characterSet.id, characterSet.sprites, stageWidth, nextHeight),
+      ),
+    );
+  };
+
+  const handleViewportWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (event.ctrlKey === false) {
+      return;
+    }
+
+    event.preventDefault();
+    updateStageScale(
+      event.deltaY < 0 ? stageScale + 1 : stageScale - 1,
+      O.some({ clientX: event.clientX, clientY: event.clientY }),
+    );
+  };
+
+  const handleViewportPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.button !== 1) {
+      return;
+    }
+
+    event.preventDefault();
+    setViewportPanState(
+      O.some({
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startScrollLeft: event.currentTarget.scrollLeft,
+        startScrollTop: event.currentTarget.scrollTop,
+      }),
+    );
+    trySetPointerCapture(event.currentTarget, event.pointerId);
+  };
+
+  const handleViewportPointerMove = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (O.isNone(viewportPanState)) {
+      return;
+    }
+
+    if (viewportPanState.value.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - viewportPanState.value.startClientX;
+    const deltaY = event.clientY - viewportPanState.value.startClientY;
+    const viewport = event.currentTarget;
+    viewport.scrollTo({
+      left: viewportPanState.value.startScrollLeft - deltaX,
+      top: viewportPanState.value.startScrollTop - deltaY,
+    });
+  };
+
+  const handleViewportPointerEnd = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (O.isNone(viewportPanState)) {
+      return;
+    }
+
+    if (viewportPanState.value.pointerId !== event.pointerId) {
+      return;
+    }
+
+    setViewportPanState(O.none);
   };
 
   const handleUpdateSprite = (
@@ -457,8 +639,8 @@ export const CharacterMode: React.FC = () => {
 
     const isValid =
       isInRange(nextSprite.spriteIndex, 0, 63) &&
-      isInRange(nextSprite.x, 0, 255) &&
-      isInRange(nextSprite.y, 0, 239) &&
+      isInRange(nextSprite.x, 0, stageWidth - 1) &&
+      isInRange(nextSprite.y, 0, stageHeight - 1) &&
       isInRange(nextSprite.layer, 0, 63);
 
     if (isValid === false) {
@@ -593,9 +775,9 @@ export const CharacterMode: React.FC = () => {
       offsetX: currentDrag.offsetX,
       offsetY: currentDrag.offsetY,
       minX: 0,
-      maxX: 255,
+      maxX: stageWidth - 1,
       minY: 0,
-      maxY: 239,
+      maxY: stageHeight - 1,
     });
     const currentSprite = spriteOption.value;
 
@@ -1019,23 +1201,43 @@ export const CharacterMode: React.FC = () => {
                   <Badge tone="accent">{activeSetSpriteCount} items</Badge>
                 </PanelHeaderRow>
                 <HelperText>
-                  256×240 の固定ステージです。PowerPoint
-                  のスライドのように、中央で見ながら配置します。
+                  サイズ指定に対応したプレビューです。Ctrl+ホイールで拡大縮小し、中ボタンドラッグで表示領域を移動できます。
                 </HelperText>
               </div>
 
               <div
                 css={{
                   display: "grid",
-                  gridTemplateColumns: "auto minmax(120px, 1fr) auto auto",
+                  gridTemplateColumns:
+                    "repeat(2, minmax(96px, 120px)) auto minmax(120px, 1fr) auto auto",
                   gap: 10,
                   alignItems: "center",
                   "@media (max-width: 700px)": {
-                    gridTemplateColumns: "repeat(4, auto)",
+                    gridTemplateColumns: "repeat(3, auto)",
                     justifyContent: "start",
                   },
                 }}
               >
+                <NumberInput
+                  aria-label="プレビューキャンバス幅"
+                  type="number"
+                  min={STAGE_MIN_WIDTH}
+                  max={STAGE_MAX_WIDTH}
+                  step={8}
+                  value={stageWidth}
+                  onChange={(event) => handleStageWidthChange(event.target.value)}
+                />
+                <NumberInput
+                  aria-label="プレビューキャンバス高さ"
+                  type="number"
+                  min={STAGE_MIN_HEIGHT}
+                  max={STAGE_MAX_HEIGHT}
+                  step={8}
+                  value={stageHeight}
+                  onChange={(event) =>
+                    handleStageHeightChange(event.target.value)
+                  }
+                />
                 <Badge tone="neutral">{`${stageScale}x`}</Badge>
                 <NumberInput
                   aria-label="ステージズーム"
@@ -1045,12 +1247,9 @@ export const CharacterMode: React.FC = () => {
                   step={1}
                   value={stageScale}
                   onChange={(event) =>
-                    setStageScale(
-                      clamp(
-                        Number(event.target.value),
-                        STAGE_MIN_SCALE,
-                        STAGE_MAX_SCALE,
-                      ),
+                    updateStageScale(
+                      clamp(Number(event.target.value), STAGE_MIN_SCALE, STAGE_MAX_SCALE),
+                      O.none,
                     )
                   }
                 />
@@ -1064,11 +1263,28 @@ export const CharacterMode: React.FC = () => {
             </div>
 
             <CanvasViewport
+              ref={(element: HTMLDivElement | null) => {
+                viewportElementRef.current = O.fromNullable(element);
+              }}
+              aria-label="プレビューキャンバスビュー"
+              onWheel={handleViewportWheel}
+              onPointerDown={handleViewportPointerDown}
+              onPointerMove={handleViewportPointerMove}
+              onPointerUp={handleViewportPointerEnd}
+              onPointerCancel={handleViewportPointerEnd}
+              onMouseDown={(event) => {
+                if (event.button === 1) {
+                  event.preventDefault();
+                }
+              }}
               css={{
                 minHeight: 0,
                 display: "grid",
                 placeItems: "center",
                 padding: 24,
+                borderRadius: 0,
+                overscrollBehavior: "contain",
+                cursor: O.isSome(viewportPanState) ? "grabbing" : "default",
               }}
             >
               <div
@@ -1090,11 +1306,10 @@ export const CharacterMode: React.FC = () => {
                   onPointerLeave={handleStagePointerEnd}
                   css={{
                     position: "relative",
-                    width: STAGE_WIDTH * stageScale,
-                    height: STAGE_HEIGHT * stageScale,
-                    minWidth: STAGE_WIDTH * stageScale,
-                    minHeight: STAGE_HEIGHT * stageScale,
-                    borderRadius: 30,
+                    width: stageWidth * stageScale,
+                    height: stageHeight * stageScale,
+                    minWidth: stageWidth * stageScale,
+                    minHeight: stageHeight * stageScale,
                     overflow: "hidden",
                     border: isStageDropActive
                       ? "1px solid rgba(45, 212, 191, 0.72)"
@@ -1126,8 +1341,8 @@ export const CharacterMode: React.FC = () => {
                         "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
                         "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
                       ].join(", "),
-                      backgroundSize: `1px ${STAGE_HEIGHT * stageScale}px, ${STAGE_WIDTH * stageScale}px 1px`,
-                      backgroundPosition: `${Math.floor((STAGE_WIDTH * stageScale) / 2)}px 0, 0 ${Math.floor((STAGE_HEIGHT * stageScale) / 2)}px`,
+                      backgroundSize: `1px ${stageHeight * stageScale}px, ${stageWidth * stageScale}px 1px`,
+                      backgroundPosition: `${Math.floor((stageWidth * stageScale) / 2)}px 0, 0 ${Math.floor((stageHeight * stageScale) / 2)}px`,
                       backgroundRepeat: "no-repeat",
                       pointerEvents: "none",
                     },
@@ -1363,7 +1578,7 @@ export const CharacterMode: React.FC = () => {
                     aria-label="選択中X座標"
                     type="number"
                     min={0}
-                    max={255}
+                    max={stageWidth - 1}
                     disabled={O.isNone(selectedSprite)}
                     value={pipe(
                       selectedSprite,
@@ -1383,7 +1598,7 @@ export const CharacterMode: React.FC = () => {
                     aria-label="選択中Y座標"
                     type="number"
                     min={0}
-                    max={239}
+                    max={stageHeight - 1}
                     disabled={O.isNone(selectedSprite)}
                     value={pipe(
                       selectedSprite,
