@@ -39,3 +39,20 @@ test("layout follows window resize", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "作業モード" })).toBeVisible();
   expect(bodyMinWidth).toBe("0px");
 });
+
+test("includes pwa manifest and app icons", async ({ page }) => {
+  await page.goto("/");
+
+  const manifestLink = page.locator('link[rel="manifest"]');
+  const faviconSvgLink = page.locator('link[rel="icon"][type="image/svg+xml"]');
+  const faviconPngLink = page.locator('link[rel="icon"][type="image/png"]');
+  const appleTouchIconLink = page.locator('link[rel="apple-touch-icon"]');
+
+  await expect(manifestLink).toHaveAttribute("href", "/manifest.webmanifest");
+  await expect(faviconSvgLink).toHaveAttribute("href", "/favicon.svg");
+  await expect(faviconPngLink).toHaveAttribute("href", "/favicon-32x32.png");
+  await expect(appleTouchIconLink).toHaveAttribute(
+    "href",
+    "/apple-touch-icon.png",
+  );
+});

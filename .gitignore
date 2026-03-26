@@ -93,6 +93,7 @@ typings/
 # Vite
 .vite/
 dist/
+.tmp/
 
 # Tauri
 src-tauri/target/
