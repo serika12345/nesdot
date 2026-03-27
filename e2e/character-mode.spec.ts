@@ -355,21 +355,7 @@ test("character mode supports drag and drop placement and stage movement", async
 
   await openComposeCanvasSpriteContextMenu(composeCanvas, nudgedSprite, 3);
   await expect(page.getByRole("menu", { name: "スプライトメニュー" })).toBeVisible();
-  await page.getByRole("button", { name: "右へ移動" }).dispatchEvent("pointerdown", {
-    pointerId: 11,
-    pointerType: "mouse",
-    isPrimary: true,
-    button: 0,
-    buttons: 1,
-  });
-
-  await expect
-    .poll(async () => getStageDebugState(stage))
-    .toMatchObject({
-      selectedSpriteIndex: "0",
-      selectedSpriteX: `${nudgedSprite.x + 1}`,
-      selectedSpriteY: `${nudgedSprite.y}`,
-    });
+  await expect(page.getByRole("button", { name: "右へ移動" })).toHaveCount(0);
 
   const layeredStageState = await getStageDebugState(stage);
   const layeredSprite = {

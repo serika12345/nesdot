@@ -1545,19 +1545,6 @@ export const CharacterMode: React.FC = () => {
     );
   };
 
-  const handleNudgeContextMenuSprite = (
-    direction: "left" | "right" | "up" | "down",
-  ) => {
-    const spriteEditorIndex = pipe(
-      spriteContextMenu,
-      O.map((menuState) => menuState.spriteEditorIndex),
-    );
-    setSpriteContextMenu(O.none);
-    updateSpriteAtIndex(spriteEditorIndex, (sprite) =>
-      nudgeCharacterSprite(sprite, direction, stageWidth - 1, stageHeight - 1),
-    );
-  };
-
   const handleShiftContextMenuSpriteLayer = (amount: number) => {
     const spriteEditorIndex = pipe(
       spriteContextMenu,
@@ -1968,22 +1955,6 @@ export const CharacterMode: React.FC = () => {
               onSelect: () => void;
               tone?: "default" | "danger";
             }> = [
-              {
-                label: "左へ移動",
-                onSelect: () => handleNudgeContextMenuSprite("left"),
-              },
-              {
-                label: "右へ移動",
-                onSelect: () => handleNudgeContextMenuSprite("right"),
-              },
-              {
-                label: "上へ移動",
-                onSelect: () => handleNudgeContextMenuSprite("up"),
-              },
-              {
-                label: "下へ移動",
-                onSelect: () => handleNudgeContextMenuSprite("down"),
-              },
               {
                 label: "レイヤーを上げる",
                 onSelect: () => handleShiftContextMenuSpriteLayer(1),
