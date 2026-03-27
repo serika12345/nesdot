@@ -58,6 +58,7 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",
+    "fabric": "^7.2.0",
     "fp-ts": "^2.16.11",
     "idb-keyval": "^6.2.2",
     "react": "^19.1.1",

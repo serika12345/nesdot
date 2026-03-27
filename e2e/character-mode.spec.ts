@@ -16,21 +16,23 @@ const getLocatorPoint = async (
     { x, y },
   );
 
-const getLocatorRect = async (locator: Locator) =>
-  locator.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
-  });
+const getStageDebugState = async (locator: Locator) =>
+  locator.evaluate((element) => ({
+    activeSetName: element.getAttribute("data-active-set-name") ?? "",
+    selectedSpriteIndex: element.getAttribute("data-selected-sprite-index") ?? "",
+    selectedSpriteLayer: element.getAttribute("data-selected-sprite-layer") ?? "",
+    selectedSpriteX: element.getAttribute("data-selected-sprite-x") ?? "",
+    selectedSpriteY: element.getAttribute("data-selected-sprite-y") ?? "",
+    stageSpriteCount: element.getAttribute("data-stage-sprite-count") ?? "",
+  }));
 
-const tapLocator = async (locator: Locator, pointerId: number) => {
-  const rect = await getLocatorRect(locator);
-  const clientX = rect.left + rect.width / 2;
-  const clientY = rect.top + rect.height / 2;
+const clickComposeCanvasAtPosition = async (
+  locator: Locator,
+  stageX: number,
+  stageY: number,
+  pointerId: number,
+) => {
+  const point = await getLocatorPoint(locator, stageX, stageY);
 
   await locator.dispatchEvent("pointerdown", {
     pointerId,
@@ -38,8 +40,8 @@ const tapLocator = async (locator: Locator, pointerId: number) => {
     isPrimary: true,
     button: 0,
     buttons: 1,
-    clientX,
-    clientY,
+    clientX: point.clientX,
+    clientY: point.clientY,
   });
   await locator.dispatchEvent("pointerup", {
     pointerId,
@@ -47,19 +49,39 @@ const tapLocator = async (locator: Locator, pointerId: number) => {
     isPrimary: true,
     button: 0,
     buttons: 0,
-    clientX,
-    clientY,
+    clientX: point.clientX,
+    clientY: point.clientY,
   });
 };
 
-const openLocatorContextMenu = async (locator: Locator) => {
-  const rect = await getLocatorRect(locator);
+const openComposeCanvasSpriteContextMenu = async (
+  locator: Locator,
+  sprite: { x: number; y: number },
+  scale: number,
+) => {
+  const point = await getLocatorPoint(
+    locator,
+    (sprite.x + 4) * scale,
+    (sprite.y + 4) * scale,
+  );
 
-  await locator.dispatchEvent("contextmenu", {
+  await locator.dispatchEvent("pointerdown", {
+    pointerId: 101,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 2,
+    buttons: 2,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+  await locator.dispatchEvent("pointerup", {
+    pointerId: 101,
+    pointerType: "mouse",
+    isPrimary: true,
     button: 2,
     buttons: 0,
-    clientX: rect.left + rect.width / 2,
-    clientY: rect.top + rect.height / 2,
+    clientX: point.clientX,
+    clientY: point.clientY,
   });
 };
 
@@ -134,6 +156,7 @@ test("character mode supports drag and drop placement and stage movement", async
 
   const viewport = page.getByLabel("プレビューキャンバスビュー");
   const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.getByLabel("合成描画キャンバス");
   const librarySprite = page.getByRole("button", {
     name: "ライブラリスプライト 0",
   });
@@ -295,56 +318,42 @@ test("character mode supports drag and drop placement and stage movement", async
     clientY: stageRect.top + 180,
   });
 
-  const placedSprite = page.getByRole("button", { name: "配置スプライト 0" });
-  const secondPlacedSprite = page.getByRole("button", { name: "配置スプライト 1" });
-
-  await expect(placedSprite).toBeVisible();
-  await expect(secondPlacedSprite).toBeVisible();
+  await expect(composeCanvas).toBeVisible();
   await expect(page.getByText("選択中のスプライト")).toHaveCount(0);
   await expect(page.getByText("レイヤー一覧")).toHaveCount(0);
 
-  const initialSpriteMetrics = await placedSprite.evaluate((element) => {
-    const computed = window.getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-    return {
-      left: Number.parseFloat(computed.left),
-      top: Number.parseFloat(computed.top),
-      zIndex: computed.zIndex,
-      rectLeft: rect.left,
-      rectTop: rect.top,
-      rectWidth: rect.width,
-      rectHeight: rect.height,
-    };
-  });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("2");
 
-  await tapLocator(placedSprite, 9);
+  await clickComposeCanvasAtPosition(composeCanvas, 180, 140, 9);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .toBe("0");
+  const initialStageState = await getStageDebugState(stage);
+  const initialSprite = {
+    x: Number(initialStageState.selectedSpriteX),
+    y: Number(initialStageState.selectedSpriteY),
+  };
+
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowDown");
 
   await expect
-    .poll(async () =>
-      placedSprite.evaluate((element) =>
-        Number.parseFloat(window.getComputedStyle(element).left),
-      ),
-    )
-    .toBe(initialSpriteMetrics.left + 3);
-  await expect
-    .poll(async () =>
-      placedSprite.evaluate((element) =>
-        Number.parseFloat(window.getComputedStyle(element).top),
-      ),
-    )
-    .toBe(initialSpriteMetrics.top + 3);
+    .poll(async () => getStageDebugState(stage))
+    .toMatchObject({
+      selectedSpriteIndex: "0",
+      selectedSpriteX: `${initialSprite.x + 1}`,
+      selectedSpriteY: `${initialSprite.y + 1}`,
+    });
 
-  const nudgedSpriteMetrics = await placedSprite.evaluate((element) => {
-    const computed = window.getComputedStyle(element);
-    return {
-      left: Number.parseFloat(computed.left),
-      top: Number.parseFloat(computed.top),
-    };
-  });
+  const nudgedStageState = await getStageDebugState(stage);
+  const nudgedSprite = {
+    x: Number(nudgedStageState.selectedSpriteX),
+    y: Number(nudgedStageState.selectedSpriteY),
+  };
 
-  await openLocatorContextMenu(placedSprite);
+  await openComposeCanvasSpriteContextMenu(composeCanvas, nudgedSprite, 3);
   await expect(page.getByRole("menu", { name: "スプライトメニュー" })).toBeVisible();
   await page.getByRole("button", { name: "右へ移動" }).dispatchEvent("pointerdown", {
     pointerId: 11,
@@ -355,21 +364,20 @@ test("character mode supports drag and drop placement and stage movement", async
   });
 
   await expect
-    .poll(async () =>
-      placedSprite.evaluate((element) =>
-        Number.parseFloat(window.getComputedStyle(element).left),
-      ),
-    )
-    .toBe(nudgedSpriteMetrics.left + 3);
-  await expect
-    .poll(async () =>
-      placedSprite.evaluate((element) =>
-        Number.parseFloat(window.getComputedStyle(element).top),
-      ),
-    )
-    .toBe(nudgedSpriteMetrics.top);
+    .poll(async () => getStageDebugState(stage))
+    .toMatchObject({
+      selectedSpriteIndex: "0",
+      selectedSpriteX: `${nudgedSprite.x + 1}`,
+      selectedSpriteY: `${nudgedSprite.y}`,
+    });
 
-  await openLocatorContextMenu(placedSprite);
+  const layeredStageState = await getStageDebugState(stage);
+  const layeredSprite = {
+    x: Number(layeredStageState.selectedSpriteX),
+    y: Number(layeredStageState.selectedSpriteY),
+  };
+  const currentLayer = Number(layeredStageState.selectedSpriteLayer);
+  await openComposeCanvasSpriteContextMenu(composeCanvas, layeredSprite, 3);
   await page
     .getByRole("button", { name: "レイヤーを上げる" })
     .dispatchEvent("pointerdown", {
@@ -381,15 +389,17 @@ test("character mode supports drag and drop placement and stage movement", async
     });
 
   await expect
-    .poll(async () =>
-      placedSprite.evaluate((element) => window.getComputedStyle(element).zIndex),
-    )
-    .toBe("2");
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
+    .toBe(`${currentLayer + 1}`);
 
-  await tapLocator(secondPlacedSprite, 10);
+  await clickComposeCanvasAtPosition(composeCanvas, 220, 180, 10);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .toBe("1");
   await page.keyboard.press("Backspace");
-  await expect(secondPlacedSprite).toHaveCount(0);
-  await expect(placedSprite).toBeVisible();
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
 });
 
 test("character decomposition blocks mixed palettes and applies split regions", async ({
@@ -442,12 +452,10 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   ).toBeDisabled();
 
   await page.getByRole("button", { name: "編集モード 合成" }).click();
-  await expect(
-    page.getByRole("button", { name: "配置スプライト 0" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "配置スプライト 1" }),
-  ).toBeVisible();
+  await expect(page.getByLabel("合成描画キャンバス")).toBeVisible();
+  await expect
+    .poll(async () => (await getStageDebugState(page.getByLabel("キャラクターステージ"))).stageSpriteCount)
+    .toBe("2");
 });
 
 test("character decomposition respects project level 8x16 sprite size", async ({
@@ -487,7 +495,8 @@ test("character decomposition respects project level 8x16 sprite size", async ({
   await expect(size16Button).toBeEnabled();
 
   await page.getByRole("button", { name: "編集モード 合成" }).click();
-  await expect(
-    page.getByRole("button", { name: "配置スプライト 0" }),
-  ).toBeVisible();
+  await expect(page.getByLabel("合成描画キャンバス")).toBeVisible();
+  await expect
+    .poll(async () => (await getStageDebugState(page.getByLabel("キャラクターステージ"))).stageSpriteCount)
+    .toBe("1");
 });

@@ -75,6 +75,14 @@ export const getCharacterLayerEntries = (
   );
 };
 
+export const getCharacterLayerEntriesBackToFront = (
+  sprites: CharacterSprite[],
+): CharacterLayerEntry[] =>
+  getCharacterLayerEntries(sprites).reduceRight<CharacterLayerEntry[]>(
+    (entries, entry) => [...entries, entry],
+    [],
+  );
+
 export const getNextCharacterSpriteLayer = (
   sprites: CharacterSprite[],
 ): number =>

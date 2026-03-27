@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntries,
+  getCharacterLayerEntriesBackToFront,
   getNextCharacterSpriteLayer,
   nudgeCharacterSprite,
   resolveCharacterStagePoint,
@@ -20,6 +21,17 @@ describe("characterEditorModel", () => {
     ]);
 
     expect(entries.map((entry) => entry.index)).toEqual([2, 1, 0, 3]);
+  });
+
+  it("orders layer entries from backmost to topmost", () => {
+    const entries = getCharacterLayerEntriesBackToFront([
+      { spriteIndex: 0, x: 0, y: 0, layer: 1 },
+      { spriteIndex: 1, x: 8, y: 0, layer: 3 },
+      { spriteIndex: 2, x: 16, y: 0, layer: 3 },
+      { spriteIndex: 3, x: 24, y: 0, layer: 0 },
+    ]);
+
+    expect(entries.map((entry) => entry.index)).toEqual([3, 0, 1, 2]);
   });
 
   it("computes the next layer and caps it at the NES limit", () => {

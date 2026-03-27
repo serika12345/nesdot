@@ -1,4 +1,10 @@
 import { type CSSObject } from "@emotion/react";
+import {
+  Canvas as FabricCanvas,
+  FabricImage,
+  type CanvasEvents,
+  type FabricObject,
+} from "fabric";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -8,6 +14,7 @@ import { useCharacterState } from "../../application/state/characterStore";
 import {
   PaletteIndex,
   ProjectSpriteSize,
+  type SpriteTile,
   useProjectState,
 } from "../../application/state/projectStore";
 import {
@@ -24,6 +31,7 @@ import {
   CharacterSet,
   CharacterSprite,
 } from "../../domain/characters/characterSet";
+import { type NesSpritePalettes } from "../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../domain/nes/palette";
 import { renderSpriteTileToHexArray } from "../../domain/nes/rendering";
 import { createEmptySpriteTile } from "../../domain/project/project";
@@ -49,6 +57,7 @@ import {
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import {
   ensureSelectedCharacterSpriteIndex,
+  getCharacterLayerEntriesBackToFront,
   getNextCharacterSpriteLayer,
   nudgeCharacterSprite,
   resolveCharacterStagePoint,
@@ -147,13 +156,6 @@ const paintDecompositionPixel = (
   };
 };
 
-interface DragState {
-  spriteEditorIndex: number;
-  pointerId: number;
-  offsetX: number;
-  offsetY: number;
-}
-
 interface LibraryDragState {
   spriteIndex: number;
   pointerId: number;
@@ -187,6 +189,11 @@ interface SpriteContextMenuState {
   clientX: number;
   clientY: number;
   spriteEditorIndex: number;
+}
+
+interface FabricSpriteObjectEntry {
+  index: number;
+  object: FabricObject;
 }
 
 type CharacterPreviewState =
@@ -251,6 +258,96 @@ const trySetPointerCapture = (
     // Synthetic pointer events used in tests may not have a capturable pointer.
   }
 };
+
+const createComposeSpriteSource = (
+  spriteIndex: number,
+  sprites: SpriteTile[],
+  spritePalettes: NesSpritePalettes,
+): O.Option<HTMLCanvasElement> => {
+  if (typeof document === "undefined") {
+    return O.none;
+  }
+
+  const tileOption = O.fromNullable(sprites[spriteIndex]);
+  if (O.isNone(tileOption)) {
+    return O.none;
+  }
+
+  const tile = tileOption.value;
+  const sourceCanvas = Object.assign(document.createElement("canvas"), {
+    width: tile.width,
+    height: tile.height,
+  });
+  const contextOption = O.fromNullable(sourceCanvas.getContext("2d"));
+  if (O.isNone(contextOption)) {
+    return O.none;
+  }
+
+  const context = contextOption.value;
+  const hexPixels = renderSpriteTileToHexArray(tile, spritePalettes);
+  context.clearRect(0, 0, tile.width, tile.height);
+
+  tile.pixels.forEach((pixelRow, rowIndex) => {
+    pixelRow.forEach((colorIndex, columnIndex) => {
+      if (colorIndex === 0) {
+        return;
+      }
+
+      const colorHexOption = pipe(
+        O.fromNullable(hexPixels[rowIndex]),
+        O.chain((hexRow) => O.fromNullable(hexRow[columnIndex])),
+      );
+
+      if (O.isNone(colorHexOption)) {
+        return;
+      }
+
+      Object.assign(context, {
+        fillStyle: colorHexOption.value,
+      });
+      context.fillRect(columnIndex, rowIndex, 1, 1);
+    });
+  });
+
+  return O.some(sourceCanvas);
+};
+
+const findComposeObjectEntry = (
+  entries: ReadonlyArray<FabricSpriteObjectEntry>,
+  target?: FabricObject,
+): O.Option<FabricSpriteObjectEntry> =>
+  pipe(
+    O.fromNullable(target),
+    O.chain((currentTarget) =>
+      O.fromNullable(
+        entries.find((entry) => entry.object === currentTarget),
+      ),
+    ),
+  );
+
+const isMouseLikeCanvasEvent = (
+  event: CanvasEvents["mouse:down"]["e"],
+): event is MouseEvent | PointerEvent =>
+  "button" in event && "clientX" in event && "clientY" in event;
+
+const isSameOptionalNumber = (
+  left: O.Option<number>,
+  right: O.Option<number>,
+): boolean =>
+  pipe(
+    left,
+    O.match(
+      () => O.isNone(right),
+      (leftValue) =>
+        pipe(
+          right,
+          O.match(
+            () => false,
+            (rightValue) => rightValue === leftValue,
+          ),
+        ),
+    ),
+  );
 
 const clampDecompositionRegion = (
   region: CharacterDecompositionRegion,
@@ -332,7 +429,6 @@ export const CharacterMode: React.FC = () => {
   const [stageWidth, setStageWidth] = useState(STAGE_WIDTH);
   const [stageHeight, setStageHeight] = useState(STAGE_HEIGHT);
   const [stageScale, setStageScale] = useState(STAGE_DEFAULT_SCALE);
-  const [dragState, setDragState] = useState<O.Option<DragState>>(O.none);
   const [libraryDragState, setLibraryDragState] = useState<
     O.Option<LibraryDragState>
   >(O.none);
@@ -366,6 +462,11 @@ export const CharacterMode: React.FC = () => {
   );
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
+  const composeCanvasElementRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
+  const composeFabricCanvasRef = useRef<O.Option<FabricCanvas>>(O.none);
+  const composeFabricObjectEntriesRef = useRef<
+    ReadonlyArray<FabricSpriteObjectEntry>
+  >([]);
   const decompositionCanvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const characterSets = useCharacterState((s) => s.characterSets);
@@ -515,6 +616,23 @@ export const CharacterMode: React.FC = () => {
     O.match(
       () => 0,
       (characterSet) => characterSet.sprites.length,
+    ),
+  );
+  const selectedSpriteStageMetadata = pipe(
+    selectedSprite,
+    O.match(
+      () => ({
+        index: "",
+        x: "",
+        y: "",
+        layer: "",
+      }),
+      ({ index, sprite }) => ({
+        index: `${index}`,
+        x: `${sprite.x}`,
+        y: `${sprite.y}`,
+        layer: `${sprite.layer}`,
+      }),
     ),
   );
 
@@ -789,7 +907,6 @@ export const CharacterMode: React.FC = () => {
     createSet({ name: newName });
     setSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
-    setDragState(O.none);
     setLibraryDragState(O.none);
   };
 
@@ -797,7 +914,6 @@ export const CharacterMode: React.FC = () => {
     selectSet(value === "" ? O.none : O.some(value));
     setSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
-    setDragState(O.none);
     setLibraryDragState(O.none);
   };
 
@@ -805,7 +921,6 @@ export const CharacterMode: React.FC = () => {
     deleteSet(setId);
     setSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
-    setDragState(O.none);
     setLibraryDragState(O.none);
   };
 
@@ -1011,6 +1126,323 @@ export const CharacterMode: React.FC = () => {
     );
   };
 
+  useEffect(() => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    if (O.isNone(composeCanvasElementRef.current)) {
+      return;
+    }
+
+    const composeCanvas = new FabricCanvas(composeCanvasElementRef.current.value, {
+      defaultCursor: "default",
+      enablePointerEvents: true,
+      fireRightClick: true,
+      fireMiddleClick: true,
+      hoverCursor: "grab",
+      imageSmoothingEnabled: false,
+      moveCursor: "grabbing",
+      preserveObjectStacking: true,
+      selection: false,
+      stopContextMenu: true,
+    });
+    composeCanvas.upperCanvasEl.setAttribute("aria-label", "合成描画キャンバス");
+    composeCanvas.lowerCanvasEl.style.setProperty("image-rendering", "pixelated");
+    composeCanvas.upperCanvasEl.style.setProperty("image-rendering", "pixelated");
+    Object.assign(composeFabricCanvasRef, {
+      current: O.some(composeCanvas),
+    });
+
+    return () => {
+      Object.assign(composeFabricObjectEntriesRef, {
+        current: [],
+      });
+      Object.assign(composeFabricCanvasRef, {
+        current: O.none,
+      });
+      composeCanvas.dispose();
+    };
+  }, [editorMode]);
+
+  useEffect(() => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    if (O.isNone(composeFabricCanvasRef.current)) {
+      return;
+    }
+
+    const composeCanvas = composeFabricCanvasRef.current.value;
+    const scaledWidth = stageWidth * stageScale;
+    const scaledHeight = stageHeight * stageScale;
+    const orderedEntries = pipe(
+      activeSet,
+      O.match(
+        (): ReadonlyArray<{
+          index: number;
+          sprite: CharacterSprite;
+        }> => [],
+        (characterSet) => getCharacterLayerEntriesBackToFront(characterSet.sprites),
+      ),
+    );
+
+    composeCanvas.clear();
+    composeCanvas.setDimensions({
+      width: scaledWidth,
+      height: scaledHeight,
+    });
+    composeCanvas.lowerCanvasEl.style.setProperty("image-rendering", "pixelated");
+    composeCanvas.upperCanvasEl.style.setProperty("image-rendering", "pixelated");
+
+    const nextObjectEntries = orderedEntries.reduce<
+      ReadonlyArray<FabricSpriteObjectEntry>
+    >((entries, entry) => {
+      const sourceOption = createComposeSpriteSource(
+        entry.sprite.spriteIndex,
+        sprites,
+        spritePalettes,
+      );
+      if (O.isNone(sourceOption)) {
+        return entries;
+      }
+
+      const nextObject = new FabricImage(sourceOption.value, {
+        borderColor: "rgba(15, 118, 110, 0.92)",
+        cornerColor: "rgba(15, 118, 110, 0.92)",
+        cornerSize: 6,
+        cornerStyle: "circle",
+        evented: true,
+        hasControls: false,
+        imageSmoothing: false,
+        left: entry.sprite.x * stageScale,
+        lockRotation: true,
+        objectCaching: false,
+        originX: "left",
+        originY: "top",
+        padding: 0,
+        scaleX: stageScale,
+        scaleY: stageScale,
+        selectable: true,
+        top: entry.sprite.y * stageScale,
+        transparentCorners: false,
+      });
+
+      composeCanvas.add(nextObject);
+
+      return [...entries, { index: entry.index, object: nextObject }];
+    }, []);
+
+    Object.assign(composeFabricObjectEntriesRef, {
+      current: nextObjectEntries,
+    });
+
+    pipe(
+      validSelectedSpriteEditorIndex,
+      O.chain((selectedIndex) =>
+        O.fromNullable(
+          nextObjectEntries.find((entry) => entry.index === selectedIndex),
+        ),
+      ),
+      O.match(
+        () => {
+          composeCanvas.discardActiveObject();
+        },
+        (entry) => {
+          composeCanvas.setActiveObject(entry.object);
+        },
+      ),
+    );
+
+    composeCanvas.requestRenderAll();
+  }, [
+    activeSet,
+    editorMode,
+    stageHeight,
+    stageScale,
+    stageWidth,
+    spritePalettes,
+    sprites,
+    validSelectedSpriteEditorIndex,
+  ]);
+
+  useEffect(() => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    if (O.isNone(composeFabricCanvasRef.current)) {
+      return;
+    }
+
+    const composeCanvas = composeFabricCanvasRef.current.value;
+
+    const handleMouseDown = (event: CanvasEvents["mouse:down"]) => {
+      const focusStage = () => {
+        pipe(
+          stageElementRef.current,
+          O.map((stageElement) => stageElement.focus()),
+        );
+      };
+      const selectIndex = (nextIndex: O.Option<number>) => {
+        if (isSameOptionalNumber(validSelectedSpriteEditorIndex, nextIndex)) {
+          return;
+        }
+
+        setSelectedSpriteEditorIndex(nextIndex);
+      };
+      const openContextMenuAt = (
+        clientX: number,
+        clientY: number,
+        spriteEditorIndex: number,
+      ) => {
+        focusStage();
+        setSpriteContextMenu(
+          O.some({
+            clientX,
+            clientY,
+            spriteEditorIndex,
+          }),
+        );
+      };
+
+      focusStage();
+      setSpriteContextMenu(O.none);
+
+      if (isMouseLikeCanvasEvent(event.e) === false) {
+        return;
+      }
+
+      const pointerEvent = event.e;
+
+      if (pointerEvent.button === 2) {
+        const menuTargetIndex = pipe(
+          findComposeObjectEntry(
+            composeFabricObjectEntriesRef.current,
+            event.target,
+          ),
+          O.map((entry) => entry.index),
+          O.alt(() => validSelectedSpriteEditorIndex),
+        );
+
+        pipe(
+          menuTargetIndex,
+          O.map((spriteEditorIndex) => {
+            selectIndex(O.some(spriteEditorIndex));
+            openContextMenuAt(
+              pointerEvent.clientX,
+              pointerEvent.clientY,
+              spriteEditorIndex,
+            );
+          }),
+        );
+        return;
+      }
+
+      if (pointerEvent.button !== 0) {
+        return;
+      }
+
+      pipe(
+        findComposeObjectEntry(composeFabricObjectEntriesRef.current, event.target),
+        O.match(
+          () => selectIndex(O.none),
+          (entry) => selectIndex(O.some(entry.index)),
+        ),
+      );
+    };
+
+    const handleObjectMoving = (event: CanvasEvents["object:moving"]) => {
+      const currentLeft = event.target.left;
+      const currentTop = event.target.top;
+
+      if (typeof currentLeft !== "number" || typeof currentTop !== "number") {
+        return;
+      }
+
+      const nextLeft = clamp(
+        Math.round(currentLeft / stageScale),
+        0,
+        stageWidth - 1,
+      );
+      const nextTop = clamp(
+        Math.round(currentTop / stageScale),
+        0,
+        stageHeight - 1,
+      );
+
+      event.target.set({
+        left: nextLeft * stageScale,
+        top: nextTop * stageScale,
+      });
+      event.target.setCoords();
+    };
+
+    const handleObjectModified = (event: CanvasEvents["object:modified"]) => {
+      if (O.isNone(activeSet)) {
+        return;
+      }
+
+      const currentLeft = event.target.left;
+      const currentTop = event.target.top;
+
+      if (typeof currentLeft !== "number" || typeof currentTop !== "number") {
+        return;
+      }
+
+      pipe(
+        findComposeObjectEntry(composeFabricObjectEntriesRef.current, event.target),
+        O.chain((entry) =>
+          pipe(
+            O.fromNullable(activeSet.value.sprites[entry.index]),
+            O.map((sprite) => ({ entry, sprite })),
+          ),
+        ),
+        O.map(({ entry, sprite }) => {
+          const nextX = clamp(
+            Math.round(currentLeft / stageScale),
+            0,
+            stageWidth - 1,
+          );
+          const nextY = clamp(
+            Math.round(currentTop / stageScale),
+            0,
+            stageHeight - 1,
+          );
+
+          if (nextX === sprite.x && nextY === sprite.y) {
+            return;
+          }
+
+          setSprite(activeSet.value.id, entry.index, {
+            ...sprite,
+            x: nextX,
+            y: nextY,
+          });
+        }),
+      );
+    };
+
+    composeCanvas.on("mouse:down", handleMouseDown);
+    composeCanvas.on("object:moving", handleObjectMoving);
+    composeCanvas.on("object:modified", handleObjectModified);
+
+    return () => {
+      composeCanvas.off("mouse:down", handleMouseDown);
+      composeCanvas.off("object:moving", handleObjectMoving);
+      composeCanvas.off("object:modified", handleObjectModified);
+    };
+  }, [
+    activeSet,
+    editorMode,
+    setSprite,
+    stageHeight,
+    stageScale,
+    stageWidth,
+    validSelectedSpriteEditorIndex,
+  ]);
+
   const withSpriteIndex = (
     spriteEditorIndex: O.Option<number>,
     onSelect: (entry: {
@@ -1084,7 +1516,6 @@ export const CharacterMode: React.FC = () => {
         currentSpriteCount - 1,
       ),
     );
-    setDragState(O.none);
   };
 
   const handleDeleteSelectedSprite = () => {
@@ -1135,59 +1566,6 @@ export const CharacterMode: React.FC = () => {
     setSpriteContextMenu(O.none);
     updateSpriteAtIndex(spriteEditorIndex, (sprite) =>
       shiftCharacterSpriteLayer(sprite, amount),
-    );
-  };
-
-  const openSpriteContextMenu = (
-    clientX: number,
-    clientY: number,
-    spriteEditorIndex: number,
-  ) => {
-    focusStageElement();
-    setSpriteContextMenu(
-      O.some({
-        clientX,
-        clientY,
-        spriteEditorIndex,
-      }),
-    );
-  };
-
-  const handleStageBackgroundPointerDown = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
-    if (event.currentTarget !== event.target) {
-      return;
-    }
-
-    focusStageElement();
-    setSpriteContextMenu(O.none);
-
-    if (event.button === 0) {
-      setSelectedSpriteEditorIndex(O.none);
-    }
-  };
-
-  const handleStageContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (event.currentTarget !== event.target) {
-      return;
-    }
-
-    pipe(
-      validSelectedSpriteEditorIndex,
-      O.map((spriteEditorIndex) =>
-        openSpriteContextMenu(event.clientX, event.clientY, spriteEditorIndex),
-      ),
     );
   };
 
@@ -1406,115 +1784,6 @@ export const CharacterMode: React.FC = () => {
       ),
     );
     trySetPointerCapture(event.currentTarget, event.pointerId);
-  };
-
-  const handleSpritePointerDown = (
-    event: React.PointerEvent<HTMLDivElement>,
-    spriteEditorIndex: number,
-    sprite: CharacterSprite,
-  ) => {
-    if (event.button !== 0) {
-      return;
-    }
-
-    const stageRectOption = getStageRect();
-    if (O.isNone(stageRectOption)) {
-      return;
-    }
-
-    const stageRect = stageRectOption.value;
-    event.preventDefault();
-    focusStageElement();
-    setSpriteContextMenu(O.none);
-    setSelectedSpriteEditorIndex(O.some(spriteEditorIndex));
-    setDragState(
-      O.some({
-        spriteEditorIndex,
-        pointerId: event.pointerId,
-        offsetX: event.clientX - (stageRect.left + sprite.x * stageScale),
-        offsetY: event.clientY - (stageRect.top + sprite.y * stageScale),
-      }),
-    );
-  };
-
-  const handleSpriteContextMenu = (
-    event: React.MouseEvent<HTMLDivElement>,
-    spriteEditorIndex: number,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSelectedSpriteEditorIndex(O.some(spriteEditorIndex));
-    openSpriteContextMenu(event.clientX, event.clientY, spriteEditorIndex);
-  };
-
-  const handleStagePointerMove = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
-    if (O.isNone(dragState) || O.isNone(activeSet)) {
-      return;
-    }
-
-    const currentDrag = dragState.value;
-    if (currentDrag.pointerId !== event.pointerId) {
-      return;
-    }
-
-    const stageRectOption = getStageRect();
-    if (O.isNone(stageRectOption)) {
-      return;
-    }
-
-    const spriteOption = O.fromNullable(
-      activeSet.value.sprites[currentDrag.spriteEditorIndex],
-    );
-    if (O.isNone(spriteOption)) {
-      return;
-    }
-
-    const nextPoint = resolveCharacterStagePoint({
-      clientX: event.clientX,
-      clientY: event.clientY,
-      stageLeft: stageRectOption.value.left,
-      stageTop: stageRectOption.value.top,
-      stageScale,
-      offsetX: currentDrag.offsetX,
-      offsetY: currentDrag.offsetY,
-      minX: 0,
-      maxX: stageWidth - 1,
-      minY: 0,
-      maxY: stageHeight - 1,
-    });
-    const currentSprite = spriteOption.value;
-
-    if (nextPoint.x === currentSprite.x && nextPoint.y === currentSprite.y) {
-      return;
-    }
-
-    setSprite(activeSet.value.id, currentDrag.spriteEditorIndex, {
-      ...currentSprite,
-      x: nextPoint.x,
-      y: nextPoint.y,
-    });
-  };
-
-  const handleStagePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
-    if (O.isNone(dragState)) {
-      return;
-    }
-
-    if (dragState.value.pointerId !== event.pointerId) {
-      return;
-    }
-
-    setDragState(O.none);
   };
 
   const activeSetId = pipe(
@@ -2426,13 +2695,13 @@ export const CharacterMode: React.FC = () => {
                     stageElementRef.current = O.fromNullable(element);
                   }}
                   aria-label="キャラクターステージ"
+                  data-active-set-name={activeSetName}
+                  data-stage-sprite-count={activeSetSpriteCount}
+                  data-selected-sprite-index={selectedSpriteStageMetadata.index}
+                  data-selected-sprite-layer={selectedSpriteStageMetadata.layer}
+                  data-selected-sprite-x={selectedSpriteStageMetadata.x}
+                  data-selected-sprite-y={selectedSpriteStageMetadata.y}
                   tabIndex={editorMode === "compose" ? 0 : -1}
-                  onPointerDown={handleStageBackgroundPointerDown}
-                  onPointerMove={handleStagePointerMove}
-                  onPointerUp={handleStagePointerEnd}
-                  onPointerCancel={handleStagePointerEnd}
-                  onPointerLeave={handleStagePointerEnd}
-                  onContextMenu={handleStageContextMenu}
                   onKeyDown={handleStageKeyDown}
                   css={{
                     position: "relative",
@@ -2484,59 +2753,20 @@ export const CharacterMode: React.FC = () => {
                 >
                   {editorMode === "compose" ? (
                     <>
-                      {pipe(
-                        activeSet,
-                        O.match(
-                          () => [],
-                          (characterSet) => characterSet.sprites,
-                        ),
-                      ).map((sprite, spriteEditorIndex) => {
-                        const isSelected = pipe(
-                          validSelectedSpriteEditorIndex,
-                          O.match(
-                            () => false,
-                            (value) => value === spriteEditorIndex,
-                          ),
-                        );
-
-                        return (
-                          <div
-                            key={`stage-sprite-${spriteEditorIndex}`}
-                            role="button"
-                            tabIndex={-1}
-                            aria-pressed={isSelected}
-                            aria-label={`配置スプライト ${spriteEditorIndex}`}
-                            onPointerDown={(event) =>
-                              handleSpritePointerDown(
-                                event,
-                                spriteEditorIndex,
-                                sprite,
-                              )
-                            }
-                            onContextMenu={(event) =>
-                              handleSpriteContextMenu(event, spriteEditorIndex)
-                            }
-                            css={{
-                              position: "absolute",
-                              left: sprite.x * stageScale,
-                              top: sprite.y * stageScale,
-                              zIndex: sprite.layer + 1,
-                              cursor: "grab",
-                              outline: isSelected
-                                ? "2px solid rgba(15, 118, 110, 0.9)"
-                                : "1px solid rgba(148, 163, 184, 0.32)",
-                              borderRadius: 8,
-                              boxShadow: isSelected
-                                ? "0 0 0 6px rgba(15, 118, 110, 0.14)"
-                                : "0 8px 14px rgba(15, 23, 42, 0.12)",
-                              background: "rgba(255, 255, 255, 0.84)",
-                              padding: 2,
-                            }}
-                          >
-                            {renderSpritePixels(sprite.spriteIndex, stageScale)}
-                          </div>
-                        );
-                      })}
+                      <canvas
+                        ref={(element: HTMLCanvasElement | null) => {
+                          composeCanvasElementRef.current = O.fromNullable(element);
+                        }}
+                        aria-hidden="true"
+                        width={stageWidth * stageScale}
+                        height={stageHeight * stageScale}
+                        css={{
+                          position: "absolute",
+                          inset: 0,
+                          width: "100%",
+                          height: "100%",
+                        }}
+                      />
 
                       {pipe(
                         libraryDragState,
