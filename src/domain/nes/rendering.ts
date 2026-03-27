@@ -25,22 +25,14 @@ const getPaletteHex = (palette: number[], colorIndex: number): string =>
     O.getOrElse(() => getHexAt(0)),
   );
 
-const replaceAt = <T>(items: ReadonlyArray<T>, index: number, value: T): T[] =>
-  items.map((item, itemIndex) => (itemIndex === index ? value : item));
+interface BackgroundPixel {
+  hex: string;
+  opaque: boolean;
+}
 
-const replaceGridAt = <T>(
-  grid: ReadonlyArray<ReadonlyArray<T>>,
-  y: number,
-  x: number,
-  value: T,
-): T[][] => {
-  const rowOption = O.fromNullable(grid[y]);
-  if (O.isNone(rowOption)) {
-    return grid.map((row) => row.slice());
-  }
-
-  const nextRow = replaceAt(rowOption.value, x, value);
-  return replaceAt(grid, y, nextRow).map((row) => row.slice());
+const DEFAULT_BACKGROUND_PIXEL: BackgroundPixel = {
+  hex: getHexAt(0),
+  opaque: false,
 };
 
 export function renderSpriteTileToHexArray(
@@ -62,87 +54,10 @@ export function renderScreenToHexArray(
   screen: Screen,
   nesState: NesProjectState,
 ): string[][] {
-  const backgroundLayer = renderBackgroundLayerFromNesTables(screen, nesState);
-  const initialSpriteLayer = Array.from({ length: screen.height }, () =>
-    Array.from(
-      { length: screen.width },
-      (): O.Option<{ hex: string; priority: SpritePriority }> => O.none,
-    ),
-  );
-
-  const spriteLayer = screen.sprites.reduce((layerAfterSprite, sprite) => {
-    const palette = nesState.spritePalettes[sprite.paletteIndex];
-    const spritePriority: SpritePriority =
-      sprite.priority === "behindBg" ? "behindBg" : "front";
-    const isFlipH = sprite.flipH === true;
-    const isFlipV = sprite.flipV === true;
-
-    return Array.from({ length: sprite.height }, (_, pixelY) => pixelY).reduce(
-      (layerAfterY, pixelY) => {
-        const sourcePixelY = isFlipV ? sprite.height - 1 - pixelY : pixelY;
-        const rowOption = O.fromNullable(sprite.pixels[sourcePixelY]);
-        if (O.isNone(rowOption)) {
-          return layerAfterY;
-        }
-        const row = rowOption.value;
-
-        return Array.from(
-          { length: sprite.width },
-          (_, pixelX) => pixelX,
-        ).reduce((layerAfterX, pixelX) => {
-          const sourcePixelX = isFlipH ? sprite.width - 1 - pixelX : pixelX;
-          const colorIndex = row[sourcePixelX];
-          const colorIndexOption = O.fromNullable(colorIndex);
-          if (O.isNone(colorIndexOption) || colorIndexOption.value === 0) {
-            return layerAfterX;
-          }
-
-          const x = (sprite.x | 0) + pixelX;
-          const y = (sprite.y | 0) + pixelY;
-
-          if (y < 0 || y >= screen.height || x < 0 || x >= screen.width) {
-            return layerAfterX;
-          }
-
-          const spriteRowOption = O.fromNullable(layerAfterX[y]);
-          if (O.isNone(spriteRowOption)) {
-            return layerAfterX;
-          }
-          const targetPixel = pipe(
-            O.fromNullable(spriteRowOption.value[x]),
-            O.flatten,
-          );
-          if (O.isSome(targetPixel)) {
-            return layerAfterX;
-          }
-
-          return replaceGridAt(
-            layerAfterX,
-            y,
-            x,
-            O.some({
-              hex: getPaletteHex(palette, colorIndexOption.value),
-              priority: spritePriority,
-            }),
-          );
-        }, layerAfterY);
-      },
-      layerAfterSprite,
-    );
-  }, initialSpriteLayer);
-
   return Array.from({ length: screen.height }, (_, y) =>
     Array.from({ length: screen.width }, (_, x) => {
-      const backgroundPixel = pipe(
-        O.fromNullable(backgroundLayer[y]),
-        O.chain((row) => O.fromNullable(row[x])),
-        O.getOrElse(() => ({ hex: getHexAt(0), opaque: false })),
-      );
-      const spritePixelOption = pipe(
-        O.fromNullable(spriteLayer[y]),
-        O.chain((row) => O.fromNullable(row[x])),
-        O.flatten,
-      );
+      const backgroundPixel = resolveBackgroundPixelAt(nesState, x, y);
+      const spritePixelOption = resolveSpritePixelAt(screen, nesState, x, y);
 
       if (O.isNone(spritePixelOption)) {
         return backgroundPixel.hex;
@@ -179,81 +94,96 @@ const getBackgroundColorIndexFromChr = (
   return (bit1 << 1) | bit0;
 };
 
-const renderBackgroundLayerFromNesTables = (
-  screen: Screen,
+const resolveBackgroundPixelAt = (
   nesState: NesProjectState,
-): Array<Array<{ hex: string; opaque: boolean }>> => {
-  const initialBackgroundLayer = Array.from({ length: screen.height }, () =>
-    Array.from({ length: screen.width }, () => ({
-      hex: getHexAt(0),
-      opaque: false,
-    })),
+  x: number,
+  y: number,
+): BackgroundPixel => {
+  const tileX = Math.floor(x / 8);
+  const tileY = Math.floor(y / 8);
+  const nameTableIndex = getNameTableLinearIndex(tileX, tileY);
+
+  if (E.isLeft(nameTableIndex)) {
+    return DEFAULT_BACKGROUND_PIXEL;
+  }
+
+  const tileIndex = nesState.nameTable.tileIndices[nameTableIndex.right] ?? 0;
+  const paletteIndexEither = resolveBackgroundPaletteIndex(
+    nesState.attributeTable,
+    tileX,
+    tileY,
   );
+  const paletteIndex = E.isRight(paletteIndexEither)
+    ? paletteIndexEither.right
+    : 0;
+  const palette = nesState.backgroundPalettes[paletteIndex];
+  const colorIndex = getBackgroundColorIndexFromChr(
+    nesState.chrBytes,
+    tileIndex,
+    x % 8,
+    y % 8,
+  );
+  const nesColorIndex =
+    colorIndex === 0
+      ? nesState.universalBackgroundColor
+      : palette[colorIndex] ?? nesState.universalBackgroundColor;
 
-  return Array.from({ length: 30 }, (_, tileY) => tileY).reduce(
-    (layerAfterTileY, tileY) =>
-      Array.from({ length: 32 }, (_, tileX) => tileX).reduce(
-        (layerAfterTileX, tileX) => {
-          const nameTableIndex = getNameTableLinearIndex(tileX, tileY);
-          if (E.isLeft(nameTableIndex)) {
-            return layerAfterTileX;
-          }
+  return {
+    hex: getHexAt(nesColorIndex),
+    opaque: colorIndex !== 0,
+  };
+};
 
-          const tileIndex =
-            nesState.nameTable.tileIndices[nameTableIndex.right] ?? 0;
-          const paletteIndexEither = resolveBackgroundPaletteIndex(
-            nesState.attributeTable,
-            tileX,
-            tileY,
-          );
-          const paletteIndex = E.isRight(paletteIndexEither)
-            ? paletteIndexEither.right
-            : 0;
-          const palette = nesState.backgroundPalettes[paletteIndex];
-          const baseY = tileY * 8;
-          const baseX = tileX * 8;
+const resolveSpriteColorIndexAt = (
+  sprite: Screen["sprites"][number],
+  x: number,
+  y: number,
+): O.Option<number> => {
+  const localX = x - (sprite.x | 0);
+  const localY = y - (sprite.y | 0);
+  const isInBounds =
+    localX >= 0 &&
+    localX < sprite.width &&
+    localY >= 0 &&
+    localY < sprite.height;
 
-          return Array.from({ length: 8 }, (_, pixelY) => pixelY).reduce(
-            (layerAfterPixelY, pixelY) =>
-              Array.from({ length: 8 }, (_, pixelX) => pixelX).reduce(
-                (layerAfterPixelX, pixelX) => {
-                  const colorIndex = getBackgroundColorIndexFromChr(
-                    nesState.chrBytes,
-                    tileIndex,
-                    pixelX,
-                    pixelY,
-                  );
-                  const paletteColorOption = O.fromNullable(
-                    palette[colorIndex],
-                  );
-                  const nesColorIndex =
-                    colorIndex === 0
-                      ? nesState.universalBackgroundColor
-                      : pipe(
-                          paletteColorOption,
-                          O.getOrElse(() => nesState.universalBackgroundColor),
-                        );
-                  const y = baseY + pixelY;
-                  const x = baseX + pixelX;
-                  const isInBounds =
-                    y >= 0 && y < screen.height && x >= 0 && x < screen.width;
+  if (isInBounds === false) {
+    return O.none;
+  }
 
-                  if (isInBounds === false) {
-                    return layerAfterPixelX;
-                  }
+  const sourcePixelX = sprite.flipH === true ? sprite.width - 1 - localX : localX;
+  const sourcePixelY =
+    sprite.flipV === true ? sprite.height - 1 - localY : localY;
 
-                  return replaceGridAt(layerAfterPixelX, y, x, {
-                    hex: getHexAt(nesColorIndex),
-                    opaque: colorIndex !== 0,
-                  });
-                },
-                layerAfterPixelY,
-              ),
-            layerAfterTileX,
-          );
-        },
-        layerAfterTileY,
-      ),
-    initialBackgroundLayer,
+  return pipe(
+    O.fromNullable(sprite.pixels[sourcePixelY]),
+    O.chain((row) => O.fromNullable(row[sourcePixelX])),
+    O.filter((colorIndex) => colorIndex !== 0),
   );
 };
+
+const resolveSpritePixelAt = (
+  screen: Screen,
+  nesState: NesProjectState,
+  x: number,
+  y: number,
+): O.Option<{ hex: string; priority: SpritePriority }> =>
+  pipe(
+    O.fromNullable(
+      screen.sprites.find((sprite) =>
+        pipe(resolveSpriteColorIndexAt(sprite, x, y), O.isSome),
+      ),
+    ),
+    O.chain((sprite) =>
+      pipe(
+        resolveSpriteColorIndexAt(sprite, x, y),
+        O.map((colorIndex) => ({
+          hex: getPaletteHex(
+            nesState.spritePalettes[sprite.paletteIndex],
+            colorIndex,
+          ),
+          priority: sprite.priority === "behindBg" ? "behindBg" : "front",
+        })),
+      ),
+    ),
+  );
