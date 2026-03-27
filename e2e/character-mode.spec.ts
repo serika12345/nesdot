@@ -352,9 +352,31 @@ test("character mode supports drag and drop placement and stage movement", async
     x: Number(nudgedStageState.selectedSpriteX),
     y: Number(nudgedStageState.selectedSpriteY),
   };
-
+  const contextMenuPoint = await getLocatorPoint(
+    composeCanvas,
+    (nudgedSprite.x + 4) * 3,
+    (nudgedSprite.y + 4) * 3,
+  );
   await openComposeCanvasSpriteContextMenu(composeCanvas, nudgedSprite, 3);
   await expect(page.getByRole("menu", { name: "スプライトメニュー" })).toBeVisible();
+  const preventsNativeContextMenu = await page.evaluate((point) => {
+    const target = document.elementFromPoint(point.clientX, point.clientY);
+    if (target instanceof Element === false) {
+      return false;
+    }
+
+    const contextMenuEvent = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: point.clientX,
+      clientY: point.clientY,
+    });
+
+    return target.dispatchEvent(contextMenuEvent) === false;
+  }, contextMenuPoint);
+  expect(preventsNativeContextMenu).toBe(true);
   await expect(page.getByRole("button", { name: "右へ移動" })).toHaveCount(0);
 
   const layeredStageState = await getStageDebugState(stage);
@@ -364,15 +386,7 @@ test("character mode supports drag and drop placement and stage movement", async
   };
   const currentLayer = Number(layeredStageState.selectedSpriteLayer);
   await openComposeCanvasSpriteContextMenu(composeCanvas, layeredSprite, 3);
-  await page
-    .getByRole("button", { name: "レイヤーを上げる" })
-    .dispatchEvent("pointerdown", {
-      pointerId: 12,
-      pointerType: "mouse",
-      isPrimary: true,
-      button: 0,
-      buttons: 1,
-    });
+  await page.getByRole("button", { name: "レイヤーを上げる" }).click();
 
   await expect
     .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
@@ -382,7 +396,13 @@ test("character mode supports drag and drop placement and stage movement", async
   await expect
     .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
     .toBe("1");
-  await page.keyboard.press("Backspace");
+  const deleteStageState = await getStageDebugState(stage);
+  const spriteToDelete = {
+    x: Number(deleteStageState.selectedSpriteX),
+    y: Number(deleteStageState.selectedSpriteY),
+  };
+  await openComposeCanvasSpriteContextMenu(composeCanvas, spriteToDelete, 3);
+  await page.getByRole("button", { name: "削除", exact: true }).click();
   await expect
     .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
     .toBe("1");

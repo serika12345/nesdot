@@ -1119,6 +1119,30 @@ export const CharacterMode: React.FC = () => {
     setViewportPanState(O.none);
   };
 
+  const handleWorkspacePointerDownCapture = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ) => {
+    if (
+      typeof Element !== "undefined" &&
+      event.target instanceof Element &&
+      event.target.closest("[data-sprite-context-menu-root='true']") instanceof Element
+    ) {
+      return;
+    }
+
+    setSpriteContextMenu(O.none);
+  };
+
+  const handleComposeContextMenu = (
+    event: React.MouseEvent<HTMLElement>,
+  ) => {
+    if (editorMode !== "compose") {
+      return;
+    }
+
+    event.preventDefault();
+  };
+
   const focusStageElement = () => {
     pipe(
       stageElementRef.current,
@@ -1534,24 +1558,19 @@ export const CharacterMode: React.FC = () => {
     );
   };
 
-  const handleDeleteContextMenuSprite = () => {
-    const spriteEditorIndex = pipe(
-      spriteContextMenu,
-      O.map((menuState) => menuState.spriteEditorIndex),
-    );
+  const handleDeleteContextMenuSprite = (spriteEditorIndex: number) => {
     setSpriteContextMenu(O.none);
-    withSpriteIndex(spriteEditorIndex, (entry) =>
+    withSpriteIndex(O.some(spriteEditorIndex), (entry) =>
       handleRemoveCharacterSprite(entry.setId, entry.index, entry.spriteCount),
     );
   };
 
-  const handleShiftContextMenuSpriteLayer = (amount: number) => {
-    const spriteEditorIndex = pipe(
-      spriteContextMenu,
-      O.map((menuState) => menuState.spriteEditorIndex),
-    );
+  const handleShiftContextMenuSpriteLayer = (
+    spriteEditorIndex: number,
+    amount: number,
+  ) => {
     setSpriteContextMenu(O.none);
-    updateSpriteAtIndex(spriteEditorIndex, (sprite) =>
+    updateSpriteAtIndex(O.some(spriteEditorIndex), (sprite) =>
       shiftCharacterSpriteLayer(sprite, amount),
     );
   };
@@ -1957,21 +1976,26 @@ export const CharacterMode: React.FC = () => {
             }> = [
               {
                 label: "レイヤーを上げる",
-                onSelect: () => handleShiftContextMenuSpriteLayer(1),
+                onSelect: () =>
+                  handleShiftContextMenuSpriteLayer(menuState.spriteEditorIndex, 1),
               },
               {
                 label: "レイヤーを下げる",
-                onSelect: () => handleShiftContextMenuSpriteLayer(-1),
+                onSelect: () =>
+                  handleShiftContextMenuSpriteLayer(menuState.spriteEditorIndex, -1),
               },
               {
                 label: "削除",
-                onSelect: handleDeleteContextMenuSprite,
+                onSelect: () =>
+                  handleDeleteContextMenuSprite(menuState.spriteEditorIndex),
                 tone: "danger",
               },
             ];
 
             return createPortal(
               <div
+                data-sprite-context-menu-root="true"
+                onContextMenu={handleComposeContextMenu}
                 onPointerDown={() => setSpriteContextMenu(O.none)}
                 css={{
                   position: "fixed",
@@ -2002,7 +2026,7 @@ export const CharacterMode: React.FC = () => {
                     <button
                       key={action.label}
                       type="button"
-                      onPointerDown={(event) => {
+                      onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
                         action.onSelect();
@@ -2099,7 +2123,7 @@ export const CharacterMode: React.FC = () => {
       </PanelHeader>
 
       <div
-        onPointerDownCapture={() => setSpriteContextMenu(O.none)}
+        onPointerDownCapture={handleWorkspacePointerDownCapture}
         onPointerMoveCapture={handleWorkspacePointerMove}
         onPointerUpCapture={handleWorkspacePointerEnd}
         onPointerCancelCapture={handleWorkspacePointerEnd}
@@ -2673,6 +2697,7 @@ export const CharacterMode: React.FC = () => {
                   data-selected-sprite-x={selectedSpriteStageMetadata.x}
                   data-selected-sprite-y={selectedSpriteStageMetadata.y}
                   tabIndex={editorMode === "compose" ? 0 : -1}
+                  onContextMenu={handleComposeContextMenu}
                   onKeyDown={handleStageKeyDown}
                   css={{
                     position: "relative",
