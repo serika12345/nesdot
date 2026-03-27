@@ -26,6 +26,11 @@ const getStageDebugState = async (locator: Locator) =>
     stageSpriteCount: element.getAttribute("data-stage-sprite-count") ?? "",
   }));
 
+const getStageGridState = async (locator: Locator) =>
+  locator.evaluate((element) => ({
+    backgroundSize: window.getComputedStyle(element, "::before").backgroundSize,
+  }));
+
 const clickComposeCanvasAtPosition = async (
   locator: Locator,
   stageX: number,
@@ -176,9 +181,12 @@ test("character mode supports drag and drop placement and stage movement", async
     width: element.offsetWidth,
     height: element.offsetHeight,
   }));
+  const defaultGrid = await getStageGridState(stage);
 
   expect(defaultStage.width).toBe(512);
   expect(defaultStage.height).toBe(512);
+  expect(defaultGrid.backgroundSize).toContain("32px 32px");
+  expect(defaultGrid.backgroundSize).toContain("256px 256px");
 
   await page.getByLabel("プレビューキャンバス幅").fill("320");
   await page.getByLabel("プレビューキャンバス高さ").fill("256");

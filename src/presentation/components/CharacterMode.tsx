@@ -2747,11 +2747,18 @@ export const CharacterMode: React.FC = () => {
                       position: "absolute",
                       inset: 0,
                       backgroundImage: [
+                        "linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px)",
+                        "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px)",
                         "linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
                         "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
                       ].join(", "),
-                      backgroundSize: `${stageScale * 8}px ${stageScale * 8}px`,
-                      opacity: 0.8,
+                      backgroundSize: [
+                        `${stageScale}px ${stageScale}px`,
+                        `${stageScale}px ${stageScale}px`,
+                        `${stageScale * 8}px ${stageScale * 8}px`,
+                        `${stageScale * 8}px ${stageScale * 8}px`,
+                      ].join(", "),
+                      opacity: 0.95,
                       pointerEvents: "none",
                     },
                     "&::after": {
