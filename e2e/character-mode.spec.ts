@@ -92,12 +92,20 @@ const clickCanvasPixel = async (
 ) => {
   const rect = await locator.evaluate((element) => {
     const bounds = element.getBoundingClientRect();
-    return { width: bounds.width, height: bounds.height };
+    const stageWidth = Number(element.getAttribute("data-stage-width") ?? "0");
+    const stageHeight = Number(element.getAttribute("data-stage-height") ?? "0");
+
+    return {
+      width: bounds.width,
+      height: bounds.height,
+      stageWidth: stageWidth > 0 ? stageWidth : 1,
+      stageHeight: stageHeight > 0 ? stageHeight : 1,
+    };
   });
   const point = await getLocatorPoint(
     locator,
-    (pixelX + 0.5) * (rect.width / 256),
-    (pixelY + 0.5) * (rect.height / 240),
+    (pixelX + 0.25) * (rect.width / rect.stageWidth),
+    (pixelY + 0.25) * (rect.height / rect.stageHeight),
   );
 
   await locator.dispatchEvent("pointerdown", {
@@ -160,6 +168,17 @@ test("character mode supports drag and drop placement and stage movement", async
   const librarySprite = page.getByRole("button", {
     name: "ライブラリスプライト 0",
   });
+
+  await expect(page.getByLabel("プレビューキャンバス幅")).toHaveValue("16");
+  await expect(page.getByLabel("プレビューキャンバス高さ")).toHaveValue("16");
+
+  const defaultStage = await stage.evaluate((element) => ({
+    width: element.offsetWidth,
+    height: element.offsetHeight,
+  }));
+
+  expect(defaultStage.width).toBe(512);
+  expect(defaultStage.height).toBe(512);
 
   await page.getByLabel("プレビューキャンバス幅").fill("320");
   await page.getByLabel("プレビューキャンバス高さ").fill("256");

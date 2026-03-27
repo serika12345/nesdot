@@ -1,6 +1,7 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import {
+  resolveCharacterStageScale,
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntries,
   getCharacterLayerEntriesBackToFront,
@@ -95,6 +96,13 @@ describe("characterEditorModel", () => {
         maxY: 239,
       }),
     ).toEqual({ x: 0, y: 239 });
+  });
+
+  it("bases preview scale on the 16x16 character canvas standard", () => {
+    expect(resolveCharacterStageScale(16, 16, 2)).toBe(32);
+    expect(resolveCharacterStageScale(32, 16, 2)).toBe(16);
+    expect(resolveCharacterStageScale(320, 256, 2)).toBe(2);
+    expect(resolveCharacterStageScale(320, 256, 3)).toBe(3);
   });
 
   it("nudges a sprite by one pixel and clamps within stage bounds", () => {

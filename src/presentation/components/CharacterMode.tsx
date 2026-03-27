@@ -60,6 +60,7 @@ import {
   getCharacterLayerEntriesBackToFront,
   getNextCharacterSpriteLayer,
   nudgeCharacterSprite,
+  resolveCharacterStageScale,
   resolveCharacterStagePoint,
   resolveSelectionAfterSpriteRemoval,
   shiftCharacterSpriteLayer,
@@ -67,15 +68,15 @@ import {
 import { ProjectActions } from "./ProjectActions";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
-const STAGE_WIDTH = 256;
-const STAGE_HEIGHT = 240;
-const STAGE_MIN_WIDTH = 64;
+const STAGE_WIDTH = 16;
+const STAGE_HEIGHT = 16;
+const STAGE_MIN_WIDTH = 16;
 const STAGE_MAX_WIDTH = 1024;
-const STAGE_MIN_HEIGHT = 64;
+const STAGE_MIN_HEIGHT = 16;
 const STAGE_MAX_HEIGHT = 960;
-const STAGE_MIN_SCALE = 1;
-const STAGE_MAX_SCALE = 6;
-const STAGE_DEFAULT_SCALE = 2;
+const STAGE_MIN_ZOOM_LEVEL = 1;
+const STAGE_MAX_ZOOM_LEVEL = 6;
+const STAGE_DEFAULT_ZOOM_LEVEL = 2;
 const STAGE_CONTEXT_MENU_WIDTH = 180;
 const STAGE_CONTEXT_MENU_HEIGHT = 280;
 const LIBRARY_PREVIEW_SCALE = 3;
@@ -428,7 +429,9 @@ export const CharacterMode: React.FC = () => {
   const [editorMode, setEditorMode] = useState<CharacterEditorMode>("compose");
   const [stageWidth, setStageWidth] = useState(STAGE_WIDTH);
   const [stageHeight, setStageHeight] = useState(STAGE_HEIGHT);
-  const [stageScale, setStageScale] = useState(STAGE_DEFAULT_SCALE);
+  const [stageZoomLevel, setStageZoomLevel] = useState(
+    STAGE_DEFAULT_ZOOM_LEVEL,
+  );
   const [libraryDragState, setLibraryDragState] = useState<
     O.Option<LibraryDragState>
   >(O.none);
@@ -496,6 +499,11 @@ export const CharacterMode: React.FC = () => {
         ),
       ),
     [characterSets, selectedCharacterId],
+  );
+
+  const stageScale = useMemo(
+    () => resolveCharacterStageScale(stageWidth, stageHeight, stageZoomLevel),
+    [stageHeight, stageWidth, stageZoomLevel],
   );
 
   const validSelectedSpriteEditorIndex = useMemo(
@@ -732,19 +740,23 @@ export const CharacterMode: React.FC = () => {
       ),
     );
 
-  const updateStageScale = (
-    nextScale: number,
+  const updateStageZoomLevel = (
+    nextZoomLevel: number,
     anchor: O.Option<{ clientX: number; clientY: number }> = O.none,
   ) => {
-    setStageScale((current) => {
-      const clampedScale = clamp(nextScale, STAGE_MIN_SCALE, STAGE_MAX_SCALE);
+    setStageZoomLevel((current) => {
+      const clampedZoomLevel = clamp(
+        nextZoomLevel,
+        STAGE_MIN_ZOOM_LEVEL,
+        STAGE_MAX_ZOOM_LEVEL,
+      );
 
-      if (clampedScale === current) {
+      if (clampedZoomLevel === current) {
         return current;
       }
 
       if (O.isNone(anchor)) {
-        return clampedScale;
+        return clampedZoomLevel;
       }
 
       pipe(
@@ -756,17 +768,27 @@ export const CharacterMode: React.FC = () => {
           const relativeY = anchor.value.clientY - rect.top;
           const currentStageX = viewport.scrollLeft + relativeX;
           const currentStageY = viewport.scrollTop + relativeY;
+          const currentScale = resolveCharacterStageScale(
+            stageWidth,
+            stageHeight,
+            current,
+          );
+          const nextScale = resolveCharacterStageScale(
+            stageWidth,
+            stageHeight,
+            clampedZoomLevel,
+          );
 
           window.requestAnimationFrame(() => {
             viewport.scrollTo({
-              left: (currentStageX / current) * clampedScale - relativeX,
-              top: (currentStageY / current) * clampedScale - relativeY,
+              left: (currentStageX / currentScale) * nextScale - relativeX,
+              top: (currentStageY / currentScale) * nextScale - relativeY,
             });
           });
         }),
       );
 
-      return clampedScale;
+      return clampedZoomLevel;
     });
   };
 
@@ -963,11 +985,11 @@ export const CharacterMode: React.FC = () => {
   };
 
   const handleZoomOut = () => {
-    updateStageScale(stageScale - 1, O.none);
+    updateStageZoomLevel(stageZoomLevel - 1, O.none);
   };
 
   const handleZoomIn = () => {
-    updateStageScale(stageScale + 1, O.none);
+    updateStageZoomLevel(stageZoomLevel + 1, O.none);
   };
 
   const clampSpritesToStage = (
@@ -1059,8 +1081,8 @@ export const CharacterMode: React.FC = () => {
     }
 
     event.preventDefault();
-    updateStageScale(
-      event.deltaY < 0 ? stageScale + 1 : stageScale - 1,
+    updateStageZoomLevel(
+      event.deltaY < 0 ? stageZoomLevel + 1 : stageZoomLevel - 1,
       O.some({ clientX: event.clientX, clientY: event.clientY }),
     );
   };
@@ -2493,7 +2515,7 @@ export const CharacterMode: React.FC = () => {
                     handleStageHeightChange(event.target.value)
                   }
                 />
-                <Badge tone="neutral">{`${stageScale}x`}</Badge>
+                <Badge tone="neutral">{`${stageZoomLevel}x`}</Badge>
                 <ToolButton type="button" onClick={handleZoomOut}>
                   -
                 </ToolButton>
@@ -2754,6 +2776,8 @@ export const CharacterMode: React.FC = () => {
                           composeCanvasElementRef.current = O.fromNullable(element);
                         }}
                         aria-hidden="true"
+                        data-stage-width={stageWidth}
+                        data-stage-height={stageHeight}
                         width={stageWidth * stageScale}
                         height={stageHeight * stageScale}
                         css={{
@@ -2803,6 +2827,8 @@ export const CharacterMode: React.FC = () => {
                           decompositionCanvasRef.current = O.fromNullable(element);
                         }}
                         aria-label="分解描画キャンバス"
+                        data-stage-width={stageWidth}
+                        data-stage-height={stageHeight}
                         width={stageWidth * stageScale}
                         height={stageHeight * stageScale}
                         onPointerDown={handleDecompositionCanvasPointerDown}

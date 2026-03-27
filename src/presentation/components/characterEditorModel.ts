@@ -27,6 +27,10 @@ interface OrderedCharacterLayerEntry extends CharacterLayerEntry {
   layer: number;
 }
 
+const CHARACTER_PREVIEW_STANDARD_SIZE = 16;
+const CHARACTER_PREVIEW_STANDARD_AREA =
+  CHARACTER_PREVIEW_STANDARD_SIZE * CHARACTER_PREVIEW_STANDARD_SIZE;
+
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
 
@@ -152,6 +156,22 @@ export const resolveCharacterStagePoint = (
     input.maxY,
   ),
 });
+
+export const resolveCharacterStageScale = (
+  stageWidth: number,
+  stageHeight: number,
+  zoomLevel: number,
+): number => {
+  const maxDimension = Math.max(1, stageWidth, stageHeight);
+  const normalizedZoomLevel = Math.max(1, Math.floor(zoomLevel));
+  const baseScale = clamp(
+    Math.floor(CHARACTER_PREVIEW_STANDARD_AREA / maxDimension),
+    1,
+    CHARACTER_PREVIEW_STANDARD_AREA,
+  );
+
+  return baseScale * normalizedZoomLevel;
+};
 
 export const nudgeCharacterSprite = (
   sprite: CharacterSprite,
