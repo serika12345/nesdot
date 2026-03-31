@@ -4,16 +4,14 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-const host = process.env.TAURI_DEV_HOST;
-const githubRepository = process.env.GITHUB_REPOSITORY;
-const repositoryName =
-  typeof githubRepository === "string" ? githubRepository.split("/")[1] : "";
-const base =
-  process.env.GITHUB_ACTIONS === "true" && repositoryName.length > 0
-    ? `/${repositoryName}/`
-    : "/";
+import { getViteBase } from "./src/shared/viteBase";
 
-export default defineConfig(() => ({
+const host = process.env.TAURI_DEV_HOST;
+
+export default defineConfig(({ command }) => {
+  const base = getViteBase(command, process.env);
+
+  return {
   plugins: [
     react({ jsxImportSource: "@emotion/react" }),
     VitePWA({
@@ -91,4 +89,5 @@ export default defineConfig(() => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-}));
+  };
+});
