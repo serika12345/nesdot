@@ -69,6 +69,18 @@ pnpm install
 nix develop -c zsh -lc 'pnpm install'
 ```
 
+このリポジトリでは pnpm のサプライチェーン対策を有効にしています。
+
+- 依存パッケージが未審査の install / postinstall script を持っていると `pnpm install` は失敗します
+- 公開から 24 時間未満の新規バージョンは解決対象から外れます
+- 推移依存が git URL / 直 tarball URL からコードを引くことを禁止しています
+
+正当な理由で依存の build script を許可する必要がある場合は、内容を確認したうえで次を実行し、生成された `pnpm-workspace.yaml` の差分をレビューしてコミットしてください。
+
+```sh
+nix develop -c zsh -lc 'pnpm approve-builds'
+```
+
 ## 開発コマンド
 
 ### フロントエンドのみ起動
