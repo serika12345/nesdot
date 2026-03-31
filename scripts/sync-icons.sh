@@ -40,40 +40,44 @@ cp "$WEB_TMP_DIR/192x192.png" "$PUBLIC_DIR/pwa-192x192-maskable.png"
 cp "$WEB_TMP_DIR/512x512.png" "$PUBLIC_DIR/pwa-512x512-maskable.png"
 cp "$TAURI_ICONS_DIR/icon.ico" "$PUBLIC_DIR/favicon.ico"
 
-# Build a mac-specific rounded tile icon while leaving other platform icons unchanged.
-mkdir -p "$WORK_TMP_DIR/icon.iconset"
+if [[ "$(uname -s)" == "Darwin" ]] && command -v sips >/dev/null && command -v iconutil >/dev/null; then
+  # Build a mac-specific rounded tile icon while leaving other platform icons unchanged.
+  mkdir -p "$WORK_TMP_DIR/icon.iconset"
 
-nix shell nixpkgs#imagemagick -c magick \
-  -background none \
-  "$SOURCE_ICON" \
-  -resize 560x560 \
-  "$WORK_TMP_DIR/logo.png"
+  nix shell nixpkgs#imagemagick -c magick \
+    -background none \
+    "$SOURCE_ICON" \
+    -resize 560x560 \
+    "$WORK_TMP_DIR/logo.png"
 
-nix shell nixpkgs#imagemagick -c magick \
-  -size 1024x1024 xc:none \
-  -fill "#0d1726" \
-  -draw "roundrectangle 64,64 959,959 220,220" \
-  "$WORK_TMP_DIR/tile.png"
+  nix shell nixpkgs#imagemagick -c magick \
+    -size 1024x1024 xc:none \
+    -fill "#0d1726" \
+    -draw "roundrectangle 64,64 959,959 220,220" \
+    "$WORK_TMP_DIR/tile.png"
 
-nix shell nixpkgs#imagemagick -c magick \
-  "$WORK_TMP_DIR/tile.png" \
-  "$WORK_TMP_DIR/logo.png" \
-  -gravity center \
-  -compose over \
-  -composite \
-  "$WORK_TMP_DIR/mac-1024.png"
+  nix shell nixpkgs#imagemagick -c magick \
+    "$WORK_TMP_DIR/tile.png" \
+    "$WORK_TMP_DIR/logo.png" \
+    -gravity center \
+    -compose over \
+    -composite \
+    "$WORK_TMP_DIR/mac-1024.png"
 
-sips -z 16 16 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_16x16.png" >/dev/null
-sips -z 32 32 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_16x16@2x.png" >/dev/null
-sips -z 32 32 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_32x32.png" >/dev/null
-sips -z 64 64 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_32x32@2x.png" >/dev/null
-sips -z 128 128 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_128x128.png" >/dev/null
-sips -z 256 256 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_128x128@2x.png" >/dev/null
-sips -z 256 256 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_256x256.png" >/dev/null
-sips -z 512 512 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_256x256@2x.png" >/dev/null
-sips -z 512 512 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_512x512.png" >/dev/null
-cp "$WORK_TMP_DIR/mac-1024.png" "$WORK_TMP_DIR/icon.iconset/icon_512x512@2x.png"
+  sips -z 16 16 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_16x16.png" >/dev/null
+  sips -z 32 32 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_16x16@2x.png" >/dev/null
+  sips -z 32 32 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_32x32.png" >/dev/null
+  sips -z 64 64 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_32x32@2x.png" >/dev/null
+  sips -z 128 128 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_128x128.png" >/dev/null
+  sips -z 256 256 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_128x128@2x.png" >/dev/null
+  sips -z 256 256 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_256x256.png" >/dev/null
+  sips -z 512 512 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_256x256@2x.png" >/dev/null
+  sips -z 512 512 "$WORK_TMP_DIR/mac-1024.png" --out "$WORK_TMP_DIR/icon.iconset/icon_512x512.png" >/dev/null
+  cp "$WORK_TMP_DIR/mac-1024.png" "$WORK_TMP_DIR/icon.iconset/icon_512x512@2x.png"
 
-iconutil -c icns "$WORK_TMP_DIR/icon.iconset" -o "$TAURI_ICONS_DIR/icon.icns"
+  iconutil -c icns "$WORK_TMP_DIR/icon.iconset" -o "$TAURI_ICONS_DIR/icon.icns"
+else
+  echo "Skipping macOS-specific icon tile generation on non-Darwin host"
+fi
 
 echo "Icon sync completed from nesdot.svg"
