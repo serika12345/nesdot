@@ -1,4 +1,5 @@
 import React from "react";
+import { styled } from "@mui/material/styles";
 import { useScreenCanvas } from "../../infrastructure/browser/canvas/useScreenCanvas";
 
 interface Props {
@@ -7,18 +8,13 @@ interface Props {
   ariaLabel?: string;
 }
 
+const CanvasElement = styled("canvas")({
+  touchAction: "none",
+  imageRendering: "pixelated",
+});
+
 export const ScreenCanvas: React.FC<Props> = ({ ariaLabel, ...params }) => {
   const { canvasProps } = useScreenCanvas(params);
 
-  return (
-    <canvas
-      aria-label={ariaLabel}
-      {...canvasProps}
-      css={{
-        display: "block",
-        touchAction: "none",
-        imageRendering: "pixelated",
-      }}
-    />
-  );
+  return <CanvasElement aria-label={ariaLabel} {...canvasProps} />;
 };

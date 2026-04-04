@@ -1,3 +1,10 @@
+import {
+  NativeSelect,
+  OutlinedInput,
+  Stack,
+  type StackProps,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -33,20 +40,16 @@ import {
   DetailRow,
   DetailValue,
   Field,
-  FieldGrid,
   FieldLabel,
   HelperText,
   MetricCard,
-  MetricGrid,
   MetricLabel,
   MetricValue,
-  NumberInput,
   Panel,
   PanelHeader,
   PanelHeaderRow,
   PanelTitle,
   ScrollColumn,
-  SelectInput,
   SplitLayout,
   ToolButton,
 } from "../App.styles";
@@ -61,10 +64,7 @@ const SCREEN_DEFAULT_ZOOM_LEVEL = 2;
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
 
-const trySetPointerCapture = (
-  target: HTMLElement,
-  pointerId: number,
-): void => {
+const trySetPointerCapture = (target: HTMLElement, pointerId: number): void => {
   try {
     target.setPointerCapture(pointerId);
   } catch {
@@ -79,6 +79,191 @@ interface ViewportPanState {
   startScrollLeft: number;
   startScrollTop: number;
 }
+
+const shouldForwardActiveProp = (prop: PropertyKey): boolean =>
+  prop !== "active";
+
+const createStackLayout = (
+  displayName: string,
+  defaultProps: StackProps,
+  Root: typeof Stack = Stack,
+) => {
+  void displayName;
+  const LayoutComponent = React.forwardRef<HTMLDivElement, StackProps>(
+    function LayoutComponent(props, ref) {
+      return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+    },
+  );
+
+  return LayoutComponent;
+};
+
+const SummaryMetricGrid = createStackLayout("SummaryMetricGrid", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.75rem",
+});
+
+const SummaryMetricCard = styled(MetricCard)({
+  flex: "1 1 8.75rem",
+  background: "transparent",
+  border: "none",
+  boxShadow: "none",
+  padding: 0,
+});
+
+const SummaryWideMetricCard = styled(SummaryMetricCard)({
+  flexBasis: "100%",
+});
+
+const SummaryMetricValue = styled(MetricValue)({
+  fontSize: "1.125rem",
+  whiteSpace: "nowrap",
+});
+
+const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.75rem",
+  alignItems: "end",
+});
+
+const FullWidthField = createStackLayout("FullWidthField", {
+  component: "label",
+  spacing: "0.5rem",
+  flexBasis: "100%",
+});
+
+const GridActionRow = createStackLayout("GridActionRow", {
+  flex: "1 1 10rem",
+  justifyContent: "flex-end",
+});
+
+const FullWidthActionRow = createStackLayout("FullWidthActionRow", {
+  flexBasis: "100%",
+  justifyContent: "flex-end",
+});
+
+const TallToolButton = styled(ToolButton)({
+  minHeight: "3rem",
+});
+
+const WideTallToolButton = styled(TallToolButton)({
+  width: "100%",
+});
+
+const ZoomControlsRow = styled(PanelHeaderRow)({
+  justifyContent: "flex-start",
+});
+
+const ScreenNumberInput = styled(OutlinedInput)({
+  width: "100%",
+  borderRadius: "1rem",
+  background: "var(--surface-quiet)",
+  color: "var(--ink-strong)",
+  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  "& .MuiOutlinedInput-input": {
+    padding: "0.8125rem 0.875rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused": {
+    boxShadow:
+      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+});
+
+const ScreenSelectInput = styled(NativeSelect)({
+  width: "100%",
+  borderRadius: "1rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
+  color: "var(--ink-strong)",
+  "& .MuiNativeSelect-select": {
+    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
+    borderRadius: "1rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+  "& .MuiNativeSelect-icon": {
+    right: "0.875rem",
+    color: "var(--ink-soft)",
+  },
+});
+
+const ReadOnlyDetailRow = styled(DetailRow)({
+  background: "transparent",
+  border: "none",
+  boxShadow: "none",
+  padding: 0,
+  borderRadius: 0,
+});
+
+const FlipButtonGrid = createStackLayout("FlipButtonGrid", {
+  direction: "row",
+  spacing: "0.75rem",
+  alignItems: "end",
+});
+
+const FlipToolButton = styled(ToolButton)({
+  flex: 1,
+});
+
+const GroupActionButton = styled(TallToolButton)({
+  width: "100%",
+});
+
+const PreviewViewportRoot = styled(CanvasViewport, {
+  shouldForwardProp: shouldForwardActiveProp,
+})<{ active?: boolean }>(({ active }) => ({
+  cursor: active === true ? "grabbing" : "default",
+}));
+
+type PreviewViewportProps = React.ComponentProps<typeof CanvasViewport> & {
+  active?: boolean;
+};
+
+const PreviewViewport = React.forwardRef<HTMLDivElement, PreviewViewportProps>(
+  function PreviewViewport({ active, ...props }, ref) {
+    return (
+      <PreviewViewportRoot
+        ref={ref}
+        active={active === true}
+        flex={1}
+        minHeight={0}
+        p="1.5rem"
+        {...props}
+      />
+    );
+  },
+);
+
+const PreviewCanvasWrap = styled("div")({
+  display: "grid",
+  placeItems: "center",
+  width: "max-content",
+  height: "max-content",
+  minWidth: "100%",
+  minHeight: "100%",
+});
+
+const WarningList = styled(DetailList)({
+  flexShrink: 0,
+});
 
 export const ScreenMode: React.FC = () => {
   const [spriteNumber, setSpriteNumber] = useState(0);
@@ -311,14 +496,6 @@ export const ScreenMode: React.FC = () => {
     O.getOrElse(() => -1),
   );
   const scanReport = scan(screen, nes);
-  const readOnlyDetailRowCss = {
-    background: "transparent",
-    border: "none",
-    boxShadow: "none",
-    padding: 0,
-    borderRadius: 0,
-  };
-
   const updateScreenZoomLevel = (
     nextZoomLevel: number,
     anchor: O.Option<{ clientX: number; clientY: number }> = O.none,
@@ -345,9 +522,11 @@ export const ScreenMode: React.FC = () => {
         window.requestAnimationFrame(() => {
           viewport.scrollTo({
             left:
-              (currentCanvasX / currentZoomLevel) * clampedZoomLevel - relativeX,
+              (currentCanvasX / currentZoomLevel) * clampedZoomLevel -
+              relativeX,
             top:
-              (currentCanvasY / currentZoomLevel) * clampedZoomLevel - relativeY,
+              (currentCanvasY / currentZoomLevel) * clampedZoomLevel -
+              relativeY,
           });
         });
       }
@@ -433,57 +612,33 @@ export const ScreenMode: React.FC = () => {
   };
 
   return (
-    <SplitLayout>
-      <ScrollColumn>
+    <SplitLayout flex={1} height="100%">
+      <ScrollColumn width={{ lg: "20rem", xl: "22.5rem" }} flexShrink={0}>
         <Panel>
           <PanelHeader>
             <PanelTitle>スクリーン配置</PanelTitle>
           </PanelHeader>
 
-          <MetricGrid
-            css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-          >
-            <MetricCard
-              css={{
-                background: "transparent",
-                border: "none",
-                boxShadow: "none",
-                padding: 0,
-              }}
-            >
+          <SummaryMetricGrid>
+            <SummaryMetricCard>
               <MetricLabel>配置中</MetricLabel>
               <MetricValue>
                 {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
               </MetricValue>
-            </MetricCard>
-            <MetricCard
-              css={{
-                background: "transparent",
-                border: "none",
-                boxShadow: "none",
-                padding: 0,
-              }}
-            >
+            </SummaryMetricCard>
+            <SummaryMetricCard>
               <MetricLabel>画面</MetricLabel>
               <MetricValue>
                 {screen.width}×{screen.height}
               </MetricValue>
-            </MetricCard>
-            <MetricCard
-              css={{
-                gridColumn: "1 / -1",
-                background: "transparent",
-                border: "none",
-                boxShadow: "none",
-                padding: 0,
-              }}
-            >
+            </SummaryMetricCard>
+            <SummaryWideMetricCard>
               <MetricLabel>制約</MetricLabel>
-              <MetricValue css={{ fontSize: 18, whiteSpace: "nowrap" }}>
+              <SummaryMetricValue>
                 1ライン最大 {MAX_SPRITES_PER_SCANLINE}
-              </MetricValue>
-            </MetricCard>
-          </MetricGrid>
+              </SummaryMetricValue>
+            </SummaryWideMetricCard>
+          </SummaryMetricGrid>
 
           {!scanReport.ok && (
             <HelperText>
@@ -497,84 +652,73 @@ export const ScreenMode: React.FC = () => {
             <PanelTitle>キャラクター追加</PanelTitle>
           </PanelHeader>
 
-          <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-            <Field css={{ gridColumn: "1 / -1" }}>
+          <TwoColumnFieldGrid>
+            <FullWidthField>
               <FieldLabel>キャラクターセット</FieldLabel>
-              <div css={{ position: "relative" }}>
-                <SelectInput
-                  css={{ paddingRight: 56 }}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    selectCharacterSet(value === "" ? O.none : O.some(value));
-                  }}
-                  value={pipe(
-                    selectedCharacterId,
-                    O.match(
-                      () => "",
-                      (id) => id,
-                    ),
-                  )}
-                >
-                  {characterSets.length === 0 && (
-                    <option value="">キャラクターセットがありません</option>
-                  )}
-                  {characterSets.map((characterSet) => (
-                    <option key={characterSet.id} value={characterSet.id}>
-                      {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
-                    </option>
-                  ))}
-                </SelectInput>
-                <span
-                  aria-hidden="true"
-                  css={{
-                    position: "absolute",
-                    right: 18,
-                    top: "50%",
-                    width: 0,
-                    height: 0,
-                    borderLeft: "5px solid transparent",
-                    borderRight: "5px solid transparent",
-                    borderTop: "7px solid #334155",
-                    transform: "translateY(-35%)",
-                    pointerEvents: "none",
-                  }}
-                />
-              </div>
-            </Field>
+              <ScreenSelectInput
+                variant="outlined"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  selectCharacterSet(value === "" ? O.none : O.some(value));
+                }}
+                value={pipe(
+                  selectedCharacterId,
+                  O.match(
+                    () => "",
+                    (id) => id,
+                  ),
+                )}
+                inputProps={{
+                  "aria-label": "キャラクターセット",
+                }}
+              >
+                {characterSets.length === 0 && (
+                  <option value="">キャラクターセットがありません</option>
+                )}
+                {characterSets.map((characterSet) => (
+                  <option key={characterSet.id} value={characterSet.id}>
+                    {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
+                  </option>
+                ))}
+              </ScreenSelectInput>
+            </FullWidthField>
 
-            <Field>
+            <Field flex="1 1 11.25rem">
               <FieldLabel>X 座標</FieldLabel>
-              <NumberInput
+              <ScreenNumberInput
                 type="number"
-                min={0}
-                max={256}
                 value={characterBaseX}
+                inputProps={{
+                  min: 0,
+                  max: 256,
+                  "aria-label": "キャラクター X 座標",
+                }}
                 onChange={(e) => setCharacterBaseX(Number(e.target.value))}
               />
             </Field>
-            <Field>
+            <Field flex="1 1 11.25rem">
               <FieldLabel>Y 座標</FieldLabel>
-              <NumberInput
+              <ScreenNumberInput
                 type="number"
-                min={0}
-                max={240}
                 value={characterBaseY}
+                inputProps={{
+                  min: 0,
+                  max: 240,
+                  "aria-label": "キャラクター Y 座標",
+                }}
                 onChange={(e) => setCharacterBaseY(Number(e.target.value))}
               />
             </Field>
-            <div
-              css={{ display: "grid", alignItems: "end", gridColumn: "1 / -1" }}
-            >
-              <ToolButton
+            <FullWidthActionRow>
+              <WideTallToolButton
                 type="button"
                 tone="primary"
                 onClick={handleAddCharacter}
-                css={{ minHeight: 48 }}
               >
                 キャラクターを追加
-              </ToolButton>
-            </div>
-          </FieldGrid>
+              </WideTallToolButton>
+            </FullWidthActionRow>
+          </TwoColumnFieldGrid>
 
           {pipe(
             activeCharacter,
@@ -609,50 +753,56 @@ export const ScreenMode: React.FC = () => {
           </PanelHeader>
 
           {isPlacementOpen ? (
-            <FieldGrid
-              css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
-            >
-              <Field>
+            <TwoColumnFieldGrid>
+              <Field flex="1 1 11.25rem">
                 <FieldLabel>スプライト番号</FieldLabel>
-                <NumberInput
+                <ScreenNumberInput
                   type="number"
-                  min={0}
-                  max={64}
                   value={spriteNumber}
+                  inputProps={{
+                    min: 0,
+                    max: 64,
+                    "aria-label": "スプライト番号",
+                  }}
                   onChange={(e) => setSpriteNumber(Number(e.target.value))}
                 />
               </Field>
-              <Field>
+              <Field flex="1 1 11.25rem">
                 <FieldLabel>X 座標</FieldLabel>
-                <NumberInput
+                <ScreenNumberInput
                   type="number"
-                  min={0}
-                  max={256}
                   value={x}
+                  inputProps={{
+                    min: 0,
+                    max: 256,
+                    "aria-label": "スプライト X 座標",
+                  }}
                   onChange={(e) => setX(Number(e.target.value))}
                 />
               </Field>
-              <Field>
+              <Field flex="1 1 11.25rem">
                 <FieldLabel>Y 座標</FieldLabel>
-                <NumberInput
+                <ScreenNumberInput
                   type="number"
-                  min={0}
-                  max={240}
                   value={y}
+                  inputProps={{
+                    min: 0,
+                    max: 240,
+                    "aria-label": "スプライト Y 座標",
+                  }}
                   onChange={(e) => setY(Number(e.target.value))}
                 />
               </Field>
-              <div css={{ display: "grid", alignItems: "end" }}>
-                <ToolButton
+              <GridActionRow>
+                <WideTallToolButton
                   type="button"
                   tone="primary"
                   onClick={handleAddSprite}
-                  css={{ minHeight: 48 }}
                 >
                   スプライトを追加
-                </ToolButton>
-              </div>
-            </FieldGrid>
+                </WideTallToolButton>
+              </GridActionRow>
+            </TwoColumnFieldGrid>
           ) : (
             <HelperText>
               追加候補は sprite #{spriteNumber} を ({x}, {y}) に配置します。
@@ -679,48 +829,34 @@ export const ScreenMode: React.FC = () => {
             <>
               <Field>
                 <FieldLabel>スプライト一覧</FieldLabel>
-                <div css={{ position: "relative" }}>
-                  <SelectInput
-                    css={{ paddingRight: 56 }}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      setSelectedSpriteIndex(
-                        next === "" ? O.none : O.some(Number(next)),
-                      );
-                    }}
-                    value={pipe(
-                      selectedSpriteIndex,
-                      O.match(
-                        () => "",
-                        (index) => String(index),
-                      ),
-                    )}
-                  >
-                    {spritesOnScreen.length === 0 && (
-                      <option value="">スプライトが配置されていません</option>
-                    )}
-                    {spritesOnScreen.map((sprite, index) => (
-                      <option key={index} value={index}>
-                        {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
-                      </option>
-                    ))}
-                  </SelectInput>
-                  <span
-                    aria-hidden="true"
-                    css={{
-                      position: "absolute",
-                      right: 18,
-                      top: "50%",
-                      width: 0,
-                      height: 0,
-                      borderLeft: "5px solid transparent",
-                      borderRight: "5px solid transparent",
-                      borderTop: "7px solid #334155",
-                      transform: "translateY(-35%)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </div>
+                <ScreenSelectInput
+                  variant="outlined"
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setSelectedSpriteIndex(
+                      next === "" ? O.none : O.some(Number(next)),
+                    );
+                  }}
+                  value={pipe(
+                    selectedSpriteIndex,
+                    O.match(
+                      () => "",
+                      (index) => String(index),
+                    ),
+                  )}
+                  inputProps={{
+                    "aria-label": "スプライト一覧",
+                  }}
+                >
+                  {spritesOnScreen.length === 0 && (
+                    <option value="">スプライトが配置されていません</option>
+                  )}
+                  {spritesOnScreen.map((sprite, index) => (
+                    <option key={index} value={index}>
+                      {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
+                    </option>
+                  ))}
+                </ScreenSelectInput>
               </Field>
 
               {pipe(
@@ -734,44 +870,43 @@ export const ScreenMode: React.FC = () => {
                   (selectedSprite) => (
                     <>
                       <DetailList>
-                        <DetailRow css={readOnlyDetailRowCss}>
+                        <ReadOnlyDetailRow>
                           <DetailKey>元スプライト</DetailKey>
                           <DetailValue>
                             spriteIndex {selectedSprite.spriteIndex}
                           </DetailValue>
-                        </DetailRow>
-                        <DetailRow css={readOnlyDetailRowCss}>
+                        </ReadOnlyDetailRow>
+                        <ReadOnlyDetailRow>
                           <DetailKey>サイズ</DetailKey>
                           <DetailValue>
                             {selectedSprite.width}×{selectedSprite.height}
                           </DetailValue>
-                        </DetailRow>
-                        <DetailRow css={readOnlyDetailRowCss}>
+                        </ReadOnlyDetailRow>
+                        <ReadOnlyDetailRow>
                           <DetailKey>優先度</DetailKey>
                           <DetailValue>
                             {selectedSprite.priority === "behindBg"
                               ? "背景の後ろ"
                               : "背景の前"}
                           </DetailValue>
-                        </DetailRow>
-                        <DetailRow css={readOnlyDetailRowCss}>
+                        </ReadOnlyDetailRow>
+                        <ReadOnlyDetailRow>
                           <DetailKey>反転</DetailKey>
                           <DetailValue>
                             {`${selectedSprite.flipH === true ? "H" : "-"} / ${selectedSprite.flipV === true ? "V" : "-"}`}
                           </DetailValue>
-                        </DetailRow>
+                        </ReadOnlyDetailRow>
                       </DetailList>
 
-                      <FieldGrid
-                        css={{
-                          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                        }}
-                      >
-                        <Field>
+                      <TwoColumnFieldGrid>
+                        <Field flex="1 1 11.25rem">
                           <FieldLabel>Position X</FieldLabel>
-                          <NumberInput
+                          <ScreenNumberInput
                             type="number"
                             value={selectedSprite.x}
+                            inputProps={{
+                              "aria-label": "選択スプライト X 座標",
+                            }}
                             onChange={(e) => {
                               const newX = Number(e.target.value);
                               const newSprites = spritesOnScreen.map((s, i) =>
@@ -795,11 +930,14 @@ export const ScreenMode: React.FC = () => {
                             }}
                           />
                         </Field>
-                        <Field>
+                        <Field flex="1 1 11.25rem">
                           <FieldLabel>Position Y</FieldLabel>
-                          <NumberInput
+                          <ScreenNumberInput
                             type="number"
                             value={selectedSprite.y}
+                            inputProps={{
+                              "aria-label": "選択スプライト Y 座標",
+                            }}
                             onChange={(e) => {
                               const newY = Number(e.target.value);
                               const newSprites = spritesOnScreen.map((s, i) =>
@@ -823,66 +961,47 @@ export const ScreenMode: React.FC = () => {
                             }}
                           />
                         </Field>
-                        <Field>
+                        <Field flex="1 1 11.25rem">
                           <FieldLabel>Priority</FieldLabel>
-                          <div css={{ position: "relative" }}>
-                            <SelectInput
-                              css={{ paddingRight: 56 }}
-                              value={selectedSprite.priority}
-                              onChange={(e) => {
-                                const nextPriority: SpritePriority =
-                                  e.target.value === "behindBg"
-                                    ? "behindBg"
-                                    : "front";
-                                const newSprites = spritesOnScreen.map(
-                                  (s, i) =>
-                                    i === selectedIndexValue
-                                      ? { ...s, priority: nextPriority }
-                                      : s,
+                          <ScreenSelectInput
+                            variant="outlined"
+                            value={selectedSprite.priority}
+                            inputProps={{
+                              "aria-label": "選択スプライトの優先度",
+                            }}
+                            onChange={(e) => {
+                              const nextPriority: SpritePriority =
+                                e.target.value === "behindBg"
+                                  ? "behindBg"
+                                  : "front";
+                              const newSprites = spritesOnScreen.map((s, i) =>
+                                i === selectedIndexValue
+                                  ? { ...s, priority: nextPriority }
+                                  : s,
+                              );
+                              const newScreen = {
+                                ...screen,
+                                sprites: newSprites,
+                              };
+                              const report = scan(newScreen);
+                              if (report.ok === false) {
+                                alert(
+                                  "優先度の更新に失敗しました。制約違反:\n" +
+                                    report.errors.join("\n"),
                                 );
-                                const newScreen = {
-                                  ...screen,
-                                  sprites: newSprites,
-                                };
-                                const report = scan(newScreen);
-                                if (report.ok === false) {
-                                  alert(
-                                    "優先度の更新に失敗しました。制約違反:\n" +
-                                      report.errors.join("\n"),
-                                  );
-                                  return;
-                                }
-                                setScreenAndSyncNes(newScreen);
-                              }}
-                            >
-                              <option value="front">前面</option>
-                              <option value="behindBg">背景の後ろ</option>
-                            </SelectInput>
-                            <span
-                              aria-hidden="true"
-                              css={{
-                                position: "absolute",
-                                right: 18,
-                                top: "50%",
-                                width: 0,
-                                height: 0,
-                                borderLeft: "5px solid transparent",
-                                borderRight: "5px solid transparent",
-                                borderTop: "7px solid #334155",
-                                transform: "translateY(-35%)",
-                                pointerEvents: "none",
-                              }}
-                            />
-                          </div>
-                        </Field>
-                        <Field>
-                          <FieldLabel>Flip</FieldLabel>
-                          <FieldGrid
-                            css={{
-                              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                                return;
+                              }
+                              setScreenAndSyncNes(newScreen);
                             }}
                           >
-                            <ToolButton
+                            <option value="front">前面</option>
+                            <option value="behindBg">背景の後ろ</option>
+                          </ScreenSelectInput>
+                        </Field>
+                        <Field flex="1 1 11.25rem">
+                          <FieldLabel>Flip</FieldLabel>
+                          <FlipButtonGrid>
+                            <FlipToolButton
                               type="button"
                               active={selectedSprite.flipH === true}
                               onClick={() => {
@@ -900,8 +1019,8 @@ export const ScreenMode: React.FC = () => {
                               }}
                             >
                               H反転
-                            </ToolButton>
-                            <ToolButton
+                            </FlipToolButton>
+                            <FlipToolButton
                               type="button"
                               active={selectedSprite.flipV === true}
                               onClick={() => {
@@ -919,12 +1038,12 @@ export const ScreenMode: React.FC = () => {
                               }}
                             >
                               V反転
-                            </ToolButton>
-                          </FieldGrid>
+                            </FlipToolButton>
+                          </FlipButtonGrid>
                         </Field>
-                      </FieldGrid>
+                      </TwoColumnFieldGrid>
 
-                      <ToolButton
+                      <WideTallToolButton
                         type="button"
                         tone="danger"
                         onClick={() => {
@@ -942,10 +1061,9 @@ export const ScreenMode: React.FC = () => {
                           setScreenAndSyncNes(newScreen);
                           setSelectedSpriteIndex(O.none);
                         }}
-                        css={{ minHeight: 46 }}
                       >
                         このスプライトを削除
-                      </ToolButton>
+                      </WideTallToolButton>
                     </>
                   ),
                 ),
@@ -983,61 +1101,41 @@ export const ScreenMode: React.FC = () => {
             <>
               <Field>
                 <FieldLabel>選択中のスプライト</FieldLabel>
-                <div css={{ position: "relative" }}>
-                  <SelectInput
-                    css={{ paddingRight: 56 }}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") return;
-                      const index = Number(value);
-                      if (selectedSpriteIndices.has(index)) {
-                        removeFromGroupSelection(index);
-                      } else {
-                        addToGroupSelection(index);
-                      }
-                    }}
-                    value=""
-                  >
-                    <option value="">スプライトを追加...</option>
-                    {spritesOnScreen.map((sprite, index) => (
-                      <option key={index} value={index}>
-                        {`#${index} ${selectedSpriteIndices.has(index) ? "✓" : " "} spriteIndex:${sprite.spriteIndex} @ ${sprite.x},${sprite.y}`}
-                      </option>
-                    ))}
-                  </SelectInput>
-                  <span
-                    aria-hidden="true"
-                    css={{
-                      position: "absolute",
-                      right: 18,
-                      top: "50%",
-                      width: 0,
-                      height: 0,
-                      borderLeft: "5px solid transparent",
-                      borderRight: "5px solid transparent",
-                      borderTop: "7px solid #334155",
-                      transform: "translateY(-35%)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </div>
+                <ScreenSelectInput
+                  variant="outlined"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      return;
+                    }
+                    const index = Number(value);
+                    if (selectedSpriteIndices.has(index)) {
+                      removeFromGroupSelection(index);
+                    } else {
+                      addToGroupSelection(index);
+                    }
+                  }}
+                  value=""
+                  inputProps={{
+                    "aria-label": "グループ移動対象のスプライト",
+                  }}
+                >
+                  <option value="">スプライトを追加...</option>
+                  {spritesOnScreen.map((sprite, index) => (
+                    <option key={index} value={index}>
+                      {`#${index} ${selectedSpriteIndices.has(index) ? "✓" : " "} spriteIndex:${sprite.spriteIndex} @ ${sprite.x},${sprite.y}`}
+                    </option>
+                  ))}
+                </ScreenSelectInput>
               </Field>
 
               {selectedSpriteIndices.size > 0 && (
                 <>
                   <DetailList>
-                    <DetailRow
-                      css={{
-                        background: "transparent",
-                        border: "none",
-                        boxShadow: "none",
-                        padding: 0,
-                        borderRadius: 0,
-                      }}
-                    >
+                    <ReadOnlyDetailRow>
                       <DetailKey>選択数</DetailKey>
                       <DetailValue>{selectedSpriteIndices.size}</DetailValue>
-                    </DetailRow>
+                    </ReadOnlyDetailRow>
                     {(() => {
                       const bounds = getGroupBounds(
                         spritesOnScreen,
@@ -1051,35 +1149,19 @@ export const ScreenMode: React.FC = () => {
 
                       return isValidBounds ? (
                         <>
-                          <DetailRow
-                            css={{
-                              background: "transparent",
-                              border: "none",
-                              boxShadow: "none",
-                              padding: 0,
-                              borderRadius: 0,
-                            }}
-                          >
+                          <ReadOnlyDetailRow>
                             <DetailKey>グループ位置</DetailKey>
                             <DetailValue>
                               {bounds.minX}, {bounds.minY}
                             </DetailValue>
-                          </DetailRow>
-                          <DetailRow
-                            css={{
-                              background: "transparent",
-                              border: "none",
-                              boxShadow: "none",
-                              padding: 0,
-                              borderRadius: 0,
-                            }}
-                          >
+                          </ReadOnlyDetailRow>
+                          <ReadOnlyDetailRow>
                             <DetailKey>グループサイズ</DetailKey>
                             <DetailValue>
                               {bounds.maxX - bounds.minX}×
                               {bounds.maxY - bounds.minY}
                             </DetailValue>
-                          </DetailRow>
+                          </ReadOnlyDetailRow>
                         </>
                       ) : (
                         <></>
@@ -1087,48 +1169,48 @@ export const ScreenMode: React.FC = () => {
                     })()}
                   </DetailList>
 
-                  <FieldGrid
-                    css={{
-                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    }}
-                  >
-                    <Field>
+                  <TwoColumnFieldGrid>
+                    <Field flex="1 1 11.25rem">
                       <FieldLabel>移動 X</FieldLabel>
-                      <NumberInput
+                      <ScreenNumberInput
                         type="number"
                         value={groupMoveDeltaX}
+                        inputProps={{
+                          "aria-label": "グループ移動 X",
+                        }}
                         onChange={(e) =>
                           setGroupMoveDeltaX(Number(e.target.value))
                         }
                       />
                     </Field>
-                    <Field>
+                    <Field flex="1 1 11.25rem">
                       <FieldLabel>移動 Y</FieldLabel>
-                      <NumberInput
+                      <ScreenNumberInput
                         type="number"
                         value={groupMoveDeltaY}
+                        inputProps={{
+                          "aria-label": "グループ移動 Y",
+                        }}
                         onChange={(e) =>
                           setGroupMoveDeltaY(Number(e.target.value))
                         }
                       />
                     </Field>
-                    <ToolButton
+                    <GroupActionButton
                       type="button"
                       tone="primary"
                       onClick={handleMoveSelectedGroup}
-                      css={{ gridColumn: "1 / -1", minHeight: 48 }}
                     >
                       グループを移動
-                    </ToolButton>
-                    <ToolButton
+                    </GroupActionButton>
+                    <GroupActionButton
                       type="button"
                       tone="neutral"
                       onClick={clearGroupSelection}
-                      css={{ gridColumn: "1 / -1", minHeight: 48 }}
                     >
                       選択をクリア
-                    </ToolButton>
-                  </FieldGrid>
+                    </GroupActionButton>
+                  </TwoColumnFieldGrid>
                 </>
               )}
 
@@ -1148,7 +1230,7 @@ export const ScreenMode: React.FC = () => {
         </Panel>
       </ScrollColumn>
 
-      <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <Panel flex={1} minHeight={0}>
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>画面プレビュー</PanelTitle>
@@ -1168,7 +1250,7 @@ export const ScreenMode: React.FC = () => {
             />
           </PanelHeaderRow>
 
-          <PanelHeaderRow css={{ justifyContent: "flex-start" }}>
+          <ZoomControlsRow>
             <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
             <ToolButton
               type="button"
@@ -1184,10 +1266,10 @@ export const ScreenMode: React.FC = () => {
             >
               +
             </ToolButton>
-          </PanelHeaderRow>
+          </ZoomControlsRow>
         </PanelHeader>
 
-        <CanvasViewport
+        <PreviewViewport
           ref={(element: HTMLDivElement | null) => {
             viewportElementRef.current = O.fromNullable(element);
           }}
@@ -1197,46 +1279,31 @@ export const ScreenMode: React.FC = () => {
           onPointerMove={handleViewportPointerMove}
           onPointerUp={handleViewportPointerEnd}
           onPointerCancel={handleViewportPointerEnd}
-          onMouseDown={(event) => {
+          onMouseDown={(event: React.MouseEvent<HTMLDivElement>) => {
             if (event.button === 1) {
               event.preventDefault();
             }
           }}
-          css={{
-            flex: 1,
-            minHeight: 0,
-            display: "grid",
-            placeItems: "center",
-            padding: 24,
-            overscrollBehavior: "contain",
-            cursor: O.isSome(viewportPanState) ? "grabbing" : "default",
-          }}
+          active={O.isSome(viewportPanState)}
         >
-          <div
-            css={{
-              minWidth: "100%",
-              minHeight: "100%",
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
+          <PreviewCanvasWrap>
             <ScreenCanvas
               ariaLabel="画面プレビューキャンバス"
               scale={screenZoomLevel}
               showGrid={true}
             />
-          </div>
-        </CanvasViewport>
+          </PreviewCanvasWrap>
+        </PreviewViewport>
 
         {scanReport.ok === false && (
-          <DetailList css={{ flexShrink: 0 }}>
+          <WarningList>
             {scanReport.errors.map((error: string) => (
               <DetailRow key={error}>
                 <DetailKey>警告</DetailKey>
                 <DetailValue>{error}</DetailValue>
               </DetailRow>
             ))}
-          </DetailList>
+          </WarningList>
         )}
       </Panel>
     </SplitLayout>

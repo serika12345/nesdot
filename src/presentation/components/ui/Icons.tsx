@@ -1,3 +1,4 @@
+import { styled } from "@mui/material/styles";
 import React from "react";
 
 type IconProps = {
@@ -17,6 +18,13 @@ const baseProps: BaseSvgProps = {
   strokeLinecap: "round",
   strokeLinejoin: "round",
 };
+
+const RotatingChevronSvg = styled("svg", {
+  shouldForwardProp: (prop) => prop !== "open",
+})<{ open: boolean }>(({ open }) => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+}));
 
 export const ShareIcon: React.FC<IconProps> = ({ size = 18, className }) => {
   return (
@@ -58,19 +66,16 @@ export const ChevronIcon: React.FC<IconProps & { open?: boolean }> = ({
   open = false,
 }) => {
   return (
-    <svg
+    <RotatingChevronSvg
       className={className}
       width={size}
       height={size}
       viewBox="0 0 24 24"
       aria-hidden="true"
-      style={{
-        transform: open ? "rotate(180deg)" : "rotate(0deg)",
-        transition: "transform 160ms ease",
-      }}
+      open={open}
       {...baseProps}
     >
       <path d="M6 9l6 6 6-6" />
-    </svg>
+    </RotatingChevronSvg>
   );
 };

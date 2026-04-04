@@ -1,3 +1,5 @@
+import { NativeSelect, OutlinedInput, Stack } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -22,15 +24,12 @@ import {
   CanvasViewport,
   CollapseToggle,
   Field,
-  FieldGrid,
   FieldLabel,
-  NumberInput,
   Panel,
   PanelHeader,
   PanelHeaderRow,
   PanelTitle,
   ScrollArea,
-  SelectInput,
   SplitLayout,
   Toolbar,
   ToolButton,
@@ -53,6 +52,86 @@ function toPaletteIndex(index: number): PaletteIndex | false {
   }
   return false;
 }
+
+const SpriteNumberInput = styled(OutlinedInput)({
+  width: "100%",
+  borderRadius: "1rem",
+  background: "var(--surface-quiet)",
+  color: "var(--ink-strong)",
+  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  "& .MuiOutlinedInput-input": {
+    padding: "0.8125rem 0.875rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused": {
+    boxShadow:
+      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+});
+
+const SpritePaletteSelect = styled(NativeSelect)({
+  width: "100%",
+  borderRadius: "1rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
+  color: "var(--ink-strong)",
+  "& .MuiNativeSelect-select": {
+    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
+    borderRadius: "1rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+  "& .MuiNativeSelect-icon": {
+    right: "0.875rem",
+    color: "var(--ink-soft)",
+  },
+});
+
+const ActiveSlotCard = styled(Stack)({
+  position: "relative",
+  zIndex: 1,
+  padding: "0.875rem",
+  borderRadius: "1.25rem",
+  background: "var(--surface-muted)",
+  border: "0.0625rem solid var(--line-soft)",
+  flexShrink: 0,
+});
+
+const ToolPanel = styled(Stack)({
+  pointerEvents: "auto",
+  padding: "0.75rem",
+  width: "8.5rem",
+  borderRadius: "1.125rem",
+  background: "rgba(248, 250, 252, 0.84)",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+  boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.16)",
+  backdropFilter: "blur(0.875rem)",
+});
+
+const ToolPanelPositionRoot = styled("div")({
+  pointerEvents: "none",
+});
+
+const SpriteToolButton = styled(ToolButton)({
+  width: "100%",
+  justifyContent: "center",
+  padding: "0.625rem 0.875rem",
+});
 
 export const SpriteMode: React.FC = () => {
   const [tool, setTool] = useState<Tool>("pen");
@@ -165,56 +244,56 @@ export const SpriteMode: React.FC = () => {
 
   return (
     <SplitLayout>
-      <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
+      <Panel minHeight={0}>
         <PanelHeader>
           <PanelTitle>スプライト編集</PanelTitle>
         </PanelHeader>
 
-        <ScrollArea css={{ display: "grid", gap: 14, alignContent: "start" }}>
-          <FieldGrid css={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-            <Field>
+        <Stack
+          component={ScrollArea}
+          spacing="0.875rem"
+          alignContent="start"
+          flex={1}
+          minHeight={0}
+        >
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing="0.75rem"
+            useFlexGap
+            alignItems="stretch"
+          >
+            <Field flex={1}>
               <FieldLabel>スプライト番号</FieldLabel>
-              <NumberInput
+              <SpriteNumberInput
                 type="number"
                 value={activeSprite}
+                inputProps={{
+                  "aria-label": "スプライト番号",
+                  min: 0,
+                  max: 63,
+                  step: 1,
+                }}
                 onChange={(e) => handleSpriteChange(e.target.value)}
-                step={1}
-                min={0}
-                max={63}
               />
             </Field>
-            <Field>
+            <Field flex={1}>
               <FieldLabel>パレット</FieldLabel>
-              <div css={{ position: "relative" }}>
-                <SelectInput
-                  css={{ paddingRight: 56 }}
-                  value={activePalette}
-                  onChange={(e) => handlePaletteChange(e.target.value)}
-                >
-                  {palettes.map((_, i) => (
-                    <option key={i} value={i}>
-                      パレット {i}
-                    </option>
-                  ))}
-                </SelectInput>
-                <span
-                  aria-hidden="true"
-                  css={{
-                    position: "absolute",
-                    right: 18,
-                    top: "50%",
-                    width: 0,
-                    height: 0,
-                    borderLeft: "5px solid transparent",
-                    borderRight: "5px solid transparent",
-                    borderTop: "7px solid #334155",
-                    transform: "translateY(-35%)",
-                    pointerEvents: "none",
-                  }}
-                />
-              </div>
+              <SpritePaletteSelect
+                variant="outlined"
+                value={activePalette}
+                inputProps={{
+                  "aria-label": "パレット",
+                }}
+                onChange={(e) => handlePaletteChange(e.target.value)}
+              >
+                {palettes.map((_, i) => (
+                  <option key={i} value={i}>
+                    パレット {i}
+                  </option>
+                ))}
+              </SpritePaletteSelect>
             </Field>
-          </FieldGrid>
+          </Stack>
 
           <Toolbar>
             <Badge tone="accent">
@@ -223,10 +302,10 @@ export const SpriteMode: React.FC = () => {
                 : "Project Sprite Size 8×16"}
             </Badge>
           </Toolbar>
-        </ScrollArea>
+        </Stack>
       </Panel>
 
-      <Panel css={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <Panel flex={1} minHeight={0}>
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>スプライトキャンバス</PanelTitle>
@@ -253,33 +332,15 @@ export const SpriteMode: React.FC = () => {
           </PanelHeaderRow>
         </PanelHeader>
 
-        <div
-          css={{
-            position: "relative",
-            zIndex: 1,
-            display: "grid",
-            gap: 12,
-            padding: 14,
-            borderRadius: 20,
-            background: "rgba(248, 250, 252, 0.82)",
-            border: "1px solid rgba(148, 163, 184, 0.16)",
-            flexShrink: 0,
-          }}
-        >
+        <ActiveSlotCard spacing="0.75rem">
           <PanelHeaderRow>
             <FieldLabel>現在のスロット</FieldLabel>
             <Badge tone="accent">パレット {activePalette}</Badge>
           </PanelHeaderRow>
 
-          <div
-            css={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: 12,
-            }}
-          >
+          <Stack direction="row" spacing="0.75rem" useFlexGap flexWrap="wrap">
             {palettes[activePalette].map((idx, j) => (
-              <SlotGroup key={j} active={activeSlot === j}>
+              <SlotGroup key={j} active={activeSlot === j} flex="1 1 4.5rem">
                 <SlotButton
                   onClick={() => handlePaletteClick(j)}
                   title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
@@ -290,17 +351,16 @@ export const SpriteMode: React.FC = () => {
                 <SlotLabel>スロット{j}</SlotLabel>
               </SlotGroup>
             ))}
-          </div>
-        </div>
+          </Stack>
+        </ActiveSlotCard>
 
-        <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
-          <div
-            css={{
-              position: "absolute",
-              top: 18,
-              left: 18,
-              zIndex: 4,
-            }}
+        <CanvasViewport flex={1} minHeight={0}>
+          <Stack
+            position="absolute"
+            top="1.125rem"
+            left="1.125rem"
+            zIndex={4}
+            spacing={0}
           >
             <CollapseToggle
               type="button"
@@ -310,102 +370,71 @@ export const SpriteMode: React.FC = () => {
               {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
               <ChevronIcon open={isToolsOpen} />
             </CollapseToggle>
-          </div>
+          </Stack>
 
           {isToolsOpen && (
-            <div
-              css={{
-                position: "absolute",
-                top: 68,
-                left: 18,
-                zIndex: 3,
-                bottom: 18,
-                pointerEvents: "none",
-                display: "flex",
-                alignItems: "flex-start",
-              }}
+            <Stack
+              component={ToolPanelPositionRoot}
+              position="absolute"
+              top="4.25rem"
+              left="1.125rem"
+              zIndex={3}
+              bottom="1.125rem"
+              alignItems="flex-start"
             >
-              <div
-                css={{
-                  pointerEvents: "auto",
-                  display: "grid",
-                  gap: 10,
-                  padding: 12,
-                  width: 136,
-                  borderRadius: 18,
-                  background: "rgba(248, 250, 252, 0.84)",
-                  border: "1px solid rgba(148, 163, 184, 0.18)",
-                  boxShadow: "0 18px 34px rgba(15, 23, 42, 0.16)",
-                  backdropFilter: "blur(14px)",
-                }}
-              >
-                <div css={{ display: "grid", gap: 8 }}>
-                  <ToolButton
-                    type="button"
-                    onClick={() => setTool("pen")}
-                    active={tool === "pen"}
-                    disabled={isChangeOrderMode}
-                    css={{
-                      width: "100%",
-                      justifyContent: "center",
-                      padding: "10px 14px",
-                    }}
-                  >
-                    ペン
-                  </ToolButton>
-                  <ToolButton
-                    type="button"
-                    onClick={() => setTool("eraser")}
-                    active={tool === "eraser"}
-                    disabled={isChangeOrderMode}
-                    css={{
-                      width: "100%",
-                      justifyContent: "center",
-                      padding: "10px 14px",
-                    }}
-                  >
-                    消しゴム
-                  </ToolButton>
-                  <ToolButton
-                    type="button"
-                    disabled={isChangeOrderMode}
-                    onClick={handleClearSprite}
-                    css={{
-                      width: "100%",
-                      justifyContent: "center",
-                      padding: "10px 14px",
-                    }}
-                  >
-                    クリア
-                  </ToolButton>
-                  <ToolButton
-                    type="button"
-                    active={isChangeOrderMode}
-                    tone={isChangeOrderMode ? "primary" : "neutral"}
-                    onClick={() => setIsChangeOrderMode((prev) => !prev)}
-                    css={{
-                      width: "100%",
-                      justifyContent: "center",
-                      padding: "10px 14px",
-                    }}
-                  >
-                    {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
-                  </ToolButton>
-                </div>
-              </div>
-            </div>
+              <ToolPanel spacing="0.625rem">
+                <SpriteToolButton
+                  type="button"
+                  onClick={() => setTool("pen")}
+                  active={tool === "pen"}
+                  disabled={isChangeOrderMode}
+                >
+                  ペン
+                </SpriteToolButton>
+                <SpriteToolButton
+                  type="button"
+                  onClick={() => setTool("eraser")}
+                  active={tool === "eraser"}
+                  disabled={isChangeOrderMode}
+                >
+                  消しゴム
+                </SpriteToolButton>
+                <SpriteToolButton
+                  type="button"
+                  disabled={isChangeOrderMode}
+                  onClick={handleClearSprite}
+                >
+                  クリア
+                </SpriteToolButton>
+                <SpriteToolButton
+                  type="button"
+                  active={isChangeOrderMode}
+                  tone={isChangeOrderMode ? "primary" : "neutral"}
+                  onClick={() => setIsChangeOrderMode((prev) => !prev)}
+                >
+                  {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
+                </SpriteToolButton>
+              </ToolPanel>
+            </Stack>
           )}
 
-          <SpriteCanvas
-            isChangeOrderMode={isChangeOrderMode}
-            target={activeSprite}
-            scale={24}
-            showGrid={true}
-            tool={tool}
-            currentSelectPalette={activePalette}
-            activeColorIndex={activeSlot}
-            onChange={setTile}
-          />
+          <Stack
+            minWidth="100%"
+            minHeight="100%"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <SpriteCanvas
+              isChangeOrderMode={isChangeOrderMode}
+              target={activeSprite}
+              scale={24}
+              showGrid={true}
+              tool={tool}
+              currentSelectPalette={activePalette}
+              activeColorIndex={activeSlot}
+              onChange={setTile}
+            />
+          </Stack>
         </CanvasViewport>
       </Panel>
     </SplitLayout>

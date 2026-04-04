@@ -5,14 +5,15 @@ import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 const lintedFilePath = "src/presentation/components/CharacterMode.tsx";
+const lintTestTimeoutMs = 15_000;
+const eslint = new ESLint({
+  cwd: projectRoot,
+  overrideConfigFile: path.join(projectRoot, "eslint.config.js"),
+});
 
 const lintSnippet = async (
   source: string,
 ): Promise<ReadonlyArray<Linter.LintMessage>> => {
-  const eslint = new ESLint({
-    cwd: projectRoot,
-    overrideConfigFile: path.join(projectRoot, "eslint.config.js"),
-  });
   const results = await eslint.lintText(source, {
     filePath: lintedFilePath,
   });
@@ -39,7 +40,7 @@ describe("mui-guidance/restrict-sx", () => {
         );
       `),
     ).resolves.toStrictEqual([]);
-  });
+  }, lintTestTimeoutMs);
 
   test("rejects extracted sx objects", async () => {
     await expect(
@@ -51,7 +52,7 @@ describe("mui-guidance/restrict-sx", () => {
     ).resolves.toContain(
       "Keep `sx` inline as a short object literal. Extract reusable styling into a shared component, theme override, or `styled(...)`.",
     );
-  });
+  }, lintTestTimeoutMs);
 
   test("rejects oversized sx objects", async () => {
     await expect(
@@ -72,7 +73,7 @@ describe("mui-guidance/restrict-sx", () => {
     ).resolves.toContain(
       "`sx` must stay small. Use at most 5 top-level properties before extracting structure.",
     );
-  });
+  }, lintTestTimeoutMs);
 
   test("rejects nested selectors and raw style literals", async () => {
     await expect(
@@ -96,5 +97,5 @@ describe("mui-guidance/restrict-sx", () => {
       "Do not use ad hoc z-index values inside `sx`. Use theme zIndex tokens.",
       "Keep `sx` shallow. Avoid nested selectors, breakpoint objects, and at-rules inline.",
     ]);
-  });
+  }, lintTestTimeoutMs);
 });

@@ -1,6 +1,5 @@
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
-import { CollapseToggle } from "../App.styles";
 import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../domain/nes/palette";
 import {
   NesBackgroundPalettes,
@@ -11,6 +10,8 @@ import {
 import { ColorIndexOfPalette, useProjectState } from "../../application/state/projectStore";
 import {
   ColorCell,
+  DisclosureButton,
+  DisclosureRow,
   Grid,
   LibraryCaption,
   LibraryHeader,
@@ -22,6 +23,7 @@ import {
   PaletteStatus,
   Root,
   ScrollWrap,
+  SelectionDetails,
   SelectionSummary,
   SelectionSwatch,
   SelectionValue,
@@ -116,11 +118,11 @@ export const PalettePicker: React.FC = () => {
   return (
     <Root>
       <SelectionSummary>
-        <div>
+        <SelectionDetails>
           <SelectionValue>
             パレット {activePalette} / スロット {activeSlot}
           </SelectionValue>
-        </div>
+        </SelectionDetails>
         <SelectionSwatch
           transparent={activeSlot === 0}
           {...(activeSlot !== 0 ? { bg: activeColorHex } : {})}
@@ -128,24 +130,24 @@ export const PalettePicker: React.FC = () => {
         />
       </SelectionSummary>
 
-      <div css={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <CollapseToggle
+      <DisclosureRow>
+        <DisclosureButton
           type="button"
           open={isPaletteListOpen}
           onClick={() => setIsPaletteListOpen((prev) => !prev)}
+          endIcon={<ChevronIcon open={isPaletteListOpen} />}
         >
           {isPaletteListOpen ? "パレットを閉じる" : "パレットを開く"}
-          <ChevronIcon open={isPaletteListOpen} />
-        </CollapseToggle>
-        <CollapseToggle
+        </DisclosureButton>
+        <DisclosureButton
           type="button"
           open={isLibraryOpen}
           onClick={() => setIsLibraryOpen((prev) => !prev)}
+          endIcon={<ChevronIcon open={isLibraryOpen} />}
         >
           {isLibraryOpen ? "色ライブラリを閉じる" : "色ライブラリを開く"}
-          <ChevronIcon open={isLibraryOpen} />
-        </CollapseToggle>
-      </div>
+        </DisclosureButton>
+      </DisclosureRow>
 
       {isPaletteListOpen && (
         <PaletteList>

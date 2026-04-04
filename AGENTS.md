@@ -1,5 +1,3 @@
-# Repository Instructions
-
 ## 1. Execution Environment
 
 - Run all project commands inside the flake dev shell.
@@ -111,12 +109,48 @@ Rules:
 
 Use MUI, but keep styling decisions centralized and mechanically constrained.
 
-- Prefer theme configuration, `styled(...)`, and shared wrapper components over per-call-site styling.
+- Prefer theme configuration, `styled(...)`, shared wrapper components, and MUI layout primitives over per-call-site styling.
 - Treat `sx` as restricted, not as the default styling API.
 - Do not use `sx` for layout architecture, spacing system design, color decisions, typography decisions, breakpoint design, or repeated visual patterns.
 - Do not copy-paste large `sx` objects between components. If styling repeats, extract a shared component or theme override.
-- Do not introduce raw hex colors, pixel constants, ad hoc z-index values, or one-off breakpoint values inside `sx`.
+- Do not introduce raw hex colors, pixel constants, rem constants, ad hoc z-index values, or one-off breakpoint values inside `sx`.
 - Prefer tokens from the MUI theme for spacing, palette, typography, shadows, shape, and z-index.
+- Do not use fixed styling values when a theme token or MUI prop can express the same intent.
+- Do not use raw CSS for layout when the same structure can be expressed with MUI layout components.
+
+### 8.1.1 Layout ownership
+
+Layout must be expressed with MUI primitives first.
+
+- Prefer `Stack` for one-dimensional layout.
+- Prefer `Grid` for two-dimensional layout.
+- Prefer `Container` for page-width control and horizontal centering.
+- Use `Box` as a generic wrapper only when a more specific MUI layout primitive is not appropriate.
+- Do not build page layout primarily with `Box` plus large inline `sx` objects.
+- Do not use ad hoc flexbox CSS as the default layout mechanism if `Stack` or `Grid` can express the structure clearly.
+
+Default layout preference order:
+
+1. existing shared layout component
+2. `Stack`
+3. `Grid`
+4. `Container`
+5. `Box`
+6. raw CSS layout
+
+### 8.1.2 Spacing rules
+
+Spacing must be consistent and theme-backed.
+
+- All spacing decisions must use the MUI theme spacing scale.
+- Do not hardcode spacing with values such as `12px`, `14px`, `18px`, `1rem`, or similar one-off constants unless there is a documented exception.
+- Prefer parent-managed spacing over child-managed margins.
+- For vertical or horizontal item spacing, prefer `Stack spacing`.
+- For two-dimensional spacing, prefer `Grid` spacing or theme-backed `gap`.
+- Do not build repeated spacing patterns by assigning custom margins to each child.
+- Use local margin or padding only when the adjustment is specific to one call site and not part of a reusable pattern.
+
+### 8.1.3 `sx` restrictions
 
 Allowed `sx` usage is limited to small, local, non-reusable adjustments when all of the following are true:
 
@@ -135,14 +169,9 @@ Disallowed examples of `sx` usage:
 - defining button or card variants inline,
 - repeated page-level layout patterns,
 - encoding product-specific visual identity at the call site,
-- solving a shared styling need without extraction.
-
-When a component needs recurring styling, use one of these, in order:
-
-1. existing shared UI component,
-2. new wrapper component in the shared UI layer,
-3. theme component override or variant,
-4. `styled(...)` colocated with the component when the styling is still component-owned.
+- solving a shared styling need without extraction,
+- implementing a page shell inline,
+- expressing a reusable section layout directly in a screen component.
 
 If `sx` is used, keep it small and shallow:
 
@@ -155,6 +184,48 @@ For agent implementations, assume this default rule:
 
 - if you are about to write more than a small handful of `sx` properties, stop and extract structure instead.
 
+### 8.1.4 Reusable styling extraction
+
+When a component needs recurring styling, use one of these, in order:
+
+1. existing shared UI component,
+2. new wrapper component in the shared UI layer,
+3. theme component override or variant,
+4. `styled(...)` colocated with the component when the styling is still component-owned.
+
+If the same visual or layout pattern appears more than once, do not solve it twice with inline styling. Extract it.
+
+Examples of patterns that should be extracted:
+- page sections,
+- card containers,
+- form rows,
+- content headers,
+- sidebar layouts,
+- repeated action bars,
+- common empty-state shells.
+
+### 8.1.5 Theme-first visual rules
+
+Visual decisions must be represented through the theme whenever they are part of the product language.
+
+- Colors must come from `theme.palette`.
+- Typography choices must come from `theme.typography`.
+- Border radius must come from `theme.shape`.
+- Elevation must come from `theme.shadows`.
+- Layering must come from `theme.zIndex`.
+- Breakpoints must come from the MUI breakpoint system.
+
+Do not encode product identity, shared component appearance, or repeated responsive behavior directly at the call site.
+
+### 8.1.6 Page composition rules
+
+Pages should assemble shared structure, not invent styling locally.
+
+- Prefer page-level layout components such as `AppPage`, `PageSection`, `PageHeader`, or equivalent shared abstractions where available.
+- Keep screen components focused on composition and data flow.
+- Do not mix page structure, component skinning, and domain logic in the same component body.
+- If a page repeatedly introduces local layout wrappers, extract a shared layout component instead.
+
 ## 9. Testing Policy
 
 - When behavior is observable, add or update tests to describe the intended behavior.
@@ -166,6 +237,8 @@ For agent implementations, assume this default rule:
 ## 10. Change Scope Discipline
 
 - Prefer minimal patches.
+- “Minimal diff” is a default heuristic, not the goal itself. As long as existing tests and required verification remain green, prefer the smallest change that fully fixes the underlying problem.
+- When addressing bugs or design issues, prioritize root-cause fixes over superficial local patches, provided the change scope remains justified and mechanically safe.
 - Do not perform broad refactors unless they are required for correctness or explicitly requested.
 - Do not rename public symbols, move files, or reshape modules without a concrete reason.
 - Preserve existing comments unless they are made incorrect by the change.

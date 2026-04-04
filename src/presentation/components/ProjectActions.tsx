@@ -1,5 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { styled } from "@mui/material/styles";
 import React, {
   useCallback,
   useEffect,
@@ -36,6 +37,30 @@ type MenuPosition = {
   width: number;
   ready: boolean;
 };
+
+type PositionedActionMenuProps = {
+  menuTop: number;
+  menuLeft: number;
+  menuWidth: number;
+  ready: boolean;
+};
+
+const shouldForwardMenuProp = (prop: PropertyKey): boolean =>
+  prop !== "menuTop" &&
+  prop !== "menuLeft" &&
+  prop !== "menuWidth" &&
+  prop !== "ready";
+
+const PositionedActionMenu = styled(ActionMenu, {
+  shouldForwardProp: shouldForwardMenuProp,
+})<PositionedActionMenuProps>(
+  ({ menuLeft, menuTop, menuWidth, ready }) => ({
+    top: menuTop,
+    left: menuLeft,
+    width: menuWidth,
+    visibility: ready ? "visible" : "hidden",
+  }),
+);
 
 export const ProjectActions: React.FC<ProjectActionsProps> = ({
   actions,
@@ -147,19 +172,17 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
     ? O.some(
         createPortal(
           <ActionMenuOverlay onPointerDown={() => setMenuOpen(false)}>
-            <ActionMenu
+            <PositionedActionMenu
               ref={(node) => {
                 menuRef.current = O.fromNullable(node);
               }}
               role="menu"
               aria-label="共有メニュー"
               onPointerDown={(event) => event.stopPropagation()}
-              style={{
-                top: menuPosition.top,
-                left: menuPosition.left,
-                width: menuPosition.width,
-                visibility: menuPosition.ready ? "visible" : "hidden",
-              }}
+              menuTop={menuPosition.top}
+              menuLeft={menuPosition.left}
+              menuWidth={menuPosition.width}
+              ready={menuPosition.ready}
             >
               {actions.map((action) => (
                 <ActionMenuButton
@@ -174,7 +197,7 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
                   <ShareIcon size={14} />
                 </ActionMenuButton>
               ))}
-            </ActionMenu>
+            </PositionedActionMenu>
           </ActionMenuOverlay>,
           document.body,
         ),

@@ -1,4 +1,16 @@
-import { type CSSObject } from "@emotion/react";
+import {
+  ButtonBase,
+  Container,
+  Grid as MaterialGrid,
+  NativeSelect,
+  OutlinedInput,
+  Stack,
+  type ContainerProps,
+  type GridProps,
+  type GridSize,
+  type StackProps,
+} from "@mui/material";
+import { styled } from "@mui/material/styles";
 import {
   Canvas as FabricCanvas,
   FabricImage,
@@ -8,23 +20,30 @@ import {
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useCharacterState } from "../../application/state/characterStore";
 import {
   PaletteIndex,
   ProjectSpriteSize,
-  type SpriteTile,
   useProjectState,
+  type SpriteTile,
 } from "../../application/state/projectStore";
 import {
+  analyzeCharacterDecomposition,
+  applyCharacterDecomposition,
   CharacterDecompositionAnalysis,
   CharacterDecompositionCanvas,
   CharacterDecompositionIssue,
   CharacterDecompositionPixel,
   CharacterDecompositionRegion,
-  analyzeCharacterDecomposition,
-  applyCharacterDecomposition,
 } from "../../domain/characters/characterDecomposition";
 import {
   buildCharacterPreviewHexGrid,
@@ -38,33 +57,32 @@ import { createEmptySpriteTile } from "../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
 import useExportImage from "../../infrastructure/browser/useExportImage";
 import {
+  ActionMenu,
+  ActionMenuButton,
   Badge,
   CanvasViewport,
   DetailList,
   DetailRow,
   Field,
-  FieldGrid,
   FieldLabel,
-  NumberInput,
   Panel,
   PanelHeader,
   PanelHeaderRow,
   PanelTitle,
   ScrollArea,
-  SelectInput,
   ToolButton,
 } from "../App.styles";
-import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntriesBackToFront,
   getNextCharacterSpriteLayer,
   nudgeCharacterSprite,
-  resolveCharacterStageScale,
   resolveCharacterStagePoint,
+  resolveCharacterStageScale,
   resolveSelectionAfterSpriteRemoval,
   shiftCharacterSpriteLayer,
 } from "./characterEditorModel";
+import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
@@ -205,30 +223,779 @@ type CharacterPreviewState =
 type CharacterEditorMode = "compose" | "decompose";
 type DecompositionTool = "pen" | "eraser" | "region";
 
-const editorCardStyles: CSSObject = {
+const editorCardStyles = {
   position: "relative",
   zIndex: 1,
-  minHeight: 0,
-  display: "grid",
-  gap: 14,
-  padding: 16,
-  borderRadius: 22,
+  borderRadius: "1.375rem",
   background: "rgba(248, 250, 252, 0.84)",
-  border: "1px solid rgba(148, 163, 184, 0.16)",
-  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.72)",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
+  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.72)",
+} satisfies React.CSSProperties;
+
+const shouldForwardStageProp = (prop: PropertyKey): boolean =>
+  prop !== "activeDrop" &&
+  prop !== "stageWidthPx" &&
+  prop !== "stageHeightPx" &&
+  prop !== "stageScale";
+
+const createShouldForwardProp = (
+  blockedProps: ReadonlyArray<string>,
+): ((prop: PropertyKey) => boolean) => {
+  return (prop: PropertyKey): boolean =>
+    typeof prop !== "string" || blockedProps.includes(prop) === false;
 };
 
-const sidebarStyles: CSSObject = {
+const shouldForwardPixelPreviewSizeProp = createShouldForwardProp([
+  "previewWidth",
+  "previewHeight",
+  "pixelSize",
+  "colorHex",
+]);
+
+const shouldForwardMenuPositionProp = createShouldForwardProp([
+  "menuTop",
+  "menuLeft",
+  "menuWidth",
+  "ready",
+  "danger",
+]);
+
+const shouldForwardLibraryStateProp = createShouldForwardProp([
+  "dragging",
+  "draggableState",
+  "previewLeft",
+  "previewTop",
+  "dragClientX",
+  "dragClientY",
+]);
+
+const shouldForwardRegionStateProp = createShouldForwardProp([
+  "selectedState",
+  "issueState",
+  "regionLeft",
+  "regionTop",
+  "regionHeightPx",
+  "regionScale",
+  "toolMode",
+]);
+
+const shouldForwardCanvasCursorProp = createShouldForwardProp(["cursorStyle"]);
+
+const createStackLayout = (
+  displayName: string,
+  defaultProps: StackProps,
+  Root: typeof Stack = Stack,
+) => {
+  void displayName;
+  const LayoutComponent = React.forwardRef<HTMLDivElement, StackProps>(
+    function LayoutComponent(props, ref) {
+      return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+    },
+  );
+
+  return LayoutComponent;
+};
+
+const BareContainer = React.forwardRef<HTMLDivElement, ContainerProps>(
+  function BareContainer(props, ref) {
+    return <Container ref={ref} disableGutters maxWidth={false} {...props} />;
+  },
+);
+
+type UniformGridLayoutProps = Omit<
+  GridProps,
+  "columns" | "container" | "size" | "spacing"
+>;
+
+const createUniformGridLayout = (
+  displayName: string,
+  columns: number,
+  itemSize: GridSize,
+  spacing: number,
+) => {
+  void displayName;
+  const LayoutComponent = React.forwardRef<
+    HTMLDivElement,
+    UniformGridLayoutProps
+  >(function LayoutComponent({ children, ...props }, ref) {
+    const childrenArray = React.Children.toArray(children);
+
+    return (
+      <MaterialGrid
+        ref={ref}
+        container
+        columns={columns}
+        spacing={spacing}
+        {...props}
+      >
+        {childrenArray.map((child, index) => (
+          <MaterialGrid key={`grid-item-${index}`} size={itemSize}>
+            {child}
+          </MaterialGrid>
+        ))}
+      </MaterialGrid>
+    );
+  });
+
+  return LayoutComponent;
+};
+
+const CharacterInput = styled(OutlinedInput)({
+  width: "100%",
+  borderRadius: "1rem",
+  background: "var(--surface-quiet)",
+  color: "var(--ink-strong)",
+  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  "& .MuiOutlinedInput-input": {
+    padding: "0.8125rem 0.875rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused": {
+    boxShadow:
+      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+});
+
+const CharacterSelectInput = styled(NativeSelect)({
+  width: "100%",
+  borderRadius: "1rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
+  color: "var(--ink-strong)",
+  "& .MuiNativeSelect-select": {
+    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
+    borderRadius: "1rem",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(148, 163, 184, 0.22)",
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.28)",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "rgba(15, 118, 110, 0.4)",
+  },
+  "& .MuiNativeSelect-icon": {
+    right: "0.875rem",
+    color: "var(--ink-soft)",
+  },
+});
+
+const WideToolButton = styled(ToolButton)({
+  width: "100%",
+});
+
+const FullWidthContainer = styled(BareContainer)({
+  width: "100%",
+  minWidth: 0,
+});
+
+const WorkspaceStageContainer = styled(FullWidthContainer)({
+  minHeight: 0,
+});
+
+const ComposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
+  [theme.breakpoints.up("lg")]: {
+    width: "17.5rem",
+    flexShrink: 0,
+  },
+}));
+
+const DecomposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
+  [theme.breakpoints.up("xl")]: {
+    width: "17.5rem",
+    flexShrink: 0,
+  },
+}));
+
+const DecompositionInspectorContainer = styled(FullWidthContainer)(
+  ({ theme }) => ({
+    [theme.breakpoints.up("xl")]: {
+      width: "20rem",
+      flexShrink: 0,
+    },
+  }),
+);
+
+const ResponsiveAutoWidthContainer = styled(FullWidthContainer)(
+  ({ theme }) => ({
+    [theme.breakpoints.up("xl")]: {
+      width: "auto",
+    },
+  }),
+);
+
+const StageInputContainer = styled(FullWidthContainer)(({ theme }) => ({
+  [theme.breakpoints.up("sm")]: {
+    width: "7.5rem",
+  },
+}));
+
+const PaletteControlContainer = styled(FullWidthContainer)({
+  flex: "1 1 10rem",
+});
+
+const WorkspaceColumnsGrid = styled(MaterialGrid)({
+  width: "100%",
+  minHeight: 0,
+});
+
+const ComposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
+  width: "100%",
+  [theme.breakpoints.up("lg")]: {
+    flexBasis: "17.5rem",
+    maxWidth: "17.5rem",
+  },
+}));
+
+const DecomposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
+  width: "100%",
+  [theme.breakpoints.up("xl")]: {
+    flexBasis: "17.5rem",
+    maxWidth: "17.5rem",
+  },
+}));
+
+const DecompositionInspectorGridItem = styled(MaterialGrid)(({ theme }) => ({
+  width: "100%",
+  [theme.breakpoints.up("xl")]: {
+    flexBasis: "20rem",
+    maxWidth: "20rem",
+  },
+}));
+
+const WorkspaceStageGridItem = styled(MaterialGrid)({
+  width: "100%",
+  minWidth: 0,
+  flex: "1 1 0",
+});
+
+const ResponsiveHeaderGrid = createStackLayout("ResponsiveHeaderGrid", {
+  direction: { xs: "column", xl: "row" },
+  flexWrap: "wrap",
+  spacing: "0.75rem",
+  alignItems: "end",
+});
+
+type CharacterWorkspaceGridProps = StackProps & {
+  decompose?: boolean;
+};
+
+const CharacterWorkspaceGrid = React.forwardRef<
+  HTMLDivElement,
+  CharacterWorkspaceGridProps
+>(function CharacterWorkspaceGrid({ decompose, children, ...props }, ref) {
+  const childrenArray = React.Children.toArray(children);
+  const sidebar = childrenArray[0];
+  const stage = childrenArray[1];
+  const decompositionSidebar = childrenArray[2];
+
+  if (decompose === true) {
+    return (
+      <Stack ref={ref} spacing="1rem" minHeight={0} overflow="auto" {...props}>
+        <WorkspaceColumnsGrid container spacing={2}>
+          <DecomposeSidebarGridItem size={12}>
+            <DecomposeSidebarContainer>{sidebar}</DecomposeSidebarContainer>
+          </DecomposeSidebarGridItem>
+          <WorkspaceStageGridItem size={12}>
+            <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
+          </WorkspaceStageGridItem>
+          <DecompositionInspectorGridItem size={12}>
+            <DecompositionInspectorContainer>
+              {decompositionSidebar}
+            </DecompositionInspectorContainer>
+          </DecompositionInspectorGridItem>
+        </WorkspaceColumnsGrid>
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack ref={ref} minHeight={0} spacing="1rem" overflow="auto" {...props}>
+      <WorkspaceColumnsGrid container spacing={2}>
+        <ComposeSidebarGridItem size={12}>
+          <ComposeSidebarContainer>{sidebar}</ComposeSidebarContainer>
+        </ComposeSidebarGridItem>
+        <WorkspaceStageGridItem size={12}>
+          <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
+        </WorkspaceStageGridItem>
+      </WorkspaceColumnsGrid>
+    </Stack>
+  );
+});
+
+const PreviewHeaderLayout = createStackLayout("PreviewHeaderLayout", {
+  direction: { xs: "column", md: "row" },
+  spacing: "0.75rem",
+  alignItems: "center",
+});
+
+const PreviewControlsRow = createStackLayout("PreviewControlsRow", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.625rem",
+  alignItems: "center",
+  justifyContent: { xs: "start", md: "stretch" },
+});
+
+const DecompositionToolGrid = createStackLayout("DecompositionToolGrid", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.625rem",
+  alignItems: "center",
+});
+
+const DecompositionSidebar = createStackLayout("DecompositionSidebar", {
   minWidth: 0,
   minHeight: 0,
-  display: "grid",
-  gridAutoRows: "max-content",
-  alignContent: "start",
-  gap: 16,
+  spacing: "1rem",
   overflow: "auto",
-  paddingRight: 4,
-  scrollbarGutter: "stable both-edges",
+  pr: "0.25rem",
+});
+
+const CharacterWorkspaceRoot = createStackLayout("CharacterWorkspaceRoot", {
+  minHeight: 0,
+  spacing: "1rem",
+});
+
+const SidebarColumn = createStackLayout("SidebarColumn", {
+  minWidth: 0,
+  minHeight: 0,
+  spacing: "1rem",
+  overflow: "auto",
+  pr: "0.25rem",
+});
+
+const EditorCardRoot = styled("div")(editorCardStyles);
+
+const EditorCard = createStackLayout("EditorCard", {
+  component: EditorCardRoot,
+  minHeight: 0,
+  spacing: "0.875rem",
+  p: "1rem",
+});
+
+const LibraryCard = createStackLayout("LibraryCard", {
+  component: EditorCardRoot,
+  minHeight: 0,
+  spacing: "0.875rem",
+  p: "1rem",
+});
+
+const LibraryScrollArea = styled(ScrollArea)({
+  // Keep scrollbar layout stable without reserving an unnecessary leading gutter.
+  scrollbarGutter: "stable",
+});
+
+type StageEditorCardProps = StackProps & { decompose?: boolean };
+
+const StageEditorCard = React.forwardRef<HTMLDivElement, StageEditorCardProps>(
+  function StageEditorCard({ decompose, ...props }, ref) {
+    void decompose;
+    return <EditorCard ref={ref} {...props} />;
+  },
+);
+
+const RegionListCard = createStackLayout("RegionListCard", {
+  component: EditorCardRoot,
+  minHeight: 0,
+  spacing: "0.875rem",
+  p: "1rem",
+});
+
+const EditorFieldStack = createStackLayout("EditorFieldStack", {
+  component: "label",
+  spacing: "0.625rem",
+});
+
+const TwoOptionGrid = createUniformGridLayout("TwoOptionGrid", 2, 1, 1.25);
+
+const LibraryGrid = createUniformGridLayout("LibraryGrid", 2, 1, 1.25);
+
+const LibrarySpriteButton = styled(ButtonBase, {
+  shouldForwardProp: shouldForwardLibraryStateProp,
+})<{ dragging?: boolean; draggableState?: boolean }>(
+  ({ dragging, draggableState }) => ({
+    appearance: "none",
+    minHeight: "7.375rem",
+    padding: "0.75rem",
+    borderRadius: "1.125rem",
+    border:
+      dragging === true
+        ? "0.0625rem solid rgba(15, 118, 110, 0.42)"
+        : "0.0625rem solid rgba(148, 163, 184, 0.2)",
+    background:
+      dragging === true
+        ? "rgba(240, 253, 250, 0.96)"
+        : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
+    color: "var(--ink-strong)",
+    cursor: draggableState === true ? "grab" : "default",
+    userSelect: "none",
+    touchAction: "none",
+    transition:
+      "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+    boxShadow:
+      dragging === true
+        ? "0 1rem 1.875rem rgba(15, 118, 110, 0.16)"
+        : "0 0.625rem 1.125rem rgba(15, 23, 42, 0.08)",
+  }),
+);
+
+const LibrarySpriteTitle = styled("span")({
+  fontSize: "0.6875rem",
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  color: "var(--ink-soft)",
+});
+
+const LibrarySpritePreviewFrame = styled(Stack)({
+  width: "5.5rem",
+  minHeight: "4rem",
+  borderRadius: "0.875rem",
+  background:
+    "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
+});
+
+const DecompositionToolCardRoot = styled("div")({
+  borderRadius: "1.125rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+});
+
+const DecompositionToolCard = createStackLayout("DecompositionToolCard", {
+  component: DecompositionToolCardRoot,
+  spacing: "0.75rem",
+  p: "0.75rem",
+});
+
+const PaletteControlRow = createStackLayout("PaletteControlRow", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.625rem",
+  alignItems: "center",
+});
+
+const PaletteSlotGrid = createUniformGridLayout("PaletteSlotGrid", 3, 1, 1);
+
+type CharacterStageViewportProps = React.ComponentProps<
+  typeof CanvasViewport
+> & {
+  dragging?: boolean;
 };
+
+const CharacterStageViewportRoot = styled(CanvasViewport, {
+  shouldForwardProp: createShouldForwardProp(["dragging"]),
+})<{ dragging?: boolean }>(({ dragging }) => ({
+  cursor: dragging === true ? "grabbing" : "default",
+}));
+
+const CharacterStageViewport = React.forwardRef<
+  HTMLDivElement,
+  CharacterStageViewportProps
+>(function CharacterStageViewport({ dragging, ...props }, ref) {
+  return (
+    <CharacterStageViewportRoot
+      ref={ref}
+      dragging={dragging === true}
+      minHeight={0}
+      p="1.5rem"
+      borderRadius={0}
+      {...props}
+    />
+  );
+});
+
+const ViewportCenterWrap = styled("div")({
+  display: "grid",
+  placeItems: "center",
+  width: "max-content",
+  height: "max-content",
+  minWidth: "100%",
+  minHeight: "100%",
+});
+
+const StageCanvasElement = styled("canvas")({
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+});
+
+const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
+  onCanvasRef,
+}: {
+  onCanvasRef: (element: HTMLCanvasElement | null) => void;
+}) {
+  return <StageCanvasElement ref={onCanvasRef} aria-hidden="true" />;
+});
+
+const DecompositionCanvasElement = styled(StageCanvasElement, {
+  shouldForwardProp: shouldForwardCanvasCursorProp,
+})<{ cursorStyle: string }>(({ cursorStyle }) => ({
+  imageRendering: "pixelated",
+  cursor: cursorStyle,
+}));
+
+const StageDragPreview = styled("div", {
+  shouldForwardProp: shouldForwardLibraryStateProp,
+})<{ previewLeft: number; previewTop: number }>(
+  ({ previewLeft, previewTop }) => ({
+    position: "absolute",
+    left: previewLeft,
+    top: previewTop,
+    opacity: 0.6,
+    pointerEvents: "none",
+    outline: "0.125rem dashed rgba(15, 118, 110, 0.72)",
+    borderRadius: "0.5rem",
+    boxShadow: "0 0 0 0.375rem rgba(15, 118, 110, 0.12)",
+    background: "rgba(255, 255, 255, 0.72)",
+    padding: "0.125rem",
+  }),
+);
+
+const RegionOverlayButton = styled(ButtonBase, {
+  shouldForwardProp: shouldForwardRegionStateProp,
+})<{
+  selectedState?: boolean;
+  issueState?: boolean;
+  regionLeft: number;
+  regionTop: number;
+  regionHeightPx: number;
+  regionScale: number;
+  toolMode: DecompositionTool;
+}>(
+  ({
+    selectedState,
+    issueState,
+    regionLeft,
+    regionTop,
+    regionHeightPx,
+    regionScale,
+    toolMode,
+  }) => ({
+    position: "absolute",
+    left: regionLeft,
+    top: regionTop,
+    width: 8 * regionScale,
+    height: regionHeightPx,
+    padding: "0.375rem",
+    border:
+      issueState === true
+        ? "0.125rem solid rgba(190, 24, 93, 0.92)"
+        : "0.125rem solid rgba(15, 118, 110, 0.92)",
+    background:
+      issueState === true
+        ? "rgba(255, 241, 242, 0.18)"
+        : "rgba(240, 253, 250, 0.18)",
+    boxShadow:
+      selectedState === true
+        ? "0 0 0 0.375rem rgba(15, 118, 110, 0.12)"
+        : "none",
+    cursor: toolMode === "region" ? "grab" : "default",
+    pointerEvents: toolMode === "region" ? "auto" : "none",
+  }),
+);
+
+const RegionPreviewSurfaceRoot = styled("div")({
+  borderRadius: "1.125rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+});
+
+const RegionPreviewSurface = createStackLayout("RegionPreviewSurface", {
+  component: RegionPreviewSurfaceRoot,
+  minHeight: "6.75rem",
+  alignItems: "center",
+  justifyContent: "center",
+});
+
+const InspectorSection = createStackLayout("InspectorSection", {
+  spacing: "0.625rem",
+});
+
+const InspectorFieldGrid = createUniformGridLayout(
+  "InspectorFieldGrid",
+  2,
+  1,
+  1.5,
+);
+
+const DualActionGrid = createUniformGridLayout("DualActionGrid", 2, 1, 1.25);
+
+const RegionList = createStackLayout("RegionList", {
+  spacing: "0.625rem",
+});
+
+const RegionListButton = styled(ButtonBase, {
+  shouldForwardProp: createShouldForwardProp(["selectedState"]),
+})<{ selectedState?: boolean }>(({ selectedState }) => ({
+  appearance: "none",
+  padding: "0.75rem",
+  borderRadius: "1.125rem",
+  border:
+    selectedState === true
+      ? "0.0625rem solid rgba(15, 118, 110, 0.38)"
+      : "0.0625rem solid rgba(148, 163, 184, 0.2)",
+  background:
+    selectedState === true
+      ? "rgba(240, 253, 250, 0.96)"
+      : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
+  color: "var(--ink-strong)",
+  textAlign: "left",
+  boxShadow:
+    selectedState === true
+      ? "0 1.125rem 2rem rgba(15, 118, 110, 0.12)"
+      : "0 0.625rem 1.125rem rgba(15, 23, 42, 0.06)",
+}));
+
+const RegionMetaRow = createStackLayout("RegionMetaRow", {
+  direction: "row",
+  flexWrap: "wrap",
+  spacing: "0.5rem",
+});
+
+const FloatingLibraryPreview = styled("div", {
+  shouldForwardProp: shouldForwardLibraryStateProp,
+})<{ dragClientX: number; dragClientY: number }>(
+  ({ dragClientX, dragClientY }) => ({
+    position: "fixed",
+    left: dragClientX + 18,
+    top: dragClientY + 18,
+    zIndex: 200,
+    pointerEvents: "none",
+    width: "4rem",
+    minHeight: "4rem",
+    padding: "0.625rem",
+    borderRadius: "1.125rem",
+    background:
+      "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+    border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+    boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.18)",
+    opacity: 0.92,
+  }),
+);
+
+const PortalOverlay = styled("div")({
+  position: "fixed",
+  inset: 0,
+  zIndex: 320,
+});
+
+const PositionedActionMenu = styled(ActionMenu, {
+  shouldForwardProp: shouldForwardMenuPositionProp,
+})<{
+  menuTop: number;
+  menuLeft: number;
+  menuWidth: number;
+  ready: boolean;
+}>(({ menuTop, menuLeft, menuWidth, ready }) => ({
+  top: menuTop,
+  left: menuLeft,
+  width: menuWidth,
+  visibility: ready === true ? "visible" : "hidden",
+}));
+
+const PositionedActionMenuButton = styled(ActionMenuButton, {
+  shouldForwardProp: shouldForwardMenuPositionProp,
+})<{ danger?: boolean }>(({ danger }) => ({
+  color: danger === true ? "rgb(190, 24, 93)" : "var(--ink-strong)",
+  background:
+    danger === true ? "rgba(255, 241, 242, 0.96)" : "rgba(248, 250, 252, 0.96)",
+}));
+
+const EmptyTilePreview = styled("div", {
+  shouldForwardProp: shouldForwardPixelPreviewSizeProp,
+})<{ previewWidth: number; previewHeight: number }>(
+  ({ previewWidth, previewHeight }) => ({
+    width: previewWidth,
+    height: previewHeight,
+    borderRadius: "0.5rem",
+    background:
+      "linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02))",
+    border: "0.0625rem dashed rgba(148, 163, 184, 0.34)",
+  }),
+);
+
+const PixelPreviewCell = styled("div", {
+  shouldForwardProp: shouldForwardPixelPreviewSizeProp,
+})<{ pixelSize: number; colorHex: string }>(({ pixelSize, colorHex }) => ({
+  width: pixelSize,
+  height: pixelSize,
+  backgroundColor: colorHex,
+}));
+
+const StageSurface = styled("div", {
+  shouldForwardProp: shouldForwardStageProp,
+})<{
+  activeDrop?: boolean;
+  stageWidthPx: number;
+  stageHeightPx: number;
+  stageScale: number;
+}>(({ activeDrop, stageWidthPx, stageHeightPx, stageScale }) => ({
+  position: "relative",
+  width: stageWidthPx,
+  height: stageHeightPx,
+  minWidth: stageWidthPx,
+  minHeight: stageHeightPx,
+  overflow: "hidden",
+  border:
+    activeDrop === true
+      ? "0.0625rem solid rgba(45, 212, 191, 0.72)"
+      : "0.0625rem solid rgba(148, 163, 184, 0.22)",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
+  boxShadow:
+    "0 1.75rem 3.75rem rgba(15, 23, 42, 0.22), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.92)",
+  transform: activeDrop === true ? "scale(1.01)" : "none",
+  transition:
+    "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+  "&:focus-visible": {
+    outline: "0.125rem solid rgba(15, 118, 110, 0.92)",
+    outlineOffset: "0.25rem",
+  },
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    backgroundImage: [
+      "linear-gradient(rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
+      "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
+      "linear-gradient(rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
+      "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
+    ].join(", "),
+    backgroundSize: [
+      `${stageScale}px ${stageScale}px`,
+      `${stageScale}px ${stageScale}px`,
+      `${stageScale * 8}px ${stageScale * 8}px`,
+      `${stageScale * 8}px ${stageScale * 8}px`,
+    ].join(", "),
+    opacity: 0.95,
+    pointerEvents: "none",
+  },
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    backgroundImage: [
+      "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
+      "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
+    ].join(", "),
+    backgroundSize: `0.0625rem ${stageHeightPx}px, ${stageWidthPx}px 0.0625rem`,
+    backgroundPosition: `${Math.floor(stageWidthPx / 2)}px 0, 0 ${Math.floor(stageHeightPx / 2)}px`,
+    backgroundRepeat: "no-repeat",
+    pointerEvents: "none",
+  },
+}));
 
 const isInRange = (value: number, min: number, max: number): boolean =>
   value >= min && value <= max;
@@ -249,10 +1016,7 @@ const toNumber = (value: string): O.Option<number> => {
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
 
-const trySetPointerCapture = (
-  target: HTMLElement,
-  pointerId: number,
-): void => {
+const trySetPointerCapture = (target: HTMLElement, pointerId: number): void => {
   try {
     target.setPointerCapture(pointerId);
   } catch {
@@ -320,9 +1084,7 @@ const findComposeObjectEntry = (
   pipe(
     O.fromNullable(target),
     O.chain((currentTarget) =>
-      O.fromNullable(
-        entries.find((entry) => entry.object === currentTarget),
-      ),
+      O.fromNullable(entries.find((entry) => entry.object === currentTarget)),
     ),
   );
 
@@ -448,7 +1210,9 @@ export const CharacterMode: React.FC = () => {
     useState<DecompositionTool>("pen");
   const [decompositionPaletteIndex, setDecompositionPaletteIndex] =
     useState<PaletteIndex>(0);
-  const [decompositionColorIndex, setDecompositionColorIndex] = useState<1 | 2 | 3>(1);
+  const [decompositionColorIndex, setDecompositionColorIndex] = useState<
+    1 | 2 | 3
+  >(1);
   const [decompositionCanvas, setDecompositionCanvas] = useState(
     createDecompositionCanvas(STAGE_WIDTH, STAGE_HEIGHT),
   );
@@ -549,11 +1313,7 @@ export const CharacterMode: React.FC = () => {
 
   const projectSpriteSizeLocked = useMemo(
     () =>
-      isProjectSpriteSizeLocked(
-        sprites,
-        screen.sprites.length,
-        characterSets,
-      ),
+      isProjectSpriteSizeLocked(sprites, screen.sprites.length, characterSets),
     [characterSets, screen.sprites.length, sprites],
   );
 
@@ -662,6 +1422,13 @@ export const CharacterMode: React.FC = () => {
     return "crosshair";
   })();
 
+  const handleComposeCanvasRef = useCallback(
+    (element: HTMLCanvasElement | null) => {
+      composeCanvasElementRef.current = O.fromNullable(element);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (O.isNone(decompositionCanvasRef.current)) {
       return;
@@ -680,7 +1447,9 @@ export const CharacterMode: React.FC = () => {
       Array.from({ length: stageScale }, () =>
         pixelRow.flatMap((pixel) => {
           if (pixel.kind === "transparent") {
-            return Array.from({ length: stageScale }, () => [0, 0, 0, 0]).flat();
+            return Array.from({ length: stageScale }, () => [
+              0, 0, 0, 0,
+            ]).flat();
           }
 
           const hex = nesIndexToCssHex(
@@ -690,7 +1459,12 @@ export const CharacterMode: React.FC = () => {
           const g = Number.parseInt(hex.slice(3, 5), 16);
           const b = Number.parseInt(hex.slice(5, 7), 16);
 
-          return Array.from({ length: stageScale }, () => [r, g, b, 255]).flat();
+          return Array.from({ length: stageScale }, () => [
+            r,
+            g,
+            b,
+            255,
+          ]).flat();
         }),
       ).flat(),
     );
@@ -702,7 +1476,13 @@ export const CharacterMode: React.FC = () => {
 
     context.clearRect(0, 0, scaledWidth, scaledHeight);
     context.putImageData(imageData, 0, 0);
-  }, [decompositionCanvas, spritePalettes, stageHeight, stageScale, stageWidth]);
+  }, [
+    decompositionCanvas,
+    spritePalettes,
+    stageHeight,
+    stageScale,
+    stageWidth,
+  ]);
 
   const getStageRect = (): O.Option<DOMRect> =>
     pipe(
@@ -865,16 +1645,7 @@ export const CharacterMode: React.FC = () => {
   ) => {
     if (O.isNone(tileOption)) {
       return (
-        <div
-          css={{
-            width: 8 * scale,
-            height: 16 * scale,
-            borderRadius: 8,
-            background:
-              "linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02))",
-            border: "1px dashed rgba(148, 163, 184, 0.34)",
-          }}
-        />
+        <EmptyTilePreview previewWidth={8 * scale} previewHeight={16 * scale} />
       );
     }
 
@@ -882,39 +1653,41 @@ export const CharacterMode: React.FC = () => {
     const hexPixels = renderSpriteTileToHexArray(tile, spritePalettes);
 
     return (
-      <div
-        css={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${tile.width}, ${scale}px)`,
-          width: tile.width * scale,
-          height: tile.height * scale,
-        }}
+      <Stack
+        spacing={0}
+        width={tile.width * scale}
+        height={tile.height * scale}
+        alignItems="stretch"
       >
-        {tile.pixels.map((pixelRow, rowIndex) =>
-          pixelRow.map((colorIndex, columnIndex) => {
-            const hexRowOption = O.fromNullable(hexPixels[rowIndex]);
-            const hexOption = pipe(
-              hexRowOption,
-              O.chain((row) => O.fromNullable(row[columnIndex])),
-            );
-            const colorHex = pipe(
-              hexOption,
-              O.getOrElse(() => PREVIEW_TRANSPARENT_HEX),
-            );
-            const isTransparent = colorIndex === 0;
-            return (
-              <div
-                key={`pixel-${keyPrefix}-${rowIndex}-${columnIndex}`}
-                css={{
-                  width: scale,
-                  height: scale,
-                  backgroundColor: isTransparent ? "transparent" : colorHex,
-                }}
-              />
-            );
-          }),
-        )}
-      </div>
+        {tile.pixels.map((pixelRow, rowIndex) => (
+          <Stack
+            key={`pixel-row-${keyPrefix}-${rowIndex}`}
+            direction="row"
+            spacing={0}
+            alignItems="stretch"
+          >
+            {pixelRow.map((colorIndex, columnIndex) => {
+              const hexRowOption = O.fromNullable(hexPixels[rowIndex]);
+              const hexOption = pipe(
+                hexRowOption,
+                O.chain((row) => O.fromNullable(row[columnIndex])),
+              );
+              const colorHex = pipe(
+                hexOption,
+                O.getOrElse(() => PREVIEW_TRANSPARENT_HEX),
+              );
+              const isTransparent = colorIndex === 0;
+              return (
+                <PixelPreviewCell
+                  key={`pixel-${keyPrefix}-${rowIndex}-${columnIndex}`}
+                  pixelSize={scale}
+                  colorHex={isTransparent ? "transparent" : colorHex}
+                />
+              );
+            })}
+          </Stack>
+        ))}
+      </Stack>
     );
   };
 
@@ -1070,7 +1843,12 @@ export const CharacterMode: React.FC = () => {
     pipe(
       activeSet,
       O.map((characterSet) =>
-        clampSpritesToStage(characterSet.id, characterSet.sprites, stageWidth, nextHeight),
+        clampSpritesToStage(
+          characterSet.id,
+          characterSet.sprites,
+          stageWidth,
+          nextHeight,
+        ),
       ),
     );
   };
@@ -1147,7 +1925,8 @@ export const CharacterMode: React.FC = () => {
     if (
       typeof Element !== "undefined" &&
       event.target instanceof Element &&
-      event.target.closest("[data-sprite-context-menu-root='true']") instanceof Element
+      event.target.closest("[data-sprite-context-menu-root='true']") instanceof
+        Element
     ) {
       return;
     }
@@ -1155,9 +1934,7 @@ export const CharacterMode: React.FC = () => {
     setSpriteContextMenu(O.none);
   };
 
-  const handleComposeContextMenu = (
-    event: React.MouseEvent<HTMLElement>,
-  ) => {
+  const handleComposeContextMenu = (event: React.MouseEvent<HTMLElement>) => {
     if (editorMode !== "compose") {
       return;
     }
@@ -1172,30 +1949,39 @@ export const CharacterMode: React.FC = () => {
     );
   };
 
-  useEffect(() => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
+  useLayoutEffect(() => {
     if (O.isNone(composeCanvasElementRef.current)) {
       return;
     }
 
-    const composeCanvas = new FabricCanvas(composeCanvasElementRef.current.value, {
-      defaultCursor: "default",
-      enablePointerEvents: true,
-      fireRightClick: true,
-      fireMiddleClick: true,
-      hoverCursor: "grab",
-      imageSmoothingEnabled: false,
-      moveCursor: "grabbing",
-      preserveObjectStacking: true,
-      selection: false,
-      stopContextMenu: true,
-    });
-    composeCanvas.upperCanvasEl.setAttribute("aria-label", "合成描画キャンバス");
-    composeCanvas.lowerCanvasEl.style.setProperty("image-rendering", "pixelated");
-    composeCanvas.upperCanvasEl.style.setProperty("image-rendering", "pixelated");
+    const composeCanvas = new FabricCanvas(
+      composeCanvasElementRef.current.value,
+      {
+        defaultCursor: "default",
+        enablePointerEvents: true,
+        fireRightClick: true,
+        fireMiddleClick: true,
+        hoverCursor: "grab",
+        imageSmoothingEnabled: false,
+        moveCursor: "grabbing",
+        preserveObjectStacking: true,
+        selection: false,
+        stopContextMenu: true,
+      },
+    );
+    composeCanvas.upperCanvasEl.setAttribute(
+      "aria-label",
+      "合成描画キャンバス",
+    );
+    composeCanvas.wrapperEl.setAttribute("aria-label", "合成描画キャンバス");
+    composeCanvas.lowerCanvasEl.style.setProperty(
+      "image-rendering",
+      "pixelated",
+    );
+    composeCanvas.upperCanvasEl.style.setProperty(
+      "image-rendering",
+      "pixelated",
+    );
     Object.assign(composeFabricCanvasRef, {
       current: O.some(composeCanvas),
     });
@@ -1207,15 +1993,11 @@ export const CharacterMode: React.FC = () => {
       Object.assign(composeFabricCanvasRef, {
         current: O.none,
       });
-      composeCanvas.dispose();
+      void composeCanvas.dispose();
     };
-  }, [editorMode]);
+  }, []);
 
   useEffect(() => {
-    if (editorMode !== "compose") {
-      return;
-    }
-
     if (O.isNone(composeFabricCanvasRef.current)) {
       return;
     }
@@ -1230,7 +2012,8 @@ export const CharacterMode: React.FC = () => {
           index: number;
           sprite: CharacterSprite;
         }> => [],
-        (characterSet) => getCharacterLayerEntriesBackToFront(characterSet.sprites),
+        (characterSet) =>
+          getCharacterLayerEntriesBackToFront(characterSet.sprites),
       ),
     );
 
@@ -1239,8 +2022,24 @@ export const CharacterMode: React.FC = () => {
       width: scaledWidth,
       height: scaledHeight,
     });
-    composeCanvas.lowerCanvasEl.style.setProperty("image-rendering", "pixelated");
-    composeCanvas.upperCanvasEl.style.setProperty("image-rendering", "pixelated");
+    composeCanvas.wrapperEl.setAttribute("data-stage-width", `${stageWidth}`);
+    composeCanvas.wrapperEl.setAttribute("data-stage-height", `${stageHeight}`);
+    composeCanvas.upperCanvasEl.setAttribute(
+      "data-stage-width",
+      `${stageWidth}`,
+    );
+    composeCanvas.upperCanvasEl.setAttribute(
+      "data-stage-height",
+      `${stageHeight}`,
+    );
+    composeCanvas.lowerCanvasEl.style.setProperty(
+      "image-rendering",
+      "pixelated",
+    );
+    composeCanvas.upperCanvasEl.style.setProperty(
+      "image-rendering",
+      "pixelated",
+    );
 
     const nextObjectEntries = orderedEntries.reduce<
       ReadonlyArray<FabricSpriteObjectEntry>
@@ -1304,7 +2103,6 @@ export const CharacterMode: React.FC = () => {
     composeCanvas.requestRenderAll();
   }, [
     activeSet,
-    editorMode,
     stageHeight,
     stageScale,
     stageWidth,
@@ -1312,6 +2110,22 @@ export const CharacterMode: React.FC = () => {
     sprites,
     validSelectedSpriteEditorIndex,
   ]);
+
+  useEffect(() => {
+    if (O.isNone(composeFabricCanvasRef.current)) {
+      return;
+    }
+
+    const composeCanvas = composeFabricCanvasRef.current.value;
+    composeCanvas.wrapperEl.style.setProperty(
+      "display",
+      editorMode === "compose" ? "" : "none",
+    );
+    composeCanvas.wrapperEl.style.setProperty(
+      "pointer-events",
+      editorMode === "compose" ? "auto" : "none",
+    );
+  }, [editorMode]);
 
   useEffect(() => {
     if (editorMode !== "compose") {
@@ -1391,7 +2205,10 @@ export const CharacterMode: React.FC = () => {
       }
 
       pipe(
-        findComposeObjectEntry(composeFabricObjectEntriesRef.current, event.target),
+        findComposeObjectEntry(
+          composeFabricObjectEntriesRef.current,
+          event.target,
+        ),
         O.match(
           () => selectIndex(O.none),
           (entry) => selectIndex(O.some(entry.index)),
@@ -1438,7 +2255,10 @@ export const CharacterMode: React.FC = () => {
       }
 
       pipe(
-        findComposeObjectEntry(composeFabricObjectEntriesRef.current, event.target),
+        findComposeObjectEntry(
+          composeFabricObjectEntriesRef.current,
+          event.target,
+        ),
         O.chain((entry) =>
           pipe(
             O.fromNullable(activeSet.value.sprites[entry.index]),
@@ -1721,8 +2541,10 @@ export const CharacterMode: React.FC = () => {
       O.some({
         regionId: region.id,
         pointerId: event.pointerId,
-        offsetX: event.clientX - (stageRectOption.value.left + region.x * stageScale),
-        offsetY: event.clientY - (stageRectOption.value.top + region.y * stageScale),
+        offsetX:
+          event.clientX - (stageRectOption.value.left + region.x * stageScale),
+        offsetY:
+          event.clientY - (stageRectOption.value.top + region.y * stageScale),
       }),
     );
     trySetPointerCapture(event.currentTarget, event.pointerId);
@@ -1960,8 +2782,8 @@ export const CharacterMode: React.FC = () => {
 
     if (O.isSome(decompositionRegionDragState)) {
       if (decompositionRegionDragState.value.pointerId !== event.pointerId) {
-          return;
-        }
+        return;
+      }
 
       setDecompositionRegionDragState(O.none);
     }
@@ -1974,9 +2796,13 @@ export const CharacterMode: React.FC = () => {
           spriteContextMenu,
           O.map((menuState) => {
             const viewportWidth =
-              typeof window === "undefined" ? menuState.clientX : window.innerWidth;
+              typeof window === "undefined"
+                ? menuState.clientX
+                : window.innerWidth;
             const viewportHeight =
-              typeof window === "undefined" ? menuState.clientY : window.innerHeight;
+              typeof window === "undefined"
+                ? menuState.clientY
+                : window.innerHeight;
             const left = Math.max(
               12,
               Math.min(
@@ -1999,12 +2825,18 @@ export const CharacterMode: React.FC = () => {
               {
                 label: "レイヤーを上げる",
                 onSelect: () =>
-                  handleShiftContextMenuSpriteLayer(menuState.spriteEditorIndex, 1),
+                  handleShiftContextMenuSpriteLayer(
+                    menuState.spriteEditorIndex,
+                    1,
+                  ),
               },
               {
                 label: "レイヤーを下げる",
                 onSelect: () =>
-                  handleShiftContextMenuSpriteLayer(menuState.spriteEditorIndex, -1),
+                  handleShiftContextMenuSpriteLayer(
+                    menuState.spriteEditorIndex,
+                    -1,
+                  ),
               },
               {
                 label: "削除",
@@ -2015,37 +2847,22 @@ export const CharacterMode: React.FC = () => {
             ];
 
             return createPortal(
-              <div
+              <PortalOverlay
                 data-sprite-context-menu-root="true"
                 onContextMenu={handleComposeContextMenu}
                 onPointerDown={() => setSpriteContextMenu(O.none)}
-                css={{
-                  position: "fixed",
-                  inset: 0,
-                  zIndex: 320,
-                }}
               >
-                <div
+                <PositionedActionMenu
                   role="menu"
                   aria-label="スプライトメニュー"
                   onPointerDown={(event) => event.stopPropagation()}
-                  css={{
-                    position: "fixed",
-                    left,
-                    top,
-                    width: STAGE_CONTEXT_MENU_WIDTH,
-                    display: "grid",
-                    gap: 4,
-                    padding: 8,
-                    borderRadius: 18,
-                    background:
-                      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
-                    border: "1px solid rgba(148, 163, 184, 0.18)",
-                    boxShadow: "0 22px 44px rgba(15, 23, 42, 0.22)",
-                  }}
+                  menuLeft={left}
+                  menuTop={top}
+                  menuWidth={STAGE_CONTEXT_MENU_WIDTH}
+                  ready={true}
                 >
                   {menuActions.map((action) => (
-                    <button
+                    <PositionedActionMenuButton
                       key={action.label}
                       type="button"
                       onClick={(event) => {
@@ -2054,44 +2871,20 @@ export const CharacterMode: React.FC = () => {
                         action.onSelect();
                         focusStageElement();
                       }}
-                      css={{
-                        appearance: "none",
-                        border: "none",
-                        borderRadius: 12,
-                        padding: "10px 12px",
-                        textAlign: "left",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        letterSpacing: "0.01em",
-                        color:
-                          action.tone === "danger"
-                            ? "rgb(190, 24, 93)"
-                            : "var(--ink-strong)",
-                        background:
-                          action.tone === "danger"
-                            ? "rgba(255, 241, 242, 0.96)"
-                            : "rgba(248, 250, 252, 0.96)",
-                        transition: "background 140ms ease, color 140ms ease",
-                        "&:hover": {
-                          background:
-                            action.tone === "danger"
-                              ? "rgba(255, 228, 230, 0.98)"
-                              : "rgba(226, 232, 240, 0.92)",
-                        },
-                      }}
+                      danger={action.tone === "danger"}
                     >
                       {action.label}
-                    </button>
+                    </PositionedActionMenuButton>
                   ))}
-                </div>
-              </div>,
+                </PositionedActionMenu>
+              </PortalOverlay>,
               document.body,
             );
           }),
         );
 
   return (
-    <Panel css={{ gridTemplateRows: "auto minmax(0, 1fr)" }}>
+    <Panel flex={1} minHeight={0} height="100%">
       <PanelHeader>
         <PanelHeaderRow>
           <PanelTitle>キャラクター編集</PanelTitle>
@@ -2144,130 +2937,89 @@ export const CharacterMode: React.FC = () => {
         </PanelHeaderRow>
       </PanelHeader>
 
-      <div
+      <CharacterWorkspaceRoot
+        flex={1}
         onPointerDownCapture={handleWorkspacePointerDownCapture}
         onPointerMoveCapture={handleWorkspacePointerMove}
         onPointerUpCapture={handleWorkspacePointerEnd}
         onPointerCancelCapture={handleWorkspacePointerEnd}
-        css={{
-          minHeight: 0,
-          display: "grid",
-          gridTemplateRows: "auto minmax(0, 1fr) auto",
-          gap: 16,
-        }}
       >
-        <FieldGrid
-          css={{
-            gridTemplateColumns: "minmax(0, 1.2fr) auto minmax(0, 1fr) auto",
-            alignItems: "end",
-            "@media (max-width: 1200px)": {
-              gridTemplateColumns: "minmax(0, 1fr) auto",
-            },
-            "@media (max-width: 760px)": {
-              gridTemplateColumns: "minmax(0, 1fr)",
-            },
-          }}
-        >
-          <Field>
+        <ResponsiveHeaderGrid>
+          <Field flex="1 1 17.5rem">
             <FieldLabel>新規セット名</FieldLabel>
-            <NumberInput
-              as="input"
+            <CharacterInput
               type="text"
               value={newName}
+              inputProps={{
+                "aria-label": "新規セット名",
+              }}
               onChange={(event) => setNewName(event.target.value)}
             />
           </Field>
-          <ToolButton type="button" tone="primary" onClick={handleCreateSet}>
-            セットを作成
-          </ToolButton>
-          <Field>
+          <ResponsiveAutoWidthContainer>
+            <ToolButton type="button" tone="primary" onClick={handleCreateSet}>
+              セットを作成
+            </ToolButton>
+          </ResponsiveAutoWidthContainer>
+          <Field flex="1 1 17.5rem">
             <FieldLabel>編集中のセット</FieldLabel>
-            <div css={{ position: "relative" }}>
-              <SelectInput
-                aria-label="編集中のセット"
-                css={{ paddingRight: 56 }}
-                value={pipe(
-                  selectedCharacterId,
-                  O.match(
-                    () => "",
-                    (value) => value,
-                  ),
-                )}
-                onChange={(event) => handleSelectSet(event.target.value)}
-              >
-                {characterSets.length === 0 && (
-                  <option value="">キャラクターセットがありません</option>
-                )}
-                {characterSets.map((characterSet) => (
-                  <option key={characterSet.id} value={characterSet.id}>
-                    {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
-                  </option>
-                ))}
-              </SelectInput>
-              <span
-                aria-hidden="true"
-                css={{
-                  position: "absolute",
-                  right: 18,
-                  top: "50%",
-                  width: 0,
-                  height: 0,
-                  borderLeft: "5px solid transparent",
-                  borderRight: "5px solid transparent",
-                  borderTop: "7px solid #334155",
-                  transform: "translateY(-35%)",
-                  pointerEvents: "none",
-                }}
-              />
-            </div>
+            <CharacterSelectInput
+              variant="outlined"
+              inputProps={{
+                "aria-label": "編集中のセット",
+              }}
+              value={pipe(
+                selectedCharacterId,
+                O.match(
+                  () => "",
+                  (value) => value,
+                ),
+              )}
+              onChange={(event) => handleSelectSet(event.target.value)}
+            >
+              {characterSets.length === 0 && (
+                <option value="">キャラクターセットがありません</option>
+              )}
+              {characterSets.map((characterSet) => (
+                <option key={characterSet.id} value={characterSet.id}>
+                  {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
+                </option>
+              ))}
+            </CharacterSelectInput>
           </Field>
-          <ToolButton
-            type="button"
-            tone="danger"
-            disabled={O.isNone(activeSet)}
-            onClick={() => {
-              if (activeSetId === "") {
-                return;
-              }
-              handleDeleteSet(activeSetId);
-            }}
-          >
-            セットを削除
-          </ToolButton>
-        </FieldGrid>
+          <ResponsiveAutoWidthContainer>
+            <ToolButton
+              type="button"
+              tone="danger"
+              disabled={O.isNone(activeSet)}
+              onClick={() => {
+                if (activeSetId === "") {
+                  return;
+                }
+                handleDeleteSet(activeSetId);
+              }}
+            >
+              セットを削除
+            </ToolButton>
+          </ResponsiveAutoWidthContainer>
+        </ResponsiveHeaderGrid>
 
-        <div
+        <CharacterWorkspaceGrid
           aria-label="キャラクター編集ワークスペース"
-          css={{
-            minHeight: 0,
-            display: "grid",
-            gridTemplateColumns:
-              editorMode === "compose"
-                ? "minmax(220px, 280px) minmax(0, 1fr)"
-                : "minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 320px)",
-            gap: 16,
-            alignContent: "start",
-            overflow: "auto",
-            scrollbarGutter: "stable both-edges",
-            "@media (max-width: 1500px)": {
-              gridTemplateColumns: "minmax(220px, 260px) minmax(0, 1fr)",
-              gridTemplateRows: "minmax(440px, 1fr) auto",
-            },
-            "@media (max-width: 980px)": {
-              gridTemplateColumns: "minmax(0, 1fr)",
-              gridTemplateRows: "auto minmax(440px, 1fr) auto",
-            },
-          }}
+          decompose={editorMode === "decompose"}
+          flex={1}
         >
-          <div css={sidebarStyles}>
-            <div css={editorCardStyles}>
+          <SidebarColumn>
+            <EditorCard>
               <Field>
                 <FieldLabel>セット名</FieldLabel>
-                <NumberInput
-                  as="input"
+                <CharacterInput
                   type="text"
                   value={activeSetName}
                   disabled={O.isNone(activeSet)}
+                  inputProps={{
+                    "aria-label": "セット名",
+                  }}
                   onChange={(event) =>
                     pipe(
                       activeSet,
@@ -2279,93 +3031,71 @@ export const CharacterMode: React.FC = () => {
                 />
               </Field>
 
-              <Field css={{ display: "grid", gap: 10 }}>
+              <EditorFieldStack>
                 <FieldLabel>編集モード</FieldLabel>
-                <div
-                  css={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 10,
-                  }}
-                >
-                  <ToolButton
+                <TwoOptionGrid>
+                  <WideToolButton
                     type="button"
                     aria-label="編集モード 合成"
                     active={editorMode === "compose"}
                     onClick={() => setEditorMode("compose")}
                   >
                     合成
-                  </ToolButton>
-                  <ToolButton
+                  </WideToolButton>
+                  <WideToolButton
                     type="button"
                     aria-label="編集モード 分解"
                     active={editorMode === "decompose"}
                     onClick={() => setEditorMode("decompose")}
                   >
                     分解
-                  </ToolButton>
-                </div>
-              </Field>
+                  </WideToolButton>
+                </TwoOptionGrid>
+              </EditorFieldStack>
 
-              <Field css={{ display: "grid", gap: 10 }}>
+              <EditorFieldStack>
                 <PanelHeaderRow>
                   <FieldLabel>スプライト単位</FieldLabel>
                   <Badge tone={projectSpriteSizeLocked ? "neutral" : "accent"}>
                     {projectSpriteSizeLocked === true ? "locked" : "editable"}
                   </Badge>
                 </PanelHeaderRow>
-                <div
-                  css={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 10,
-                  }}
-                >
-                  <ToolButton
+                <TwoOptionGrid>
+                  <WideToolButton
                     type="button"
                     aria-label="プロジェクトスプライトサイズ 8x8"
                     active={projectSpriteSize === 8}
                     disabled={
-                      projectSpriteSizeLocked === true && projectSpriteSize !== 8
+                      projectSpriteSizeLocked === true &&
+                      projectSpriteSize !== 8
                     }
                     onClick={() => handleProjectSpriteSizeChange(8)}
                   >
                     8×8
-                  </ToolButton>
-                  <ToolButton
+                  </WideToolButton>
+                  <WideToolButton
                     type="button"
                     aria-label="プロジェクトスプライトサイズ 8x16"
                     active={projectSpriteSize === 16}
                     disabled={
-                      projectSpriteSizeLocked === true && projectSpriteSize !== 16
+                      projectSpriteSizeLocked === true &&
+                      projectSpriteSize !== 16
                     }
                     onClick={() => handleProjectSpriteSizeChange(16)}
                   >
                     8×16
-                  </ToolButton>
-                </div>
-              </Field>
+                  </WideToolButton>
+                </TwoOptionGrid>
+              </EditorFieldStack>
+            </EditorCard>
 
-            </div>
-
-            <div
-              css={{
-                ...editorCardStyles,
-                gridTemplateRows: "auto minmax(0, 1fr)",
-              }}
-            >
+            <LibraryCard>
               <PanelHeaderRow>
                 <FieldLabel>スプライトライブラリ</FieldLabel>
               </PanelHeaderRow>
 
-              <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
-                <div
-                  css={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 10,
-                  }}
-                >
+              <LibraryScrollArea flex={1} minHeight={0} pr={0}>
+                <LibraryGrid>
                   {sprites.map((spriteTile, spriteIndex) => {
                     const isDragging = pipe(
                       libraryDragState,
@@ -2376,99 +3106,50 @@ export const CharacterMode: React.FC = () => {
                     );
 
                     return (
-                      <button
+                      <LibrarySpriteButton
                         key={`library-sprite-${spriteIndex}`}
                         type="button"
+                        dragging={isDragging}
+                        draggableState={
+                          editorMode === "compose" && O.isSome(activeSet)
+                        }
                         draggable={false}
                         aria-label={`ライブラリスプライト ${spriteIndex}`}
                         onDragStart={(event) => event.preventDefault()}
                         onPointerDown={(event) =>
                           handleLibraryPointerDown(event, spriteIndex)
                         }
-                        css={{
-                          appearance: "none",
-                          display: "grid",
-                          gap: 10,
-                          justifyItems: "center",
-                          minHeight: 118,
-                          padding: 12,
-                          borderRadius: 18,
-                          border: isDragging
-                            ? "1px solid rgba(15, 118, 110, 0.42)"
-                            : "1px solid rgba(148, 163, 184, 0.2)",
-                          background: isDragging
-                            ? "rgba(240, 253, 250, 0.96)"
-                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
-                          color: "var(--ink-strong)",
-                          cursor:
-                            editorMode === "compose" && O.isSome(activeSet)
-                              ? "grab"
-                              : "default",
-                          userSelect: "none",
-                          touchAction: "none",
-                          transition:
-                            "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
-                          boxShadow: isDragging
-                            ? "0 16px 30px rgba(15, 118, 110, 0.16)"
-                            : "0 10px 18px rgba(15, 23, 42, 0.08)",
-                        }}
                       >
-                        <span
-                          css={{
-                            fontSize: 11,
-                            fontWeight: 800,
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: "var(--ink-soft)",
-                          }}
+                        <Stack
+                          alignItems="center"
+                          spacing="0.625rem"
+                          width="100%"
                         >
-                          {`Sprite ${spriteIndex}`}
-                        </span>
-                        <div
-                          css={{
-                            width: 88,
-                            minHeight: 64,
-                            display: "grid",
-                            placeItems: "center",
-                            borderRadius: 14,
-                            background:
-                              "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
-                          }}
-                        >
-                          {renderSpritePixels(
-                            spriteIndex,
-                            LIBRARY_PREVIEW_SCALE,
-                          )}
-                        </div>
-                        <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
-                      </button>
+                          <LibrarySpriteTitle>
+                            {`Sprite ${spriteIndex}`}
+                          </LibrarySpriteTitle>
+                          <LibrarySpritePreviewFrame
+                            alignItems="center"
+                            justifyContent="center"
+                            spacing={0}
+                          >
+                            {renderSpritePixels(
+                              spriteIndex,
+                              LIBRARY_PREVIEW_SCALE,
+                            )}
+                          </LibrarySpritePreviewFrame>
+                          <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
+                        </Stack>
+                      </LibrarySpriteButton>
                     );
                   })}
-                </div>
-              </ScrollArea>
-            </div>
-          </div>
+                </LibraryGrid>
+              </LibraryScrollArea>
+            </LibraryCard>
+          </SidebarColumn>
 
-          <div
-            css={{
-              ...editorCardStyles,
-              gridTemplateRows:
-                editorMode === "compose"
-                  ? "auto minmax(0, 1fr)"
-                  : "auto auto minmax(0, 1fr)",
-            }}
-          >
-            <div
-              css={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr) auto",
-                gap: 12,
-                alignItems: "center",
-                "@media (max-width: 700px)": {
-                  gridTemplateColumns: "minmax(0, 1fr)",
-                },
-              }}
-            >
+          <StageEditorCard decompose={editorMode === "decompose"} flex={1}>
+            <PreviewHeaderLayout>
               <PanelHeaderRow>
                 <FieldLabel>
                   {editorMode === "compose"
@@ -2482,39 +3163,37 @@ export const CharacterMode: React.FC = () => {
                 </Badge>
               </PanelHeaderRow>
 
-              <div
-                css={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(2, minmax(96px, 120px)) auto auto auto",
-                  gap: 10,
-                  alignItems: "center",
-                  "@media (max-width: 700px)": {
-                    gridTemplateColumns: "repeat(3, auto)",
-                    justifyContent: "start",
-                  },
-                }}
-              >
-                <NumberInput
-                  aria-label="プレビューキャンバス幅"
-                  type="number"
-                  min={STAGE_MIN_WIDTH}
-                  max={STAGE_MAX_WIDTH}
-                  step={8}
-                  value={stageWidth}
-                  onChange={(event) => handleStageWidthChange(event.target.value)}
-                />
-                <NumberInput
-                  aria-label="プレビューキャンバス高さ"
-                  type="number"
-                  min={STAGE_MIN_HEIGHT}
-                  max={STAGE_MAX_HEIGHT}
-                  step={8}
-                  value={stageHeight}
-                  onChange={(event) =>
-                    handleStageHeightChange(event.target.value)
-                  }
-                />
+              <PreviewControlsRow>
+                <StageInputContainer>
+                  <CharacterInput
+                    type="number"
+                    value={stageWidth}
+                    inputProps={{
+                      min: STAGE_MIN_WIDTH,
+                      max: STAGE_MAX_WIDTH,
+                      step: 8,
+                      "aria-label": "プレビューキャンバス幅",
+                    }}
+                    onChange={(event) =>
+                      handleStageWidthChange(event.target.value)
+                    }
+                  />
+                </StageInputContainer>
+                <StageInputContainer>
+                  <CharacterInput
+                    type="number"
+                    value={stageHeight}
+                    inputProps={{
+                      min: STAGE_MIN_HEIGHT,
+                      max: STAGE_MAX_HEIGHT,
+                      step: 8,
+                      "aria-label": "プレビューキャンバス高さ",
+                    }}
+                    onChange={(event) =>
+                      handleStageHeightChange(event.target.value)
+                    }
+                  />
+                </StageInputContainer>
                 <Badge tone="neutral">{`${stageZoomLevel}x`}</Badge>
                 <ToolButton type="button" onClick={handleZoomOut}>
                   -
@@ -2522,21 +3201,11 @@ export const CharacterMode: React.FC = () => {
                 <ToolButton type="button" onClick={handleZoomIn}>
                   +
                 </ToolButton>
-              </div>
-            </div>
+              </PreviewControlsRow>
+            </PreviewHeaderLayout>
 
             {editorMode === "decompose" && (
-              <div
-                css={{
-                  display: "grid",
-                  gap: 12,
-                  padding: 12,
-                  borderRadius: 18,
-                  background:
-                    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
-                  border: "1px solid rgba(148, 163, 184, 0.18)",
-                }}
-              >
+              <DecompositionToolCard>
                 <PanelHeaderRow>
                   <FieldLabel>分解ツール</FieldLabel>
                   <Badge tone="neutral">
@@ -2544,18 +3213,7 @@ export const CharacterMode: React.FC = () => {
                   </Badge>
                 </PanelHeaderRow>
 
-                <div
-                  css={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(3, minmax(0, 120px)) minmax(160px, 1fr)",
-                    gap: 10,
-                    alignItems: "center",
-                    "@media (max-width: 980px)": {
-                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    },
-                  }}
-                >
+                <DecompositionToolGrid>
                   <ToolButton
                     type="button"
                     aria-label="分解ツール ペン"
@@ -2580,19 +3238,14 @@ export const CharacterMode: React.FC = () => {
                   >
                     切り取り
                   </ToolButton>
-                  <div
-                    css={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(120px, 1fr) auto",
-                      gap: 10,
-                      alignItems: "center",
-                    }}
-                  >
-                    <div css={{ position: "relative" }}>
-                      <SelectInput
-                        aria-label="分解描画パレット"
-                        css={{ paddingRight: 56 }}
+                  <PaletteControlRow>
+                    <PaletteControlContainer>
+                      <CharacterSelectInput
+                        variant="outlined"
                         value={decompositionPaletteIndex}
+                        inputProps={{
+                          "aria-label": "分解描画パレット",
+                        }}
                         onChange={(event) => {
                           const parsed = Number(event.target.value);
                           if (
@@ -2610,31 +3263,10 @@ export const CharacterMode: React.FC = () => {
                             パレット {paletteIndex}
                           </option>
                         ))}
-                      </SelectInput>
-                      <span
-                        aria-hidden="true"
-                        css={{
-                          position: "absolute",
-                          right: 18,
-                          top: "50%",
-                          width: 0,
-                          height: 0,
-                          borderLeft: "5px solid transparent",
-                          borderRight: "5px solid transparent",
-                          borderTop: "7px solid #334155",
-                          transform: "translateY(-35%)",
-                          pointerEvents: "none",
-                        }}
-                      />
-                    </div>
+                      </CharacterSelectInput>
+                    </PaletteControlContainer>
 
-                    <div
-                      css={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                        gap: 8,
-                      }}
-                    >
+                    <PaletteSlotGrid>
                       {DECOMPOSITION_COLOR_SLOTS.map((slotIndex) => {
                         const tone =
                           decompositionColorIndex === slotIndex &&
@@ -2668,13 +3300,13 @@ export const CharacterMode: React.FC = () => {
                           </SlotGroup>
                         );
                       })}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    </PaletteSlotGrid>
+                  </PaletteControlRow>
+                </DecompositionToolGrid>
+              </DecompositionToolCard>
             )}
 
-            <CanvasViewport
+            <CharacterStageViewport
               ref={(element: HTMLDivElement | null) => {
                 viewportElementRef.current = O.fromNullable(element);
               }}
@@ -2689,25 +3321,10 @@ export const CharacterMode: React.FC = () => {
                   event.preventDefault();
                 }
               }}
-              css={{
-                minHeight: 0,
-                display: "grid",
-                placeItems: "center",
-                padding: 24,
-                borderRadius: 0,
-                overscrollBehavior: "contain",
-                cursor: O.isSome(viewportPanState) ? "grabbing" : "default",
-              }}
+              dragging={O.isSome(viewportPanState)}
             >
-              <div
-                css={{
-                  minWidth: "100%",
-                  minHeight: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                }}
-              >
-                <div
+              <ViewportCenterWrap>
+                <StageSurface
                   ref={(element) => {
                     stageElementRef.current = O.fromNullable(element);
                   }}
@@ -2721,117 +3338,42 @@ export const CharacterMode: React.FC = () => {
                   tabIndex={editorMode === "compose" ? 0 : -1}
                   onContextMenu={handleComposeContextMenu}
                   onKeyDown={handleStageKeyDown}
-                  css={{
-                    position: "relative",
-                    width: stageWidth * stageScale,
-                    height: stageHeight * stageScale,
-                    minWidth: stageWidth * stageScale,
-                    minHeight: stageHeight * stageScale,
-                    overflow: "hidden",
-                    border: isStageDropActive
-                      ? "1px solid rgba(45, 212, 191, 0.72)"
-                      : "1px solid rgba(148, 163, 184, 0.22)",
-                    background:
-                      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
-                    boxShadow:
-                      "0 28px 60px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.92)",
-                    transform: isStageDropActive ? "scale(1.01)" : "none",
-                    transition:
-                      "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
-                    "&:focus-visible": {
-                      outline: "2px solid rgba(15, 118, 110, 0.92)",
-                      outlineOffset: 4,
-                    },
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      inset: 0,
-                      backgroundImage: [
-                        "linear-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px)",
-                        "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 1px, transparent 1px)",
-                        "linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
-                        "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px)",
-                      ].join(", "),
-                      backgroundSize: [
-                        `${stageScale}px ${stageScale}px`,
-                        `${stageScale}px ${stageScale}px`,
-                        `${stageScale * 8}px ${stageScale * 8}px`,
-                        `${stageScale * 8}px ${stageScale * 8}px`,
-                      ].join(", "),
-                      opacity: 0.95,
-                      pointerEvents: "none",
-                    },
-                    "&::after": {
-                      content: '""',
-                      position: "absolute",
-                      inset: 0,
-                      backgroundImage: [
-                        "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-                        "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-                      ].join(", "),
-                      backgroundSize: `1px ${stageHeight * stageScale}px, ${stageWidth * stageScale}px 1px`,
-                      backgroundPosition: `${Math.floor((stageWidth * stageScale) / 2)}px 0, 0 ${Math.floor((stageHeight * stageScale) / 2)}px`,
-                      backgroundRepeat: "no-repeat",
-                      pointerEvents: "none",
-                    },
-                  }}
+                  activeDrop={isStageDropActive}
+                  stageWidthPx={stageWidth * stageScale}
+                  stageHeightPx={stageHeight * stageScale}
+                  stageScale={stageScale}
                 >
-                  {editorMode === "compose" ? (
-                    <>
-                      <canvas
-                        ref={(element: HTMLCanvasElement | null) => {
-                          composeCanvasElementRef.current = O.fromNullable(element);
-                        }}
-                        aria-hidden="true"
-                        data-stage-width={stageWidth}
-                        data-stage-height={stageHeight}
-                        width={stageWidth * stageScale}
-                        height={stageHeight * stageScale}
-                        css={{
-                          position: "absolute",
-                          inset: 0,
-                          width: "100%",
-                          height: "100%",
-                        }}
-                      />
+                  <ComposeCanvasMount onCanvasRef={handleComposeCanvasRef} />
 
-                      {pipe(
-                        libraryDragState,
-                        O.match(
-                          () => <></>,
-                          (drag) => {
-                            if (drag.isOverStage === false) {
-                              return <></>;
-                            }
+                  {editorMode === "compose" &&
+                    pipe(
+                      libraryDragState,
+                      O.match(
+                        () => <></>,
+                        (drag) => {
+                          if (drag.isOverStage === false) {
+                            return <></>;
+                          }
 
-                            return (
-                              <div
-                                key={`library-preview-${drag.spriteIndex}`}
-                                css={{
-                                  position: "absolute",
-                                  left: drag.stageX * stageScale,
-                                  top: drag.stageY * stageScale,
-                                  opacity: 0.6,
-                                  pointerEvents: "none",
-                                  outline: "2px dashed rgba(15, 118, 110, 0.72)",
-                                  borderRadius: 8,
-                                  boxShadow: "0 0 0 6px rgba(15, 118, 110, 0.12)",
-                                  background: "rgba(255, 255, 255, 0.72)",
-                                  padding: 2,
-                                }}
-                              >
-                                {renderSpritePixels(drag.spriteIndex, stageScale)}
-                              </div>
-                            );
-                          },
-                        ),
-                      )}
-                    </>
-                  ) : (
+                          return (
+                            <StageDragPreview
+                              key={`library-preview-${drag.spriteIndex}`}
+                              previewLeft={drag.stageX * stageScale}
+                              previewTop={drag.stageY * stageScale}
+                            >
+                              {renderSpritePixels(drag.spriteIndex, stageScale)}
+                            </StageDragPreview>
+                          );
+                        },
+                      ),
+                    )}
+
+                  {editorMode === "decompose" && (
                     <>
-                      <canvas
+                      <DecompositionCanvasElement
                         ref={(element: HTMLCanvasElement | null) => {
-                          decompositionCanvasRef.current = O.fromNullable(element);
+                          decompositionCanvasRef.current =
+                            O.fromNullable(element);
                         }}
                         aria-label="分解描画キャンバス"
                         data-stage-width={stageWidth}
@@ -2839,99 +3381,74 @@ export const CharacterMode: React.FC = () => {
                         width={stageWidth * stageScale}
                         height={stageHeight * stageScale}
                         onPointerDown={handleDecompositionCanvasPointerDown}
-                        css={{
-                          position: "absolute",
-                          inset: 0,
-                          width: "100%",
-                          height: "100%",
-                          imageRendering: "pixelated",
-                          cursor: decompositionCanvasCursor,
-                        }}
+                        cursorStyle={decompositionCanvasCursor}
                       />
 
-                      {decompositionAnalysis.regions.map((regionAnalysis, regionIndex) => {
-                        const isSelected = pipe(
-                          selectedRegionId,
-                          O.match(
-                            () => false,
-                            (regionId) => regionId === regionAnalysis.region.id,
-                          ),
-                        );
-                        const hasIssues = regionAnalysis.issues.length > 0;
+                      {decompositionAnalysis.regions.map(
+                        (regionAnalysis, regionIndex) => {
+                          const isSelected = pipe(
+                            selectedRegionId,
+                            O.match(
+                              () => false,
+                              (regionId) =>
+                                regionId === regionAnalysis.region.id,
+                            ),
+                          );
+                          const hasIssues = regionAnalysis.issues.length > 0;
 
-                        return (
-                          <button
-                            key={regionAnalysis.region.id}
-                            type="button"
-                            aria-label={`切り取り領域 ${regionIndex}`}
-                            onPointerDown={(event) =>
-                              handleDecompositionRegionPointerDown(
-                                event,
-                                regionAnalysis.region,
-                              )
-                            }
-                            onClick={() =>
-                              setSelectedRegionId(O.some(regionAnalysis.region.id))
-                            }
-                            css={{
-                              position: "absolute",
-                              left: regionAnalysis.region.x * stageScale,
-                              top: regionAnalysis.region.y * stageScale,
-                              width: 8 * stageScale,
-                              height: projectSpriteSize * stageScale,
-                              display: "grid",
-                              alignContent: "space-between",
-                              justifyItems: "start",
-                              padding: 6,
-                              border: hasIssues
-                                ? "2px solid rgba(190, 24, 93, 0.92)"
-                                : "2px solid rgba(15, 118, 110, 0.92)",
-                              background: hasIssues
-                                ? "rgba(255, 241, 242, 0.18)"
-                                : "rgba(240, 253, 250, 0.18)",
-                              boxShadow: isSelected
-                                ? "0 0 0 6px rgba(15, 118, 110, 0.12)"
-                                : "none",
-                              cursor:
-                                decompositionTool === "region"
-                                  ? "grab"
-                                  : "default",
-                              pointerEvents:
-                                decompositionTool === "region" ? "auto" : "none",
-                            }}
-                          >
-                            <Badge tone={hasIssues ? "danger" : "accent"}>
-                              {`#${regionIndex}`}
-                            </Badge>
-                            <Badge tone={hasIssues ? "danger" : "neutral"}>
-                              {getRegionStatusLabel(regionAnalysis)}
-                            </Badge>
-                          </button>
-                        );
-                      })}
+                          return (
+                            <RegionOverlayButton
+                              key={regionAnalysis.region.id}
+                              type="button"
+                              aria-label={`切り取り領域 ${regionIndex}`}
+                              onPointerDown={(event) =>
+                                handleDecompositionRegionPointerDown(
+                                  event,
+                                  regionAnalysis.region,
+                                )
+                              }
+                              onClick={() =>
+                                setSelectedRegionId(
+                                  O.some(regionAnalysis.region.id),
+                                )
+                              }
+                              selectedState={isSelected}
+                              issueState={hasIssues}
+                              regionLeft={regionAnalysis.region.x * stageScale}
+                              regionTop={regionAnalysis.region.y * stageScale}
+                              regionHeightPx={projectSpriteSize * stageScale}
+                              regionScale={stageScale}
+                              toolMode={decompositionTool}
+                            >
+                              <Stack
+                                height="100%"
+                                width="100%"
+                                alignItems="flex-start"
+                                justifyContent="space-between"
+                                spacing={0}
+                              >
+                                <Badge tone={hasIssues ? "danger" : "accent"}>
+                                  {`#${regionIndex}`}
+                                </Badge>
+                                <Badge tone={hasIssues ? "danger" : "neutral"}>
+                                  {getRegionStatusLabel(regionAnalysis)}
+                                </Badge>
+                              </Stack>
+                            </RegionOverlayButton>
+                          );
+                        },
+                      )}
                     </>
                   )}
-
-                </div>
-              </div>
-            </CanvasViewport>
-          </div>
+                </StageSurface>
+              </ViewportCenterWrap>
+            </CharacterStageViewport>
+          </StageEditorCard>
 
           {editorMode === "decompose" && (
-            <div
-              css={{
-                ...sidebarStyles,
-                "@media (max-width: 1500px)": {
-                  gridColumn: "1 / -1",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                },
-                "@media (max-width: 980px)": {
-                  gridTemplateColumns: "minmax(0, 1fr)",
-                },
-              }}
-            >
+            <DecompositionSidebar>
               <>
-                <div css={editorCardStyles}>
+                <EditorCard>
                   <PanelHeaderRow>
                     <FieldLabel>選択中の領域</FieldLabel>
                     <Badge tone="neutral">
@@ -2945,17 +3462,7 @@ export const CharacterMode: React.FC = () => {
                     </Badge>
                   </PanelHeaderRow>
 
-                  <div
-                    css={{
-                      minHeight: 108,
-                      borderRadius: 18,
-                      display: "grid",
-                      placeItems: "center",
-                      background:
-                        "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-                      border: "1px solid rgba(148, 163, 184, 0.18)",
-                    }}
-                  >
+                  <RegionPreviewSurface>
                     {pipe(
                       selectedRegionAnalysis,
                       O.match(
@@ -2968,7 +3475,7 @@ export const CharacterMode: React.FC = () => {
                           ),
                       ),
                     )}
-                  </div>
+                  </RegionPreviewSurface>
 
                   <DetailList>
                     <DetailRow>
@@ -3002,32 +3509,31 @@ export const CharacterMode: React.FC = () => {
                     O.match(
                       () => <></>,
                       (regionAnalysis) => (
-                        <div css={{ display: "grid", gap: 10 }}>
-                          <FieldGrid
-                            css={{
-                              gridTemplateColumns:
-                                "repeat(2, minmax(0, 1fr))",
-                            }}
-                          >
+                        <InspectorSection>
+                          <InspectorFieldGrid>
                             <Field>
                               <FieldLabel>x</FieldLabel>
-                              <NumberInput
-                                aria-label="選択中領域X座標"
+                              <CharacterInput
                                 type="number"
                                 value={regionAnalysis.region.x}
                                 readOnly
+                                inputProps={{
+                                  "aria-label": "選択中領域X座標",
+                                }}
                               />
                             </Field>
                             <Field>
                               <FieldLabel>y</FieldLabel>
-                              <NumberInput
-                                aria-label="選択中領域Y座標"
+                              <CharacterInput
                                 type="number"
                                 value={regionAnalysis.region.y}
                                 readOnly
+                                inputProps={{
+                                  "aria-label": "選択中領域Y座標",
+                                }}
                               />
                             </Field>
-                          </FieldGrid>
+                          </InspectorFieldGrid>
 
                           <DetailList>
                             <DetailRow>
@@ -3059,27 +3565,21 @@ export const CharacterMode: React.FC = () => {
                               </Badge>
                             </DetailRow>
                           </DetailList>
-                        </div>
+                        </InspectorSection>
                       ),
                     ),
                   )}
 
-                  <div
-                    css={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                      gap: 10,
-                    }}
-                  >
-                    <ToolButton
+                  <DualActionGrid>
+                    <WideToolButton
                       type="button"
                       tone="danger"
                       disabled={O.isNone(selectedRegionId)}
                       onClick={handleRemoveSelectedRegion}
                     >
                       選択中領域を削除
-                    </ToolButton>
-                    <ToolButton
+                    </WideToolButton>
+                    <WideToolButton
                       type="button"
                       tone="primary"
                       disabled={
@@ -3090,16 +3590,11 @@ export const CharacterMode: React.FC = () => {
                       onClick={handleApplyDecomposition}
                     >
                       分解して現在のセットへ反映
-                    </ToolButton>
-                  </div>
-                </div>
+                    </WideToolButton>
+                  </DualActionGrid>
+                </EditorCard>
 
-                <div
-                  css={{
-                    ...editorCardStyles,
-                    gridTemplateRows: "auto minmax(0, 1fr)",
-                  }}
-                >
+                <RegionListCard>
                   <PanelHeaderRow>
                     <FieldLabel>切り取り領域一覧</FieldLabel>
                     <Badge tone="accent">
@@ -3107,93 +3602,76 @@ export const CharacterMode: React.FC = () => {
                     </Badge>
                   </PanelHeaderRow>
 
-                  <ScrollArea css={{ minHeight: 0, paddingRight: 0 }}>
-                    <div css={{ display: "grid", gap: 10 }}>
-                      {decompositionAnalysis.regions.map((regionAnalysis, regionIndex) => {
-                        const isSelected = pipe(
-                          selectedRegionId,
-                          O.match(
-                            () => false,
-                            (regionId) => regionId === regionAnalysis.region.id,
-                          ),
-                        );
+                  <ScrollArea flex={1} minHeight={0} pr={0}>
+                    <RegionList>
+                      {decompositionAnalysis.regions.map(
+                        (regionAnalysis, regionIndex) => {
+                          const isSelected = pipe(
+                            selectedRegionId,
+                            O.match(
+                              () => false,
+                              (regionId) =>
+                                regionId === regionAnalysis.region.id,
+                            ),
+                          );
 
-                        return (
-                          <button
-                            key={regionAnalysis.region.id}
-                            type="button"
-                            onClick={() =>
-                              setSelectedRegionId(O.some(regionAnalysis.region.id))
-                            }
-                            css={{
-                              appearance: "none",
-                              display: "grid",
-                              gap: 10,
-                              padding: 12,
-                              borderRadius: 18,
-                              border: isSelected
-                                ? "1px solid rgba(15, 118, 110, 0.38)"
-                                : "1px solid rgba(148, 163, 184, 0.2)",
-                              background: isSelected
-                                ? "rgba(240, 253, 250, 0.96)"
-                                : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
-                              color: "var(--ink-strong)",
-                              textAlign: "left",
-                              boxShadow: isSelected
-                                ? "0 18px 32px rgba(15, 118, 110, 0.12)"
-                                : "0 10px 18px rgba(15, 23, 42, 0.06)",
-                            }}
-                          >
-                            <PanelHeaderRow>
-                              <FieldLabel>{`領域 ${regionIndex}`}</FieldLabel>
-                              <Badge
-                                tone={
-                                  regionAnalysis.issues.length > 0
-                                    ? "danger"
-                                    : "accent"
-                                }
-                              >
-                                {getRegionStatusLabel(regionAnalysis)}
-                              </Badge>
-                            </PanelHeaderRow>
-                            <div
-                              css={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 8,
-                              }}
+                          return (
+                            <RegionListButton
+                              key={regionAnalysis.region.id}
+                              type="button"
+                              selectedState={isSelected}
+                              onClick={() =>
+                                setSelectedRegionId(
+                                  O.some(regionAnalysis.region.id),
+                                )
+                              }
                             >
-                              <Badge tone="neutral">
-                                {`x:${regionAnalysis.region.x}`}
-                              </Badge>
-                              <Badge tone="neutral">
-                                {`y:${regionAnalysis.region.y}`}
-                              </Badge>
-                              <Badge
-                                tone={
-                                  regionAnalysis.issues.length > 0
-                                    ? "danger"
-                                    : "neutral"
-                                }
-                              >
-                                {regionAnalysis.issues.length > 0
-                                  ? regionAnalysis.issues
-                                      .map(getIssueLabel)
-                                      .join(", ")
-                                  : "valid"}
-                              </Badge>
-                            </div>
-                          </button>
-                        );
-                      })}
-
-                    </div>
+                              <Stack spacing="0.625rem" width="100%">
+                                <PanelHeaderRow>
+                                  <FieldLabel>{`領域 ${regionIndex}`}</FieldLabel>
+                                  <Badge
+                                    tone={
+                                      regionAnalysis.issues.length > 0
+                                        ? "danger"
+                                        : "accent"
+                                    }
+                                  >
+                                    {getRegionStatusLabel(regionAnalysis)}
+                                  </Badge>
+                                </PanelHeaderRow>
+                                <RegionMetaRow>
+                                  <Badge tone="neutral">
+                                    {`x:${regionAnalysis.region.x}`}
+                                  </Badge>
+                                  <Badge tone="neutral">
+                                    {`y:${regionAnalysis.region.y}`}
+                                  </Badge>
+                                  <Badge
+                                    tone={
+                                      regionAnalysis.issues.length > 0
+                                        ? "danger"
+                                        : "neutral"
+                                    }
+                                  >
+                                    {regionAnalysis.issues.length > 0
+                                      ? regionAnalysis.issues
+                                          .map(getIssueLabel)
+                                          .join(", ")
+                                      : "valid"}
+                                  </Badge>
+                                </RegionMetaRow>
+                              </Stack>
+                            </RegionListButton>
+                          );
+                        },
+                      )}
+                    </RegionList>
                   </ScrollArea>
-                </div>
+                </RegionListCard>
               </>
-            </div>
+            </DecompositionSidebar>
           )}
-        </div>
+        </CharacterWorkspaceGrid>
 
         {editorMode === "compose" &&
           pipe(
@@ -3201,29 +3679,24 @@ export const CharacterMode: React.FC = () => {
             O.match(
               () => <></>,
               (drag) => (
-                <div
+                <FloatingLibraryPreview
                   aria-label="ライブラリドラッグプレビュー"
-                  css={{
-                    position: "fixed",
-                    left: drag.clientX + 18,
-                    top: drag.clientY + 18,
-                    zIndex: 200,
-                    pointerEvents: "none",
-                    display: "grid",
-                    placeItems: "center",
-                    width: 64,
-                    minHeight: 64,
-                    padding: 10,
-                    borderRadius: 18,
-                    background:
-                      "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-                    border: "1px solid rgba(148, 163, 184, 0.18)",
-                    boxShadow: "0 18px 34px rgba(15, 23, 42, 0.18)",
-                    opacity: 0.92,
-                  }}
+                  dragClientX={drag.clientX}
+                  dragClientY={drag.clientY}
                 >
-                  {renderSpritePixels(drag.spriteIndex, LIBRARY_PREVIEW_SCALE)}
-                </div>
+                  <Stack
+                    height="100%"
+                    width="100%"
+                    alignItems="center"
+                    justifyContent="center"
+                    spacing={0}
+                  >
+                    {renderSpritePixels(
+                      drag.spriteIndex,
+                      LIBRARY_PREVIEW_SCALE,
+                    )}
+                  </Stack>
+                </FloatingLibraryPreview>
               ),
             ),
           )}
@@ -3235,7 +3708,7 @@ export const CharacterMode: React.FC = () => {
             (menu) => menu,
           ),
         )}
-      </div>
+      </CharacterWorkspaceRoot>
     </Panel>
   );
 };

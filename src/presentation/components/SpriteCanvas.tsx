@@ -1,4 +1,5 @@
 import React from "react";
+import { styled } from "@mui/material/styles";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
@@ -17,8 +18,13 @@ interface Props {
     onChange: (next: SpriteTile, currentSprite: number) => void;
 }
 
+const CanvasElement = styled("canvas")({
+    touchAction: "none",
+    imageRendering: "pixelated",
+});
+
 export const SpriteCanvas: React.FC<Props> = (props) => {
     const { canvasProps } = useSpriteCanvas(props);
 
-    return <canvas {...canvasProps} css={{ display: "block", touchAction: "none", imageRendering: "pixelated" }} />;
+    return <CanvasElement {...canvasProps} />;
 };
