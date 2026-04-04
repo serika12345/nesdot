@@ -1,7 +1,7 @@
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useCharacterState } from "../../application/state/characterStore";
 import {
   getHexArrayForScreen,
@@ -25,6 +25,7 @@ import {
 import useExportImage from "../../infrastructure/browser/useExportImage";
 import useImportImage from "../../infrastructure/browser/useImportImage";
 import {
+  Badge,
   CanvasViewport,
   CollapseToggle,
   DetailKey,
@@ -53,15 +54,47 @@ import { ProjectActions } from "./ProjectActions";
 import { ScreenCanvas } from "./ScreenCanvas";
 import { ChevronIcon } from "./ui/Icons";
 
+const SCREEN_MIN_ZOOM_LEVEL = 1;
+const SCREEN_MAX_ZOOM_LEVEL = 8;
+const SCREEN_DEFAULT_ZOOM_LEVEL = 2;
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.max(min, Math.min(max, value));
+
+const trySetPointerCapture = (
+  target: HTMLElement,
+  pointerId: number,
+): void => {
+  try {
+    target.setPointerCapture(pointerId);
+  } catch {
+    // Synthetic pointer events used in tests may not have a capturable pointer.
+  }
+};
+
+interface ViewportPanState {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startScrollLeft: number;
+  startScrollTop: number;
+}
+
 export const ScreenMode: React.FC = () => {
   const [spriteNumber, setSpriteNumber] = useState(0);
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
+  const [screenZoomLevel, setScreenZoomLevel] = useState(
+    SCREEN_DEFAULT_ZOOM_LEVEL,
+  );
   const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
     O.Option<number>
   >(() =>
     useProjectState.getState().screen.sprites.length > 0 ? O.some(0) : O.none,
   );
+  const [viewportPanState, setViewportPanState] = useState<
+    O.Option<ViewportPanState>
+  >(O.none);
   const [isPlacementOpen, setIsPlacementOpen] = useState(true);
   const [isSelectionOpen, setIsSelectionOpen] = useState(false);
   const [isGroupMoveOpen, setIsGroupMoveOpen] = useState(false);
@@ -70,6 +103,7 @@ export const ScreenMode: React.FC = () => {
   >(() => new Set());
   const [groupMoveDeltaX, setGroupMoveDeltaX] = useState(0);
   const [groupMoveDeltaY, setGroupMoveDeltaY] = useState(0);
+  const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const screen = useProjectState((s) => s.screen);
   const nes = useProjectState((s) => s.nes);
   const sprites = useProjectState((s) => s.sprites);
@@ -283,6 +317,119 @@ export const ScreenMode: React.FC = () => {
     boxShadow: "none",
     padding: 0,
     borderRadius: 0,
+  };
+
+  const updateScreenZoomLevel = (
+    nextZoomLevel: number,
+    anchor: O.Option<{ clientX: number; clientY: number }> = O.none,
+  ): void => {
+    setScreenZoomLevel((currentZoomLevel) => {
+      const clampedZoomLevel = clamp(
+        nextZoomLevel,
+        SCREEN_MIN_ZOOM_LEVEL,
+        SCREEN_MAX_ZOOM_LEVEL,
+      );
+
+      if (clampedZoomLevel === currentZoomLevel) {
+        return currentZoomLevel;
+      }
+
+      if (O.isSome(anchor) && O.isSome(viewportElementRef.current)) {
+        const viewport = viewportElementRef.current.value;
+        const rect = viewport.getBoundingClientRect();
+        const relativeX = anchor.value.clientX - rect.left;
+        const relativeY = anchor.value.clientY - rect.top;
+        const currentCanvasX = viewport.scrollLeft + relativeX;
+        const currentCanvasY = viewport.scrollTop + relativeY;
+
+        window.requestAnimationFrame(() => {
+          viewport.scrollTo({
+            left:
+              (currentCanvasX / currentZoomLevel) * clampedZoomLevel - relativeX,
+            top:
+              (currentCanvasY / currentZoomLevel) * clampedZoomLevel - relativeY,
+          });
+        });
+      }
+
+      return clampedZoomLevel;
+    });
+  };
+
+  const handleZoomOut = (): void => {
+    updateScreenZoomLevel(screenZoomLevel - 1, O.none);
+  };
+
+  const handleZoomIn = (): void => {
+    updateScreenZoomLevel(screenZoomLevel + 1, O.none);
+  };
+
+  const handleViewportWheel = (
+    event: React.WheelEvent<HTMLDivElement>,
+  ): void => {
+    if (event.ctrlKey === false) {
+      return;
+    }
+
+    event.preventDefault();
+    updateScreenZoomLevel(
+      event.deltaY < 0 ? screenZoomLevel + 1 : screenZoomLevel - 1,
+      O.some({ clientX: event.clientX, clientY: event.clientY }),
+    );
+  };
+
+  const handleViewportPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ): void => {
+    if (event.button !== 1) {
+      return;
+    }
+
+    event.preventDefault();
+    setViewportPanState(
+      O.some({
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startScrollLeft: event.currentTarget.scrollLeft,
+        startScrollTop: event.currentTarget.scrollTop,
+      }),
+    );
+    trySetPointerCapture(event.currentTarget, event.pointerId);
+  };
+
+  const handleViewportPointerMove = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ): void => {
+    if (O.isNone(viewportPanState)) {
+      return;
+    }
+
+    if (viewportPanState.value.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - viewportPanState.value.startClientX;
+    const deltaY = event.clientY - viewportPanState.value.startClientY;
+
+    event.currentTarget.scrollTo({
+      left: viewportPanState.value.startScrollLeft - deltaX,
+      top: viewportPanState.value.startScrollTop - deltaY,
+    });
+  };
+
+  const handleViewportPointerEnd = (
+    event: React.PointerEvent<HTMLDivElement>,
+  ): void => {
+    if (O.isNone(viewportPanState)) {
+      return;
+    }
+
+    if (viewportPanState.value.pointerId !== event.pointerId) {
+      return;
+    }
+
+    setViewportPanState(O.none);
   };
 
   return (
@@ -1020,10 +1167,65 @@ export const ScreenMode: React.FC = () => {
               onImport={handleImport}
             />
           </PanelHeaderRow>
+
+          <PanelHeaderRow css={{ justifyContent: "flex-start" }}>
+            <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
+            <ToolButton
+              type="button"
+              aria-label="画面ズーム縮小"
+              onClick={handleZoomOut}
+            >
+              -
+            </ToolButton>
+            <ToolButton
+              type="button"
+              aria-label="画面ズーム拡大"
+              onClick={handleZoomIn}
+            >
+              +
+            </ToolButton>
+          </PanelHeaderRow>
         </PanelHeader>
 
-        <CanvasViewport css={{ flex: 1, minHeight: 0, placeItems: "center" }}>
-          <ScreenCanvas scale={2} showGrid={true} />
+        <CanvasViewport
+          ref={(element: HTMLDivElement | null) => {
+            viewportElementRef.current = O.fromNullable(element);
+          }}
+          aria-label="画面プレビューキャンバスビュー"
+          onWheel={handleViewportWheel}
+          onPointerDown={handleViewportPointerDown}
+          onPointerMove={handleViewportPointerMove}
+          onPointerUp={handleViewportPointerEnd}
+          onPointerCancel={handleViewportPointerEnd}
+          onMouseDown={(event) => {
+            if (event.button === 1) {
+              event.preventDefault();
+            }
+          }}
+          css={{
+            flex: 1,
+            minHeight: 0,
+            display: "grid",
+            placeItems: "center",
+            padding: 24,
+            overscrollBehavior: "contain",
+            cursor: O.isSome(viewportPanState) ? "grabbing" : "default",
+          }}
+        >
+          <div
+            css={{
+              minWidth: "100%",
+              minHeight: "100%",
+              display: "grid",
+              placeItems: "center",
+            }}
+          >
+            <ScreenCanvas
+              ariaLabel="画面プレビューキャンバス"
+              scale={screenZoomLevel}
+              showGrid={true}
+            />
+          </div>
         </CanvasViewport>
 
         {scanReport.ok === false && (
