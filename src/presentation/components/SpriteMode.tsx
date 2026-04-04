@@ -1,6 +1,16 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { MenuItem, OutlinedInput, Select, Stack } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import {
+  Box,
+  Button,
+  Chip,
+  FormControl,
+  MenuItem,
+  OutlinedInput,
+  Paper,
+  Select,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -21,21 +31,14 @@ import useExportImage from "../../infrastructure/browser/useExportImage";
 import useImportImage from "../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../shared/arrayAccess";
 import {
-  Badge,
   CanvasViewport,
-  CollapseToggle,
-  Field,
-  FieldLabel,
   Panel,
   PanelHeader,
   PanelHeaderRow,
   PanelTitle,
   ScrollArea,
   SplitLayout,
-  Toolbar,
-  ToolButton,
 } from "../App.styles";
-import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
 
@@ -53,92 +56,41 @@ function toPaletteIndex(index: number): PaletteIndex | false {
   return false;
 }
 
-const SpriteNumberInput = styled(OutlinedInput)({
-  width: "100%",
-  borderRadius: "1rem",
-  background: "var(--surface-quiet)",
-  color: "var(--ink-strong)",
-  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  "& .MuiOutlinedInput-input": {
-    padding: "0.8125rem 0.875rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused": {
-    boxShadow:
-      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-});
-
-const SpritePaletteSelect = styled(Select)({
-  width: "100%",
-  borderRadius: "1rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
-  color: "var(--ink-strong)",
-  "& .MuiSelect-select": {
-    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
-    borderRadius: "1rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-  "& .MuiSelect-icon": {
-    right: "0.875rem",
-    color: "var(--ink-soft)",
-  },
-});
-
-const ActiveSlotCard = styled(Stack)({
-  position: "relative",
-  zIndex: 1,
-  padding: "0.875rem",
-  borderRadius: "1.25rem",
-  background: "var(--surface-muted)",
-  border: "0.0625rem solid var(--line-soft)",
-  flexShrink: 0,
-});
-
-const ToolPanel = styled(Stack)({
-  pointerEvents: "auto",
-  padding: "0.75rem",
-  width: "8.5rem",
-  borderRadius: "1.125rem",
-  background: "rgba(248, 250, 252, 0.84)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.16)",
-  backdropFilter: "blur(0.875rem)",
-});
-
-const ToolPanelPositionRoot = styled("div")({
-  pointerEvents: "none",
-});
-
-const SpriteToolButton = styled(ToolButton)({
-  width: "100%",
-  justifyContent: "center",
-  padding: "0.625rem 0.875rem",
-});
-
-const ToolPanelChevron = styled(ExpandMoreRoundedIcon, {
-  shouldForwardProp: (prop) => prop !== "open",
-})<{ open: boolean }>(({ open }) => ({
+const chevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
-}));
+});
+
+const slotSwatchStyle = (
+  transparent: boolean,
+  colorHex: string,
+): React.CSSProperties => {
+  if (transparent === true) {
+    return {
+      width: "1.5rem",
+      height: "1.5rem",
+      borderRadius: "0.5rem",
+      border: "1px solid rgba(148, 163, 184, 0.4)",
+      backgroundImage:
+        "repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%)",
+      backgroundSize: "0.5rem 0.5rem",
+    };
+  }
+
+  return {
+    width: "1.5rem",
+    height: "1.5rem",
+    borderRadius: "0.5rem",
+    border: "1px solid rgba(15, 23, 42, 0.08)",
+    backgroundColor: colorHex,
+  };
+};
+
+const resolvePaletteHex = (index: number): string =>
+  pipe(
+    getArrayItem(NES_PALETTE_HEX, index),
+    O.getOrElse(() => "#000000"),
+  );
 
 export const SpriteMode: React.FC = () => {
   const [tool, setTool] = useState<Tool>("pen");
@@ -256,22 +208,16 @@ export const SpriteMode: React.FC = () => {
           <PanelTitle>スプライト編集</PanelTitle>
         </PanelHeader>
 
-        <Stack
-          component={ScrollArea}
-          spacing="0.875rem"
-          alignContent="start"
-          flex={1}
-          minHeight={0}
-        >
+        <Stack component={ScrollArea} spacing={2} flex={1} minHeight={0}>
           <Stack
             direction={{ xs: "column", sm: "row" }}
-            spacing="0.75rem"
+            spacing={1.5}
             useFlexGap
             alignItems="stretch"
           >
-            <Field flex={1}>
-              <FieldLabel>スプライト番号</FieldLabel>
-              <SpriteNumberInput
+            <FormControl fullWidth>
+              <Typography variant="caption">スプライト番号</Typography>
+              <OutlinedInput
                 type="number"
                 value={activeSprite}
                 inputProps={{
@@ -282,10 +228,10 @@ export const SpriteMode: React.FC = () => {
                 }}
                 onChange={(e) => handleSpriteChange(e.target.value)}
               />
-            </Field>
-            <Field flex={1}>
-              <FieldLabel>パレット</FieldLabel>
-              <SpritePaletteSelect
+            </FormControl>
+            <FormControl fullWidth>
+              <Typography variant="caption">パレット</Typography>
+              <Select
                 variant="outlined"
                 value={activePalette}
                 inputProps={{
@@ -304,17 +250,19 @@ export const SpriteMode: React.FC = () => {
                     パレット {i}
                   </MenuItem>
                 ))}
-              </SpritePaletteSelect>
-            </Field>
+              </Select>
+            </FormControl>
           </Stack>
 
-          <Toolbar>
-            <Badge tone="accent">
-              {projectSpriteSize === 8
-                ? "Project Sprite Size 8×8"
-                : "Project Sprite Size 8×16"}
-            </Badge>
-          </Toolbar>
+          <Chip
+            color="primary"
+            variant="outlined"
+            label={
+              projectSpriteSize === 8
+                ? "Project Sprite Size 8x8"
+                : "Project Sprite Size 8x16"
+            }
+          />
         </Stack>
       </Panel>
 
@@ -322,113 +270,142 @@ export const SpriteMode: React.FC = () => {
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>スプライトキャンバス</PanelTitle>
-            <ProjectActions
-              actions={[
-                {
-                  label: "CHRエクスポート",
-                  onSelect: () => exportChr(activeTile, activePalette),
-                },
-                {
-                  label: "PNGエクスポート",
-                  onSelect: () =>
-                    exportPng(getHexArrayForSpriteTile(activeTile)),
-                },
-                {
-                  label: "SVGエクスポート",
-                  onSelect: () =>
-                    exportSvgSimple(getHexArrayForSpriteTile(activeTile)),
-                },
-                { label: "保存", onSelect: () => exportJSON(projectState) },
-              ]}
-              onImport={handleImport}
-            />
+            <Stack direction="row" spacing={1} useFlexGap alignItems="center">
+              <ProjectActions
+                actions={[
+                  {
+                    label: "CHRエクスポート",
+                    onSelect: () => exportChr(activeTile, activePalette),
+                  },
+                  {
+                    label: "PNGエクスポート",
+                    onSelect: () =>
+                      exportPng(getHexArrayForSpriteTile(activeTile)),
+                  },
+                  {
+                    label: "SVGエクスポート",
+                    onSelect: () =>
+                      exportSvgSimple(getHexArrayForSpriteTile(activeTile)),
+                  },
+                  { label: "保存", onSelect: () => exportJSON(projectState) },
+                ]}
+                onImport={handleImport}
+              />
+            </Stack>
           </PanelHeaderRow>
         </PanelHeader>
 
-        <ActiveSlotCard spacing="0.75rem">
-          <PanelHeaderRow>
-            <FieldLabel>現在のスロット</FieldLabel>
-            <Badge tone="accent">パレット {activePalette}</Badge>
-          </PanelHeaderRow>
+        <Paper
+          variant="outlined"
+          style={{ padding: "0.875rem", flexShrink: 0 }}
+        >
+          <Stack spacing={1}>
+            <PanelHeaderRow>
+              <Typography variant="body2">現在のスロット</Typography>
+              <Chip
+                size="small"
+                color="primary"
+                label={`パレット ${activePalette}`}
+              />
+            </PanelHeaderRow>
 
-          <Stack direction="row" spacing="0.75rem" useFlexGap flexWrap="wrap">
-            {palettes[activePalette].map((idx, j) => (
-              <SlotGroup key={j} active={activeSlot === j} flex="1 1 4.5rem">
-                <SlotButton
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+              {palettes[activePalette].map((idx, j) => (
+                <Button
+                  key={j}
+                  type="button"
+                  variant={activeSlot === j ? "contained" : "outlined"}
                   onClick={() => handlePaletteClick(j)}
                   title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
-                  active={activeSlot === j}
-                  transparent={j === 0}
-                  {...(j !== 0 ? { bg: NES_PALETTE_HEX[idx] } : {})}
-                />
-                <SlotLabel>スロット{j}</SlotLabel>
-              </SlotGroup>
-            ))}
+                  startIcon={
+                    <Box
+                      style={slotSwatchStyle(j === 0, resolvePaletteHex(idx))}
+                    />
+                  }
+                >
+                  スロット{j}
+                </Button>
+              ))}
+            </Stack>
           </Stack>
-        </ActiveSlotCard>
+        </Paper>
 
         <CanvasViewport flex={1} minHeight={0}>
-          <Stack
-            position="absolute"
-            top="1.125rem"
-            left="1.125rem"
-            zIndex={4}
-            spacing={0}
+          <Box
+            style={{
+              position: "absolute",
+              top: "1.125rem",
+              left: "1.125rem",
+              zIndex: 4,
+            }}
           >
-            <CollapseToggle
+            <Button
               type="button"
-              open={isToolsOpen}
+              variant={isToolsOpen ? "contained" : "outlined"}
+              endIcon={
+                <ExpandMoreRoundedIcon style={chevronStyle(isToolsOpen)} />
+              }
               onClick={() => setIsToolsOpen((prev) => !prev)}
             >
               {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
-              <ToolPanelChevron open={isToolsOpen} />
-            </CollapseToggle>
-          </Stack>
+            </Button>
+          </Box>
 
           {isToolsOpen && (
-            <Stack
-              component={ToolPanelPositionRoot}
-              position="absolute"
-              top="4.25rem"
-              left="1.125rem"
-              zIndex={3}
-              bottom="1.125rem"
-              alignItems="flex-start"
+            <Box
+              style={{
+                position: "absolute",
+                top: "4.25rem",
+                left: "1.125rem",
+                zIndex: 3,
+                bottom: "1.125rem",
+                pointerEvents: "none",
+              }}
             >
-              <ToolPanel spacing="0.625rem">
-                <SpriteToolButton
-                  type="button"
-                  onClick={() => setTool("pen")}
-                  active={tool === "pen"}
-                  disabled={isChangeOrderMode}
-                >
-                  ペン
-                </SpriteToolButton>
-                <SpriteToolButton
-                  type="button"
-                  onClick={() => setTool("eraser")}
-                  active={tool === "eraser"}
-                  disabled={isChangeOrderMode}
-                >
-                  消しゴム
-                </SpriteToolButton>
-                <SpriteToolButton
-                  type="button"
-                  disabled={isChangeOrderMode}
-                  onClick={handleClearSprite}
-                >
-                  クリア
-                </SpriteToolButton>
-                <SpriteToolButton
-                  type="button"
-                  active={isChangeOrderMode}
-                  tone={isChangeOrderMode ? "primary" : "neutral"}
-                  onClick={() => setIsChangeOrderMode((prev) => !prev)}
-                >
-                  {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
-                </SpriteToolButton>
-              </ToolPanel>
-            </Stack>
+              <Paper
+                variant="outlined"
+                style={{
+                  pointerEvents: "auto",
+                  padding: "0.75rem",
+                  width: "8.5rem",
+                }}
+              >
+                <Stack spacing={1}>
+                  <Button
+                    type="button"
+                    variant={tool === "pen" ? "contained" : "outlined"}
+                    disabled={isChangeOrderMode}
+                    onClick={() => setTool("pen")}
+                  >
+                    ペン
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={tool === "eraser" ? "contained" : "outlined"}
+                    disabled={isChangeOrderMode}
+                    onClick={() => setTool("eraser")}
+                  >
+                    消しゴム
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    disabled={isChangeOrderMode}
+                    onClick={handleClearSprite}
+                  >
+                    クリア
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={isChangeOrderMode ? "contained" : "outlined"}
+                    color={isChangeOrderMode ? "primary" : "inherit"}
+                    onClick={() => setIsChangeOrderMode((prev) => !prev)}
+                  >
+                    {isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
+                  </Button>
+                </Stack>
+              </Paper>
+            </Box>
           )}
 
           <Stack

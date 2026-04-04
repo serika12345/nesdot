@@ -6,6 +6,7 @@ import {
   OutlinedInput,
   Select,
   Stack,
+  Typography,
   type ContainerProps,
   type GridProps,
   type GridSize,
@@ -83,7 +84,6 @@ import {
   resolveSelectionAfterSpriteRemoval,
   shiftCharacterSpriteLayer,
 } from "./characterEditorModel";
-import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
@@ -340,55 +340,6 @@ const createUniformGridLayout = (
 
   return LayoutComponent;
 };
-
-const CharacterInput = styled(OutlinedInput)({
-  width: "100%",
-  borderRadius: "1rem",
-  background: "var(--surface-quiet)",
-  color: "var(--ink-strong)",
-  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  "& .MuiOutlinedInput-input": {
-    padding: "0.8125rem 0.875rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused": {
-    boxShadow:
-      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-});
-
-const CharacterSelectInput = styled(Select)({
-  width: "100%",
-  borderRadius: "1rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
-  color: "var(--ink-strong)",
-  "& .MuiSelect-select": {
-    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
-    borderRadius: "1rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-  "& .MuiSelect-icon": {
-    right: "0.875rem",
-    color: "var(--ink-soft)",
-  },
-});
 
 const WideToolButton = styled(ToolButton)({
   width: "100%",
@@ -2948,7 +2899,7 @@ export const CharacterMode: React.FC = () => {
         <ResponsiveHeaderGrid>
           <Field flex="1 1 17.5rem">
             <FieldLabel>新規セット名</FieldLabel>
-            <CharacterInput
+            <OutlinedInput
               type="text"
               value={newName}
               inputProps={{
@@ -2964,7 +2915,7 @@ export const CharacterMode: React.FC = () => {
           </ResponsiveAutoWidthContainer>
           <Field flex="1 1 17.5rem">
             <FieldLabel>編集中のセット</FieldLabel>
-            <CharacterSelectInput
+            <Select
               variant="outlined"
               inputProps={{
                 "aria-label": "編集中のセット",
@@ -2992,7 +2943,7 @@ export const CharacterMode: React.FC = () => {
                   {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
                 </MenuItem>
               ))}
-            </CharacterSelectInput>
+            </Select>
           </Field>
           <ResponsiveAutoWidthContainer>
             <ToolButton
@@ -3020,7 +2971,7 @@ export const CharacterMode: React.FC = () => {
             <EditorCard>
               <Field>
                 <FieldLabel>セット名</FieldLabel>
-                <CharacterInput
+                <OutlinedInput
                   type="text"
                   value={activeSetName}
                   disabled={O.isNone(activeSet)}
@@ -3172,7 +3123,7 @@ export const CharacterMode: React.FC = () => {
 
               <PreviewControlsRow>
                 <StageInputContainer>
-                  <CharacterInput
+                  <OutlinedInput
                     type="number"
                     value={stageWidth}
                     inputProps={{
@@ -3187,7 +3138,7 @@ export const CharacterMode: React.FC = () => {
                   />
                 </StageInputContainer>
                 <StageInputContainer>
-                  <CharacterInput
+                  <OutlinedInput
                     type="number"
                     value={stageHeight}
                     inputProps={{
@@ -3247,7 +3198,7 @@ export const CharacterMode: React.FC = () => {
                   </ToolButton>
                   <PaletteControlRow>
                     <PaletteControlContainer>
-                      <CharacterSelectInput
+                      <Select
                         variant="outlined"
                         value={decompositionPaletteIndex}
                         inputProps={{
@@ -3277,7 +3228,7 @@ export const CharacterMode: React.FC = () => {
                             パレット {paletteIndex}
                           </MenuItem>
                         ))}
-                      </CharacterSelectInput>
+                      </Select>
                     </PaletteControlContainer>
 
                     <PaletteSlotGrid>
@@ -3290,15 +3241,28 @@ export const CharacterMode: React.FC = () => {
                         );
 
                         return (
-                          <SlotGroup
+                          <Stack
                             key={`decompose-slot-${slotIndex}`}
-                            active={tone}
+                            alignItems="center"
+                            spacing="0.5rem"
                           >
-                            <SlotButton
+                            <ButtonBase
                               type="button"
                               aria-label={`分解色スロット ${slotIndex}`}
-                              bg={colorHex}
-                              active={tone}
+                              style={{
+                                width: "2.625rem",
+                                height: "2.625rem",
+                                borderRadius: "0.875rem",
+                                border:
+                                  tone === true
+                                    ? "0.1875rem solid #0f766e"
+                                    : "0.0625rem solid rgba(148, 163, 184, 0.28)",
+                                boxShadow:
+                                  tone === true
+                                    ? "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)"
+                                    : "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
+                                backgroundColor: colorHex,
+                              }}
                               onClick={() => {
                                 if (
                                   slotIndex === 1 ||
@@ -3310,8 +3274,10 @@ export const CharacterMode: React.FC = () => {
                                 }
                               }}
                             />
-                            <SlotLabel>{`slot${slotIndex}`}</SlotLabel>
-                          </SlotGroup>
+                            <Typography variant="caption">
+                              {`slot${slotIndex}`}
+                            </Typography>
+                          </Stack>
                         );
                       })}
                     </PaletteSlotGrid>
@@ -3527,7 +3493,7 @@ export const CharacterMode: React.FC = () => {
                           <InspectorFieldGrid>
                             <Field>
                               <FieldLabel>x</FieldLabel>
-                              <CharacterInput
+                              <OutlinedInput
                                 type="number"
                                 value={regionAnalysis.region.x}
                                 readOnly
@@ -3538,7 +3504,7 @@ export const CharacterMode: React.FC = () => {
                             </Field>
                             <Field>
                               <FieldLabel>y</FieldLabel>
-                              <CharacterInput
+                              <OutlinedInput
                                 type="number"
                                 value={regionAnalysis.region.y}
                                 readOnly

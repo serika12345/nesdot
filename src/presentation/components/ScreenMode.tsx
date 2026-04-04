@@ -157,61 +157,10 @@ const ZoomControlsRow = styled(PanelHeaderRow)({
   justifyContent: "flex-start",
 });
 
-const ScreenNumberInput = styled(OutlinedInput)({
-  width: "100%",
-  borderRadius: "1rem",
-  background: "var(--surface-quiet)",
-  color: "var(--ink-strong)",
-  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  "& .MuiOutlinedInput-input": {
-    padding: "0.8125rem 0.875rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused": {
-    boxShadow:
-      "0 0 0 0.25rem rgba(15, 118, 110, 0.1), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.85)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-});
-
-const ScreenSelectInput = styled(Select)({
-  width: "100%",
-  borderRadius: "1rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
-  color: "var(--ink-strong)",
-  "& .MuiSelect-select": {
-    padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
-    borderRadius: "1rem",
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(148, 163, 184, 0.22)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.28)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(15, 118, 110, 0.4)",
-  },
-  "& .MuiSelect-icon": {
-    right: "0.875rem",
-    color: "var(--ink-soft)",
-  },
-});
-
-const CollapseChevron = styled(ExpandMoreRoundedIcon, {
-  shouldForwardProp: (prop) => prop !== "open",
-})<{ open: boolean }>(({ open }) => ({
+const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
-}));
+});
 
 const ReadOnlyDetailRow = styled(DetailRow)({
   background: "transparent",
@@ -663,7 +612,7 @@ export const ScreenMode: React.FC = () => {
           <TwoColumnFieldGrid>
             <FullWidthField>
               <FieldLabel>キャラクターセット</FieldLabel>
-              <ScreenSelectInput
+              <Select
                 variant="outlined"
                 onChange={(e) => {
                   const value = e.target.value;
@@ -691,12 +640,12 @@ export const ScreenMode: React.FC = () => {
                     {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
                   </MenuItem>
                 ))}
-              </ScreenSelectInput>
+              </Select>
             </FullWidthField>
 
             <Field flex="1 1 11.25rem">
               <FieldLabel>X 座標</FieldLabel>
-              <ScreenNumberInput
+              <OutlinedInput
                 type="number"
                 value={characterBaseX}
                 inputProps={{
@@ -709,7 +658,7 @@ export const ScreenMode: React.FC = () => {
             </Field>
             <Field flex="1 1 11.25rem">
               <FieldLabel>Y 座標</FieldLabel>
-              <ScreenNumberInput
+              <OutlinedInput
                 type="number"
                 value={characterBaseY}
                 inputProps={{
@@ -757,7 +706,9 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsPlacementOpen((prev) => !prev)}
               >
                 {isPlacementOpen ? "閉じる" : "開く"}
-                <CollapseChevron open={isPlacementOpen} />
+                <ExpandMoreRoundedIcon
+                  style={collapseChevronStyle(isPlacementOpen)}
+                />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>スプライト追加</PanelTitle>
@@ -767,7 +718,7 @@ export const ScreenMode: React.FC = () => {
             <TwoColumnFieldGrid>
               <Field flex="1 1 11.25rem">
                 <FieldLabel>スプライト番号</FieldLabel>
-                <ScreenNumberInput
+                <OutlinedInput
                   type="number"
                   value={spriteNumber}
                   inputProps={{
@@ -780,7 +731,7 @@ export const ScreenMode: React.FC = () => {
               </Field>
               <Field flex="1 1 11.25rem">
                 <FieldLabel>X 座標</FieldLabel>
-                <ScreenNumberInput
+                <OutlinedInput
                   type="number"
                   value={x}
                   inputProps={{
@@ -793,7 +744,7 @@ export const ScreenMode: React.FC = () => {
               </Field>
               <Field flex="1 1 11.25rem">
                 <FieldLabel>Y 座標</FieldLabel>
-                <ScreenNumberInput
+                <OutlinedInput
                   type="number"
                   value={y}
                   inputProps={{
@@ -830,7 +781,9 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsSelectionOpen((prev) => !prev)}
               >
                 {isSelectionOpen ? "閉じる" : "開く"}
-                <CollapseChevron open={isSelectionOpen} />
+                <ExpandMoreRoundedIcon
+                  style={collapseChevronStyle(isSelectionOpen)}
+                />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>選択中のスプライト</PanelTitle>
@@ -840,7 +793,7 @@ export const ScreenMode: React.FC = () => {
             <>
               <Field>
                 <FieldLabel>スプライト一覧</FieldLabel>
-                <ScreenSelectInput
+                <Select
                   variant="outlined"
                   onChange={(e) => {
                     const next = e.target.value;
@@ -870,7 +823,7 @@ export const ScreenMode: React.FC = () => {
                       {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
                     </MenuItem>
                   ))}
-                </ScreenSelectInput>
+                </Select>
               </Field>
 
               {pipe(
@@ -915,7 +868,7 @@ export const ScreenMode: React.FC = () => {
                       <TwoColumnFieldGrid>
                         <Field flex="1 1 11.25rem">
                           <FieldLabel>Position X</FieldLabel>
-                          <ScreenNumberInput
+                          <OutlinedInput
                             type="number"
                             value={selectedSprite.x}
                             inputProps={{
@@ -946,7 +899,7 @@ export const ScreenMode: React.FC = () => {
                         </Field>
                         <Field flex="1 1 11.25rem">
                           <FieldLabel>Position Y</FieldLabel>
-                          <ScreenNumberInput
+                          <OutlinedInput
                             type="number"
                             value={selectedSprite.y}
                             inputProps={{
@@ -977,7 +930,7 @@ export const ScreenMode: React.FC = () => {
                         </Field>
                         <Field flex="1 1 11.25rem">
                           <FieldLabel>Priority</FieldLabel>
-                          <ScreenSelectInput
+                          <Select
                             variant="outlined"
                             value={selectedSprite.priority}
                             inputProps={{
@@ -1011,7 +964,7 @@ export const ScreenMode: React.FC = () => {
                           >
                             <MenuItem value="front">前面</MenuItem>
                             <MenuItem value="behindBg">背景の後ろ</MenuItem>
-                          </ScreenSelectInput>
+                          </Select>
                         </Field>
                         <Field flex="1 1 11.25rem">
                           <FieldLabel>Flip</FieldLabel>
@@ -1106,7 +1059,9 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsGroupMoveOpen((prev) => !prev)}
               >
                 {isGroupMoveOpen ? "閉じる" : "開く"}
-                <CollapseChevron open={isGroupMoveOpen} />
+                <ExpandMoreRoundedIcon
+                  style={collapseChevronStyle(isGroupMoveOpen)}
+                />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>グループ移動</PanelTitle>
@@ -1116,7 +1071,7 @@ export const ScreenMode: React.FC = () => {
             <>
               <Field>
                 <FieldLabel>選択中のスプライト</FieldLabel>
-                <ScreenSelectInput
+                <Select
                   variant="outlined"
                   onChange={(e) => {
                     const value = e.target.value;
@@ -1144,7 +1099,7 @@ export const ScreenMode: React.FC = () => {
                       {`#${index} ${selectedSpriteIndices.has(index) ? "✓" : " "} spriteIndex:${sprite.spriteIndex} @ ${sprite.x},${sprite.y}`}
                     </MenuItem>
                   ))}
-                </ScreenSelectInput>
+                </Select>
               </Field>
 
               {selectedSpriteIndices.size > 0 && (
@@ -1190,7 +1145,7 @@ export const ScreenMode: React.FC = () => {
                   <TwoColumnFieldGrid>
                     <Field flex="1 1 11.25rem">
                       <FieldLabel>移動 X</FieldLabel>
-                      <ScreenNumberInput
+                      <OutlinedInput
                         type="number"
                         value={groupMoveDeltaX}
                         inputProps={{
@@ -1203,7 +1158,7 @@ export const ScreenMode: React.FC = () => {
                     </Field>
                     <Field flex="1 1 11.25rem">
                       <FieldLabel>移動 Y</FieldLabel>
-                      <ScreenNumberInput
+                      <OutlinedInput
                         type="number"
                         value={groupMoveDeltaY}
                         inputProps={{

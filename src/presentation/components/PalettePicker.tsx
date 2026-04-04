@@ -1,4 +1,13 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import {
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
 import {
@@ -12,34 +21,27 @@ import {
   NesSubPalette,
 } from "../../domain/nes/nesProject";
 import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../domain/nes/palette";
-import {
-  ColorCell,
-  DisclosureButton,
-  DisclosureRow,
-  Grid,
-  LibraryCaption,
-  LibraryHeader,
-  Note,
-  PaletteCard,
-  PaletteHeader,
-  PaletteList,
-  PaletteName,
-  PaletteStatus,
-  Root,
-  ScrollWrap,
-  SelectionDetails,
-  SelectionSummary,
-  SelectionSwatch,
-  SelectionValue,
-  SlotButton,
-  SlotGroup,
-  SlotLabel,
-  SlotRow,
-} from "./PalettePicker.styles";
 
 const disclosureChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
+});
+
+const transparentSwatchStyle: React.CSSProperties = {
+  width: "2rem",
+  height: "2rem",
+  borderRadius: "0.5rem",
+  border: "1px solid rgba(148, 163, 184, 0.4)",
+  backgroundImage: "repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%)",
+  backgroundSize: "0.5rem 0.5rem",
+};
+
+const colorSwatchStyle = (hex: string): React.CSSProperties => ({
+  width: "2rem",
+  height: "2rem",
+  borderRadius: "0.5rem",
+  border: "1px solid rgba(15, 23, 42, 0.08)",
+  backgroundColor: hex,
 });
 
 export const PalettePicker: React.FC = () => {
@@ -124,112 +126,156 @@ export const PalettePicker: React.FC = () => {
   const activeColorHex = nesIndexToCssHex(activeColorIndex);
 
   return (
-    <Root>
-      <SelectionSummary>
-        <SelectionDetails>
-          <SelectionValue>
-            パレット {activePalette} / スロット {activeSlot}
-          </SelectionValue>
-        </SelectionDetails>
-        <SelectionSwatch
-          transparent={activeSlot === 0}
-          {...(activeSlot !== 0 ? { bg: activeColorHex } : {})}
+    <Stack spacing={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="h6">
+          パレット {activePalette} / スロット {activeSlot}
+        </Typography>
+        <Box
           title={`#${activeColorIndex.toString(16).padStart(2, "0").toUpperCase()}`}
+          style={
+            activeSlot === 0
+              ? transparentSwatchStyle
+              : colorSwatchStyle(activeColorHex)
+          }
         />
-      </SelectionSummary>
+      </Stack>
 
-      <DisclosureRow>
-        <DisclosureButton
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        <Button
           type="button"
-          open={isPaletteListOpen}
-          onClick={() => setIsPaletteListOpen((prev) => !prev)}
+          variant={isPaletteListOpen ? "contained" : "outlined"}
           endIcon={
             <ExpandMoreRoundedIcon
               style={disclosureChevronStyle(isPaletteListOpen)}
             />
           }
+          onClick={() => setIsPaletteListOpen((prev) => !prev)}
         >
           {isPaletteListOpen ? "パレットを閉じる" : "パレットを開く"}
-        </DisclosureButton>
-        <DisclosureButton
+        </Button>
+        <Button
           type="button"
-          open={isLibraryOpen}
-          onClick={() => setIsLibraryOpen((prev) => !prev)}
+          variant={isLibraryOpen ? "contained" : "outlined"}
           endIcon={
             <ExpandMoreRoundedIcon
               style={disclosureChevronStyle(isLibraryOpen)}
             />
           }
+          onClick={() => setIsLibraryOpen((prev) => !prev)}
         >
           {isLibraryOpen ? "色ライブラリを閉じる" : "色ライブラリを開く"}
-        </DisclosureButton>
-      </DisclosureRow>
+        </Button>
+      </Stack>
 
-      {isPaletteListOpen && (
-        <PaletteList>
+      <Collapse in={isPaletteListOpen}>
+        <Stack spacing={1.5}>
           {palettes.map((palette, i) => {
             const isActivePalette = activePalette === i;
 
             return (
-              <PaletteCard key={i} active={isActivePalette}>
-                <PaletteHeader>
-                  <PaletteName>パレット {i}</PaletteName>
-                </PaletteHeader>
+              <Paper key={i} variant="outlined" style={{ padding: "0.875rem" }}>
+                <Stack spacing={1.25}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Typography variant="subtitle2">パレット {i}</Typography>
+                    {isActivePalette ? (
+                      <Chip size="small" color="primary" label="選択中" />
+                    ) : (
+                      <></>
+                    )}
+                  </Stack>
 
-                <SlotRow>
-                  {palette.map((idx, j) => (
-                    <SlotGroup
-                      key={j}
-                      active={isActivePalette && activeSlot === j}
-                    >
-                      <SlotButton
-                        {...(j !== 0
-                          ? { onClick: () => handlePaletteClick(i, j) }
-                          : {})}
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    {palette.map((idx, j) => (
+                      <Button
+                        key={j}
+                        type="button"
+                        variant={
+                          isActivePalette && activeSlot === j
+                            ? "contained"
+                            : "outlined"
+                        }
+                        disabled={j === 0}
+                        onClick={() => handlePaletteClick(i, j)}
                         title={j === 0 ? "スロット 0: 透明" : `スロット ${j}`}
-                        active={activeSlot === j && isActivePalette}
-                        transparent={j === 0}
-                        {...(j !== 0 ? { bg: nesIndexToCssHex(idx) } : {})}
-                      />
-                      <SlotLabel>スロット{j}</SlotLabel>
-                    </SlotGroup>
-                  ))}
-                </SlotRow>
-              </PaletteCard>
+                        startIcon={
+                          <Box
+                            style={
+                              j === 0
+                                ? transparentSwatchStyle
+                                : colorSwatchStyle(nesIndexToCssHex(idx))
+                            }
+                          />
+                        }
+                      >
+                        スロット{j}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Stack>
+              </Paper>
             );
           })}
-        </PaletteList>
-      )}
+        </Stack>
+      </Collapse>
 
-      {isLibraryOpen && (
-        <ScrollWrap>
-          <LibraryHeader>
-            <LibraryCaption>
-              パレット {activePalette} / スロット {activeSlot}{" "}
-              に割り当てる色を選択
-            </LibraryCaption>
-            <PaletteStatus active>
-              #{activeColorIndex.toString(16).padStart(2, "0").toUpperCase()}
-            </PaletteStatus>
-          </LibraryHeader>
-          <Grid>
-            {NES_PALETTE_HEX.map((hex, idx) => (
-              <ColorCell
-                key={idx}
-                onClick={() => setSlot(activeSlot, idx)}
-                title={`#${idx.toString(16).padStart(2, "0").toUpperCase()}`}
-                bg={hex}
-                active={idx === activeColorIndex}
+      <Collapse in={isLibraryOpen}>
+        <Paper variant="outlined" style={{ padding: "0.875rem" }}>
+          <Stack spacing={1.5}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              spacing={1}
+            >
+              <Typography variant="body2">
+                パレット {activePalette} / スロット {activeSlot}{" "}
+                に割り当てる色を選択
+              </Typography>
+              <Chip
+                size="small"
+                color="primary"
+                variant="outlined"
+                label={`#${activeColorIndex
+                  .toString(16)
+                  .padStart(2, "0")
+                  .toUpperCase()}`}
               />
-            ))}
-          </Grid>
-        </ScrollWrap>
-      )}
+            </Stack>
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+              {NES_PALETTE_HEX.map((hex, idx) => (
+                <Button
+                  key={idx}
+                  type="button"
+                  title={`#${idx.toString(16).padStart(2, "0").toUpperCase()}`}
+                  onClick={() => setSlot(activeSlot, idx)}
+                  variant={idx === activeColorIndex ? "contained" : "outlined"}
+                  style={{
+                    minWidth: "2.25rem",
+                    width: "2.25rem",
+                    height: "2.25rem",
+                    padding: 0,
+                    backgroundColor: hex,
+                    borderColor:
+                      idx === activeColorIndex
+                        ? "rgba(15, 23, 42, 0.85)"
+                        : "rgba(15, 23, 42, 0.18)",
+                  }}
+                />
+              ))}
+            </Stack>
+          </Stack>
+        </Paper>
+      </Collapse>
 
-      <Note>
+      <Typography variant="caption" color="text.secondary">
         注意:
         スロット0は「透明扱い」です。実際の色は描画しません（チェッカ柄表示）。
-      </Note>
-    </Root>
+      </Typography>
+    </Stack>
   );
 };
