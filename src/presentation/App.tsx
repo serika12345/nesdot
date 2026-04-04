@@ -1,17 +1,13 @@
+import { GlobalStyles, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useState } from "react";
 import {
-  GlobalStyles,
-  ToggleButton,
-  ToggleButtonGroup,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import {
   Container,
+  LeftPane,
   ModeSwitcherCard,
   ModeSwitcherHeader,
   ModeSwitcherLayout,
   ModeSwitcherTitle,
-  LeftPane,
   Panel,
   PanelHeader,
   PanelTitle,
@@ -19,10 +15,10 @@ import {
   ScrollArea,
   WorkspaceGrid,
 } from "./App.styles";
-import { CharacterMode } from "./components/CharacterMode";
-import { PalettePicker } from "./components/PalettePicker";
-import { ScreenMode } from "./components/ScreenMode";
-import { SpriteMode } from "./components/SpriteMode";
+import { CharacterMode } from "./components/characterMode/CharacterMode";
+import { PalettePicker } from "./components/common/PalettePicker";
+import { ScreenMode } from "./components/screenMode/ScreenMode";
+import { SpriteMode } from "./components/spriteMode/SpriteMode";
 import { getAppGlobalStyles } from "./theme";
 
 type EditMode = "screen" | "sprite" | "character";
@@ -54,7 +50,8 @@ const SegmentedButton = styled(ToggleButton)({
     "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
   borderColor: "transparent",
   boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-  transition: "transform 160ms ease, box-shadow 160ms ease, background 160ms ease",
+  transition:
+    "transform 160ms ease, box-shadow 160ms ease, background 160ms ease",
   "&:hover": {
     transform: "translateY(-0.0625rem)",
     background:
@@ -118,10 +115,7 @@ export const App: React.FC = () => {
                   value={editMode}
                   onChange={handleEditModeChange}
                 >
-                  <SegmentedButton
-                    value="sprite"
-                    aria-label="スプライト編集"
-                  >
+                  <SegmentedButton value="sprite" aria-label="スプライト編集">
                     スプライト編集
                   </SegmentedButton>
                   <SegmentedButton

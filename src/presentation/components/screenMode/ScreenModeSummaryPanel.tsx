@@ -1,0 +1,88 @@
+import { Stack } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import React from "react";
+import {
+  MAX_SCREEN_SPRITES,
+  MAX_SPRITES_PER_SCANLINE,
+} from "../../../domain/screen/constraints";
+import {
+  HelperText,
+  MetricCard,
+  MetricLabel,
+  MetricValue,
+  Panel,
+  PanelHeader,
+  PanelTitle,
+} from "../../App.styles";
+
+const SummaryMetricGrid = styled(Stack)({
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: "0.75rem",
+});
+
+const SummaryMetricCard = styled(MetricCard)({
+  flex: "1 1 8.75rem",
+  background: "transparent",
+  border: "none",
+  boxShadow: "none",
+  padding: 0,
+});
+
+const SummaryWideMetricCard = styled(SummaryMetricCard)({
+  flexBasis: "100%",
+});
+
+const SummaryMetricValue = styled(MetricValue)({
+  fontSize: "1.125rem",
+  whiteSpace: "nowrap",
+});
+
+interface ScreenModeSummaryPanelProps {
+  spritesOnScreenCount: number;
+  screenWidth: number;
+  screenHeight: number;
+  hasConstraintViolation: boolean;
+}
+
+export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
+  spritesOnScreenCount,
+  screenWidth,
+  screenHeight,
+  hasConstraintViolation,
+}) => {
+  return (
+    <Panel>
+      <PanelHeader>
+        <PanelTitle>スクリーン配置</PanelTitle>
+      </PanelHeader>
+
+      <SummaryMetricGrid useFlexGap>
+        <SummaryMetricCard>
+          <MetricLabel>配置中</MetricLabel>
+          <MetricValue>
+            {spritesOnScreenCount}/{MAX_SCREEN_SPRITES}
+          </MetricValue>
+        </SummaryMetricCard>
+        <SummaryMetricCard>
+          <MetricLabel>画面</MetricLabel>
+          <MetricValue>
+            {screenWidth}×{screenHeight}
+          </MetricValue>
+        </SummaryMetricCard>
+        <SummaryWideMetricCard>
+          <MetricLabel>制約</MetricLabel>
+          <SummaryMetricValue>
+            1ライン最大 {MAX_SPRITES_PER_SCANLINE}
+          </SummaryMetricValue>
+        </SummaryWideMetricCard>
+      </SummaryMetricGrid>
+
+      {hasConstraintViolation && (
+        <HelperText>
+          制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。
+        </HelperText>
+      )}
+    </Panel>
+  );
+};

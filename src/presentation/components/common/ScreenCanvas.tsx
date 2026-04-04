@@ -1,6 +1,6 @@
-import React from "react";
 import { styled } from "@mui/material/styles";
-import { useScreenCanvas } from "../../infrastructure/browser/canvas/useScreenCanvas";
+import React from "react";
+import { useScreenCanvas } from "../../../infrastructure/browser/canvas/useScreenCanvas";
 
 interface Props {
   scale?: number; // ピクセル拡大倍率

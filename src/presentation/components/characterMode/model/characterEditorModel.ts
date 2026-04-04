@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { CharacterSprite } from "../../domain/characters/characterSet";
+import { CharacterSprite } from "../../../../domain/characters/characterSet";
 
 export interface CharacterLayerEntry {
   index: number;
@@ -74,7 +74,10 @@ export const getCharacterLayerEntries = (
   );
 
   return ordered.reduceRight<CharacterLayerEntry[]>(
-    (entries, entry) => [...entries, { index: entry.index, sprite: entry.sprite }],
+    (entries, entry) => [
+      ...entries,
+      { index: entry.index, sprite: entry.sprite },
+    ],
     [],
   );
 };

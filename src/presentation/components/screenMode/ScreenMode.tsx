@@ -7,32 +7,10 @@ import {
   type StackProps,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useRef, useState } from "react";
-import { useCharacterState } from "../../application/state/characterStore";
-import {
-  getHexArrayForScreen,
-  Screen,
-  SpriteInScreen,
-  SpritePriority,
-  useProjectState,
-} from "../../application/state/projectStore";
-import { expandCharacterToScreenSprites } from "../../domain/characters/characterSet";
-import {
-  MAX_SCREEN_SPRITES,
-  MAX_SPRITES_PER_SCANLINE,
-  scanNesSpriteConstraints,
-} from "../../domain/screen/constraints";
-import { mergeScreenIntoNesOam } from "../../domain/screen/oamSync";
-import {
-  getGroupBounds,
-  isValidGroupMovement,
-  moveGroupByDelta,
-} from "../../domain/screen/spriteGroup";
-import useExportImage from "../../infrastructure/browser/useExportImage";
-import useImportImage from "../../infrastructure/browser/useImportImage";
+import React from "react";
+import { getGroupBounds } from "../../../domain/screen/spriteGroup";
 import {
   Badge,
   CanvasViewport,
@@ -44,9 +22,6 @@ import {
   Field,
   FieldLabel,
   HelperText,
-  MetricCard,
-  MetricLabel,
-  MetricValue,
   Panel,
   PanelHeader,
   PanelHeaderRow,
@@ -54,32 +29,11 @@ import {
   ScrollColumn,
   SplitLayout,
   ToolButton,
-} from "../App.styles";
-import { ProjectActions } from "./ProjectActions";
-import { ScreenCanvas } from "./ScreenCanvas";
-
-const SCREEN_MIN_ZOOM_LEVEL = 1;
-const SCREEN_MAX_ZOOM_LEVEL = 8;
-const SCREEN_DEFAULT_ZOOM_LEVEL = 2;
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(max, value));
-
-const trySetPointerCapture = (target: HTMLElement, pointerId: number): void => {
-  try {
-    target.setPointerCapture(pointerId);
-  } catch {
-    // Synthetic pointer events used in tests may not have a capturable pointer.
-  }
-};
-
-interface ViewportPanState {
-  pointerId: number;
-  startClientX: number;
-  startClientY: number;
-  startScrollLeft: number;
-  startScrollTop: number;
-}
+} from "../../App.styles";
+import { ProjectActions } from "../common/ProjectActions";
+import { ScreenCanvas } from "../common/ScreenCanvas";
+import { useScreenModeController } from "./hooks/useScreenModeController";
+import { ScreenModeSummaryPanel } from "./ScreenModeSummaryPanel";
 
 const shouldForwardActiveProp = (prop: PropertyKey): boolean =>
   prop !== "active";
@@ -98,29 +52,6 @@ const createStackLayout = (
 
   return LayoutComponent;
 };
-
-const SummaryMetricGrid = createStackLayout("SummaryMetricGrid", {
-  direction: "row",
-  flexWrap: "wrap",
-  spacing: "0.75rem",
-});
-
-const SummaryMetricCard = styled(MetricCard)({
-  flex: "1 1 8.75rem",
-  background: "transparent",
-  border: "none",
-  boxShadow: "none",
-  padding: 0,
-});
-
-const SummaryWideMetricCard = styled(SummaryMetricCard)({
-  flexBasis: "100%",
-});
-
-const SummaryMetricValue = styled(MetricValue)({
-  fontSize: "1.125rem",
-  whiteSpace: "nowrap",
-});
 
 const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
   direction: "row",
@@ -223,386 +154,71 @@ const WarningList = styled(DetailList)({
 });
 
 export const ScreenMode: React.FC = () => {
-  const [spriteNumber, setSpriteNumber] = useState(0);
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
-  const [screenZoomLevel, setScreenZoomLevel] = useState(
-    SCREEN_DEFAULT_ZOOM_LEVEL,
-  );
-  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
-    O.Option<number>
-  >(() =>
-    useProjectState.getState().screen.sprites.length > 0 ? O.some(0) : O.none,
-  );
-  const [viewportPanState, setViewportPanState] = useState<
-    O.Option<ViewportPanState>
-  >(O.none);
-  const [isPlacementOpen, setIsPlacementOpen] = useState(true);
-  const [isSelectionOpen, setIsSelectionOpen] = useState(false);
-  const [isGroupMoveOpen, setIsGroupMoveOpen] = useState(false);
-  const [selectedSpriteIndices, setSelectedSpriteIndices] = useState<
-    Set<number>
-  >(() => new Set());
-  const [groupMoveDeltaX, setGroupMoveDeltaX] = useState(0);
-  const [groupMoveDeltaY, setGroupMoveDeltaY] = useState(0);
-  const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
-  const screen = useProjectState((s) => s.screen);
-  const nes = useProjectState((s) => s.nes);
-  const sprites = useProjectState((s) => s.sprites);
-  const spritesOnScreen = useProjectState((s) => s.screen.sprites);
-  const characterSets = useCharacterState((s) => s.characterSets);
-  const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
-  const selectCharacterSet = useCharacterState((s) => s.selectSet);
-  const [characterBaseX, setCharacterBaseX] = useState(0);
-  const [characterBaseY, setCharacterBaseY] = useState(0);
-  const projectState = useProjectState((s) => s);
-  const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
-  const { importJSON } = useImportImage();
-  const scan = (
-    checkeeScreen = useProjectState.getState().screen,
-    checkeeNes = useProjectState.getState().nes,
-  ) =>
-    scanNesSpriteConstraints(mergeScreenIntoNesOam(checkeeNes, checkeeScreen));
-
-  const setScreenAndSyncNes = (nextScreen: Screen, nextNes = nes): void => {
-    useProjectState.setState({
-      screen: nextScreen,
-      nes: mergeScreenIntoNesOam(nextNes, nextScreen),
-    });
-  };
-
-  const addToGroupSelection = (index: number): void => {
-    setSelectedSpriteIndices((prev) => new Set([...prev, index]));
-  };
-
-  const removeFromGroupSelection = (index: number): void => {
-    setSelectedSpriteIndices(
-      (prev) => new Set(Array.from(prev).filter((value) => value !== index)),
-    );
-  };
-
-  const clearGroupSelection = (): void => {
-    setSelectedSpriteIndices(new Set());
-  };
-
-  const handleMoveSelectedGroup = (): void => {
-    if (selectedSpriteIndices.size === 0) {
-      alert("グループを選択してください");
-      return;
-    }
-
-    const isValid = isValidGroupMovement(
-      spritesOnScreen,
-      selectedSpriteIndices,
-      groupMoveDeltaX,
-      groupMoveDeltaY,
-    );
-
-    if (isValid !== true) {
-      alert(
-        "移動により一部のスプライトがスクリーン外に出ます。\n位置を調整してください。",
-      );
-      return;
-    }
-
-    const movedSprites = moveGroupByDelta(
-      spritesOnScreen,
-      selectedSpriteIndices,
-      groupMoveDeltaX,
-      groupMoveDeltaY,
-    );
-
-    const newScreen = {
-      ...screen,
-      sprites: movedSprites,
-    };
-
-    const report = scan(newScreen);
-    if (report.ok === false) {
-      alert(
-        "グループの移動に失敗しました。制約違反:\n" + report.errors.join("\n"),
-      );
-      return;
-    }
-
-    setScreenAndSyncNes(newScreen);
-    alert(
-      `グループを (${groupMoveDeltaX > 0 ? "+" : ""}${groupMoveDeltaX}, ${groupMoveDeltaY > 0 ? "+" : ""}${groupMoveDeltaY}) 移動しました`,
-    );
-    setGroupMoveDeltaX(0);
-    setGroupMoveDeltaY(0);
-  };
-
-  const handleImport = async () => {
-    try {
-      await importJSON((data) => {
-        const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
-        useProjectState.setState({
-          ...data,
-          nes: syncedNes,
-        });
-        setSelectedSpriteIndex(
-          data.screen.sprites.length > 0 ? O.some(0) : O.none,
-        );
-
-        const result = scan(data.screen, syncedNes);
-        if (result.ok === false) {
-          alert(
-            "インポートしたデータに制約違反があります:\n" +
-              result.errors.join("\n"),
-          );
-        }
-      });
-    } catch (err) {
-      alert("インポートに失敗しました: " + err);
-    }
-  };
-
-  const handleAddSprite = () => {
-    const spriteTileOption = O.fromNullable(sprites[spriteNumber]);
-    if (O.isNone(spriteTileOption)) {
-      alert("指定されたスプライト番号のスプライトが存在しません");
-      return;
-    }
-    const spriteTile = spriteTileOption.value;
-
-    const candidate: SpriteInScreen = {
-      ...spriteTile,
-      x,
-      y,
-      spriteIndex: spriteNumber,
-      priority: "front",
-      flipH: false,
-      flipV: false,
-    };
-    const newScreen = {
-      ...screen,
-      sprites: [...screen.sprites, candidate],
-    };
-
-    const report = scan(newScreen);
-    if (report.ok === false) {
-      alert(
-        "スプライトの追加に失敗しました。制約違反:\n" +
-          report.errors.join("\n"),
-      );
-      return;
-    }
-
-    setScreenAndSyncNes(newScreen);
-    if (O.isNone(selectedSpriteIndex)) {
-      setSelectedSpriteIndex(O.some(newScreen.sprites.length - 1));
-    }
-    alert(`スプライト#${spriteNumber}を(${x},${y})に追加しました`);
-  };
-
-  const activeSprite = pipe(
+  const {
+    spriteNumber,
+    setSpriteNumber,
+    x,
+    setX,
+    y,
+    setY,
+    screenZoomLevel,
     selectedSpriteIndex,
-    O.chain((index) => O.fromNullable(spritesOnScreen[index])),
-  );
-  const activeCharacter = pipe(
+    viewportPanState,
+    isPlacementOpen,
+    setIsPlacementOpen,
+    isSelectionOpen,
+    setIsSelectionOpen,
+    isGroupMoveOpen,
+    setIsGroupMoveOpen,
+    selectedSpriteIndices,
+    groupMoveDeltaX,
+    setGroupMoveDeltaX,
+    groupMoveDeltaY,
+    setGroupMoveDeltaY,
+    characterBaseX,
+    setCharacterBaseX,
+    characterBaseY,
+    setCharacterBaseY,
+    screen,
+    spritesOnScreen,
+    characterSets,
     selectedCharacterId,
-    O.chain((id) =>
-      O.fromNullable(
-        characterSets.find((characterSet) => characterSet.id === id),
-      ),
-    ),
-  );
-
-  const handleAddCharacter = () => {
-    const placement = pipe(
-      activeCharacter,
-      O.match(
-        () => E.left("キャラクターセットを選択してください"),
-        (characterSet) =>
-          expandCharacterToScreenSprites(characterSet, {
-            baseX: characterBaseX,
-            baseY: characterBaseY,
-            sprites,
-          }),
-      ),
-    );
-
-    if (E.isLeft(placement)) {
-      alert(`キャラクター追加に失敗しました: ${placement.left}`);
-      return;
-    }
-
-    const newScreen = {
-      ...screen,
-      sprites: [...screen.sprites, ...placement.right],
-    };
-    const report = scan(newScreen);
-    if (report.ok === false) {
-      alert(
-        "キャラクターの追加に失敗しました。制約違反:\n" +
-          report.errors.join("\n"),
-      );
-      return;
-    }
-
-    setScreenAndSyncNes(newScreen);
-    if (O.isNone(selectedSpriteIndex) && placement.right.length > 0) {
-      setSelectedSpriteIndex(O.some(screen.sprites.length));
-    }
-    alert(`キャラクターを(${characterBaseX},${characterBaseY})に追加しました`);
-  };
-
-  const selectedIndexValue = pipe(
-    selectedSpriteIndex,
-    O.getOrElse(() => -1),
-  );
-  const scanReport = scan(screen, nes);
-  const updateScreenZoomLevel = (
-    nextZoomLevel: number,
-    anchor: O.Option<{ clientX: number; clientY: number }> = O.none,
-  ): void => {
-    setScreenZoomLevel((currentZoomLevel) => {
-      const clampedZoomLevel = clamp(
-        nextZoomLevel,
-        SCREEN_MIN_ZOOM_LEVEL,
-        SCREEN_MAX_ZOOM_LEVEL,
-      );
-
-      if (clampedZoomLevel === currentZoomLevel) {
-        return currentZoomLevel;
-      }
-
-      if (O.isSome(anchor) && O.isSome(viewportElementRef.current)) {
-        const viewport = viewportElementRef.current.value;
-        const rect = viewport.getBoundingClientRect();
-        const relativeX = anchor.value.clientX - rect.left;
-        const relativeY = anchor.value.clientY - rect.top;
-        const currentCanvasX = viewport.scrollLeft + relativeX;
-        const currentCanvasY = viewport.scrollTop + relativeY;
-
-        window.requestAnimationFrame(() => {
-          viewport.scrollTo({
-            left:
-              (currentCanvasX / currentZoomLevel) * clampedZoomLevel -
-              relativeX,
-            top:
-              (currentCanvasY / currentZoomLevel) * clampedZoomLevel -
-              relativeY,
-          });
-        });
-      }
-
-      return clampedZoomLevel;
-    });
-  };
-
-  const handleZoomOut = (): void => {
-    updateScreenZoomLevel(screenZoomLevel - 1, O.none);
-  };
-
-  const handleZoomIn = (): void => {
-    updateScreenZoomLevel(screenZoomLevel + 1, O.none);
-  };
-
-  const handleViewportWheel = (
-    event: React.WheelEvent<HTMLDivElement>,
-  ): void => {
-    if (event.ctrlKey === false) {
-      return;
-    }
-
-    event.preventDefault();
-    updateScreenZoomLevel(
-      event.deltaY < 0 ? screenZoomLevel + 1 : screenZoomLevel - 1,
-      O.some({ clientX: event.clientX, clientY: event.clientY }),
-    );
-  };
-
-  const handleViewportPointerDown = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ): void => {
-    if (event.button !== 1) {
-      return;
-    }
-
-    event.preventDefault();
-    setViewportPanState(
-      O.some({
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        startScrollLeft: event.currentTarget.scrollLeft,
-        startScrollTop: event.currentTarget.scrollTop,
-      }),
-    );
-    trySetPointerCapture(event.currentTarget, event.pointerId);
-  };
-
-  const handleViewportPointerMove = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ): void => {
-    if (O.isNone(viewportPanState)) {
-      return;
-    }
-
-    if (viewportPanState.value.pointerId !== event.pointerId) {
-      return;
-    }
-
-    const deltaX = event.clientX - viewportPanState.value.startClientX;
-    const deltaY = event.clientY - viewportPanState.value.startClientY;
-
-    event.currentTarget.scrollTo({
-      left: viewportPanState.value.startScrollLeft - deltaX,
-      top: viewportPanState.value.startScrollTop - deltaY,
-    });
-  };
-
-  const handleViewportPointerEnd = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ): void => {
-    if (O.isNone(viewportPanState)) {
-      return;
-    }
-
-    if (viewportPanState.value.pointerId !== event.pointerId) {
-      return;
-    }
-
-    setViewportPanState(O.none);
-  };
+    activeCharacter,
+    activeSprite,
+    scanReport,
+    projectActions,
+    setViewportRef,
+    handleCharacterSetSelect,
+    clearGroupSelection,
+    handleMoveSelectedGroup,
+    handleImport,
+    handleAddSprite,
+    handleAddCharacter,
+    handleZoomOut,
+    handleZoomIn,
+    handleViewportWheel,
+    handleViewportPointerDown,
+    handleViewportPointerMove,
+    handleViewportPointerEnd,
+    handleSelectedSpriteListChange,
+    handleSelectedSpriteXChange,
+    handleSelectedSpriteYChange,
+    handleSelectedSpritePriorityChange,
+    handleToggleSelectedSpriteFlipH,
+    handleToggleSelectedSpriteFlipV,
+    handleDeleteSelectedSprite,
+    handleGroupSelectionToggleFromSelect,
+  } = useScreenModeController();
 
   return (
     <SplitLayout flex={1} height="100%">
       <ScrollColumn width={{ lg: "20rem", xl: "22.5rem" }} flexShrink={0}>
-        <Panel>
-          <PanelHeader>
-            <PanelTitle>スクリーン配置</PanelTitle>
-          </PanelHeader>
-
-          <SummaryMetricGrid>
-            <SummaryMetricCard>
-              <MetricLabel>配置中</MetricLabel>
-              <MetricValue>
-                {spritesOnScreen.length}/{MAX_SCREEN_SPRITES}
-              </MetricValue>
-            </SummaryMetricCard>
-            <SummaryMetricCard>
-              <MetricLabel>画面</MetricLabel>
-              <MetricValue>
-                {screen.width}×{screen.height}
-              </MetricValue>
-            </SummaryMetricCard>
-            <SummaryWideMetricCard>
-              <MetricLabel>制約</MetricLabel>
-              <SummaryMetricValue>
-                1ライン最大 {MAX_SPRITES_PER_SCANLINE}
-              </SummaryMetricValue>
-            </SummaryWideMetricCard>
-          </SummaryMetricGrid>
-
-          {!scanReport.ok && (
-            <HelperText>
-              制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。
-            </HelperText>
-          )}
-        </Panel>
+        <ScreenModeSummaryPanel
+          spritesOnScreenCount={spritesOnScreen.length}
+          screenWidth={screen.width}
+          screenHeight={screen.height}
+          hasConstraintViolation={scanReport.ok === false}
+        />
 
         <Panel>
           <PanelHeader>
@@ -614,13 +230,9 @@ export const ScreenMode: React.FC = () => {
               <FieldLabel>キャラクターセット</FieldLabel>
               <Select
                 variant="outlined"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (typeof value !== "string") {
-                    return;
-                  }
-                  selectCharacterSet(value === "" ? O.none : O.some(value));
-                }}
+                onChange={(event) =>
+                  handleCharacterSetSelect(event.target.value)
+                }
                 value={pipe(
                   selectedCharacterId,
                   O.match(
@@ -795,15 +407,9 @@ export const ScreenMode: React.FC = () => {
                 <FieldLabel>スプライト一覧</FieldLabel>
                 <Select
                   variant="outlined"
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    if (typeof next !== "string") {
-                      return;
-                    }
-                    setSelectedSpriteIndex(
-                      next === "" ? O.none : O.some(Number(next)),
-                    );
-                  }}
+                  onChange={(event) =>
+                    handleSelectedSpriteListChange(event.target.value)
+                  }
                   value={pipe(
                     selectedSpriteIndex,
                     O.match(
@@ -874,27 +480,9 @@ export const ScreenMode: React.FC = () => {
                             inputProps={{
                               "aria-label": "選択スプライト X 座標",
                             }}
-                            onChange={(e) => {
-                              const newX = Number(e.target.value);
-                              const newSprites = spritesOnScreen.map((s, i) =>
-                                i === selectedIndexValue
-                                  ? { ...s, x: newX }
-                                  : s,
-                              );
-                              const newScreen = {
-                                ...screen,
-                                sprites: newSprites,
-                              };
-                              const report = scan(newScreen);
-                              if (report.ok === false) {
-                                alert(
-                                  "位置の更新に失敗しました。制約違反:\n" +
-                                    report.errors.join("\n"),
-                                );
-                                return;
-                              }
-                              setScreenAndSyncNes(newScreen);
-                            }}
+                            onChange={(event) =>
+                              handleSelectedSpriteXChange(event.target.value)
+                            }
                           />
                         </Field>
                         <Field flex="1 1 11.25rem">
@@ -905,27 +493,9 @@ export const ScreenMode: React.FC = () => {
                             inputProps={{
                               "aria-label": "選択スプライト Y 座標",
                             }}
-                            onChange={(e) => {
-                              const newY = Number(e.target.value);
-                              const newSprites = spritesOnScreen.map((s, i) =>
-                                i === selectedIndexValue
-                                  ? { ...s, y: newY }
-                                  : s,
-                              );
-                              const newScreen = {
-                                ...screen,
-                                sprites: newSprites,
-                              };
-                              const report = scan(newScreen);
-                              if (report.ok === false) {
-                                alert(
-                                  "位置の更新に失敗しました。制約違反:\n" +
-                                    report.errors.join("\n"),
-                                );
-                                return;
-                              }
-                              setScreenAndSyncNes(newScreen);
-                            }}
+                            onChange={(event) =>
+                              handleSelectedSpriteYChange(event.target.value)
+                            }
                           />
                         </Field>
                         <Field flex="1 1 11.25rem">
@@ -936,31 +506,11 @@ export const ScreenMode: React.FC = () => {
                             inputProps={{
                               "aria-label": "選択スプライトの優先度",
                             }}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (value !== "front" && value !== "behindBg") {
-                                return;
-                              }
-                              const nextPriority: SpritePriority = value;
-                              const newSprites = spritesOnScreen.map((s, i) =>
-                                i === selectedIndexValue
-                                  ? { ...s, priority: nextPriority }
-                                  : s,
-                              );
-                              const newScreen = {
-                                ...screen,
-                                sprites: newSprites,
-                              };
-                              const report = scan(newScreen);
-                              if (report.ok === false) {
-                                alert(
-                                  "優先度の更新に失敗しました。制約違反:\n" +
-                                    report.errors.join("\n"),
-                                );
-                                return;
-                              }
-                              setScreenAndSyncNes(newScreen);
-                            }}
+                            onChange={(event) =>
+                              handleSelectedSpritePriorityChange(
+                                event.target.value,
+                              )
+                            }
                           >
                             <MenuItem value="front">前面</MenuItem>
                             <MenuItem value="behindBg">背景の後ろ</MenuItem>
@@ -972,38 +522,14 @@ export const ScreenMode: React.FC = () => {
                             <FlipToolButton
                               type="button"
                               active={selectedSprite.flipH === true}
-                              onClick={() => {
-                                const newSprites = spritesOnScreen.map(
-                                  (s, i) =>
-                                    i === selectedIndexValue
-                                      ? { ...s, flipH: s.flipH === false }
-                                      : s,
-                                );
-                                const newScreen = {
-                                  ...screen,
-                                  sprites: newSprites,
-                                };
-                                setScreenAndSyncNes(newScreen);
-                              }}
+                              onClick={handleToggleSelectedSpriteFlipH}
                             >
                               H反転
                             </FlipToolButton>
                             <FlipToolButton
                               type="button"
                               active={selectedSprite.flipV === true}
-                              onClick={() => {
-                                const newSprites = spritesOnScreen.map(
-                                  (s, i) =>
-                                    i === selectedIndexValue
-                                      ? { ...s, flipV: s.flipV === false }
-                                      : s,
-                                );
-                                const newScreen = {
-                                  ...screen,
-                                  sprites: newSprites,
-                                };
-                                setScreenAndSyncNes(newScreen);
-                              }}
+                              onClick={handleToggleSelectedSpriteFlipV}
                             >
                               V反転
                             </FlipToolButton>
@@ -1014,21 +540,7 @@ export const ScreenMode: React.FC = () => {
                       <WideTallToolButton
                         type="button"
                         tone="danger"
-                        onClick={() => {
-                          const newSprites = spritesOnScreen.filter(
-                            (_, i) => i !== selectedIndexValue,
-                          );
-                          const newScreen = { ...screen, sprites: newSprites };
-                          const report = scan(newScreen);
-                          if (report.ok === false) {
-                            alert(
-                              "削除後の状態で制約違反が検出されました:\n" +
-                                report.errors.join("\n"),
-                            );
-                          }
-                          setScreenAndSyncNes(newScreen);
-                          setSelectedSpriteIndex(O.none);
-                        }}
+                        onClick={handleDeleteSelectedSprite}
                       >
                         このスプライトを削除
                       </WideTallToolButton>
@@ -1073,21 +585,9 @@ export const ScreenMode: React.FC = () => {
                 <FieldLabel>選択中のスプライト</FieldLabel>
                 <Select
                   variant="outlined"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (typeof value !== "string") {
-                      return;
-                    }
-                    if (value === "") {
-                      return;
-                    }
-                    const index = Number(value);
-                    if (selectedSpriteIndices.has(index)) {
-                      removeFromGroupSelection(index);
-                    } else {
-                      addToGroupSelection(index);
-                    }
-                  }}
+                  onChange={(event) =>
+                    handleGroupSelectionToggleFromSelect(event.target.value)
+                  }
                   value=""
                   inputProps={{
                     "aria-label": "グループ移動対象のスプライト",
@@ -1207,20 +707,7 @@ export const ScreenMode: React.FC = () => {
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>画面プレビュー</PanelTitle>
-            <ProjectActions
-              actions={[
-                {
-                  label: "PNGエクスポート",
-                  onSelect: () => exportPng(getHexArrayForScreen(screen)),
-                },
-                {
-                  label: "SVGエクスポート",
-                  onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)),
-                },
-                { label: "保存", onSelect: () => exportJSON(projectState) },
-              ]}
-              onImport={handleImport}
-            />
+            <ProjectActions actions={projectActions} onImport={handleImport} />
           </PanelHeaderRow>
 
           <ZoomControlsRow>
@@ -1243,9 +730,7 @@ export const ScreenMode: React.FC = () => {
         </PanelHeader>
 
         <PreviewViewport
-          ref={(element: HTMLDivElement | null) => {
-            viewportElementRef.current = O.fromNullable(element);
-          }}
+          ref={setViewportRef}
           aria-label="画面プレビューキャンバスビュー"
           onWheel={handleViewportWheel}
           onPointerDown={handleViewportPointerDown}

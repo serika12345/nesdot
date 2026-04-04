@@ -13,14 +13,14 @@ import React, { useState } from "react";
 import {
   ColorIndexOfPalette,
   useProjectState,
-} from "../../application/state/projectStore";
+} from "../../../application/state/projectStore";
 import {
   NesBackgroundPalettes,
   NesColorIndex,
   NesPaletteIndex,
   NesSubPalette,
-} from "../../domain/nes/nesProject";
-import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../domain/nes/palette";
+} from "../../../domain/nes/nesProject";
+import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../../domain/nes/palette";
 
 const disclosureChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
