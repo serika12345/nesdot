@@ -5,6 +5,210 @@ import functionalPlugin from "eslint-plugin-functional";
 import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
+const MUI_SX_MAX_PROPERTIES = 5;
+const HEX_COLOR_PATTERN =
+  /^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+const PIXEL_VALUE_PATTERN = /\b-?\d+(?:\.\d+)?px\b/;
+const NESTED_SX_KEY_PATTERN = /^(&|:|@media|@supports|@container)/;
+const THEME_Z_INDEX_TOKEN_PATTERN = /^[A-Za-z][A-Za-z0-9.]*$/;
+
+const getPropertyName = (property) => {
+  if (property.type !== "Property") {
+    return false;
+  }
+
+  if (property.key.type === "Identifier" && property.computed === false) {
+    return property.key.name;
+  }
+
+  if (
+    property.key.type === "Literal" &&
+    typeof property.key.value === "string"
+  ) {
+    return property.key.value;
+  }
+
+  return false;
+};
+
+const getTemplateLiteralValue = (node) => {
+  if (node.expressions.length > 0) {
+    return false;
+  }
+
+  return node.quasis.map((quasi) => quasi.value.cooked ?? "").join("");
+};
+
+const muiGuidancePlugin = {
+  rules: {
+    "restrict-sx": {
+      meta: {
+        type: "suggestion",
+        docs: {
+          description:
+            "Restrict MUI `sx` usage to small shallow objects backed by theme tokens.",
+        },
+        schema: [],
+        messages: {
+          inlineObject:
+            "Keep `sx` inline as a short object literal. Extract reusable styling into a shared component, theme override, or `styled(...)`.",
+          tooManyProperties:
+            "`sx` must stay small. Use at most 5 top-level properties before extracting structure.",
+          noSpread:
+            "Do not compose `sx` with spreads. Keep it local or extract a shared styled wrapper.",
+          noNestedSelectors:
+            "Keep `sx` shallow. Avoid nested selectors, breakpoint objects, and at-rules inline.",
+          noConditionalLogic:
+            "Avoid complex conditional styling logic inside `sx`. Derive values before JSX or extract a component.",
+          noHexColor:
+            "Do not use raw hex colors inside `sx`. Use theme palette tokens instead.",
+          noPixelValue:
+            "Do not use raw pixel strings inside `sx`. Use theme-backed values instead.",
+          noZIndexLiteral:
+            "Do not use ad hoc z-index values inside `sx`. Use theme zIndex tokens.",
+        },
+      },
+      create: (context) => {
+        const report = (node, messageId) => {
+          context.report({
+            node,
+            messageId,
+          });
+        };
+
+        const inspectLiteralValue = (node, value) => {
+          if (typeof value !== "string") {
+            return;
+          }
+
+          if (HEX_COLOR_PATTERN.test(value)) {
+            report(node, "noHexColor");
+          }
+
+          if (PIXEL_VALUE_PATTERN.test(value)) {
+            report(node, "noPixelValue");
+          }
+        };
+
+        const inspectSxValue = (node) => {
+          if (node.type === "ObjectExpression") {
+            node.properties.forEach((property) => {
+              if (property.type === "SpreadElement") {
+                report(property, "noSpread");
+                return;
+              }
+
+              const propertyName = getPropertyName(property);
+              const hasNestedKey =
+                typeof propertyName === "string" &&
+                NESTED_SX_KEY_PATTERN.test(propertyName);
+
+              if (property.value.type === "ObjectExpression" || hasNestedKey) {
+                report(property, "noNestedSelectors");
+              }
+
+              if (propertyName === "zIndex") {
+                const isNumericLiteral =
+                  property.value.type === "Literal" &&
+                  typeof property.value.value === "number";
+                const isNumericStringLiteral =
+                  property.value.type === "Literal" &&
+                  typeof property.value.value === "string" &&
+                  THEME_Z_INDEX_TOKEN_PATTERN.test(property.value.value) ===
+                    false;
+
+                if (isNumericLiteral || isNumericStringLiteral) {
+                  report(property.value, "noZIndexLiteral");
+                }
+              }
+
+              inspectSxValue(property.value);
+            });
+            return;
+          }
+
+          if (
+            node.type === "ConditionalExpression" ||
+            node.type === "LogicalExpression" ||
+            node.type === "ArrayExpression" ||
+            node.type === "ArrowFunctionExpression"
+          ) {
+            report(node, "noConditionalLogic");
+          }
+
+          if (node.type === "Literal") {
+            inspectLiteralValue(node, node.value);
+            return;
+          }
+
+          if (node.type === "TemplateLiteral") {
+            const templateLiteralValue = getTemplateLiteralValue(node);
+
+            if (templateLiteralValue !== false) {
+              inspectLiteralValue(node, templateLiteralValue);
+            }
+
+            return;
+          }
+
+          if (node.type === "ConditionalExpression") {
+            inspectSxValue(node.consequent);
+            inspectSxValue(node.alternate);
+            return;
+          }
+
+          if (node.type === "LogicalExpression") {
+            inspectSxValue(node.left);
+            inspectSxValue(node.right);
+            return;
+          }
+
+          if (node.type === "ArrayExpression") {
+            node.elements.forEach((element) => {
+              if (typeof element?.type === "string") {
+                inspectSxValue(element);
+              }
+            });
+            return;
+          }
+
+          if (node.type === "ArrowFunctionExpression") {
+            if (node.body.type !== "BlockStatement") {
+              inspectSxValue(node.body);
+            }
+          }
+        };
+
+        return {
+          JSXAttribute: (node) => {
+            if (node.name.type !== "JSXIdentifier" || node.name.name !== "sx") {
+              return;
+            }
+
+            if (
+              node.value?.type !== "JSXExpressionContainer" ||
+              node.value.expression.type !== "ObjectExpression"
+            ) {
+              report(node, "inlineObject");
+              return;
+            }
+
+            const topLevelPropertyCount = node.value.expression.properties.filter(
+              (property) => property.type === "Property",
+            ).length;
+
+            if (topLevelPropertyCount > MUI_SX_MAX_PROPERTIES) {
+              report(node.value.expression, "tooManyProperties");
+            }
+
+            inspectSxValue(node.value.expression);
+          },
+        };
+      },
+    },
+  },
+};
+
 const restrictedSyntaxCommon = [
   {
     selector: "Literal[value=null]",
@@ -87,6 +291,7 @@ const config = [
       "@typescript-eslint": tsPlugin,
       functional: functionalPlugin,
       import: importPlugin,
+      "mui-guidance": muiGuidancePlugin,
       "react-hooks": reactHooksPlugin,
     },
     rules: {
@@ -110,6 +315,8 @@ const config = [
 
       "functional/no-let": "error",
       "functional/no-throw-statements": "error",
+
+      "mui-guidance/restrict-sx": "error",
 
       "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
 

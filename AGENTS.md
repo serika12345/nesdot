@@ -107,6 +107,54 @@ Rules:
 - Put domain logic outside components unless the logic is inherently view-local.
 - Keep components focused on rendering and orchestration.
 
+## 8.1 MUI Styling Discipline
+
+Use MUI, but keep styling decisions centralized and mechanically constrained.
+
+- Prefer theme configuration, `styled(...)`, and shared wrapper components over per-call-site styling.
+- Treat `sx` as restricted, not as the default styling API.
+- Do not use `sx` for layout architecture, spacing system design, color decisions, typography decisions, breakpoint design, or repeated visual patterns.
+- Do not copy-paste large `sx` objects between components. If styling repeats, extract a shared component or theme override.
+- Do not introduce raw hex colors, pixel constants, ad hoc z-index values, or one-off breakpoint values inside `sx`.
+- Prefer tokens from the MUI theme for spacing, palette, typography, shadows, shape, and z-index.
+
+Allowed `sx` usage is limited to small, local, non-reusable adjustments when all of the following are true:
+
+1. the change is specific to a single call site,
+2. the change is visually minor,
+3. extracting a wrapper or theme override would add more complexity than value,
+4. only theme-backed values are used.
+
+Good examples of allowed `sx` usage:
+- one-off flex alignment for a single container,
+- a small gap adjustment using theme spacing,
+- temporary composition glue between existing shared components.
+
+Disallowed examples of `sx` usage:
+- building full component skins,
+- defining button or card variants inline,
+- repeated page-level layout patterns,
+- encoding product-specific visual identity at the call site,
+- solving a shared styling need without extraction.
+
+When a component needs recurring styling, use one of these, in order:
+
+1. existing shared UI component,
+2. new wrapper component in the shared UI layer,
+3. theme component override or variant,
+4. `styled(...)` colocated with the component when the styling is still component-owned.
+
+If `sx` is used, keep it small and shallow:
+
+- prefer a single short object,
+- avoid nested selectors unless required by MUI integration,
+- avoid composing complex conditional styling logic inline,
+- do not pass `sx` through multiple abstraction layers unless that passthrough is already part of the public API.
+
+For agent implementations, assume this default rule:
+
+- if you are about to write more than a small handful of `sx` properties, stop and extract structure instead.
+
 ## 9. Testing Policy
 
 - When behavior is observable, add or update tests to describe the intended behavior.
