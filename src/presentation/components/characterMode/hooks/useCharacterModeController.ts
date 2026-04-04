@@ -59,6 +59,7 @@ import {
   resolveCharacterStagePoint,
   resolveCharacterStageScale,
   resolveSelectionAfterSpriteRemoval,
+  resolveVisibleSpriteContextMenu,
   shiftCharacterSpriteLayer,
 } from "../model/characterEditorModel";
 import { isProjectSpriteSizeLocked } from "../project/projectSpriteSizeLock";
@@ -119,7 +120,7 @@ export const useCharacterModeController = () => {
   const [selectedSpriteEditorIndex, setSelectedSpriteEditorIndex] = useState<
     O.Option<number>
   >(O.none);
-  const [spriteContextMenu, setSpriteContextMenu] = useState<
+  const [spriteContextMenuState, setSpriteContextMenu] = useState<
     O.Option<SpriteContextMenuState>
   >(O.none);
   const [decompositionTool, setDecompositionTool] =
@@ -225,13 +226,23 @@ export const useCharacterModeController = () => {
     [activeSet, validSelectedSpriteEditorIndex],
   );
 
-  useEffect(() => {
-    if (editorMode === "compose" && O.isSome(selectedSprite)) {
-      return;
-    }
+  const spriteContextMenu = useMemo(
+    () =>
+      resolveVisibleSpriteContextMenu(
+        editorMode === "compose",
+        O.isSome(selectedSprite),
+        spriteContextMenuState,
+      ),
+    [editorMode, selectedSprite, spriteContextMenuState],
+  );
 
-    setSpriteContextMenu(O.none);
-  }, [editorMode, selectedSprite]);
+  const updateSelectedSpriteEditorIndex = useCallback(
+    (nextSelection: React.SetStateAction<O.Option<number>>) => {
+      setSpriteContextMenu(O.none);
+      setSelectedSpriteEditorIndex(nextSelection);
+    },
+    [],
+  );
 
   const projectSpriteSizeLocked = useMemo(
     () =>
@@ -629,21 +640,21 @@ export const useCharacterModeController = () => {
 
   const handleCreateSet = () => {
     createSet({ name: newName });
-    setSelectedSpriteEditorIndex(O.none);
+    updateSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
     setLibraryDragState(O.none);
   };
 
   const handleSelectSet = (value: string) => {
     selectSet(value === "" ? O.none : O.some(value));
-    setSelectedSpriteEditorIndex(O.none);
+    updateSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
     setLibraryDragState(O.none);
   };
 
   const handleDeleteSet = (setId: string) => {
     deleteSet(setId);
-    setSelectedSpriteEditorIndex(O.none);
+    updateSelectedSpriteEditorIndex(O.none);
     setSelectedRegionId(O.none);
     setLibraryDragState(O.none);
   };
@@ -681,7 +692,7 @@ export const useCharacterModeController = () => {
       screen: nextScreen,
       nes: nextNes,
     });
-    setSelectedSpriteEditorIndex(O.none);
+    updateSelectedSpriteEditorIndex(O.none);
     setDecompositionRegions([]);
     setSelectedRegionId(O.none);
   };
@@ -1087,7 +1098,7 @@ export const useCharacterModeController = () => {
           return;
         }
 
-        setSelectedSpriteEditorIndex(nextIndex);
+        updateSelectedSpriteEditorIndex(nextIndex);
       };
       const openContextMenuAt = (
         clientX: number,
@@ -1243,6 +1254,7 @@ export const useCharacterModeController = () => {
     stageHeight,
     stageScale,
     stageWidth,
+    updateSelectedSpriteEditorIndex,
     validSelectedSpriteEditorIndex,
   ]);
 
@@ -1312,7 +1324,7 @@ export const useCharacterModeController = () => {
     currentSpriteCount: number,
   ) => {
     removeSprite(setId, index);
-    setSelectedSpriteEditorIndex((current) =>
+    updateSelectedSpriteEditorIndex((current) =>
       resolveSelectionAfterSpriteRemoval(
         current,
         index,
@@ -1701,7 +1713,7 @@ export const useCharacterModeController = () => {
             y: completedDrag.stageY,
             layer: getNextCharacterSpriteLayer(characterSet.sprites),
           });
-          setSelectedSpriteEditorIndex(O.some(characterSet.sprites.length));
+          updateSelectedSpriteEditorIndex(O.some(characterSet.sprites.length));
         }),
       );
       setLibraryDragState(O.none);
@@ -1751,6 +1763,7 @@ export const useCharacterModeController = () => {
   };
 
   const handleEditorModeChange = (mode: CharacterEditorMode) => {
+    setSpriteContextMenu(O.none);
     setEditorMode(mode);
   };
 

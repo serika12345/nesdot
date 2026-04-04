@@ -113,6 +113,15 @@ export const ensureSelectedCharacterSpriteIndex = (
     ),
   );
 
+export const resolveVisibleSpriteContextMenu = <T>(
+  isComposeMode: boolean,
+  hasSelectedSprite: boolean,
+  spriteContextMenu: O.Option<T>,
+): O.Option<T> =>
+  isComposeMode === true && hasSelectedSprite === true
+    ? spriteContextMenu
+    : O.none;
+
 export const resolveSelectionAfterSpriteRemoval = (
   selectedIndex: O.Option<number>,
   removedIndex: number,

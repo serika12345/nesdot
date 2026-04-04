@@ -1,14 +1,15 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import {
-  resolveCharacterStageScale,
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntries,
   getCharacterLayerEntriesBackToFront,
   getNextCharacterSpriteLayer,
   nudgeCharacterSprite,
   resolveCharacterStagePoint,
+  resolveCharacterStageScale,
   resolveSelectionAfterSpriteRemoval,
+  resolveVisibleSpriteContextMenu,
   shiftCharacterSpriteLayer,
 } from "./characterEditorModel";
 
@@ -46,9 +47,7 @@ describe("characterEditorModel", () => {
   });
 
   it("keeps selections within the current sprite count", () => {
-    expect(ensureSelectedCharacterSpriteIndex(O.some(1), 2)).toEqual(
-      O.some(1),
-    );
+    expect(ensureSelectedCharacterSpriteIndex(O.some(1), 2)).toEqual(O.some(1));
     expect(ensureSelectedCharacterSpriteIndex(O.some(4), 2)).toEqual(O.none);
   });
 
@@ -59,9 +58,7 @@ describe("characterEditorModel", () => {
     expect(resolveSelectionAfterSpriteRemoval(O.some(1), 1, 1)).toEqual(
       O.some(0),
     );
-    expect(resolveSelectionAfterSpriteRemoval(O.some(0), 0, 0)).toEqual(
-      O.none,
-    );
+    expect(resolveSelectionAfterSpriteRemoval(O.some(0), 0, 0)).toEqual(O.none);
   });
 
   it("resolves stage points using scale, offset, and bounds", () => {
@@ -136,24 +133,28 @@ describe("characterEditorModel", () => {
 
   it("shifts a sprite layer and clamps it to the NES range", () => {
     expect(
-      shiftCharacterSpriteLayer(
-        { spriteIndex: 0, x: 8, y: 8, layer: 4 },
-        1,
-      ),
+      shiftCharacterSpriteLayer({ spriteIndex: 0, x: 8, y: 8, layer: 4 }, 1),
     ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 5 });
 
     expect(
-      shiftCharacterSpriteLayer(
-        { spriteIndex: 0, x: 8, y: 8, layer: 0 },
-        -1,
-      ),
+      shiftCharacterSpriteLayer({ spriteIndex: 0, x: 8, y: 8, layer: 0 }, -1),
     ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 0 });
 
     expect(
-      shiftCharacterSpriteLayer(
-        { spriteIndex: 0, x: 8, y: 8, layer: 63 },
-        1,
-      ),
+      shiftCharacterSpriteLayer({ spriteIndex: 0, x: 8, y: 8, layer: 63 }, 1),
     ).toEqual({ spriteIndex: 0, x: 8, y: 8, layer: 63 });
+  });
+
+  it("shows the sprite context menu only in compose mode with a selection", () => {
+    const menu = O.some({
+      clientX: 120,
+      clientY: 80,
+      spriteEditorIndex: 3,
+    });
+
+    expect(resolveVisibleSpriteContextMenu(true, true, menu)).toEqual(menu);
+    expect(resolveVisibleSpriteContextMenu(false, true, menu)).toEqual(O.none);
+    expect(resolveVisibleSpriteContextMenu(true, false, menu)).toEqual(O.none);
+    expect(resolveVisibleSpriteContextMenu(false, false, menu)).toEqual(O.none);
   });
 });
