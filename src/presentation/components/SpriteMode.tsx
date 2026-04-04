@@ -202,7 +202,7 @@ export const SpriteMode: React.FC = () => {
   };
 
   return (
-    <SplitLayout>
+    <SplitLayout flex={1} height="100%">
       <Panel minHeight={0}>
         <PanelHeader>
           <PanelTitle>スプライト編集</PanelTitle>

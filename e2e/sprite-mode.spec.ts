@@ -36,3 +36,28 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
   await page.getByRole("button", { name: "ツールを閉じる" }).click();
   await expect(page.getByRole("button", { name: "ペン" })).toHaveCount(0);
 });
+
+test("sprite canvas panel stretches to the bottom of the workspace", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "スプライト編集");
+
+  const leftPane = page
+    .getByRole("heading", { name: "スプライト編集" })
+    .locator("xpath=ancestor::section[1]");
+  const canvasPanel = page
+    .getByRole("heading", { name: "スプライトキャンバス" })
+    .locator("xpath=ancestor::div[.//canvas][1]");
+
+  await expect(leftPane).toBeVisible();
+  await expect(canvasPanel).toBeVisible();
+
+  const [leftPaneBottom, canvasPanelBottom] = await Promise.all([
+    leftPane.evaluate((element) => element.getBoundingClientRect().bottom),
+    canvasPanel.evaluate((element) => element.getBoundingClientRect().bottom),
+  ]);
+  const bottomGap = leftPaneBottom - canvasPanelBottom;
+
+  expect(bottomGap).toBeLessThanOrEqual(24);
+});
