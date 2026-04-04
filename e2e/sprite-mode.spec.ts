@@ -43,12 +43,10 @@ test("sprite canvas panel stretches to the bottom of the workspace", async ({
   await gotoApp(page);
   await openMode(page, "スプライト編集");
 
-  const leftPane = page
-    .getByRole("heading", { name: "スプライト編集" })
-    .locator("xpath=ancestor::section[1]");
-  const canvasPanel = page
-    .getByRole("heading", { name: "スプライトキャンバス" })
-    .locator("xpath=ancestor::div[.//canvas][1]");
+  const leftPane = page.getByRole("region", { name: "スプライト編集パネル" });
+  const canvasPanel = page.getByRole("region", {
+    name: "スプライトキャンバスパネル",
+  });
 
   await expect(leftPane).toBeVisible();
   await expect(canvasPanel).toBeVisible();

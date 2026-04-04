@@ -203,7 +203,11 @@ export const SpriteMode: React.FC = () => {
 
   return (
     <SplitLayout flex={1} height="100%">
-      <Panel minHeight={0}>
+      <Panel
+        component="section"
+        aria-label="スプライト編集パネル"
+        minHeight={0}
+      >
         <PanelHeader>
           <PanelTitle>スプライト編集</PanelTitle>
         </PanelHeader>
@@ -266,7 +270,12 @@ export const SpriteMode: React.FC = () => {
         </Stack>
       </Panel>
 
-      <Panel flex={1} minHeight={0}>
+      <Panel
+        component="section"
+        aria-label="スプライトキャンバスパネル"
+        flex={1}
+        minHeight={0}
+      >
         <PanelHeader>
           <PanelHeaderRow>
             <PanelTitle>スプライトキャンバス</PanelTitle>

@@ -231,6 +231,7 @@ Pages should assemble shared structure, not invent styling locally.
 - When behavior is observable, add or update tests to describe the intended behavior.
 - Prefer unit tests for domain logic.
 - Use E2E only for integration points, user interactions, navigation, and browser/runtime validation.
+- In E2E tests, do not use hierarchy-dependent selectors (for example XPath, parent/ancestor traversal, or nth-child chains). Use stable, hierarchy-independent selectors such as role+name, label, or explicit test IDs.
 - When fixing a bug, first add a test that fails for the bug when practical.
 - Do not delete or loosen tests to make unrelated changes pass.
 
