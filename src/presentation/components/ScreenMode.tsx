@@ -1,6 +1,8 @@
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import {
-  NativeSelect,
+  MenuItem,
   OutlinedInput,
+  Select,
   Stack,
   type StackProps,
 } from "@mui/material";
@@ -55,7 +57,6 @@ import {
 } from "../App.styles";
 import { ProjectActions } from "./ProjectActions";
 import { ScreenCanvas } from "./ScreenCanvas";
-import { ChevronIcon } from "./ui/Icons";
 
 const SCREEN_MIN_ZOOM_LEVEL = 1;
 const SCREEN_MAX_ZOOM_LEVEL = 8;
@@ -180,13 +181,13 @@ const ScreenNumberInput = styled(OutlinedInput)({
   },
 });
 
-const ScreenSelectInput = styled(NativeSelect)({
+const ScreenSelectInput = styled(Select)({
   width: "100%",
   borderRadius: "1rem",
   background:
     "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
   color: "var(--ink-strong)",
-  "& .MuiNativeSelect-select": {
+  "& .MuiSelect-select": {
     padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
     borderRadius: "1rem",
   },
@@ -199,11 +200,18 @@ const ScreenSelectInput = styled(NativeSelect)({
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: "rgba(15, 118, 110, 0.4)",
   },
-  "& .MuiNativeSelect-icon": {
+  "& .MuiSelect-icon": {
     right: "0.875rem",
     color: "var(--ink-soft)",
   },
 });
+
+const CollapseChevron = styled(ExpandMoreRoundedIcon, {
+  shouldForwardProp: (prop) => prop !== "open",
+})<{ open: boolean }>(({ open }) => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+}));
 
 const ReadOnlyDetailRow = styled(DetailRow)({
   background: "transparent",
@@ -659,6 +667,9 @@ export const ScreenMode: React.FC = () => {
                 variant="outlined"
                 onChange={(e) => {
                   const value = e.target.value;
+                  if (typeof value !== "string") {
+                    return;
+                  }
                   selectCharacterSet(value === "" ? O.none : O.some(value));
                 }}
                 value={pipe(
@@ -673,12 +684,12 @@ export const ScreenMode: React.FC = () => {
                 }}
               >
                 {characterSets.length === 0 && (
-                  <option value="">キャラクターセットがありません</option>
+                  <MenuItem value="">キャラクターセットがありません</MenuItem>
                 )}
                 {characterSets.map((characterSet) => (
-                  <option key={characterSet.id} value={characterSet.id}>
+                  <MenuItem key={characterSet.id} value={characterSet.id}>
                     {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
-                  </option>
+                  </MenuItem>
                 ))}
               </ScreenSelectInput>
             </FullWidthField>
@@ -746,7 +757,7 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsPlacementOpen((prev) => !prev)}
               >
                 {isPlacementOpen ? "閉じる" : "開く"}
-                <ChevronIcon open={isPlacementOpen} />
+                <CollapseChevron open={isPlacementOpen} />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>スプライト追加</PanelTitle>
@@ -819,7 +830,7 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsSelectionOpen((prev) => !prev)}
               >
                 {isSelectionOpen ? "閉じる" : "開く"}
-                <ChevronIcon open={isSelectionOpen} />
+                <CollapseChevron open={isSelectionOpen} />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>選択中のスプライト</PanelTitle>
@@ -833,6 +844,9 @@ export const ScreenMode: React.FC = () => {
                   variant="outlined"
                   onChange={(e) => {
                     const next = e.target.value;
+                    if (typeof next !== "string") {
+                      return;
+                    }
                     setSelectedSpriteIndex(
                       next === "" ? O.none : O.some(Number(next)),
                     );
@@ -849,12 +863,12 @@ export const ScreenMode: React.FC = () => {
                   }}
                 >
                   {spritesOnScreen.length === 0 && (
-                    <option value="">スプライトが配置されていません</option>
+                    <MenuItem value="">スプライトが配置されていません</MenuItem>
                   )}
                   {spritesOnScreen.map((sprite, index) => (
-                    <option key={index} value={index}>
+                    <MenuItem key={index} value={String(index)}>
                       {`#${index} spriteIndex:${sprite.spriteIndex} ${sprite.width}x${sprite.height} @ ${sprite.x},${sprite.y} ${sprite.priority === "behindBg" ? "behind" : "front"}`}
-                    </option>
+                    </MenuItem>
                   ))}
                 </ScreenSelectInput>
               </Field>
@@ -970,10 +984,11 @@ export const ScreenMode: React.FC = () => {
                               "aria-label": "選択スプライトの優先度",
                             }}
                             onChange={(e) => {
-                              const nextPriority: SpritePriority =
-                                e.target.value === "behindBg"
-                                  ? "behindBg"
-                                  : "front";
+                              const value = e.target.value;
+                              if (value !== "front" && value !== "behindBg") {
+                                return;
+                              }
+                              const nextPriority: SpritePriority = value;
                               const newSprites = spritesOnScreen.map((s, i) =>
                                 i === selectedIndexValue
                                   ? { ...s, priority: nextPriority }
@@ -994,8 +1009,8 @@ export const ScreenMode: React.FC = () => {
                               setScreenAndSyncNes(newScreen);
                             }}
                           >
-                            <option value="front">前面</option>
-                            <option value="behindBg">背景の後ろ</option>
+                            <MenuItem value="front">前面</MenuItem>
+                            <MenuItem value="behindBg">背景の後ろ</MenuItem>
                           </ScreenSelectInput>
                         </Field>
                         <Field flex="1 1 11.25rem">
@@ -1091,7 +1106,7 @@ export const ScreenMode: React.FC = () => {
                 onClick={() => setIsGroupMoveOpen((prev) => !prev)}
               >
                 {isGroupMoveOpen ? "閉じる" : "開く"}
-                <ChevronIcon open={isGroupMoveOpen} />
+                <CollapseChevron open={isGroupMoveOpen} />
               </CollapseToggle>
             </PanelHeaderRow>
             <PanelTitle>グループ移動</PanelTitle>
@@ -1105,6 +1120,9 @@ export const ScreenMode: React.FC = () => {
                   variant="outlined"
                   onChange={(e) => {
                     const value = e.target.value;
+                    if (typeof value !== "string") {
+                      return;
+                    }
                     if (value === "") {
                       return;
                     }
@@ -1120,11 +1138,11 @@ export const ScreenMode: React.FC = () => {
                     "aria-label": "グループ移動対象のスプライト",
                   }}
                 >
-                  <option value="">スプライトを追加...</option>
+                  <MenuItem value="">スプライトを追加...</MenuItem>
                   {spritesOnScreen.map((sprite, index) => (
-                    <option key={index} value={index}>
+                    <MenuItem key={index} value={String(index)}>
                       {`#${index} ${selectedSpriteIndices.has(index) ? "✓" : " "} spriteIndex:${sprite.spriteIndex} @ ${sprite.x},${sprite.y}`}
-                    </option>
+                    </MenuItem>
                   ))}
                 </ScreenSelectInput>
               </Field>

@@ -1,13 +1,17 @@
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
-import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../domain/nes/palette";
+import {
+  ColorIndexOfPalette,
+  useProjectState,
+} from "../../application/state/projectStore";
 import {
   NesBackgroundPalettes,
   NesColorIndex,
   NesPaletteIndex,
   NesSubPalette,
 } from "../../domain/nes/nesProject";
-import { ColorIndexOfPalette, useProjectState } from "../../application/state/projectStore";
+import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../domain/nes/palette";
 import {
   ColorCell,
   DisclosureButton,
@@ -32,7 +36,11 @@ import {
   SlotLabel,
   SlotRow,
 } from "./PalettePicker.styles";
-import { ChevronIcon } from "./ui/Icons";
+
+const disclosureChevronStyle = (open: boolean): React.CSSProperties => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+});
 
 export const PalettePicker: React.FC = () => {
   const palettes = useProjectState((s) => s.nes.backgroundPalettes);
@@ -135,7 +143,11 @@ export const PalettePicker: React.FC = () => {
           type="button"
           open={isPaletteListOpen}
           onClick={() => setIsPaletteListOpen((prev) => !prev)}
-          endIcon={<ChevronIcon open={isPaletteListOpen} />}
+          endIcon={
+            <ExpandMoreRoundedIcon
+              style={disclosureChevronStyle(isPaletteListOpen)}
+            />
+          }
         >
           {isPaletteListOpen ? "パレットを閉じる" : "パレットを開く"}
         </DisclosureButton>
@@ -143,7 +155,11 @@ export const PalettePicker: React.FC = () => {
           type="button"
           open={isLibraryOpen}
           onClick={() => setIsLibraryOpen((prev) => !prev)}
-          endIcon={<ChevronIcon open={isLibraryOpen} />}
+          endIcon={
+            <ExpandMoreRoundedIcon
+              style={disclosureChevronStyle(isLibraryOpen)}
+            />
+          }
         >
           {isLibraryOpen ? "色ライブラリを閉じる" : "色ライブラリを開く"}
         </DisclosureButton>

@@ -2,8 +2,9 @@ import {
   ButtonBase,
   Container,
   Grid as MaterialGrid,
-  NativeSelect,
+  MenuItem,
   OutlinedInput,
+  Select,
   Stack,
   type ContainerProps,
   type GridProps,
@@ -364,13 +365,13 @@ const CharacterInput = styled(OutlinedInput)({
   },
 });
 
-const CharacterSelectInput = styled(NativeSelect)({
+const CharacterSelectInput = styled(Select)({
   width: "100%",
   borderRadius: "1rem",
   background:
     "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
   color: "var(--ink-strong)",
-  "& .MuiNativeSelect-select": {
+  "& .MuiSelect-select": {
     padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
     borderRadius: "1rem",
   },
@@ -383,7 +384,7 @@ const CharacterSelectInput = styled(NativeSelect)({
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: "rgba(15, 118, 110, 0.4)",
   },
-  "& .MuiNativeSelect-icon": {
+  "& .MuiSelect-icon": {
     right: "0.875rem",
     color: "var(--ink-soft)",
   },
@@ -2975,15 +2976,21 @@ export const CharacterMode: React.FC = () => {
                   (value) => value,
                 ),
               )}
-              onChange={(event) => handleSelectSet(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (typeof value !== "string") {
+                  return;
+                }
+                handleSelectSet(value);
+              }}
             >
               {characterSets.length === 0 && (
-                <option value="">キャラクターセットがありません</option>
+                <MenuItem value="">キャラクターセットがありません</MenuItem>
               )}
               {characterSets.map((characterSet) => (
-                <option key={characterSet.id} value={characterSet.id}>
+                <MenuItem key={characterSet.id} value={characterSet.id}>
                   {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
-                </option>
+                </MenuItem>
               ))}
             </CharacterSelectInput>
           </Field>
@@ -3247,7 +3254,14 @@ export const CharacterMode: React.FC = () => {
                           "aria-label": "分解描画パレット",
                         }}
                         onChange={(event) => {
-                          const parsed = Number(event.target.value);
+                          const value = event.target.value;
+                          if (
+                            typeof value !== "string" &&
+                            typeof value !== "number"
+                          ) {
+                            return;
+                          }
+                          const parsed = Number(String(value));
                           if (
                             parsed === 0 ||
                             parsed === 1 ||
@@ -3259,9 +3273,9 @@ export const CharacterMode: React.FC = () => {
                         }}
                       >
                         {spritePalettes.map((_, paletteIndex) => (
-                          <option key={paletteIndex} value={paletteIndex}>
+                          <MenuItem key={paletteIndex} value={paletteIndex}>
                             パレット {paletteIndex}
-                          </option>
+                          </MenuItem>
                         ))}
                       </CharacterSelectInput>
                     </PaletteControlContainer>

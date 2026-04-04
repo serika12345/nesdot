@@ -1,4 +1,5 @@
-import { NativeSelect, OutlinedInput, Stack } from "@mui/material";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import { MenuItem, OutlinedInput, Select, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
@@ -37,7 +38,6 @@ import {
 import { SlotButton, SlotGroup, SlotLabel } from "./PalettePicker.styles";
 import { ProjectActions } from "./ProjectActions";
 import { SpriteCanvas } from "./SpriteCanvas";
-import { ChevronIcon } from "./ui/Icons";
 
 function makeEmptyTile(
   height: ProjectSpriteSize,
@@ -77,13 +77,13 @@ const SpriteNumberInput = styled(OutlinedInput)({
   },
 });
 
-const SpritePaletteSelect = styled(NativeSelect)({
+const SpritePaletteSelect = styled(Select)({
   width: "100%",
   borderRadius: "1rem",
   background:
     "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92))",
   color: "var(--ink-strong)",
-  "& .MuiNativeSelect-select": {
+  "& .MuiSelect-select": {
     padding: "0.8125rem 2.5rem 0.8125rem 0.875rem",
     borderRadius: "1rem",
   },
@@ -96,7 +96,7 @@ const SpritePaletteSelect = styled(NativeSelect)({
   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: "rgba(15, 118, 110, 0.4)",
   },
-  "& .MuiNativeSelect-icon": {
+  "& .MuiSelect-icon": {
     right: "0.875rem",
     color: "var(--ink-soft)",
   },
@@ -132,6 +132,13 @@ const SpriteToolButton = styled(ToolButton)({
   justifyContent: "center",
   padding: "0.625rem 0.875rem",
 });
+
+const ToolPanelChevron = styled(ExpandMoreRoundedIcon, {
+  shouldForwardProp: (prop) => prop !== "open",
+})<{ open: boolean }>(({ open }) => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+}));
 
 export const SpriteMode: React.FC = () => {
   const [tool, setTool] = useState<Tool>("pen");
@@ -284,12 +291,18 @@ export const SpriteMode: React.FC = () => {
                 inputProps={{
                   "aria-label": "パレット",
                 }}
-                onChange={(e) => handlePaletteChange(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (typeof value !== "string" && typeof value !== "number") {
+                    return;
+                  }
+                  handlePaletteChange(String(value));
+                }}
               >
                 {palettes.map((_, i) => (
-                  <option key={i} value={i}>
+                  <MenuItem key={i} value={i}>
                     パレット {i}
-                  </option>
+                  </MenuItem>
                 ))}
               </SpritePaletteSelect>
             </Field>
@@ -368,7 +381,7 @@ export const SpriteMode: React.FC = () => {
               onClick={() => setIsToolsOpen((prev) => !prev)}
             >
               {isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
-              <ChevronIcon open={isToolsOpen} />
+              <ToolPanelChevron open={isToolsOpen} />
             </CollapseToggle>
           </Stack>
 

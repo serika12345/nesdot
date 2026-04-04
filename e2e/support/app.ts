@@ -15,3 +15,13 @@ export const openMode = async (
 
   await expect(page.getByRole("button", { name: modeName })).toBeVisible();
 };
+
+export const selectMaterialOption = async (
+  page: Page,
+  selectLabel: string,
+  optionText: string,
+): Promise<void> => {
+  const select = page.getByRole("combobox", { name: selectLabel });
+  await select.click();
+  await page.getByRole("option", { name: optionText, exact: true }).click();
+};

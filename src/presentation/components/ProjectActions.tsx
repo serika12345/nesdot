@@ -1,6 +1,10 @@
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import IosShareRoundedIcon from "@mui/icons-material/IosShareRounded";
+import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
+import { Typography } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { styled } from "@mui/material/styles";
 import React, {
   useCallback,
   useEffect,
@@ -18,7 +22,6 @@ import {
   IconActionButton,
   IconLabel,
 } from "../App.styles";
-import { ChevronIcon, ImportIcon, ShareIcon } from "./ui/Icons";
 
 type ActionItem = {
   label: string;
@@ -53,14 +56,31 @@ const shouldForwardMenuProp = (prop: PropertyKey): boolean =>
 
 const PositionedActionMenu = styled(ActionMenu, {
   shouldForwardProp: shouldForwardMenuProp,
-})<PositionedActionMenuProps>(
-  ({ menuLeft, menuTop, menuWidth, ready }) => ({
-    top: menuTop,
-    left: menuLeft,
-    width: menuWidth,
-    visibility: ready ? "visible" : "hidden",
-  }),
-);
+})<PositionedActionMenuProps>(({ menuLeft, menuTop, menuWidth, ready }) => ({
+  top: menuTop,
+  left: menuLeft,
+  width: menuWidth,
+  visibility: ready ? "visible" : "hidden",
+}));
+
+const ActionChevron = styled(ExpandMoreRoundedIcon, {
+  shouldForwardProp: (prop) => prop !== "open",
+})<{ open: boolean }>(({ open }) => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+}));
+
+const MenuShareIcon = styled(IosShareRoundedIcon)({
+  fontSize: "0.875rem",
+});
+
+const TriggerShareIcon = styled(IosShareRoundedIcon)({
+  fontSize: "1.125rem",
+});
+
+const ImportActionIcon = styled(RestoreRoundedIcon)({
+  fontSize: "1.125rem",
+});
 
 export const ProjectActions: React.FC<ProjectActionsProps> = ({
   actions,
@@ -193,8 +213,8 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
                     action.onSelect();
                   }}
                 >
-                  <span>{action.label}</span>
-                  <ShareIcon size={14} />
+                  <Typography component="span">{action.label}</Typography>
+                  <MenuShareIcon />
                 </ActionMenuButton>
               ))}
             </PositionedActionMenu>
@@ -219,16 +239,16 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             <IconLabel>
-              <ShareIcon />
+              <TriggerShareIcon />
               共有
             </IconLabel>
-            <ChevronIcon open={menuOpen} />
+            <ActionChevron open={menuOpen} />
           </IconActionButton>
 
           {typeof onImport === "function" && (
             <IconActionButton type="button" onClick={onImport}>
               <IconLabel>
-                <ImportIcon />
+                <ImportActionIcon />
                 {importLabel}
               </IconLabel>
             </IconActionButton>

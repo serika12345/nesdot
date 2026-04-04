@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { gotoApp, openMode } from "./support/app";
+import { gotoApp, openMode, selectMaterialOption } from "./support/app";
 import {
   clickCanvasPixel,
   clickComposeCanvasAtPosition,
@@ -37,10 +37,20 @@ test("character mode supports drag and drop placement and stage movement", async
   await expect(page.getByLabel("プレビューキャンバス幅")).toHaveValue("16");
   await expect(page.getByLabel("プレビューキャンバス高さ")).toHaveValue("16");
 
-  const defaultStage = await stage.evaluate((element) => ({
-    width: element.offsetWidth,
-    height: element.offsetHeight,
-  }));
+  const defaultStage = await stage.evaluate((element) => {
+    if (element instanceof HTMLElement) {
+      return {
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      };
+    }
+
+    const rect = element.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+    };
+  });
   const defaultGrid = await getStageGridState(stage);
 
   expect(defaultStage.width).toBe(512);
@@ -53,11 +63,14 @@ test("character mode supports drag and drop placement and stage movement", async
   await expect(page.getByLabel("プレビューキャンバス幅")).toHaveValue("320");
   await expect(page.getByLabel("プレビューキャンバス高さ")).toHaveValue("256");
 
-  const resizedStage = await stage.evaluate((element) => ({
-    width: element.offsetWidth,
-    height: element.offsetHeight,
-    borderRadius: window.getComputedStyle(element).borderRadius,
-  }));
+  const resizedStage = await stage.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+      borderRadius: window.getComputedStyle(element).borderRadius,
+    };
+  });
 
   expect(resizedStage.width).toBe(640);
   expect(resizedStage.height).toBe(512);
@@ -65,10 +78,20 @@ test("character mode supports drag and drop placement and stage movement", async
 
   await zoomViewportAtCenter(viewport, -120);
 
-  const zoomedStage = await stage.evaluate((element) => ({
-    width: element.offsetWidth,
-    height: element.offsetHeight,
-  }));
+  const zoomedStage = await stage.evaluate((element) => {
+    if (element instanceof HTMLElement) {
+      return {
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      };
+    }
+
+    const rect = element.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+    };
+  });
 
   expect(zoomedStage.width).toBe(960);
   expect(zoomedStage.height).toBe(768);
@@ -206,7 +229,9 @@ test("character mode supports drag and drop placement and stage movement", async
     (nudgedSprite.y + 4) * 3,
   );
   await openComposeCanvasSpriteContextMenu(composeCanvas, nudgedSprite, 3);
-  await expect(page.getByRole("menu", { name: "スプライトメニュー" })).toBeVisible();
+  await expect(
+    page.getByRole("menu", { name: "スプライトメニュー" }),
+  ).toBeVisible();
   const preventsNativeContextMenu = await page.evaluate((point) => {
     const target = document.elementFromPoint(point.clientX, point.clientY);
     if (target instanceof Element === false) {
@@ -272,7 +297,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   const decompositionCanvas = page.getByLabel("分解描画キャンバス");
 
   await clickCanvasPixel(decompositionCanvas, 1, 1);
-  await page.getByLabel("分解描画パレット").selectOption("1");
+  await selectMaterialOption(page, "分解描画パレット", "パレット 1");
   await clickCanvasPixel(decompositionCanvas, 2, 2);
 
   await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
@@ -287,7 +312,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
 
   await page.getByRole("button", { name: "分解ツール 消しゴム" }).click();
   await clickCanvasPixel(decompositionCanvas, 2, 2);
-  await page.getByLabel("分解描画パレット").selectOption("1");
+  await selectMaterialOption(page, "分解描画パレット", "パレット 1");
   await page.getByRole("button", { name: "分解ツール ペン" }).click();
   await clickCanvasPixel(decompositionCanvas, 10, 1);
 
@@ -301,8 +326,8 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   await applyButton.click();
 
   await expect(
-    page.getByLabel("編集中のセット").locator("option:checked"),
-  ).toHaveText("Decompose Hero (2 sprites)");
+    page.getByRole("combobox", { name: "編集中のセット" }),
+  ).toContainText("Decompose Hero (2 sprites)");
   await expect(
     page.getByRole("button", { name: "プロジェクトスプライトサイズ 8x16" }),
   ).toBeDisabled();
@@ -350,8 +375,8 @@ test("character decomposition respects project level 8x16 sprite size", async ({
   await applyButton.click();
 
   await expect(
-    page.getByLabel("編集中のセット").locator("option:checked"),
-  ).toHaveText("Tall Hero (1 sprites)");
+    page.getByRole("combobox", { name: "編集中のセット" }),
+  ).toContainText("Tall Hero (1 sprites)");
   await expect(
     page.getByRole("button", { name: "プロジェクトスプライトサイズ 8x8" }),
   ).toBeDisabled();
