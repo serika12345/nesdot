@@ -510,6 +510,7 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   await clickCanvasPixel(decompositionCanvas, 1, 1);
   await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
   await clickCanvasPixel(decompositionCanvas, 0, 0);
+  await expect(page.getByText(/region-/)).toHaveCount(0);
 
   const workspace = page.getByLabel("キャラクター編集ワークスペース");
   const sidebar = page.getByRole("complementary", {

@@ -16,12 +16,12 @@ import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
 } from "./CharacterModeStateProvider";
+import { CharacterModeTilePreview } from "./CharacterModeTilePreview";
 import {
   getIssueLabel,
   getRegionStatusLabel,
 } from "./decomposition/decompositionRegionRules";
 import { INSPECTOR_PREVIEW_SCALE } from "./hooks/useCharacterModeState";
-import { CharacterModeTilePreview } from "./CharacterModeTilePreview";
 
 const RegionPreviewSurfaceRoot = styled("div")({
   borderRadius: "1.125rem",
@@ -64,20 +64,14 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
   const selectedRegion = useCharacterModeSelectedRegion();
 
   return (
-    <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
+    <CharacterModeEditorCard
+      minHeight={0}
+      spacing="0.875rem"
+      p="1rem"
+      useFlexGap
+    >
       <div>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <FieldLabel>選択中の領域</FieldLabel>
-          <Badge tone="neutral">
-            {pipe(
-              selectedRegion.selectedRegionId,
-              O.match(
-                () => "none",
-                (value) => value,
-              ),
-            )}
-          </Badge>
-        </Stack>
+        <FieldLabel>選択中の領域</FieldLabel>
       </div>
 
       <RegionPreviewSurfaceRoot>
@@ -154,7 +148,9 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 <DetailRow>
                   <FieldLabel>状態</FieldLabel>
                   <Badge
-                    tone={regionAnalysis.issues.length > 0 ? "danger" : "accent"}
+                    tone={
+                      regionAnalysis.issues.length > 0 ? "danger" : "accent"
+                    }
                   >
                     {getRegionStatusLabel(regionAnalysis)}
                   </Badge>
@@ -162,7 +158,9 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 <DetailRow>
                   <FieldLabel>issues</FieldLabel>
                   <Badge
-                    tone={regionAnalysis.issues.length > 0 ? "danger" : "neutral"}
+                    tone={
+                      regionAnalysis.issues.length > 0 ? "danger" : "neutral"
+                    }
                   >
                     {regionAnalysis.issues.length > 0
                       ? regionAnalysis.issues.map(getIssueLabel).join(", ")
