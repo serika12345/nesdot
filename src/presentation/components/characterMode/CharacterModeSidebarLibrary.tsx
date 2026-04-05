@@ -1,8 +1,9 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { ButtonBase, Collapse, Stack } from "@mui/material";
+import { ButtonBase, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { type SpriteTile } from "../../../application/state/projectStore";
 import {
   Badge,
   CollapseToggle,
@@ -74,6 +75,73 @@ const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transition: "transform 160ms ease",
 });
 
+const shouldForwardOpenStateProp = (prop: PropertyKey): boolean =>
+  prop !== "openState";
+
+const LibraryContentRoot = styled("div", {
+  shouldForwardProp: shouldForwardOpenStateProp,
+})<{ openState: boolean }>(({ openState }) => ({
+  display: openState === true ? "block" : "none",
+  minHeight: 0,
+}));
+
+interface CharacterModeSidebarLibraryContentProps {
+  handleLibraryPointerDown: (
+    event: React.PointerEvent<HTMLButtonElement>,
+    spriteIndex: number,
+  ) => void;
+  id: string;
+  isLibraryDraggable: boolean;
+  isSpriteDragging: (spriteIndex: number) => boolean;
+  sprites: ReadonlyArray<SpriteTile>;
+}
+
+const CharacterModeSidebarLibraryContent = React.memo(
+  function CharacterModeSidebarLibraryContent({
+    handleLibraryPointerDown,
+    id,
+    isLibraryDraggable,
+    isSpriteDragging,
+    sprites,
+  }: CharacterModeSidebarLibraryContentProps) {
+    return (
+      <LibraryScrollArea id={id} flex={1} minHeight={0} pr={0}>
+        <LibraryGrid>
+          {sprites.map((spriteTile, spriteIndex) => (
+            <LibrarySpriteButton
+              key={`library-sprite-${spriteIndex}`}
+              type="button"
+              dragging={isSpriteDragging(spriteIndex)}
+              draggableState={isLibraryDraggable}
+              draggable={false}
+              aria-label={`ライブラリスプライト ${spriteIndex}`}
+              onDragStart={(event) => event.preventDefault()}
+              onPointerDown={(event) =>
+                handleLibraryPointerDown(event, spriteIndex)
+              }
+            >
+              <Stack alignItems="center" spacing="0.625rem" width="100%">
+                <LibrarySpriteTitle>{`Sprite ${spriteIndex}`}</LibrarySpriteTitle>
+                <LibrarySpritePreviewFrame
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={0}
+                >
+                  <CharacterModeTilePreview
+                    scale={LIBRARY_PREVIEW_SCALE}
+                    tileOption={O.some(spriteTile)}
+                  />
+                </LibrarySpritePreviewFrame>
+                <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
+              </Stack>
+            </LibrarySpriteButton>
+          ))}
+        </LibraryGrid>
+      </LibraryScrollArea>
+    );
+  },
+);
+
 /**
  * スプライトライブラリ表示カードです。
  */
@@ -105,41 +173,19 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
         </Stack>
       </PanelHeaderRow>
 
-      <Collapse in={isLibraryOpen} unmountOnExit>
-        <LibraryScrollArea id={libraryContentId} flex={1} minHeight={0} pr={0}>
-          <LibraryGrid>
-            {spriteLibrary.sprites.map((spriteTile, spriteIndex) => (
-              <LibrarySpriteButton
-                key={`library-sprite-${spriteIndex}`}
-                type="button"
-                dragging={spriteLibrary.isSpriteDragging(spriteIndex)}
-                draggableState={spriteLibrary.isLibraryDraggable}
-                draggable={false}
-                aria-label={`ライブラリスプライト ${spriteIndex}`}
-                onDragStart={(event) => event.preventDefault()}
-                onPointerDown={(event) =>
-                  spriteLibrary.handleLibraryPointerDown(event, spriteIndex)
-                }
-              >
-                <Stack alignItems="center" spacing="0.625rem" width="100%">
-                  <LibrarySpriteTitle>{`Sprite ${spriteIndex}`}</LibrarySpriteTitle>
-                  <LibrarySpritePreviewFrame
-                    alignItems="center"
-                    justifyContent="center"
-                    spacing={0}
-                  >
-                    <CharacterModeTilePreview
-                      scale={LIBRARY_PREVIEW_SCALE}
-                      tileOption={O.some(spriteTile)}
-                    />
-                  </LibrarySpritePreviewFrame>
-                  <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
-                </Stack>
-              </LibrarySpriteButton>
-            ))}
-          </LibraryGrid>
-        </LibraryScrollArea>
-      </Collapse>
+      <LibraryContentRoot
+        id={libraryContentId}
+        openState={isLibraryOpen}
+        aria-hidden={isLibraryOpen === false}
+      >
+        <CharacterModeSidebarLibraryContent
+          handleLibraryPointerDown={spriteLibrary.handleLibraryPointerDown}
+          id={`${libraryContentId}-scroll`}
+          isLibraryDraggable={spriteLibrary.isLibraryDraggable}
+          isSpriteDragging={spriteLibrary.isSpriteDragging}
+          sprites={spriteLibrary.sprites}
+        />
+      </LibraryContentRoot>
     </CharacterModeEditorCard>
   );
 };
