@@ -14,6 +14,10 @@ const isCellInsideCanvas = (
 
 const to8x8TileStart = (cell: number): number => Math.floor(cell / 8) * 8;
 
+/**
+ * ポインタ位置から入れ替え対象の 8x8 タイル左上座標を求めます。
+ * キャンバス外を除外しつつ、並べ替えプレビューが参照しやすいタイル単位へ丸めるための関数です。
+ */
 export const getSwapPreviewTile = (
   cellX: number,
   cellY: number,

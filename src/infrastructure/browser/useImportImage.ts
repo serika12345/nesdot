@@ -312,6 +312,10 @@ type NativeImportResult =
   | { status: "cancelled" }
   | { status: "unavailable" };
 
+/**
+ * JSON インポート処理と入力値検証をまとめて提供するフックです。
+ * 外部データを zod で正規化してから状態へ流し込み、壊れた保存データの流入を境界で止めます。
+ */
 export default function useImportImage() {
   const readJsonWithNativeDialog = async (): Promise<NativeImportResult> => {
     try {

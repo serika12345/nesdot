@@ -10,7 +10,10 @@ import {
 } from "../project/project";
 import { getMatrixItem } from "../../shared/arrayAccess";
 
-/** 8の倍数であることを検査 */
+/**
+ * 与えられたタイルサイズが 8 の倍数条件を満たすか検査します。
+ * タイル操作が前提とする NES 単位を入口で守り、後続処理を安全にするための関数です。
+ */
 export function assertTileSize(w: number, h: number): E.Either<string, true> {
   if (w <= 0 || h <= 0 || w % 8 !== 0 || h % 8 !== 0) {
     return E.left(
@@ -20,7 +23,10 @@ export function assertTileSize(w: number, h: number): E.Either<string, true> {
   return E.right(true);
 }
 
-/** タイル生成（既定は透明0で初期化） */
+/**
+ * 指定サイズとパレットでスプライトタイルを生成します。
+ * 透明色で初期化した編集用タイルを、幅 8 固定のドメイン制約付きで作ることを意図しています。
+ */
 // ピクセル値は0..3（=パレット内インデックス）
 // widthを廃止し、height とその他のみを受け付ける
 export function makeTile(
@@ -170,10 +176,8 @@ function cloneBacking(src: Backing): Backing {
 }
 
 /**
- * 非破壊リサイズ：ビューの変更のみ行い、画素は裏キャンバスで保持
- * - 新規に作ったキャンバスへ、アンカー基準で既存ピクセルをコピー
- * - はみ出した部分は裏キャンバスへ書き戻し（破棄しない）
- * - 拡張部分は裏キャンバスから復元、未定義は fill で埋める
+ * 画素を保持したままタイルの表示領域だけを非破壊でリサイズします。
+ * はみ出した内容を裏キャンバスへ逃がしつつ、アンカー基準で新しい見た目を再構成するのが目的です。
  */
 export function resizeTileND(
   src: SpriteTileND,

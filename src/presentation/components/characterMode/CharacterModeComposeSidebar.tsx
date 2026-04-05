@@ -111,6 +111,10 @@ interface CharacterModeComposeSidebarProps {
   libraryPreviewScale: number;
 }
 
+/**
+ * キャラクター合成モード用のサイドバーを描画します。
+ * セット名、編集モード、スプライト単位、ライブラリ一覧をまとめて編集できる導線を提供します。
+ */
 export const CharacterModeComposeSidebar: React.FC<
   CharacterModeComposeSidebarProps
 > = ({

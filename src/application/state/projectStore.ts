@@ -84,6 +84,10 @@ const persistOptions: PersistOptions<ProjectStoreState> = {
   },
 };
 
+/**
+ * プロジェクト全体の状態を保持する Zustand ストアです。
+ * 画面、スプライト、NES 設定を同じ境界で扱い、各編集モードから一貫して参照できるようにします。
+ */
 export const useProjectState = create<ProjectStoreState>()(
   // persist(
   //     (set) => ({
@@ -96,11 +100,19 @@ export const useProjectState = create<ProjectStoreState>()(
   }),
 );
 
+/**
+ * 指定スプライトを現在の NES スプライトパレットで色付きグリッドへ変換します。
+ * UI 側が描画ロジックを持たずに済むよう、ストア状態を読んで表示用データを組み立てます。
+ */
 export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
   const state = useProjectState.getState();
   return renderSpriteTileToHexArray(tile, state.nes.spritePalettes);
 };
 
+/**
+ * 指定スクリーンを現在の NES 状態込みで色付きグリッドへ変換します。
+ * 背景パレットと OAM 同期済みの情報を反映した最終表示を、プレビュー用途に取り出すための関数です。
+ */
 export const getHexArrayForScreen = (screen: Screen): string[][] => {
   const state = useProjectState.getState();
   return renderScreenToHexArray(screen, state.nes);

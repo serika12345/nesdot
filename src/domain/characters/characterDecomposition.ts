@@ -513,10 +513,18 @@ const applyAssignedTiles = (
     return assignedSlot?.tile ?? sprite;
   });
 
+/**
+ * 分解キャンバスと切り取り領域を解析し、再利用可否や追加必要数をまとめます。
+ * UI が反映前に問題点と適用可能性を判断できるよう、分解計画の要約だけを公開します。
+ */
 export const analyzeCharacterDecomposition = (
   input: CharacterDecompositionInput,
 ): CharacterDecompositionAnalysis => buildCharacterDecompositionPlan(input).analysis;
 
+/**
+ * 分解解析の結果をもとにスプライト割り当てとキャラクター構成を確定します。
+ * 既存スプライトの再利用と空きスロットへの追加をまとめて行い、反映に必要な差分を返します。
+ */
 export const applyCharacterDecomposition = (
   input: CharacterDecompositionInput,
 ): E.Either<string, ApplyCharacterDecompositionResult> => {

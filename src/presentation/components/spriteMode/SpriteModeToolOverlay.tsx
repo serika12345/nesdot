@@ -18,6 +18,10 @@ interface SpriteModeToolOverlayProps {
   onToggleChangeOrderMode: () => void;
 }
 
+/**
+ * スプライトキャンバス上に重なるツールオーバーレイを描画します。
+ * 描画ツール、クリア、並べ替え切り替えをキャンバス近くに集めて操作導線を短くする意図があります。
+ */
 export const SpriteModeToolOverlay: React.FC<SpriteModeToolOverlayProps> = ({
   isToolsOpen,
   isChangeOrderMode,

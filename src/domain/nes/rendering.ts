@@ -35,6 +35,10 @@ const DEFAULT_BACKGROUND_PIXEL: BackgroundPixel = {
   opaque: false,
 };
 
+/**
+ * スプライトタイルを表示用の 16 進カラー配列へ変換します。
+ * パレット index とピクセル値を UI がそのまま描ける色情報へ展開するのが役割です。
+ */
 export function renderSpriteTileToHexArray(
   tile: SpriteTile,
   palettes: NesSpritePalettes,
@@ -50,6 +54,10 @@ export function renderSpriteTileToHexArray(
   );
 }
 
+/**
+ * 背景とスプライトを合成したスクリーン全体の色グリッドを生成します。
+ * NES の優先度とパレット解決を反映した最終表示を、プレビューや書き出し用に組み立てます。
+ */
 export function renderScreenToHexArray(
   screen: Screen,
   nesState: NesProjectState,

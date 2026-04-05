@@ -11,6 +11,10 @@ export interface UseCanvasParams {
   showGrid?: boolean;
 }
 
+/**
+ * スクリーンプレビュー用 canvas の描画とポインタ処理をまとめるフックです。
+ * 現在の画面状態をピクセル表示へ変換し、コンポーネント側は canvas props を受け取るだけで済むようにします。
+ */
 export const useScreenCanvas = ({
   scale = 24,
   showGrid = true,

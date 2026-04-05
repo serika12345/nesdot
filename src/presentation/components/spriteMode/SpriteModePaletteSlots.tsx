@@ -49,6 +49,10 @@ interface SpriteModePaletteSlotsProps {
   onPaletteClick: (slot: number) => void;
 }
 
+/**
+ * 選択中パレットの 4 スロットを表示し、描画色を切り替えるパネルです。
+ * 現在の色選択を視覚的に確認しながら、編集ツールの入力色を素早く変更できるようにします。
+ */
 export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
   activePalette,
   activeSlot,

@@ -2,6 +2,10 @@ import * as O from "fp-ts/Option";
 import { ColorIndexOfPalette } from "../project/project";
 import { getMatrixItem } from "../../shared/arrayAccess";
 
+/**
+ * 2 つの 8x8 ブロックをピクセル配列内で入れ替えます。
+ * スプライト並べ替えモードが局所的なタイル交換だけを不変更新で行えるようにする関数です。
+ */
 export function swap8x8Blocks(
   srcPixels: ColorIndexOfPalette[][],
   ax: number,

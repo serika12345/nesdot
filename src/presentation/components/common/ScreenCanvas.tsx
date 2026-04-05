@@ -13,6 +13,10 @@ const CanvasElement = styled("canvas")({
   imageRendering: "pixelated",
 });
 
+/**
+ * スクリーンプレビュー用 canvas を描画する薄いラッパーです。
+ * canvas DOM と描画フックを接続し、呼び出し側は表示パラメータだけ渡せるようにします。
+ */
 export const ScreenCanvas: React.FC<Props> = ({ ariaLabel, ...params }) => {
   const { canvasProps } = useScreenCanvas(params);
 

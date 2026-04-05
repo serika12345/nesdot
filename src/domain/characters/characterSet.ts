@@ -118,6 +118,10 @@ const toScreenSprite = (
   });
 };
 
+/**
+ * 入力値を正規化しながら新しいキャラクターセットを生成します。
+ * スプライト座標やレイヤーの初期不整合を入口で吸収し、以後の編集処理を単純化する意図があります。
+ */
 export const createCharacterSet = (params: {
   id: string;
   name: string;
@@ -128,6 +132,10 @@ export const createCharacterSet = (params: {
   sprites: (params.sprites ?? []).map(normalizeSprite),
 });
 
+/**
+ * キャラクターセットに 1 枚の構成スプライトを追加します。
+ * 追加時にも座標やレイヤーを正規化し、状態更新を不変に保つことを意図しています。
+ */
 export const addCharacterSprite = (
   target: CharacterSet,
   sprite: CharacterSpriteInput,
@@ -136,6 +144,10 @@ export const addCharacterSprite = (
   sprites: [...target.sprites, normalizeSprite(sprite)],
 });
 
+/**
+ * キャラクターセット内の指定スプライトを置き換えます。
+ * 範囲外アクセスを `Either` で明示しつつ、正常系では正規化済みの値へ安全に更新します。
+ */
 export const setCharacterSprite = (
   target: CharacterSet,
   index: number,
@@ -155,6 +167,10 @@ export const setCharacterSprite = (
   });
 };
 
+/**
+ * キャラクターセットから指定スプライトを削除します。
+ * 不正な index を失敗として返し、削除後の配列だけを新しく組み立てて返します。
+ */
 export const removeCharacterSprite = (
   target: CharacterSet,
   index: number,
@@ -171,6 +187,10 @@ export const removeCharacterSprite = (
   });
 };
 
+/**
+ * キャラクターセットをスクリーン配置用のスプライト列へ展開します。
+ * 各構成要素に基準座標を足し、レイヤー順を保ったまま描画順の配列へ変換するための関数です。
+ */
 export const expandCharacterToScreenSprites = (
   target: CharacterSet,
   input: ExpandCharacterInput,
@@ -203,6 +223,10 @@ export const expandCharacterToScreenSprites = (
   return E.right(ordered.map((item) => item.sprite));
 };
 
+/**
+ * キャラクターセットのプレビュー用 2D 色グリッドを合成します。
+ * レイヤー順にスプライトを重ね、透明色を保ちながら UI 表示用の最終ピクセル列を作ります。
+ */
 export const buildCharacterPreviewHexGrid = (
   target: CharacterSet,
   input: BuildCharacterPreviewInput,

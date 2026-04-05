@@ -71,6 +71,10 @@ export const NES_PALETTE_HEX: string[] = [
 ];
 
 // CSS表示用RGBA（透過スロットはalpha=0で扱う）
+/**
+ * NES パレット index を CSS 表示用の 16 進カラーへ変換します。
+ * 画面描画やプレビューがドメイン値をそのまま扱えないため、UI 向けの色表現へ橋渡しします。
+ */
 export function nesIndexToCssHex(idx: number): string {
   const normalizedIndex = idx % NES_PALETTE_HEX.length;
   return pipe(

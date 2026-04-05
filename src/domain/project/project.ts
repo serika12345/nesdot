@@ -48,6 +48,10 @@ export interface ProjectState {
   nes: NesProjectState;
 }
 
+/**
+ * 指定サイズとパレット番号で空のスプライトタイルを生成します。
+ * 新規スプライトやリサイズ後の初期値を、透明ピクセルで一貫して用意するための関数です。
+ */
 export const createEmptySpriteTile = (
   height: ProjectSpriteSize,
   paletteIndex: PaletteIndex = 0,
@@ -58,6 +62,10 @@ export const createEmptySpriteTile = (
   pixels: Array.from({ length: height }, () => Array.from({ length: 8 }, () => 0)),
 });
 
+/**
+ * アプリ全体で使う既定のプロジェクト状態を構築します。
+ * スプライト配列と NES 状態のサイズ設定を揃え、新規作成直後から整合した状態にする意図があります。
+ */
 export const createDefaultProjectState = (
   spriteSize: ProjectSpriteSize = 8,
 ): ProjectState => {

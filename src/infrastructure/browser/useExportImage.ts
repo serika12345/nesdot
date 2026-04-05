@@ -24,6 +24,10 @@ type FileFilter = {
 
 type NativeSaveResult = "saved" | "cancelled" | "unavailable";
 
+/**
+ * 画像とプロジェクトデータの書き出し処理をまとめて提供するフックです。
+ * Tauri のネイティブ保存とブラウザ fallback を吸収し、各画面から同じ export API を使えるようにします。
+ */
 export default function useExportImage() {
   const blobToBytes = async (blob: Blob) =>
     new Uint8Array(await blob.arrayBuffer());

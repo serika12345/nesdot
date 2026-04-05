@@ -7,6 +7,10 @@ export const TRANSPARENT_DECOMPOSITION_PIXEL: CharacterDecompositionPixel = {
   kind: "transparent",
 };
 
+/**
+ * 分解編集用の空キャンバスを生成します。
+ * 指定サイズぶんの透明ピクセルを敷き詰め、分解モードの初期状態を一貫して作るための関数です。
+ */
 export const createDecompositionCanvas = (
   width: number,
   height: number,
@@ -18,6 +22,10 @@ export const createDecompositionCanvas = (
   ),
 });
 
+/**
+ * 既存内容を保ちながら分解キャンバスのサイズを変更します。
+ * 既知領域は再利用し、新しく増えた領域だけ透明で埋めることで編集内容を保全します。
+ */
 export const resizeDecompositionCanvas = (
   current: CharacterDecompositionCanvas,
   nextWidth: number,
@@ -55,6 +63,10 @@ const isSameDecompositionPixel = (
   );
 };
 
+/**
+ * 分解キャンバス上の 1 ピクセルだけを更新します。
+ * 同じ値への更新は避けつつ、不変更新で描画状態を差し替えるための関数です。
+ */
 export const paintDecompositionPixel = (
   canvas: CharacterDecompositionCanvas,
   x: number,

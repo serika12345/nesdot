@@ -8,6 +8,10 @@ import {
 } from "../../../../domain/characters/characterDecomposition";
 import { clamp } from "../geometry/characterModeBounds";
 
+/**
+ * 1 つの分解領域をキャンバス内へ収まる座標に補正します。
+ * ドラッグやリサイズ後に領域が外へ出ないよう、スプライトサイズを加味して丸める意図があります。
+ */
 export const clampDecompositionRegion = (
   region: CharacterDecompositionRegion,
   width: number,
@@ -19,6 +23,10 @@ export const clampDecompositionRegion = (
   y: clamp(region.y, 0, Math.max(height - spriteSize, 0)),
 });
 
+/**
+ * 分解領域一覧をまとめてキャンバス内へ補正します。
+ * ステージサイズ変更後も全領域を安全な座標へ寄せるためのバッチ処理です。
+ */
 export const clampDecompositionRegions = (
   regions: CharacterDecompositionRegion[],
   width: number,
@@ -29,6 +37,10 @@ export const clampDecompositionRegions = (
     clampDecompositionRegion(region, width, height, spriteSize),
   );
 
+/**
+ * 分解解析で使う issue を UI 表示用ラベルへ変換します。
+ * 内部識別子をそのまま出さず、一覧やバッジで読める日本語へ寄せる意図があります。
+ */
 export const getIssueLabel = (issue: CharacterDecompositionIssue): string => {
   if (issue === "mixed-palette") {
     return "複数パレット";
@@ -45,6 +57,10 @@ export const getIssueLabel = (issue: CharacterDecompositionIssue): string => {
   return "空領域";
 };
 
+/**
+ * 領域解析結果から現在の状態ラベルを組み立てます。
+ * 問題の有無と再利用可否を優先順でまとめ、分解サイドバーが一目で状況を示せるようにします。
+ */
 export const getRegionStatusLabel = (
   region: CharacterDecompositionAnalysis["regions"][number],
 ): string => {

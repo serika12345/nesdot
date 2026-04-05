@@ -99,6 +99,10 @@ type CharacterPreviewState =
 
 type CharacterEditorMode = "compose" | "decompose";
 
+/**
+ * キャラクター編集画面の状態、描画、副作用、イベント処理を束ねるフックです。
+ * 合成モードと分解モードの両方を一つの制御面に集約し、表示コンポーネントを構成専用に保つ意図があります。
+ */
 export const useCharacterModeController = () => {
   const [newName, setNewName] = useState("New Character");
   const [editorMode, setEditorMode] = useState<CharacterEditorMode>("compose");

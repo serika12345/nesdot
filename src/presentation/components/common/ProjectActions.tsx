@@ -21,6 +21,10 @@ const chevronStyle = (open: boolean): React.CSSProperties => ({
   transition: "transform 160ms ease",
 });
 
+/**
+ * 共有・保存・復元系のプロジェクト操作をまとめて表示するメニューです。
+ * 各画面が action 配列だけ渡せば同じ UI で export/import 導線を再利用できるようにします。
+ */
 export const ProjectActions: React.FC<ProjectActionsProps> = ({
   actions,
   onImport,

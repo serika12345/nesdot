@@ -28,6 +28,10 @@ export interface UseCanvasParams {
 
 const FALLBACK_TILE: SpriteTile = makeTile(8, 0);
 
+/**
+ * スプライト編集用 canvas の描画、描画ツール、並べ替え操作を束ねるフックです。
+ * 編集ロジックを React コンポーネント本体から分離し、canvas props と更新 API に集約する意図があります。
+ */
 export const useSpriteCanvas = ({
   isChangeOrderMode = false,
   target,

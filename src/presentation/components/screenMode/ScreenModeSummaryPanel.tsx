@@ -45,6 +45,10 @@ interface ScreenModeSummaryPanelProps {
   hasConstraintViolation: boolean;
 }
 
+/**
+ * スクリーン配置の主要メトリクスを要約表示するパネルです。
+ * 配置数と制約状況を先頭で見せ、詳細編集に入る前に全体状態を把握しやすくします。
+ */
 export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
   spritesOnScreenCount,
   screenWidth,

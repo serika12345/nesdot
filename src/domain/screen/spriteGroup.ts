@@ -9,8 +9,8 @@ export interface GroupBounds {
 }
 
 /**
- * Calculate bounding box for a group of sprites
- * Returns the minimum and maximum coordinates occupied by the group
+ * 選択中スプライト群の外接矩形を求めます。
+ * グループ移動やプレビューで必要になる占有範囲を、欠番を無視しながら集計する意図があります。
  */
 export const getGroupBounds = (
   sprites: SpriteInScreen[],
@@ -41,9 +41,8 @@ export const getGroupBounds = (
 };
 
 /**
- * Move all selected sprites by a delta offset
- * Returns new sprites array with selected sprites moved
- * Unselected sprites remain unchanged
+ * 選択中スプライト群を指定差分だけ平行移動します。
+ * 未選択要素は保持したまま、グループ移動後の新しい配列を不変更新で返します。
  */
 export const moveGroupByDelta = (
   sprites: SpriteInScreen[],
@@ -65,9 +64,8 @@ export const moveGroupByDelta = (
 };
 
 /**
- * Check if moving a group by delta would keep all sprites within screen bounds
- * Screen bounds: x in [0, 256), y in [0, 240)
- * Each sprite occupies (width, height) pixels from its (x, y) position
+ * グループ移動後も全スプライトが画面内に収まるかを判定します。
+ * 実際に状態を更新する前に、境界外へのはみ出しを安全側で止めるための検証関数です。
  */
 export const isValidGroupMovement = (
   sprites: SpriteInScreen[],

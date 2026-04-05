@@ -22,6 +22,10 @@ const createScanlineError = (violatedLines: number[]): string[] =>
       ]
     : [];
 
+/**
+ * NES のスプライト制約違反をまとめて検査します。
+ * 総数上限と走査線ごとの上限を同時に確認し、配置前後の検証結果を UI へ返すための関数です。
+ */
 export function scanNesSpriteConstraints(
   nesState: NesProjectState,
 ): ScreenConstraintReport {

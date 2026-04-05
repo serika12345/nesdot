@@ -45,6 +45,10 @@ function toPaletteIndex(index: number): PaletteIndex | false {
   return false;
 }
 
+/**
+ * スプライト編集モード全体の UI を描画します。
+ * 個別スプライト編集、パレット選択、書き出し、並べ替えを一つの画面にまとめるコンポーネントです。
+ */
 export const SpriteMode: React.FC = () => {
   const [tool, setTool] = useState<Tool>("pen");
   const [isChangeOrderMode, setIsChangeOrderMode] = useState<boolean>(false);

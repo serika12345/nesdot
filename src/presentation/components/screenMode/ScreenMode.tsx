@@ -153,6 +153,10 @@ const WarningList = styled(DetailList)({
   flexShrink: 0,
 });
 
+/**
+ * スクリーン配置モード全体の UI を描画します。
+ * 配置追加、選択編集、グループ移動、プレビューを組み合わせて 1 画面の編集体験を構成します。
+ */
 export const ScreenMode: React.FC = () => {
   const {
     spriteNumber,

@@ -62,6 +62,10 @@ const pickNextSelected = (
   );
 };
 
+/**
+ * キャラクター状態を永続化しやすい JSON 形へ変換します。
+ * `Option` を外部保存向けの plain object に落とし込み、保存時の表現を安定させる意図があります。
+ */
 export const toCharacterJsonData = (params: {
   characterSets: CharacterSet[];
   selectedCharacterId: O.Option<string>;
@@ -77,6 +81,10 @@ export const toCharacterJsonData = (params: {
     ),
   );
 
+/**
+ * 保存済みのキャラクター JSON をアプリ状態へ戻します。
+ * 選択中 ID の整合性を確認しつつ、壊れた選択状態を次に有効なセットへ寄せる意図があります。
+ */
 export const fromCharacterJsonData = (
   data: CharacterJsonData,
 ): {
@@ -100,6 +108,10 @@ export const fromCharacterJsonData = (
   };
 };
 
+/**
+ * キャラクター編集で共有する Zustand ストアを提供します。
+ * セットの作成、選択、更新、削除、JSON 復元を一か所に集約して UI から扱いやすくする意図があります。
+ */
 export const useCharacterState = create<CharacterState>()((set) => ({
   characterSets: [],
   selectedCharacterId: O.none,

@@ -73,6 +73,10 @@ const SegmentedButton = styled(ToggleButton)({
 const isEditMode = (value: unknown): value is EditMode =>
   value === "sprite" || value === "character" || value === "screen";
 
+/**
+ * アプリ全体の編集モード切り替えと共通レイアウトを描画します。
+ * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
+ */
 export const App: React.FC = () => {
   const [editMode, setEditMode] = useState<EditMode>("sprite");
 

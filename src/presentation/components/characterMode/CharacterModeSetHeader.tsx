@@ -36,6 +36,10 @@ interface CharacterModeSetHeaderProps {
   onDeleteSet: (setId: string) => void;
 }
 
+/**
+ * キャラクターセットの作成、選択、削除を行うヘッダーです。
+ * セット管理の主要操作を横断的にまとめ、ワークスペース上部からすぐ扱えるようにします。
+ */
 export const CharacterModeSetHeader: React.FC<CharacterModeSetHeaderProps> = ({
   newName,
   selectedCharacterId,

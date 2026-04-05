@@ -22,6 +22,10 @@ export interface UseGhostParams {
   currentSelectPalette: PaletteIndex;
 }
 
+/**
+ * 8x8 タイルのドラッグゴーストを生成し、追従表示を管理するフックです。
+ * 並べ替え中の視覚フィードバックを UI 本体から切り離し、開始・移動・後始末をまとめて扱います。
+ */
 export const useGhost = ({
   scale,
   width,

@@ -4,8 +4,8 @@ import { ColorIndexOfPalette, SpriteTile } from "../project/project";
 import { getMatrixItem } from "../../shared/arrayAccess";
 
 /**
- * 8x8 タイルを 16 バイトCHRに変換（先頭8B: bitplane0, 次の8B: bitplane1）
- * NESの2bitピクセル値(0..3)の下位ビットがplane0、上位ビットがplane1となる想定。
+ * 8x8 スプライトを NES の 16 バイト CHR 形式へ変換します。
+ * 編集中タイルを実機互換の bitplane 配列へ落とし込み、書き出し処理から再利用できる形にする意図があります。
  */
 export function tile8x8ToChr(tile: SpriteTile): E.Either<string, Uint8Array> {
   if (tile.width !== 8 || tile.height !== 8) {
@@ -42,8 +42,8 @@ export function tile8x8ToChr(tile: SpriteTile): E.Either<string, Uint8Array> {
 }
 
 /**
- * 8x16はCHR上では8x8が上下に2枚並ぶ（合計32バイト）。
- * NES仕様上、上下で同一パレットを使う前提で扱います。
+ * 上下 2 枚の 8x8 タイルを 8x16 用の CHR バイト列へ連結します。
+ * 8x16 スプライト書き出しを簡潔に扱えるよう、上下分割済みタイルを一つの出力へまとめます。
  */
 export function tile8x16ToChr(
   top: SpriteTile,

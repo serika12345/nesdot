@@ -75,12 +75,20 @@ export interface NesProjectState {
 const isPaletteIndex = (value: number): value is NesPaletteIndex =>
   value === 0 || value === 1 || value === 2 || value === 3;
 
+/**
+ * 0 埋めされた空のネームテーブルを生成します。
+ * 背景タイル未配置の初期状態を明示し、プロジェクト初期化やリセットで同じ基準を使う意図があります。
+ */
 export const createEmptyNameTable = (): NesNameTable => ({
   widthTiles: 32,
   heightTiles: 30,
   tileIndices: Array.from({ length: NES_NAME_TABLE_TILE_COUNT }, () => 0),
 });
 
+/**
+ * 0 埋めされた空の属性テーブルを生成します。
+ * すべての背景領域を既定パレットに揃えた状態から編集を始められるようにします。
+ */
 export const createEmptyAttributeTable = (): NesAttributeTable => ({
   widthBytes: 8,
   heightBytes: 8,
@@ -95,6 +103,10 @@ const createDefaultOam = (): OamSpriteEntry[] =>
     x: 0,
   }));
 
+/**
+ * 新規プロジェクト用の NES 状態を既定値で構築します。
+ * CHR、背景、OAM、PPU 設定を一貫した初期状態でまとめて用意するための関数です。
+ */
 export const createDefaultNesProjectState = (): NesProjectState => ({
   chrBytes: Array.from({ length: 4096 }, () => 0),
   nameTable: createEmptyNameTable(),
@@ -120,6 +132,10 @@ export const createDefaultNesProjectState = (): NesProjectState => ({
   },
 });
 
+/**
+ * ネームテーブル上のタイル座標を一次元 index へ変換します。
+ * 座標の妥当性確認をここに閉じ込め、後続処理が安全に配列参照できるようにします。
+ */
 export const getNameTableLinearIndex = (
   tileX: number,
   tileY: number,
@@ -134,6 +150,10 @@ export const getNameTableLinearIndex = (
   return E.right(tileY * NES_NAME_TABLE_WIDTH_TILES + tileX);
 };
 
+/**
+ * タイル座標から対応する属性テーブルのバイト位置を求めます。
+ * 4x4 タイル単位の属性領域を名前付きで解決し、背景パレット参照の入口を統一します。
+ */
 export const getAttributeByteIndex = (
   tileX: number,
   tileY: number,
@@ -149,6 +169,10 @@ export const getAttributeByteIndex = (
   return E.right(attributeY * NES_ATTRIBUTE_TABLE_WIDTH_BYTES + attributeX);
 };
 
+/**
+ * 指定タイル座標に適用される背景パレット番号を解決します。
+ * 属性テーブルの象限ビットを読み取り、背景描画が NES 仕様どおりに色を選べるようにします。
+ */
 export const resolveBackgroundPaletteIndex = (
   attributeTable: NesAttributeTable,
   tileX: number,

@@ -44,6 +44,10 @@ const colorSwatchStyle = (hex: string): React.CSSProperties => ({
   backgroundColor: hex,
 });
 
+/**
+ * NES パレットの選択と色差し替えを行う共通パレットエディタです。
+ * 背景とスプライトの両方で使う配色を一か所から編集できるようにする意図があります。
+ */
 export const PalettePicker: React.FC = () => {
   const palettes = useProjectState((s) => s.nes.backgroundPalettes);
   const [activePalette, setActivePalette] = useState<NesPaletteIndex>(0);

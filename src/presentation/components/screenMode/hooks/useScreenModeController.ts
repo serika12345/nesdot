@@ -44,6 +44,10 @@ interface ViewportPanState {
   startScrollTop: number;
 }
 
+/**
+ * スクリーン配置画面の状態、検証、イベント処理を束ねるフックです。
+ * 配置追加、グループ移動、選択編集、ズーム、書き出しを一つの制御面に集約して表示側を薄く保ちます。
+ */
 export const useScreenModeController = () => {
   const [spriteNumber, setSpriteNumber] = useState(0);
   const [x, setX] = useState(0);

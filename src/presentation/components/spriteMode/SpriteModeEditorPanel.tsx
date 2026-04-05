@@ -24,6 +24,10 @@ interface SpriteModeEditorPanelProps {
   onPaletteChange: (index: string) => void;
 }
 
+/**
+ * スプライト番号とパレットを切り替える編集サイドパネルです。
+ * 現在操作中の対象を明示し、キャンバス編集前の基本設定をまとめて扱えるようにします。
+ */
 export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
   activeSprite,
   activePalette,

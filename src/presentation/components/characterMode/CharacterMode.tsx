@@ -68,6 +68,10 @@ import {
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 
+/**
+ * キャラクター編集モード全体の UI を描画します。
+ * セット管理、合成、分解、ステージ操作を一つの画面にまとめ、コントローラが返す状態を組み立てます。
+ */
 export const CharacterMode: React.FC = () => {
   const {
     activeSet,
