@@ -644,3 +644,5 @@ export const useScreenModeController = () => {
     handleGroupSelectionToggleFromSelect,
   };
 };
+
+export type ScreenModeController = ReturnType<typeof useScreenModeController>;

@@ -10,10 +10,8 @@ import {
   MetricCard,
   MetricLabel,
   MetricValue,
-  Panel,
-  PanelHeader,
-  PanelTitle,
 } from "../../App.styles";
+import { ScreenModeSection } from "./ScreenModeLayoutPrimitives";
 
 const SummaryMetricGrid = styled(Stack)({
   flexDirection: "row",
@@ -46,7 +44,7 @@ interface ScreenModeSummaryPanelProps {
 }
 
 /**
- * スクリーン配置の主要メトリクスを要約表示するパネルです。
+ * スクリーン配置の主要メトリクスを要約表示するセクションです。
  * 配置数と制約状況を先頭で見せ、詳細編集に入る前に全体状態を把握しやすくします。
  */
 export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
@@ -56,11 +54,7 @@ export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
   hasConstraintViolation,
 }) => {
   return (
-    <Panel>
-      <PanelHeader>
-        <PanelTitle>スクリーン配置</PanelTitle>
-      </PanelHeader>
-
+    <ScreenModeSection>
       <SummaryMetricGrid useFlexGap>
         <SummaryMetricCard>
           <MetricLabel>配置中</MetricLabel>
@@ -87,6 +81,6 @@ export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
           制約違反があります。必要なら「選択中のスプライト」を開いて調整してください。
         </HelperText>
       )}
-    </Panel>
+    </ScreenModeSection>
   );
 };

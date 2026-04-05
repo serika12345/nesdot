@@ -6,6 +6,35 @@ import {
   zoomViewportAtCenter,
 } from "./support/pointer";
 
+test("screen mode editor panel scrolls as a single unit", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 700 });
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const editorPanel = page.getByRole("region", {
+    name: "スクリーン配置編集パネル",
+  });
+
+  await expect(editorPanel).toBeVisible();
+
+  const initialDimensions = await editorPanel.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+
+  expect(initialDimensions.scrollHeight).toBeGreaterThan(
+    initialDimensions.clientHeight,
+  );
+
+  await editorPanel.evaluate((element) => {
+    element.scrollTo({ top: element.scrollHeight });
+  });
+
+  await expect
+    .poll(async () => editorPanel.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+});
+
 test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "画面配置");
