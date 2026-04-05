@@ -5,7 +5,7 @@ import {
   PanelTitle,
   ScrollArea,
 } from "../../App.styles";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import { ScreenModeCharacterPanel } from "./ScreenModeCharacterPanel";
 import { ScreenModeGroupMovePanel } from "./ScreenModeGroupMovePanel";
 import { ScreenModeEditorContent } from "./ScreenModeLayoutPrimitives";
@@ -14,7 +14,7 @@ import { ScreenModeSpritePlacementPanel } from "./ScreenModeSpritePlacementPanel
 import { ScreenModeSummaryPanel } from "./ScreenModeSummaryPanel";
 
 interface ScreenModeEditorPanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
@@ -22,7 +22,7 @@ interface ScreenModeEditorPanelProps {
  * 各編集セクションは意味ごとの子コンポーネントへ委譲し、スクロール責務だけをこの親に集約します。
  */
 export const ScreenModeEditorPanel: React.FC<ScreenModeEditorPanelProps> = ({
-  controller,
+  screenMode,
 }) => {
   return (
     <Panel
@@ -42,15 +42,15 @@ export const ScreenModeEditorPanel: React.FC<ScreenModeEditorPanelProps> = ({
       >
         <ScreenModeEditorContent>
           <ScreenModeSummaryPanel
-            spritesOnScreenCount={controller.spritesOnScreen.length}
-            screenWidth={controller.screen.width}
-            screenHeight={controller.screen.height}
-            hasConstraintViolation={controller.scanReport.ok === false}
+            spritesOnScreenCount={screenMode.spritesOnScreen.length}
+            screenWidth={screenMode.screen.width}
+            screenHeight={screenMode.screen.height}
+            hasConstraintViolation={screenMode.scanReport.ok === false}
           />
-          <ScreenModeCharacterPanel controller={controller} />
-          <ScreenModeSpritePlacementPanel controller={controller} />
-          <ScreenModeSelectedSpritePanel controller={controller} />
-          <ScreenModeGroupMovePanel controller={controller} />
+          <ScreenModeCharacterPanel screenMode={screenMode} />
+          <ScreenModeSpritePlacementPanel screenMode={screenMode} />
+          <ScreenModeSelectedSpritePanel screenMode={screenMode} />
+          <ScreenModeGroupMovePanel screenMode={screenMode} />
         </ScreenModeEditorContent>
       </ScrollArea>
     </Panel>

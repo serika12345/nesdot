@@ -18,7 +18,7 @@ import {
   PanelHeaderRow,
   PanelTitle,
 } from "../../App.styles";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
   GroupActionButton,
   ReadOnlyDetailRow,
@@ -28,7 +28,7 @@ import {
 } from "./ScreenModeLayoutPrimitives";
 
 interface ScreenModeGroupMovePanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
@@ -36,7 +36,7 @@ interface ScreenModeGroupMovePanelProps {
  */
 export const ScreenModeGroupMovePanel: React.FC<
   ScreenModeGroupMovePanelProps
-> = ({ controller }) => {
+> = ({ screenMode }) => {
   const {
     isGroupMoveOpen,
     setIsGroupMoveOpen,
@@ -49,7 +49,7 @@ export const ScreenModeGroupMovePanel: React.FC<
     clearGroupSelection,
     handleMoveSelectedGroup,
     handleGroupSelectionToggleFromSelect,
-  } = controller;
+  } = screenMode;
 
   return (
     <ScreenModeSection>

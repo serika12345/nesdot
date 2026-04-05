@@ -10,7 +10,7 @@ import {
   PanelHeaderRow,
   PanelTitle,
 } from "../../App.styles";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
   GridActionRow,
   ScreenModeSection,
@@ -20,7 +20,7 @@ import {
 } from "./ScreenModeLayoutPrimitives";
 
 interface ScreenModeSpritePlacementPanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
@@ -28,7 +28,7 @@ interface ScreenModeSpritePlacementPanelProps {
  */
 export const ScreenModeSpritePlacementPanel: React.FC<
   ScreenModeSpritePlacementPanelProps
-> = ({ controller }) => {
+> = ({ screenMode }) => {
   const {
     spriteNumber,
     setSpriteNumber,
@@ -39,7 +39,7 @@ export const ScreenModeSpritePlacementPanel: React.FC<
     isPlacementOpen,
     setIsPlacementOpen,
     handleAddSprite,
-  } = controller;
+  } = screenMode;
 
   return (
     <ScreenModeSection>

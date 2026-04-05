@@ -13,7 +13,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from "../../App.styles";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
   FullWidthActionRow,
   FullWidthField,
@@ -23,7 +23,7 @@ import {
 } from "./ScreenModeLayoutPrimitives";
 
 interface ScreenModeCharacterPanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
@@ -31,7 +31,7 @@ interface ScreenModeCharacterPanelProps {
  */
 export const ScreenModeCharacterPanel: React.FC<
   ScreenModeCharacterPanelProps
-> = ({ controller }) => {
+> = ({ screenMode }) => {
   const {
     characterBaseX,
     setCharacterBaseX,
@@ -42,7 +42,7 @@ export const ScreenModeCharacterPanel: React.FC<
     activeCharacter,
     handleCharacterSetSelect,
     handleAddCharacter,
-  } = controller;
+  } = screenMode;
 
   return (
     <ScreenModeSection>

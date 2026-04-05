@@ -13,7 +13,7 @@ import {
 } from "../../App.styles";
 import { ProjectActions } from "../common/ProjectActions";
 import { ScreenCanvas } from "../common/ScreenCanvas";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
   PreviewCanvasWrap,
   PreviewViewport,
@@ -22,14 +22,14 @@ import {
 } from "./ScreenModeLayoutPrimitives";
 
 interface ScreenModePreviewPanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
  * 画面プレビューとズーム、書き出し導線をまとめるパネルです。
  */
 export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
-  controller,
+  screenMode,
 }) => {
   const {
     screenZoomLevel,
@@ -44,7 +44,7 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
     handleViewportPointerDown,
     handleViewportPointerMove,
     handleViewportPointerEnd,
-  } = controller;
+  } = screenMode;
 
   return (
     <Panel flex={1} minHeight={0}>

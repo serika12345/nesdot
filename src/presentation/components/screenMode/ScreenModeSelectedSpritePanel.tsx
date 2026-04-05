@@ -19,7 +19,7 @@ import {
   PanelHeaderRow,
   PanelTitle,
 } from "../../App.styles";
-import type { ScreenModeController } from "./hooks/useScreenModeController";
+import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
   FlipButtonGrid,
   FlipToolButton,
@@ -31,7 +31,7 @@ import {
 } from "./ScreenModeLayoutPrimitives";
 
 interface ScreenModeSelectedSpritePanelProps {
-  controller: ScreenModeController;
+  screenMode: ScreenModeState;
 }
 
 /**
@@ -39,7 +39,7 @@ interface ScreenModeSelectedSpritePanelProps {
  */
 export const ScreenModeSelectedSpritePanel: React.FC<
   ScreenModeSelectedSpritePanelProps
-> = ({ controller }) => {
+> = ({ screenMode }) => {
   const {
     isSelectionOpen,
     setIsSelectionOpen,
@@ -53,7 +53,7 @@ export const ScreenModeSelectedSpritePanel: React.FC<
     handleToggleSelectedSpriteFlipH,
     handleToggleSelectedSpriteFlipV,
     handleDeleteSelectedSprite,
-  } = controller;
+  } = screenMode;
 
   return (
     <ScreenModeSection>

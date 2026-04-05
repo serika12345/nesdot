@@ -1,7 +1,7 @@
 import React from "react";
 import { SplitLayout } from "../../App.styles";
 import { ScreenModeEditorPanel } from "./ScreenModeEditorPanel";
-import { useScreenModeController } from "./hooks/useScreenModeController";
+import { useScreenModeState } from "./hooks/useScreenModeState";
 import { ScreenModePreviewPanel } from "./ScreenModePreviewPanel";
 
 /**
@@ -9,12 +9,12 @@ import { ScreenModePreviewPanel } from "./ScreenModePreviewPanel";
  * 編集パネルとプレビューパネルを並べ、左側の編集群は単一のスクロール領域に集約します。
  */
 export const ScreenMode: React.FC = () => {
-  const controller = useScreenModeController();
+  const screenMode = useScreenModeState();
 
   return (
     <SplitLayout flex={1} height="100%">
-      <ScreenModeEditorPanel controller={controller} />
-      <ScreenModePreviewPanel controller={controller} />
+      <ScreenModeEditorPanel screenMode={screenMode} />
+      <ScreenModePreviewPanel screenMode={screenMode} />
     </SplitLayout>
   );
 };
