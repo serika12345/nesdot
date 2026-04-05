@@ -5,13 +5,45 @@
     "watchFile": "useFsEvents",
     "watchDirectory": "useFsEvents",
     "fallbackPolling": "dynamicPriority",
-    "excludeDirectories": ["**/node_modules", "**/.git", "**/dist"]
+    "excludeDirectories": [
+      "**/node_modules",
+      "**/.git",
+      "**/.direnv",
+      "**/dist",
+      "**/coverage",
+      "**/playwright-report",
+      "**/test-results",
+      "**/blob-report",
+      "**/.vite",
+      "**/src-tauri/target",
+      "**/src-tauri/gen"
+    ]
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/.git/**": true,
+    "**/.direnv/**": true,
     "**/dist/**": true,
-    "**/src-tauri/target/**": true
+    "**/coverage/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "**/blob-report/**": true,
+    "**/.vite/**": true,
+    "**/src-tauri/target/**": true,
+    "**/src-tauri/gen/**": true
+  },
+  "search.exclude": {
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/.direnv/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "**/blob-report/**": true,
+    "**/.vite/**": true,
+    "**/src-tauri/target/**": true,
+    "**/src-tauri/gen/**": true
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
