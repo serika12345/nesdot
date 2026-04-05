@@ -102,6 +102,35 @@ test("character mode lets the sprite library collapse and expand", async ({
   await expect(librarySprite).toHaveCount(1);
 });
 
+test("character mode preserves sprite library visibility across editor mode switches", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const closeLibraryButton = page.getByRole("button", {
+    name: "スプライトライブラリを閉じる",
+  });
+  const openLibraryButton = page.getByRole("button", {
+    name: "スプライトライブラリを開く",
+  });
+  const librarySprite = page.getByRole("button", {
+    name: "ライブラリスプライト 0",
+  });
+
+  await closeLibraryButton.click();
+  await expect(openLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(0);
+
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await expect(openLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(0);
+
+  await page.getByRole("button", { name: "編集モード 合成" }).click();
+  await expect(openLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(0);
+});
+
 test("character mode keeps preview fixed while the sidebar scrolls", async ({
   page,
 }) => {

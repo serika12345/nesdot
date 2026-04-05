@@ -27,9 +27,8 @@ const LibraryGrid = styled("div")({
 });
 
 const LibrarySpriteButton = styled(ButtonBase, {
-  shouldForwardProp: (prop) => prop !== "dragging" && prop !== "draggableState",
-})<{ dragging?: boolean; draggableState?: boolean }>(
-  ({ dragging, draggableState }) => ({
+  shouldForwardProp: (prop) => prop !== "dragging",
+})<{ dragging?: boolean }>(({ dragging }) => ({
     appearance: "none",
     minHeight: "7.375rem",
     padding: "0.75rem",
@@ -43,7 +42,7 @@ const LibrarySpriteButton = styled(ButtonBase, {
         ? "rgba(240, 253, 250, 0.96)"
         : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
     color: "var(--ink-strong)",
-    cursor: draggableState === true ? "grab" : "default",
+    cursor: "inherit",
     userSelect: "none",
     touchAction: "none",
     transition:
@@ -78,6 +77,9 @@ const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
 const shouldForwardOpenStateProp = (prop: PropertyKey): boolean =>
   prop !== "openState";
 
+const shouldForwardLibraryContentStateProp = (prop: PropertyKey): boolean =>
+  prop !== "interactiveState";
+
 const LibraryContentRoot = styled("div", {
   shouldForwardProp: shouldForwardOpenStateProp,
 })<{ openState: boolean }>(({ openState }) => ({
@@ -85,23 +87,27 @@ const LibraryContentRoot = styled("div", {
   minHeight: 0,
 }));
 
+const LibraryInteractionRoot = styled("div", {
+  shouldForwardProp: shouldForwardLibraryContentStateProp,
+})<{ interactiveState: boolean }>(({ interactiveState }) => ({
+  cursor: interactiveState === true ? "grab" : "default",
+}));
+
 interface CharacterModeSidebarLibraryContentProps {
   handleLibraryPointerDown: (
     event: React.PointerEvent<HTMLButtonElement>,
     spriteIndex: number,
   ) => void;
+  draggingSpriteIndex: O.Option<number>;
   id: string;
-  isLibraryDraggable: boolean;
-  isSpriteDragging: (spriteIndex: number) => boolean;
   sprites: ReadonlyArray<SpriteTile>;
 }
 
 const CharacterModeSidebarLibraryContent = React.memo(
   function CharacterModeSidebarLibraryContent({
     handleLibraryPointerDown,
+    draggingSpriteIndex,
     id,
-    isLibraryDraggable,
-    isSpriteDragging,
     sprites,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
@@ -111,8 +117,10 @@ const CharacterModeSidebarLibraryContent = React.memo(
             <LibrarySpriteButton
               key={`library-sprite-${spriteIndex}`}
               type="button"
-              dragging={isSpriteDragging(spriteIndex)}
-              draggableState={isLibraryDraggable}
+              dragging={
+                O.isSome(draggingSpriteIndex) &&
+                draggingSpriteIndex.value === spriteIndex
+              }
               draggable={false}
               aria-label={`ライブラリスプライト ${spriteIndex}`}
               onDragStart={(event) => event.preventDefault()}
@@ -149,6 +157,20 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
   const spriteLibrary = useCharacterModeSpriteLibrary();
   const [isLibraryOpen, setIsLibraryOpen] = React.useState(true);
   const libraryContentId = React.useId();
+  const handleLibraryPointerDownRef = React.useRef(
+    spriteLibrary.handleLibraryPointerDown,
+  );
+
+  React.useEffect(() => {
+    handleLibraryPointerDownRef.current = spriteLibrary.handleLibraryPointerDown;
+  }, [spriteLibrary.handleLibraryPointerDown]);
+
+  const handleStableLibraryPointerDown = React.useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>, spriteIndex: number) => {
+      handleLibraryPointerDownRef.current(event, spriteIndex);
+    },
+    [],
+  );
 
   return (
     <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
@@ -178,13 +200,14 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
         openState={isLibraryOpen}
         aria-hidden={isLibraryOpen === false}
       >
-        <CharacterModeSidebarLibraryContent
-          handleLibraryPointerDown={spriteLibrary.handleLibraryPointerDown}
-          id={`${libraryContentId}-scroll`}
-          isLibraryDraggable={spriteLibrary.isLibraryDraggable}
-          isSpriteDragging={spriteLibrary.isSpriteDragging}
-          sprites={spriteLibrary.sprites}
-        />
+        <LibraryInteractionRoot interactiveState={spriteLibrary.isLibraryDraggable}>
+          <CharacterModeSidebarLibraryContent
+            draggingSpriteIndex={spriteLibrary.draggingSpriteIndex}
+            handleLibraryPointerDown={handleStableLibraryPointerDown}
+            id={`${libraryContentId}-scroll`}
+            sprites={spriteLibrary.sprites}
+          />
+        </LibraryInteractionRoot>
       </LibraryContentRoot>
     </CharacterModeEditorCard>
   );

@@ -12,22 +12,30 @@ export const CharacterModeSidebarRoot = styled(Stack)({
   },
 });
 
-export const CharacterModeSidebarContent: React.FC = () => {
-  return (
-    <>
-      <CharacterModeSidebarSetNameCard />
-      <CharacterModeSidebarEditorModeCard />
-      <CharacterModeSidebarSpriteSizeCard />
-      <CharacterModeSidebarLibrary />
-    </>
-  );
-};
+export const CharacterModeSidebarContent = React.memo(
+  function CharacterModeSidebarContent() {
+    return (
+      <>
+        <CharacterModeSidebarSetNameCard />
+        <CharacterModeSidebarEditorModeCard />
+        <CharacterModeSidebarSpriteSizeCard />
+        <CharacterModeSidebarLibrary />
+      </>
+    );
+  },
+);
+
+interface CharacterModeSidebarProps {
+  children?: React.ReactNode;
+}
 
 /**
  * キャラクター編集ワークスペースの共通サイドバーを描画します。
  * モード切替、セット名、スプライト単位、ライブラリ一覧をまとめて扱います。
  */
-export const CharacterModeSidebar: React.FC = () => {
+export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
+  children,
+}) => {
   return (
     <CharacterModeSidebarRoot
       role="complementary"
@@ -40,6 +48,7 @@ export const CharacterModeSidebar: React.FC = () => {
       pr="0.25rem"
     >
       <CharacterModeSidebarContent />
+      {children}
     </CharacterModeSidebarRoot>
   );
 };
