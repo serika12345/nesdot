@@ -2,7 +2,13 @@ import { OutlinedInput, Stack } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Badge, FieldLabel, PanelHeaderRow, ToolButton } from "../../App.styles";
+import {
+  Badge,
+  FieldLabel,
+  PanelHeaderRow,
+  ToolButton,
+} from "../../App.styles";
+import { CharacterModeDecompositionToolOverlay } from "./CharacterModeDecompositionToolOverlay";
 import {
   CharacterStageViewport,
   DecompositionCanvasElement,
@@ -14,8 +20,6 @@ import {
   StageSurface,
   ViewportCenterWrap,
 } from "./CharacterModeLayoutPrimitives";
-import { getRegionStatusLabel } from "./decomposition/decompositionRegionRules";
-import { CHARACTER_MODE_STAGE_LIMITS } from "./hooks/useCharacterModeState";
 import {
   useCharacterModeDecompositionCanvas,
   useCharacterModeDecompositionRegions,
@@ -26,6 +30,8 @@ import {
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "./CharacterModeStateProvider";
+import { getRegionStatusLabel } from "./decomposition/decompositionRegionRules";
+import { CHARACTER_MODE_STAGE_LIMITS } from "./hooks/useCharacterModeState";
 
 /**
  * 分解モードのプレビューキャンバス全体を描画します。
@@ -107,14 +113,20 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
         }}
         dragging={O.isSome(viewportPan.viewportPanState)}
       >
+        <CharacterModeDecompositionToolOverlay />
+
         <ViewportCenterWrap>
           <StageSurface
             ref={decompositionCanvas.handleStageRef}
             aria-label="キャラクターステージ"
             data-active-set-name={stageDisplay.activeSetName}
             data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
-            data-selected-sprite-index={stageDisplay.selectedSpriteStageMetadata.index}
-            data-selected-sprite-layer={stageDisplay.selectedSpriteStageMetadata.layer}
+            data-selected-sprite-index={
+              stageDisplay.selectedSpriteStageMetadata.index
+            }
+            data-selected-sprite-layer={
+              stageDisplay.selectedSpriteStageMetadata.layer
+            }
             data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
             data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
             tabIndex={-1}
@@ -130,7 +142,9 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
               data-stage-height={stageSize.stageHeight}
               width={stageSize.stageWidth * stageSize.stageScale}
               height={stageSize.stageHeight * stageSize.stageScale}
-              onPointerDown={decompositionCanvas.handleDecompositionCanvasPointerDown}
+              onPointerDown={
+                decompositionCanvas.handleDecompositionCanvasPointerDown
+              }
               cursorStyle={decompositionCanvas.decompositionCanvasCursor}
             />
 
@@ -157,7 +171,9 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
                       )
                     }
                     onClick={() =>
-                      decompositionRegions.handleSelectRegion(regionAnalysis.region.id)
+                      decompositionRegions.handleSelectRegion(
+                        regionAnalysis.region.id,
+                      )
                     }
                     selectedState={isSelected}
                     issueState={hasIssues}

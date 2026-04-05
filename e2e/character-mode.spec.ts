@@ -74,7 +74,9 @@ test("character mode enables share actions only after a set is available", async
 
   await shareButton.click();
 
-  await expect(page.getByRole("menuitem", { name: "PNGエクスポート" })).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "PNGエクスポート" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("menuitem", { name: "SVGエクスポート" }),
   ).toBeVisible();
@@ -201,7 +203,9 @@ test("character mode keeps preview fixed while the sidebar scrolls", async ({
     .toBe(0);
   await expect
     .poll(async () =>
-      previewWidthInput.evaluate((element) => element.getBoundingClientRect().top),
+      previewWidthInput.evaluate(
+        (element) => element.getBoundingClientRect().top,
+      ),
     )
     .toBe(previewWidthInputTopBefore);
 });
@@ -474,7 +478,7 @@ test("character mode supports drag and drop placement and stage movement", async
     .toBe("1");
 });
 
-test("character decomposition keeps tools in the sidebar and preserves preview position", async ({
+test("character decomposition keeps tools in the canvas menu and preserves preview position", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1800, height: 640 });
@@ -491,6 +495,17 @@ test("character decomposition keeps tools in the sidebar and preserves preview p
 
   await page.getByRole("button", { name: "編集モード 分解" }).click();
 
+  const openDecompositionToolMenuButton = page.getByRole("button", {
+    name: "分解ツールを開く",
+  });
+  const closeDecompositionToolMenuButton = page.getByRole("button", {
+    name: "分解ツールを閉じる",
+  });
+  await expect(openDecompositionToolMenuButton).toBeVisible();
+  await expect(closeDecompositionToolMenuButton).toHaveCount(0);
+  await openDecompositionToolMenuButton.click();
+  await expect(closeDecompositionToolMenuButton).toBeVisible();
+
   const decompositionCanvas = page.getByLabel("分解描画キャンバス");
   await clickCanvasPixel(decompositionCanvas, 1, 1);
   await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
@@ -500,6 +515,7 @@ test("character decomposition keeps tools in the sidebar and preserves preview p
   const sidebar = page.getByRole("complementary", {
     name: "キャラクター編集サイドバー",
   });
+  const viewport = page.getByLabel("プレビューキャンバスビュー");
   const regionToolButton = page.getByRole("button", {
     name: "分解ツール 切り取り",
   });
@@ -509,26 +525,36 @@ test("character decomposition keeps tools in the sidebar and preserves preview p
   const decomposeStage = page.getByLabel("キャラクターステージ");
 
   await expect(sidebar).toBeVisible();
+  await expect(viewport).toBeVisible();
   await expect(regionToolButton).toBeVisible();
   await expect(previewWidthInput).toBeVisible();
   await expect(decomposeStage).toBeVisible();
 
-  const [sidebarBox, regionToolButtonBox, decomposeStageBox] = await Promise.all([
-    getLocatorRect(sidebar),
-    getLocatorRect(regionToolButton),
-    getLocatorRect(decomposeStage),
-  ]);
+  const [sidebarBox, viewportBox, regionToolButtonBox, decomposeStageBox] =
+    await Promise.all([
+      getLocatorRect(sidebar),
+      getLocatorRect(viewport),
+      getLocatorRect(regionToolButton),
+      getLocatorRect(decomposeStage),
+    ]);
 
-  expect(regionToolButtonBox.clientX).toBeGreaterThan(sidebarBox.clientX);
-  expect(regionToolButtonBox.clientX + regionToolButtonBox.width).toBeLessThan(
+  expect(regionToolButtonBox.clientX).toBeGreaterThan(
     sidebarBox.clientX + sidebarBox.width,
   );
-  expect(Math.abs(decomposeStageBox.clientX - composeStageBox.clientX)).toBeLessThan(
-    2,
+  expect(regionToolButtonBox.clientX).toBeGreaterThan(viewportBox.clientX);
+  expect(regionToolButtonBox.clientX + regionToolButtonBox.width).toBeLessThan(
+    viewportBox.clientX + viewportBox.width,
   );
-  expect(Math.abs(decomposeStageBox.clientY - composeStageBox.clientY)).toBeLessThan(
-    2,
+  expect(regionToolButtonBox.clientY).toBeGreaterThan(viewportBox.clientY);
+  expect(regionToolButtonBox.clientY + regionToolButtonBox.height).toBeLessThan(
+    viewportBox.clientY + viewportBox.height,
   );
+  expect(
+    Math.abs(decomposeStageBox.clientX - composeStageBox.clientX),
+  ).toBeLessThan(2);
+  expect(
+    Math.abs(decomposeStageBox.clientY - composeStageBox.clientY),
+  ).toBeLessThan(2);
 
   const sidebarDimensions = await sidebar.evaluate((element) => ({
     clientHeight: element.clientHeight,
@@ -555,7 +581,9 @@ test("character decomposition keeps tools in the sidebar and preserves preview p
     .toBe(0);
   await expect
     .poll(async () =>
-      previewWidthInput.evaluate((element) => element.getBoundingClientRect().top),
+      previewWidthInput.evaluate(
+        (element) => element.getBoundingClientRect().top,
+      ),
     )
     .toBe(previewWidthInputTopBefore);
 });
@@ -570,6 +598,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   await page.getByLabel("新規セット名").fill("Decompose Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
   await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
 
   const decompositionCanvas = page.getByLabel("分解描画キャンバス");
 
@@ -637,6 +666,7 @@ test("character decomposition respects project level 8x16 sprite size", async ({
   await page.getByLabel("新規セット名").fill("Tall Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
   await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
 
   const decompositionCanvas = page.getByLabel("分解描画キャンバス");
   await clickCanvasPixel(decompositionCanvas, 1, 1);
