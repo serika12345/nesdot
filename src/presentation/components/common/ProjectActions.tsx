@@ -35,6 +35,7 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
   );
 
   const isMenuOpen = O.isSome(menuAnchor);
+  const hasActions = actions.length > 0;
 
   const closeMenu = (): void => {
     setMenuAnchor(O.none);
@@ -47,9 +48,14 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
         variant={isMenuOpen ? "contained" : "outlined"}
         startIcon={<IosShareRoundedIcon />}
         endIcon={<ExpandMoreRoundedIcon style={chevronStyle(isMenuOpen)} />}
+        disabled={hasActions === false}
         aria-expanded={isMenuOpen}
-        aria-haspopup="menu"
+        {...(hasActions === true ? { "aria-haspopup": "menu" } : {})}
         onClick={(event) => {
+          if (hasActions === false) {
+            return;
+          }
+
           setMenuAnchor(O.some(event.currentTarget));
         }}
       >
@@ -68,8 +74,12 @@ export const ProjectActions: React.FC<ProjectActionsProps> = ({
       )}
 
       <Menu
-        anchorEl={O.isSome(menuAnchor) ? menuAnchor.value : document.body}
-        open={isMenuOpen}
+        anchorEl={
+          hasActions === true && O.isSome(menuAnchor)
+            ? menuAnchor.value
+            : document.body
+        }
+        open={hasActions === true && isMenuOpen}
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}

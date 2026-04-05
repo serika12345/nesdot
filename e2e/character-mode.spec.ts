@@ -57,6 +57,32 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   expect(activeSetSelectBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
 });
 
+test("character mode enables share actions only after a set is available", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const shareButton = page.getByRole("button", { name: "共有" });
+
+  await expect(shareButton).toBeDisabled();
+
+  await page.getByLabel("新規セット名").fill("Share Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+
+  await expect(shareButton).toBeEnabled();
+
+  await shareButton.click();
+
+  await expect(page.getByRole("menuitem", { name: "PNGエクスポート" })).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "SVGエクスポート" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "キャラクターJSON書き出し" }),
+  ).toBeVisible();
+});
+
 test("character mode lets the sprite library collapse and expand", async ({
   page,
 }) => {
