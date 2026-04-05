@@ -4,16 +4,21 @@ import React from "react";
 import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
 import { CharacterModeSetSelectionFields } from "./CharacterModeSetSelectionFields";
 
-const ResponsiveHeaderGrid = styled(Stack)({
-  flexDirection: "column",
-  flexWrap: "wrap",
-  alignItems: "stretch",
-  gap: "0.75rem",
-  "@media (min-width: 1200px)": {
-    flexDirection: "row",
-    alignItems: "end",
-  },
-});
+const SetHeaderRow = styled(Stack)(({ theme }) => ({
+  width: "100%",
+  minWidth: 0,
+  flexDirection: "row",
+  alignItems: "flex-end",
+  gap: theme.spacing(2),
+}));
+
+const SetHeaderGroup = styled(Stack)(({ theme }) => ({
+  minWidth: 0,
+  flex: "1 1 0",
+  flexDirection: "row",
+  alignItems: "flex-end",
+  gap: theme.spacing(1.5),
+}));
 
 /**
  * キャラクターセットの作成、選択、削除を行うヘッダーです。
@@ -21,9 +26,13 @@ const ResponsiveHeaderGrid = styled(Stack)({
  */
 export const CharacterModeSetHeader: React.FC = () => {
   return (
-    <ResponsiveHeaderGrid>
-      <CharacterModeSetDraftFields />
-      <CharacterModeSetSelectionFields />
-    </ResponsiveHeaderGrid>
+    <SetHeaderRow>
+      <SetHeaderGroup>
+        <CharacterModeSetDraftFields />
+      </SetHeaderGroup>
+      <SetHeaderGroup>
+        <CharacterModeSetSelectionFields />
+      </SetHeaderGroup>
+    </SetHeaderRow>
   );
 };

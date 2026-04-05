@@ -4,12 +4,9 @@ import React from "react";
 import { Field, FieldLabel, ToolButton } from "../../App.styles";
 import { useCharacterModeSetDraft } from "./CharacterModeStateProvider";
 
-const ResponsiveActionContainer = styled("div")(({ theme }) => ({
-  width: "100%",
-  [theme.breakpoints.up("xl")]: {
-    width: "auto",
-  },
-}));
+const ResponsiveActionContainer = styled("div")({
+  flexShrink: 0,
+});
 
 /**
  * 新規キャラクターセット作成用の入力欄と実行ボタンです。
@@ -19,7 +16,7 @@ export const CharacterModeSetDraftFields: React.FC = () => {
 
   return (
     <>
-      <Field flex="1 1 17.5rem">
+      <Field flex="1 1 0" minWidth={0}>
         <FieldLabel>新規セット名</FieldLabel>
         <OutlinedInput
           type="text"

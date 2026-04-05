@@ -15,6 +15,48 @@ import {
   zoomViewportAtCenter,
 } from "./support/pointer";
 
+test("character mode keeps set controls on a single row", async ({ page }) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const newNameInput = page.getByRole("textbox", { name: "新規セット名" });
+  const createSetButton = page.getByRole("button", { name: "セットを作成" });
+  const activeSetSelect = page.getByRole("combobox", {
+    name: "編集中のセット",
+  });
+  const deleteSetButton = page.getByRole("button", { name: "セットを削除" });
+
+  await expect(newNameInput).toBeVisible();
+  await expect(createSetButton).toBeVisible();
+  await expect(activeSetSelect).toBeVisible();
+  await expect(deleteSetButton).toBeVisible();
+
+  const [
+    newNameInputBox,
+    createSetButtonBox,
+    activeSetSelectBox,
+    deleteSetButtonBox,
+  ] = await Promise.all([
+    getLocatorRect(newNameInput),
+    getLocatorRect(createSetButton),
+    getLocatorRect(activeSetSelect),
+    getLocatorRect(deleteSetButton),
+  ]);
+
+  const bottoms = [
+    newNameInputBox.clientY + newNameInputBox.height,
+    createSetButtonBox.clientY + createSetButtonBox.height,
+    activeSetSelectBox.clientY + activeSetSelectBox.height,
+    deleteSetButtonBox.clientY + deleteSetButtonBox.height,
+  ];
+  const bottomSpread = Math.max(...bottoms) - Math.min(...bottoms);
+
+  expect(bottomSpread).toBeLessThan(2);
+  expect(newNameInputBox.clientX).toBeLessThan(createSetButtonBox.clientX);
+  expect(createSetButtonBox.clientX).toBeLessThan(activeSetSelectBox.clientX);
+  expect(activeSetSelectBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
+});
+
 test("character mode supports drag and drop placement and stage movement", async ({
   page,
 }) => {

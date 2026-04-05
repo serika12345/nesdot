@@ -6,12 +6,9 @@ import React from "react";
 import { Field, FieldLabel, ToolButton } from "../../App.styles";
 import { useCharacterModeSetSelection } from "./CharacterModeStateProvider";
 
-const ResponsiveActionContainer = styled("div")(({ theme }) => ({
-  width: "100%",
-  [theme.breakpoints.up("xl")]: {
-    width: "auto",
-  },
-}));
+const ResponsiveActionContainer = styled("div")({
+  flexShrink: 0,
+});
 
 /**
  * 編集対象セットの選択と削除を扱う入力欄です。
@@ -28,7 +25,7 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
 
   return (
     <>
-      <Field flex="1 1 17.5rem">
+      <Field flex="1 1 0" minWidth={0}>
         <FieldLabel>編集中のセット</FieldLabel>
         <Select
           variant="outlined"
