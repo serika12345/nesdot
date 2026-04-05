@@ -1,9 +1,16 @@
 import { Stack } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React from "react";
 import { CharacterModeSidebarEditorModeCard } from "./CharacterModeSidebarEditorModeCard";
 import { CharacterModeSidebarLibrary } from "./CharacterModeSidebarLibrary";
 import { CharacterModeSidebarSetNameCard } from "./CharacterModeSidebarSetNameCard";
 import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSpriteSizeCard";
+
+const SidebarRoot = styled(Stack)({
+  "& > *": {
+    flexShrink: 0,
+  },
+});
 
 /**
  * キャラクター編集ワークスペースの共通サイドバーを描画します。
@@ -11,7 +18,10 @@ import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSprite
  */
 export const CharacterModeSidebar: React.FC = () => {
   return (
-    <Stack
+    <SidebarRoot
+      role="complementary"
+      aria-label="キャラクター編集サイドバー"
+      height="100%"
       minWidth={0}
       minHeight={0}
       spacing="1rem"
@@ -22,6 +32,6 @@ export const CharacterModeSidebar: React.FC = () => {
       <CharacterModeSidebarEditorModeCard />
       <CharacterModeSidebarSpriteSizeCard />
       <CharacterModeSidebarLibrary />
-    </Stack>
+    </SidebarRoot>
   );
 };

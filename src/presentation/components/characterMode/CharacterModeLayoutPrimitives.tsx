@@ -137,10 +137,15 @@ const FullWidthContainer = styled(BareContainer)({
 });
 
 const WorkspaceStageContainer = styled(FullWidthContainer)({
+  display: "flex",
   minHeight: 0,
+  height: "100%",
 });
 
 const ComposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
+  display: "flex",
+  minHeight: 0,
+  height: "100%",
   [theme.breakpoints.up("lg")]: {
     width: "17.5rem",
     flexShrink: 0,
@@ -176,13 +181,16 @@ export const PaletteControlContainer = styled(FullWidthContainer)({
 const WorkspaceColumnsGrid = styled(MaterialGrid)({
   width: "100%",
   minHeight: 0,
+  flex: "1 1 0",
 });
 
 const ComposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
   width: "100%",
+  minHeight: 0,
   [theme.breakpoints.up("lg")]: {
     flexBasis: "17.5rem",
     maxWidth: "17.5rem",
+    height: "100%",
   },
 }));
 
@@ -202,11 +210,15 @@ const DecompositionInspectorGridItem = styled(MaterialGrid)(({ theme }) => ({
   },
 }));
 
-const WorkspaceStageGridItem = styled(MaterialGrid)({
+const WorkspaceStageGridItem = styled(MaterialGrid)(({ theme }) => ({
   width: "100%",
   minWidth: 0,
   flex: "1 1 0",
-});
+  minHeight: 0,
+  [theme.breakpoints.up("lg")]: {
+    height: "100%",
+  },
+}));
 
 type CharacterComposeWorkspaceGridProps = StackProps;
 

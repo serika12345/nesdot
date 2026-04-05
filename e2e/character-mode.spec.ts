@@ -57,6 +57,55 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   expect(activeSetSelectBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
 });
 
+test("character mode keeps preview fixed while the sidebar scrolls", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 640 });
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const workspace = page.getByLabel("キャラクター編集ワークスペース");
+  const sidebar = page.getByRole("complementary", {
+    name: "キャラクター編集サイドバー",
+  });
+  const previewWidthInput = page.getByRole("spinbutton", {
+    name: "プレビューキャンバス幅",
+  });
+
+  await expect(workspace).toBeVisible();
+  await expect(sidebar).toBeVisible();
+  await expect(previewWidthInput).toBeVisible();
+
+  const sidebarDimensions = await sidebar.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+
+  expect(sidebarDimensions.scrollHeight).toBeGreaterThan(
+    sidebarDimensions.clientHeight,
+  );
+
+  const previewWidthInputTopBefore = await previewWidthInput.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+
+  await sidebar.evaluate((element) => {
+    element.scrollTo({ top: element.scrollHeight });
+  });
+
+  await expect
+    .poll(async () => sidebar.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => workspace.evaluate((element) => element.scrollTop))
+    .toBe(0);
+  await expect
+    .poll(async () =>
+      previewWidthInput.evaluate((element) => element.getBoundingClientRect().top),
+    )
+    .toBe(previewWidthInputTopBefore);
+});
+
 test("character mode supports drag and drop placement and stage movement", async ({
   page,
 }) => {
