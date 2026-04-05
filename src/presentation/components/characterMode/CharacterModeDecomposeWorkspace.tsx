@@ -9,7 +9,6 @@ import {
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { type SpriteTile } from "../../../application/state/projectStore";
 import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { Badge, FieldLabel, PanelHeaderRow, ToolButton } from "../../App.styles";
 import {
@@ -32,146 +31,91 @@ import {
 import { CharacterModeDecompositionInspector } from "./CharacterModeDecompositionInspector";
 import { CharacterModeSidebar } from "./CharacterModeSidebar";
 import {
-  getIssueLabel,
   getRegionStatusLabel,
 } from "./decomposition/decompositionRegionRules";
 import {
   CHARACTER_MODE_STAGE_LIMITS,
   DECOMPOSITION_COLOR_SLOTS,
-  INSPECTOR_PREVIEW_SCALE,
-  LIBRARY_PREVIEW_SCALE,
-  type CharacterModeController,
-} from "./hooks/useCharacterModeController";
-
-interface CharacterModeDecomposeWorkspaceProps {
-  controller: CharacterModeController;
-  renderSpritePixels: (spriteIndex: number, scale: number) => React.ReactNode;
-  renderTilePixels: (
-    tileOption: O.Option<SpriteTile>,
-    pixelSize: number,
-    keyPrefix: string,
-  ) => React.ReactElement;
-}
+} from "./hooks/useCharacterModeState";
+import {
+  useCharacterModeDecompositionCanvas,
+  useCharacterModeDecompositionPalette,
+  useCharacterModeDecompositionRegions,
+  useCharacterModeDecompositionTool,
+  useCharacterModeStageDisplay,
+  useCharacterModeStageSize,
+  useCharacterModeStageViewport,
+  useCharacterModeStageZoom,
+  useCharacterModeViewportPan,
+} from "./CharacterModeStateProvider";
 
 /**
  * キャラクター分解モードのワークスペースを描画します。
  * 左サイドバー、分解キャンバス、右インスペクタを分解専用の責務としてまとめます。
  */
-export const CharacterModeDecomposeWorkspace: React.FC<
-  CharacterModeDecomposeWorkspaceProps
-> = ({ controller, renderSpritePixels, renderTilePixels }) => {
-  const {
-    activeSet,
-    activeSetName,
-    activeSetSpriteCount,
-    decompositionAnalysis,
-    decompositionCanvasCursor,
-    decompositionColorIndex,
-    decompositionInvalidRegionCount,
-    decompositionPaletteIndex,
-    decompositionRegions,
-    decompositionTool,
-    decompositionValidRegionCount,
-    handleApplyDecomposition,
-    handleDecompositionCanvasPointerDown,
-    handleDecompositionCanvasRef,
-    handleDecompositionColorSlotSelect,
-    handleDecompositionPaletteSelect,
-    handleDecompositionRegionPointerDown,
-    handleDecompositionToolChange,
-    handleEditorModeChange,
-    handleLibraryPointerDown,
-    handleProjectSpriteSizeChange,
-    handleRemoveSelectedRegion,
-    handleSelectRegion,
-    handleSetNameChange,
-    handleStageHeightChange,
-    handleStageRef,
-    handleStageWidthChange,
-    handleViewportPointerDown,
-    handleViewportPointerEnd,
-    handleViewportPointerMove,
-    handleViewportRef,
-    handleViewportWheel,
-    handleZoomIn,
-    handleZoomOut,
-    isSpriteDragging,
-    isStageDropActive,
-    projectSpriteSize,
-    projectSpriteSizeLocked,
-    selectedRegionAnalysis,
-    selectedRegionId,
-    selectedSpriteStageMetadata,
-    spritePalettes,
-    sprites,
-    stageHeight,
-    stageScale,
-    stageWidth,
-    stageZoomLevel,
-    viewportPanState,
-  } = controller;
+export const CharacterModeDecomposeWorkspace: React.FC = () => {
+  const stageDisplay = useCharacterModeStageDisplay();
+  const stageSize = useCharacterModeStageSize();
+  const stageZoom = useCharacterModeStageZoom();
+  const viewport = useCharacterModeStageViewport();
+  const viewportPan = useCharacterModeViewportPan();
+  const decompositionTool = useCharacterModeDecompositionTool();
+  const decompositionPalette = useCharacterModeDecompositionPalette();
+  const decompositionCanvas = useCharacterModeDecompositionCanvas();
+  const decompositionRegions = useCharacterModeDecompositionRegions();
 
   return (
     <CharacterDecomposeWorkspaceGrid
       aria-label="キャラクター編集ワークスペース"
       flex={1}
     >
-      <CharacterModeSidebar
-        activeSetAvailable={O.isSome(activeSet)}
-        activeSetName={activeSetName}
-        activeMode="decompose"
-        projectSpriteSize={projectSpriteSize}
-        projectSpriteSizeLocked={projectSpriteSizeLocked}
-        sprites={sprites}
-        isLibraryDraggable={false}
-        isSpriteDragging={isSpriteDragging}
-        onSetNameChange={handleSetNameChange}
-        onEditorModeChange={handleEditorModeChange}
-        onProjectSpriteSizeChange={handleProjectSpriteSizeChange}
-        onLibraryPointerDown={handleLibraryPointerDown}
-        renderSpritePixels={renderSpritePixels}
-        libraryPreviewScale={LIBRARY_PREVIEW_SCALE}
-      />
+      <CharacterModeSidebar />
 
       <StageEditorCard flex={1}>
         <PreviewHeaderLayout>
           <PanelHeaderRow>
             <FieldLabel>分解キャンバス</FieldLabel>
-            <Badge tone="accent">{`${decompositionRegions.length} regions`}</Badge>
+            <Badge tone="accent">
+              {`${decompositionRegions.decompositionRegions.length} regions`}
+            </Badge>
           </PanelHeaderRow>
 
           <PreviewControlsRow>
             <StageInputContainer>
               <OutlinedInput
                 type="number"
-                value={stageWidth}
+                value={stageSize.stageWidth}
                 inputProps={{
                   min: CHARACTER_MODE_STAGE_LIMITS.minWidth,
                   max: CHARACTER_MODE_STAGE_LIMITS.maxWidth,
                   step: 8,
                   "aria-label": "プレビューキャンバス幅",
                 }}
-                onChange={(event) => handleStageWidthChange(event.target.value)}
+                onChange={(event) =>
+                  stageSize.handleStageWidthChange(event.target.value)
+                }
               />
             </StageInputContainer>
             <StageInputContainer>
               <OutlinedInput
                 type="number"
-                value={stageHeight}
+                value={stageSize.stageHeight}
                 inputProps={{
                   min: CHARACTER_MODE_STAGE_LIMITS.minHeight,
                   max: CHARACTER_MODE_STAGE_LIMITS.maxHeight,
                   step: 8,
                   "aria-label": "プレビューキャンバス高さ",
                 }}
-                onChange={(event) => handleStageHeightChange(event.target.value)}
+                onChange={(event) =>
+                  stageSize.handleStageHeightChange(event.target.value)
+                }
               />
             </StageInputContainer>
-            <Badge tone="neutral">{`${stageZoomLevel}x`}</Badge>
-            <ToolButton type="button" onClick={handleZoomOut}>
+            <Badge tone="neutral">{`${stageZoom.stageZoomLevel}x`}</Badge>
+            <ToolButton type="button" onClick={stageZoom.handleZoomOut}>
               -
             </ToolButton>
-            <ToolButton type="button" onClick={handleZoomIn}>
+            <ToolButton type="button" onClick={stageZoom.handleZoomIn}>
               +
             </ToolButton>
           </PreviewControlsRow>
@@ -181,7 +125,7 @@ export const CharacterModeDecomposeWorkspace: React.FC<
           <PanelHeaderRow>
             <FieldLabel>分解ツール</FieldLabel>
             <Badge tone="neutral">
-              {projectSpriteSize === 8 ? "8×8" : "8×16"}
+              {decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
             </Badge>
           </PanelHeaderRow>
 
@@ -189,24 +133,30 @@ export const CharacterModeDecomposeWorkspace: React.FC<
             <ToolButton
               type="button"
               aria-label="分解ツール ペン"
-              active={decompositionTool === "pen"}
-              onClick={() => handleDecompositionToolChange("pen")}
+              active={decompositionTool.decompositionTool === "pen"}
+              onClick={() =>
+                decompositionTool.handleDecompositionToolChange("pen")
+              }
             >
               ペン
             </ToolButton>
             <ToolButton
               type="button"
               aria-label="分解ツール 消しゴム"
-              active={decompositionTool === "eraser"}
-              onClick={() => handleDecompositionToolChange("eraser")}
+              active={decompositionTool.decompositionTool === "eraser"}
+              onClick={() =>
+                decompositionTool.handleDecompositionToolChange("eraser")
+              }
             >
               消しゴム
             </ToolButton>
             <ToolButton
               type="button"
               aria-label="分解ツール 切り取り"
-              active={decompositionTool === "region"}
-              onClick={() => handleDecompositionToolChange("region")}
+              active={decompositionTool.decompositionTool === "region"}
+              onClick={() =>
+                decompositionTool.handleDecompositionToolChange("region")
+              }
             >
               切り取り
             </ToolButton>
@@ -214,7 +164,7 @@ export const CharacterModeDecomposeWorkspace: React.FC<
               <PaletteControlContainer>
                 <Select
                   variant="outlined"
-                  value={decompositionPaletteIndex}
+                  value={decompositionPalette.decompositionPaletteIndex}
                   inputProps={{
                     "aria-label": "分解描画パレット",
                   }}
@@ -224,10 +174,10 @@ export const CharacterModeDecomposeWorkspace: React.FC<
                       return;
                     }
 
-                    handleDecompositionPaletteSelect(value);
+                    decompositionPalette.handleDecompositionPaletteSelect(value);
                   }}
                 >
-                  {spritePalettes.map((_, paletteIndex) => (
+                  {decompositionPalette.spritePalettes.map((_, paletteIndex) => (
                     <MenuItem key={paletteIndex} value={paletteIndex}>
                       パレット {paletteIndex}
                     </MenuItem>
@@ -238,10 +188,12 @@ export const CharacterModeDecomposeWorkspace: React.FC<
               <PaletteSlotGrid>
                 {DECOMPOSITION_COLOR_SLOTS.map((slotIndex) => {
                   const tone =
-                    decompositionColorIndex === slotIndex &&
-                    decompositionTool !== "eraser";
+                    decompositionPalette.decompositionColorIndex === slotIndex &&
+                    decompositionTool.decompositionTool !== "eraser";
                   const colorHex = nesIndexToCssHex(
-                    spritePalettes[decompositionPaletteIndex][slotIndex],
+                    decompositionPalette.spritePalettes[
+                      decompositionPalette.decompositionPaletteIndex
+                    ][slotIndex],
                   );
 
                   return (
@@ -268,7 +220,9 @@ export const CharacterModeDecomposeWorkspace: React.FC<
                           backgroundColor: colorHex,
                         }}
                         onClick={() =>
-                          handleDecompositionColorSlotSelect(slotIndex)
+                          decompositionPalette.handleDecompositionColorSlotSelect(
+                            slotIndex,
+                          )
                         }
                       />
                       <Typography variant="caption">{`slot${slotIndex}`}</Typography>
@@ -281,115 +235,114 @@ export const CharacterModeDecomposeWorkspace: React.FC<
         </DecompositionToolCard>
 
         <CharacterStageViewport
-          ref={handleViewportRef}
+          ref={viewport.handleViewportRef}
           aria-label="プレビューキャンバスビュー"
-          onWheel={handleViewportWheel}
-          onPointerDown={handleViewportPointerDown}
-          onPointerMove={handleViewportPointerMove}
-          onPointerUp={handleViewportPointerEnd}
-          onPointerCancel={handleViewportPointerEnd}
+          onWheel={viewport.handleViewportWheel}
+          onPointerDown={viewport.handleViewportPointerDown}
+          onPointerMove={viewport.handleViewportPointerMove}
+          onPointerUp={viewport.handleViewportPointerEnd}
+          onPointerCancel={viewport.handleViewportPointerEnd}
           onMouseDown={(event) => {
             if (event.button === 1) {
               event.preventDefault();
             }
           }}
-          dragging={O.isSome(viewportPanState)}
+          dragging={O.isSome(viewportPan.viewportPanState)}
         >
           <ViewportCenterWrap>
             <StageSurface
-              ref={handleStageRef}
+              ref={decompositionCanvas.handleStageRef}
               aria-label="キャラクターステージ"
-              data-active-set-name={activeSetName}
-              data-stage-sprite-count={activeSetSpriteCount}
-              data-selected-sprite-index={selectedSpriteStageMetadata.index}
-              data-selected-sprite-layer={selectedSpriteStageMetadata.layer}
-              data-selected-sprite-x={selectedSpriteStageMetadata.x}
-              data-selected-sprite-y={selectedSpriteStageMetadata.y}
+              data-active-set-name={stageDisplay.activeSetName}
+              data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
+              data-selected-sprite-index={
+                stageDisplay.selectedSpriteStageMetadata.index
+              }
+              data-selected-sprite-layer={
+                stageDisplay.selectedSpriteStageMetadata.layer
+              }
+              data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
+              data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
               tabIndex={-1}
-              activeDrop={isStageDropActive}
-              stageWidthPx={stageWidth * stageScale}
-              stageHeightPx={stageHeight * stageScale}
-              stageScale={stageScale}
+              activeDrop={stageDisplay.isStageDropActive}
+              stageWidthPx={stageSize.stageWidth * stageSize.stageScale}
+              stageHeightPx={stageSize.stageHeight * stageSize.stageScale}
+              stageScale={stageSize.stageScale}
             >
               <DecompositionCanvasElement
-                ref={handleDecompositionCanvasRef}
+                ref={decompositionCanvas.handleDecompositionCanvasRef}
                 aria-label="分解描画キャンバス"
-                data-stage-width={stageWidth}
-                data-stage-height={stageHeight}
-                width={stageWidth * stageScale}
-                height={stageHeight * stageScale}
-                onPointerDown={handleDecompositionCanvasPointerDown}
-                cursorStyle={decompositionCanvasCursor}
+                data-stage-width={stageSize.stageWidth}
+                data-stage-height={stageSize.stageHeight}
+                width={stageSize.stageWidth * stageSize.stageScale}
+                height={stageSize.stageHeight * stageSize.stageScale}
+                onPointerDown={
+                  decompositionCanvas.handleDecompositionCanvasPointerDown
+                }
+                cursorStyle={decompositionCanvas.decompositionCanvasCursor}
               />
 
-              {decompositionAnalysis.regions.map((regionAnalysis, regionIndex) => {
-                const isSelected = pipe(
-                  selectedRegionId,
-                  O.match(
-                    () => false,
-                    (regionId) => regionId === regionAnalysis.region.id,
-                  ),
-                );
-                const hasIssues = regionAnalysis.issues.length > 0;
+              {decompositionRegions.decompositionAnalysis.regions.map(
+                (regionAnalysis, regionIndex) => {
+                  const isSelected = pipe(
+                    decompositionRegions.selectedRegionId,
+                    O.match(
+                      () => false,
+                      (regionId) => regionId === regionAnalysis.region.id,
+                    ),
+                  );
+                  const hasIssues = regionAnalysis.issues.length > 0;
 
-                return (
-                  <RegionOverlayButton
-                    key={regionAnalysis.region.id}
-                    type="button"
-                    aria-label={`切り取り領域 ${regionIndex}`}
-                    onPointerDown={(event) =>
-                      handleDecompositionRegionPointerDown(
-                        event,
-                        regionAnalysis.region,
-                      )
-                    }
-                    onClick={() => handleSelectRegion(regionAnalysis.region.id)}
-                    selectedState={isSelected}
-                    issueState={hasIssues}
-                    regionLeft={regionAnalysis.region.x * stageScale}
-                    regionTop={regionAnalysis.region.y * stageScale}
-                    regionHeightPx={projectSpriteSize * stageScale}
-                    regionScale={stageScale}
-                    toolMode={decompositionTool}
-                  >
-                    <Stack
-                      height="100%"
-                      width="100%"
-                      alignItems="flex-start"
-                      justifyContent="space-between"
-                      spacing={0}
+                  return (
+                    <RegionOverlayButton
+                      key={regionAnalysis.region.id}
+                      type="button"
+                      aria-label={`切り取り領域 ${regionIndex}`}
+                      onPointerDown={(event) =>
+                        decompositionRegions.handleDecompositionRegionPointerDown(
+                          event,
+                          regionAnalysis.region,
+                        )
+                      }
+                      onClick={() =>
+                        decompositionRegions.handleSelectRegion(
+                          regionAnalysis.region.id,
+                        )
+                      }
+                      selectedState={isSelected}
+                      issueState={hasIssues}
+                      regionLeft={regionAnalysis.region.x * stageSize.stageScale}
+                      regionTop={regionAnalysis.region.y * stageSize.stageScale}
+                      regionHeightPx={
+                        decompositionTool.projectSpriteSize * stageSize.stageScale
+                      }
+                      regionScale={stageSize.stageScale}
+                      toolMode={decompositionTool.decompositionTool}
                     >
-                      <Badge tone={hasIssues ? "danger" : "accent"}>
-                        {`#${regionIndex}`}
-                      </Badge>
-                      <Badge tone={hasIssues ? "danger" : "neutral"}>
-                        {getRegionStatusLabel(regionAnalysis)}
-                      </Badge>
-                    </Stack>
-                  </RegionOverlayButton>
-                );
-              })}
+                      <Stack
+                        height="100%"
+                        width="100%"
+                        alignItems="flex-start"
+                        justifyContent="space-between"
+                        spacing={0}
+                      >
+                        <Badge tone={hasIssues ? "danger" : "accent"}>
+                          {`#${regionIndex}`}
+                        </Badge>
+                        <Badge tone={hasIssues ? "danger" : "neutral"}>
+                          {getRegionStatusLabel(regionAnalysis)}
+                        </Badge>
+                      </Stack>
+                    </RegionOverlayButton>
+                  );
+                },
+              )}
             </StageSurface>
           </ViewportCenterWrap>
         </CharacterStageViewport>
       </StageEditorCard>
 
-      <CharacterModeDecompositionInspector
-        selectedRegionId={selectedRegionId}
-        selectedRegionAnalysis={selectedRegionAnalysis}
-        decompositionAnalysis={decompositionAnalysis}
-        decompositionRegionsCount={decompositionRegions.length}
-        decompositionValidRegionCount={decompositionValidRegionCount}
-        decompositionInvalidRegionCount={decompositionInvalidRegionCount}
-        activeSetAvailable={O.isSome(activeSet)}
-        onRemoveSelectedRegion={handleRemoveSelectedRegion}
-        onApplyDecomposition={handleApplyDecomposition}
-        onSelectRegion={handleSelectRegion}
-        renderTilePixels={renderTilePixels}
-        inspectorPreviewScale={INSPECTOR_PREVIEW_SCALE}
-        getRegionStatusLabel={getRegionStatusLabel}
-        getIssueLabel={getIssueLabel}
-      />
+      <CharacterModeDecompositionInspector />
     </CharacterDecomposeWorkspaceGrid>
   );
 };

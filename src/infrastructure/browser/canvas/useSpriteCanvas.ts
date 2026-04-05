@@ -15,15 +15,23 @@ import { useGhost } from "./useGhost";
 import { useSwap } from "../../../presentation/components/hooks/useSwap";
 
 export type Tool = "pen" | "eraser";
-export interface UseCanvasParams {
-  isChangeOrderMode?: boolean; // 並べ替えモード
-  target: number; // 表示対象スプライトインデックス
-  scale?: number; // ピクセル拡大倍率
+export type SpriteCanvasDisplayModel = Readonly<{
+  scale?: number;
   showGrid?: boolean;
-  tool: Tool;
-  currentSelectPalette: PaletteIndex;
+  target: number;
+}>;
+
+export type SpriteCanvasInteractionModel = Readonly<{
   activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
+  currentSelectPalette: PaletteIndex;
+  isChangeOrderMode?: boolean; // 並べ替えモード
   onChange: (next: SpriteTile, currentSprite: number) => void; // 更新を状態に伝える
+  tool: Tool;
+}>;
+
+export interface UseCanvasParams {
+  display: SpriteCanvasDisplayModel;
+  interaction: SpriteCanvasInteractionModel;
 }
 
 const FALLBACK_TILE: SpriteTile = makeTile(8, 0);
@@ -33,15 +41,17 @@ const FALLBACK_TILE: SpriteTile = makeTile(8, 0);
  * 編集ロジックを React コンポーネント本体から分離し、canvas props と更新 API に集約する意図があります。
  */
 export const useSpriteCanvas = ({
-  isChangeOrderMode = false,
-  target,
-  scale = 24,
-  showGrid = true,
-  tool,
-  currentSelectPalette,
-  activeColorIndex,
-  onChange,
+  display,
+  interaction,
 }: UseCanvasParams) => {
+  const { scale = 24, showGrid = true, target } = display;
+  const {
+    activeColorIndex,
+    currentSelectPalette,
+    isChangeOrderMode = false,
+    onChange,
+    tool,
+  } = interaction;
   const palettes = useProjectState((s) => s.nes.spritePalettes);
   const tile = useProjectState((s) =>
     pipe(

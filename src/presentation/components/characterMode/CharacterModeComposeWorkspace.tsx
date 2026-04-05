@@ -20,55 +20,30 @@ import { CharacterModeSidebar } from "./CharacterModeSidebar";
 import {
   CHARACTER_MODE_STAGE_LIMITS,
   LIBRARY_PREVIEW_SCALE,
-  type CharacterModeController,
-} from "./hooks/useCharacterModeController";
-
-interface CharacterModeComposeWorkspaceProps {
-  controller: CharacterModeController;
-  renderSpritePixels: (spriteIndex: number, scale: number) => React.ReactNode;
-}
+} from "./hooks/useCharacterModeState";
+import {
+  useCharacterModeComposeCanvas,
+  useCharacterModeLibraryDragPreview,
+  useCharacterModeStageDisplay,
+  useCharacterModeStageSize,
+  useCharacterModeStageViewport,
+  useCharacterModeStageZoom,
+  useCharacterModeViewportPan,
+} from "./CharacterModeStateProvider";
+import { CharacterModeTilePreview } from "./CharacterModeTilePreview";
 
 /**
  * キャラクター合成モードのワークスペースを描画します。
  * 左サイドバー、ステージ、ドラッグ中プレビューを合成専用の責務としてまとめます。
  */
-export const CharacterModeComposeWorkspace: React.FC<
-  CharacterModeComposeWorkspaceProps
-> = ({ controller, renderSpritePixels }) => {
-  const {
-    activeSet,
-    activeSetName,
-    activeSetSpriteCount,
-    handleComposeCanvasRef,
-    handleComposeContextMenu,
-    handleEditorModeChange,
-    handleLibraryPointerDown,
-    handleProjectSpriteSizeChange,
-    handleSetNameChange,
-    handleStageHeightChange,
-    handleStageKeyDown,
-    handleStageRef,
-    handleStageWidthChange,
-    handleViewportPointerDown,
-    handleViewportPointerEnd,
-    handleViewportPointerMove,
-    handleViewportRef,
-    handleViewportWheel,
-    handleZoomIn,
-    handleZoomOut,
-    isSpriteDragging,
-    isStageDropActive,
-    libraryDragState,
-    projectSpriteSize,
-    projectSpriteSizeLocked,
-    selectedSpriteStageMetadata,
-    sprites,
-    stageHeight,
-    stageScale,
-    stageWidth,
-    stageZoomLevel,
-    viewportPanState,
-  } = controller;
+export const CharacterModeComposeWorkspace: React.FC = () => {
+  const stageDisplay = useCharacterModeStageDisplay();
+  const stageSize = useCharacterModeStageSize();
+  const stageZoom = useCharacterModeStageZoom();
+  const viewport = useCharacterModeStageViewport();
+  const viewportPan = useCharacterModeViewportPan();
+  const composeCanvas = useCharacterModeComposeCanvas();
+  const dragPreview = useCharacterModeLibraryDragPreview();
 
   return (
     <>
@@ -76,104 +51,97 @@ export const CharacterModeComposeWorkspace: React.FC<
         aria-label="キャラクター編集ワークスペース"
         flex={1}
       >
-        <CharacterModeSidebar
-          activeSetAvailable={O.isSome(activeSet)}
-          activeSetName={activeSetName}
-          activeMode="compose"
-          projectSpriteSize={projectSpriteSize}
-          projectSpriteSizeLocked={projectSpriteSizeLocked}
-          sprites={sprites}
-          isLibraryDraggable={O.isSome(activeSet)}
-          isSpriteDragging={isSpriteDragging}
-          onSetNameChange={handleSetNameChange}
-          onEditorModeChange={handleEditorModeChange}
-          onProjectSpriteSizeChange={handleProjectSpriteSizeChange}
-          onLibraryPointerDown={handleLibraryPointerDown}
-          renderSpritePixels={renderSpritePixels}
-          libraryPreviewScale={LIBRARY_PREVIEW_SCALE}
-        />
+        <CharacterModeSidebar />
 
         <StageEditorCard flex={1}>
           <PreviewHeaderLayout>
             <PanelHeaderRow>
               <FieldLabel>プレビューキャンバス</FieldLabel>
-              <Badge tone="accent">{`${activeSetSpriteCount} items`}</Badge>
+              <Badge tone="accent">{`${stageDisplay.activeSetSpriteCount} items`}</Badge>
             </PanelHeaderRow>
 
             <PreviewControlsRow>
               <StageInputContainer>
                 <OutlinedInput
                   type="number"
-                  value={stageWidth}
+                  value={stageSize.stageWidth}
                   inputProps={{
                     min: CHARACTER_MODE_STAGE_LIMITS.minWidth,
                     max: CHARACTER_MODE_STAGE_LIMITS.maxWidth,
                     step: 8,
                     "aria-label": "プレビューキャンバス幅",
                   }}
-                  onChange={(event) => handleStageWidthChange(event.target.value)}
+                  onChange={(event) =>
+                    stageSize.handleStageWidthChange(event.target.value)
+                  }
                 />
               </StageInputContainer>
               <StageInputContainer>
                 <OutlinedInput
                   type="number"
-                  value={stageHeight}
+                  value={stageSize.stageHeight}
                   inputProps={{
                     min: CHARACTER_MODE_STAGE_LIMITS.minHeight,
                     max: CHARACTER_MODE_STAGE_LIMITS.maxHeight,
                     step: 8,
                     "aria-label": "プレビューキャンバス高さ",
                   }}
-                  onChange={(event) => handleStageHeightChange(event.target.value)}
+                  onChange={(event) =>
+                    stageSize.handleStageHeightChange(event.target.value)
+                  }
                 />
               </StageInputContainer>
-              <Badge tone="neutral">{`${stageZoomLevel}x`}</Badge>
-              <ToolButton type="button" onClick={handleZoomOut}>
+              <Badge tone="neutral">{`${stageZoom.stageZoomLevel}x`}</Badge>
+              <ToolButton type="button" onClick={stageZoom.handleZoomOut}>
                 -
               </ToolButton>
-              <ToolButton type="button" onClick={handleZoomIn}>
+              <ToolButton type="button" onClick={stageZoom.handleZoomIn}>
                 +
               </ToolButton>
             </PreviewControlsRow>
           </PreviewHeaderLayout>
 
           <CharacterStageViewport
-            ref={handleViewportRef}
+            ref={viewport.handleViewportRef}
             aria-label="プレビューキャンバスビュー"
-            onWheel={handleViewportWheel}
-            onPointerDown={handleViewportPointerDown}
-            onPointerMove={handleViewportPointerMove}
-            onPointerUp={handleViewportPointerEnd}
-            onPointerCancel={handleViewportPointerEnd}
+            onWheel={viewport.handleViewportWheel}
+            onPointerDown={viewport.handleViewportPointerDown}
+            onPointerMove={viewport.handleViewportPointerMove}
+            onPointerUp={viewport.handleViewportPointerEnd}
+            onPointerCancel={viewport.handleViewportPointerEnd}
             onMouseDown={(event) => {
               if (event.button === 1) {
                 event.preventDefault();
               }
             }}
-            dragging={O.isSome(viewportPanState)}
+            dragging={O.isSome(viewportPan.viewportPanState)}
           >
             <ViewportCenterWrap>
               <StageSurface
-                ref={handleStageRef}
+                ref={composeCanvas.handleStageRef}
                 aria-label="キャラクターステージ"
-                data-active-set-name={activeSetName}
-                data-stage-sprite-count={activeSetSpriteCount}
-                data-selected-sprite-index={selectedSpriteStageMetadata.index}
-                data-selected-sprite-layer={selectedSpriteStageMetadata.layer}
-                data-selected-sprite-x={selectedSpriteStageMetadata.x}
-                data-selected-sprite-y={selectedSpriteStageMetadata.y}
+                data-active-set-name={stageDisplay.activeSetName}
+                data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
+                data-selected-sprite-index={
+                  stageDisplay.selectedSpriteStageMetadata.index
+                }
+                data-selected-sprite-layer={
+                  stageDisplay.selectedSpriteStageMetadata.layer
+                }
+                data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
+                data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
                 tabIndex={0}
-                onContextMenu={handleComposeContextMenu}
-                onKeyDown={handleStageKeyDown}
-                activeDrop={isStageDropActive}
-                stageWidthPx={stageWidth * stageScale}
-                stageHeightPx={stageHeight * stageScale}
-                stageScale={stageScale}
+                onContextMenu={composeCanvas.handleComposeContextMenu}
+                onKeyDown={composeCanvas.handleStageKeyDown}
+                activeDrop={stageDisplay.isStageDropActive}
+                stageWidthPx={stageSize.stageWidth * stageSize.stageScale}
+                stageHeightPx={stageSize.stageHeight * stageSize.stageScale}
+                stageScale={stageSize.stageScale}
               >
-                <ComposeCanvasMount onCanvasRef={handleComposeCanvasRef} />
+                <ComposeCanvasMount onCanvasRef={composeCanvas.handleComposeCanvasRef} />
 
                 {pipe(
-                  libraryDragState,
+                  dragPreview.libraryDragState,
                   O.match(
                     () => <></>,
                     (drag) => {
@@ -184,10 +152,13 @@ export const CharacterModeComposeWorkspace: React.FC<
                       return (
                         <StageDragPreview
                           key={`library-preview-${drag.spriteIndex}`}
-                          previewLeft={drag.stageX * stageScale}
-                          previewTop={drag.stageY * stageScale}
+                          previewLeft={drag.stageX * dragPreview.stageScale}
+                          previewTop={drag.stageY * dragPreview.stageScale}
                         >
-                          {renderSpritePixels(drag.spriteIndex, stageScale)}
+                          <CharacterModeTilePreview
+                            scale={dragPreview.stageScale}
+                            tileOption={dragPreview.getSpriteTile(drag.spriteIndex)}
+                          />
                         </StageDragPreview>
                       );
                     },
@@ -200,7 +171,7 @@ export const CharacterModeComposeWorkspace: React.FC<
       </CharacterComposeWorkspaceGrid>
 
       {pipe(
-        libraryDragState,
+        dragPreview.libraryDragState,
         O.match(
           () => <></>,
           (drag) => (
@@ -216,7 +187,10 @@ export const CharacterModeComposeWorkspace: React.FC<
                 justifyContent="center"
                 spacing={0}
               >
-                {renderSpritePixels(drag.spriteIndex, LIBRARY_PREVIEW_SCALE)}
+                <CharacterModeTilePreview
+                  scale={LIBRARY_PREVIEW_SCALE}
+                  tileOption={dragPreview.getSpriteTile(drag.spriteIndex)}
+                />
               </Stack>
             </FloatingLibraryPreview>
           ),

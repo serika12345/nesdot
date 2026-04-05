@@ -101,10 +101,10 @@ type CharacterPreviewState =
   | { kind: "ready"; characterSet: CharacterSet; grid: string[][] };
 
 /**
- * キャラクター編集画面の状態、描画、副作用、イベント処理を束ねるフックです。
- * 合成モードと分解モードの両方を一つの制御面に集約し、表示コンポーネントを構成専用に保つ意図があります。
+ * キャラクター編集画面の内部 state を組み立てます。
+ * 画面全体で共有する状態と操作を provider 専用にまとめています。
  */
-export const useCharacterModeController = () => {
+export const useCharacterModeInternalState = () => {
   const [newName, setNewName] = useState("New Character");
   const [editorMode, setEditorMode] = useState<CharacterEditorMode>("compose");
   const [stageWidth, setStageWidth] = useState(
@@ -1868,6 +1868,6 @@ export const useCharacterModeController = () => {
   };
 };
 
-export type CharacterModeController = ReturnType<
-  typeof useCharacterModeController
+export type CharacterModeState = ReturnType<
+  typeof useCharacterModeInternalState
 >;
