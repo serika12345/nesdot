@@ -1,8 +1,15 @@
-import { ButtonBase, Stack } from "@mui/material";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import { ButtonBase, Collapse, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Badge, FieldLabel, PanelHeaderRow, ScrollArea } from "../../App.styles";
+import {
+  Badge,
+  CollapseToggle,
+  FieldLabel,
+  PanelHeaderRow,
+  ScrollArea,
+} from "../../App.styles";
 import { CharacterModeEditorCard } from "./CharacterModeEditorCard";
 import { useCharacterModeSpriteLibrary } from "./CharacterModeStateProvider";
 import { LIBRARY_PREVIEW_SCALE } from "./hooks/useCharacterModeState";
@@ -62,51 +69,77 @@ const LibrarySpritePreviewFrame = styled(Stack)({
     "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
 });
 
+const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
+  transform: open ? "rotate(180deg)" : "rotate(0deg)",
+  transition: "transform 160ms ease",
+});
+
 /**
  * スプライトライブラリ表示カードです。
  */
 export const CharacterModeSidebarLibrary: React.FC = () => {
   const spriteLibrary = useCharacterModeSpriteLibrary();
+  const [isLibraryOpen, setIsLibraryOpen] = React.useState(true);
+  const libraryContentId = React.useId();
 
   return (
     <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
       <PanelHeaderRow>
-        <FieldLabel>スプライトライブラリ</FieldLabel>
+        <Stack direction="row" spacing="0.75rem" alignItems="center">
+          <FieldLabel>スプライトライブラリ</FieldLabel>
+          <CollapseToggle
+            type="button"
+            open={isLibraryOpen}
+            aria-expanded={isLibraryOpen}
+            aria-controls={libraryContentId}
+            aria-label={
+              isLibraryOpen
+                ? "スプライトライブラリを閉じる"
+                : "スプライトライブラリを開く"
+            }
+            onClick={() => setIsLibraryOpen((previous) => !previous)}
+          >
+            {isLibraryOpen ? "閉じる" : "開く"}
+            <ExpandMoreRoundedIcon style={collapseChevronStyle(isLibraryOpen)} />
+          </CollapseToggle>
+        </Stack>
       </PanelHeaderRow>
 
-      <LibraryScrollArea flex={1} minHeight={0} pr={0}>
-        <LibraryGrid>
-          {spriteLibrary.sprites.map((spriteTile, spriteIndex) => (
-            <LibrarySpriteButton
-              key={`library-sprite-${spriteIndex}`}
-              type="button"
-              dragging={spriteLibrary.isSpriteDragging(spriteIndex)}
-              draggableState={spriteLibrary.isLibraryDraggable}
-              draggable={false}
-              aria-label={`ライブラリスプライト ${spriteIndex}`}
-              onDragStart={(event) => event.preventDefault()}
-              onPointerDown={(event) =>
-                spriteLibrary.handleLibraryPointerDown(event, spriteIndex)
-              }
-            >
-              <Stack alignItems="center" spacing="0.625rem" width="100%">
-                <LibrarySpriteTitle>{`Sprite ${spriteIndex}`}</LibrarySpriteTitle>
-                <LibrarySpritePreviewFrame
-                  alignItems="center"
-                  justifyContent="center"
-                  spacing={0}
-                >
-                  <CharacterModeTilePreview
-                    scale={LIBRARY_PREVIEW_SCALE}
-                    tileOption={O.some(spriteTile)}
-                  />
-                </LibrarySpritePreviewFrame>
-                <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
-              </Stack>
-            </LibrarySpriteButton>
-          ))}
-        </LibraryGrid>
-      </LibraryScrollArea>
+      <Collapse in={isLibraryOpen} unmountOnExit>
+        <LibraryScrollArea id={libraryContentId} flex={1} minHeight={0} pr={0}>
+          <LibraryGrid>
+            {spriteLibrary.sprites.map((spriteTile, spriteIndex) => (
+              <LibrarySpriteButton
+                key={`library-sprite-${spriteIndex}`}
+                type="button"
+                dragging={spriteLibrary.isSpriteDragging(spriteIndex)}
+                draggableState={spriteLibrary.isLibraryDraggable}
+                draggable={false}
+                aria-label={`ライブラリスプライト ${spriteIndex}`}
+                onDragStart={(event) => event.preventDefault()}
+                onPointerDown={(event) =>
+                  spriteLibrary.handleLibraryPointerDown(event, spriteIndex)
+                }
+              >
+                <Stack alignItems="center" spacing="0.625rem" width="100%">
+                  <LibrarySpriteTitle>{`Sprite ${spriteIndex}`}</LibrarySpriteTitle>
+                  <LibrarySpritePreviewFrame
+                    alignItems="center"
+                    justifyContent="center"
+                    spacing={0}
+                  >
+                    <CharacterModeTilePreview
+                      scale={LIBRARY_PREVIEW_SCALE}
+                      tileOption={O.some(spriteTile)}
+                    />
+                  </LibrarySpritePreviewFrame>
+                  <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
+                </Stack>
+              </LibrarySpriteButton>
+            ))}
+          </LibraryGrid>
+        </LibraryScrollArea>
+      </Collapse>
     </CharacterModeEditorCard>
   );
 };

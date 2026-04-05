@@ -57,6 +57,51 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   expect(activeSetSelectBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
 });
 
+test("character mode lets the sprite library collapse and expand", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const libraryLabel = page.getByText("スプライトライブラリ", { exact: true });
+  const closeLibraryButton = page.getByRole("button", {
+    name: "スプライトライブラリを閉じる",
+  });
+  const openLibraryButton = page.getByRole("button", {
+    name: "スプライトライブラリを開く",
+  });
+  const librarySprite = page.getByRole("button", {
+    name: "ライブラリスプライト 0",
+  });
+
+  await expect(page.getByText("64 items", { exact: true })).toHaveCount(0);
+  await expect(closeLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(1);
+
+  const [libraryLabelBox, closeLibraryButtonBox] = await Promise.all([
+    getLocatorRect(libraryLabel),
+    getLocatorRect(closeLibraryButton),
+  ]);
+
+  expect(closeLibraryButtonBox.clientX).toBeGreaterThan(
+    libraryLabelBox.clientX + libraryLabelBox.width,
+  );
+  expect(
+    closeLibraryButtonBox.clientX -
+      (libraryLabelBox.clientX + libraryLabelBox.width),
+  ).toBeLessThan(120);
+
+  await closeLibraryButton.click();
+
+  await expect(openLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(0);
+
+  await openLibraryButton.click();
+
+  await expect(closeLibraryButton).toBeVisible();
+  await expect(librarySprite).toHaveCount(1);
+});
+
 test("character mode keeps preview fixed while the sidebar scrolls", async ({
   page,
 }) => {
