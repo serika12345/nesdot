@@ -64,6 +64,9 @@ import {
 } from "../model/characterEditorModel";
 import { isProjectSpriteSizeLocked } from "../project/projectSpriteSizeLock";
 import {
+  type CharacterEditorMode,
+} from "../view/characterEditorMode";
+import {
   type DecompositionDrawState,
   type DecompositionRegionDragState,
   type FabricSpriteObjectEntry,
@@ -96,8 +99,6 @@ type CharacterPreviewState =
   | { kind: "none" }
   | { kind: "error"; message: string }
   | { kind: "ready"; characterSet: CharacterSet; grid: string[][] };
-
-type CharacterEditorMode = "compose" | "decompose";
 
 /**
  * キャラクター編集画面の状態、描画、副作用、イベント処理を束ねるフックです。
@@ -151,15 +152,17 @@ export const useCharacterModeController = () => {
   const [selectedRegionId, setSelectedRegionId] = useState<O.Option<string>>(
     O.none,
   );
+  const [composeCanvasElement, setComposeCanvasElement] =
+    useState<O.Option<HTMLCanvasElement>>(O.none);
+  const [decompositionCanvasElement, setDecompositionCanvasElement] =
+    useState<O.Option<HTMLCanvasElement>>(O.none);
 
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
-  const composeCanvasElementRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
   const composeFabricCanvasRef = useRef<O.Option<FabricCanvas>>(O.none);
   const composeFabricObjectEntriesRef = useRef<
     ReadonlyArray<FabricSpriteObjectEntry>
   >([]);
-  const decompositionCanvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const characterSets = useCharacterState((state) => state.characterSets);
   const selectedCharacterId = useCharacterState(
@@ -418,25 +421,26 @@ export const useCharacterModeController = () => {
 
   const handleComposeCanvasRef = useCallback(
     (element: HTMLCanvasElement | null) => {
-      composeCanvasElementRef.current = O.fromNullable(element);
+      setComposeCanvasElement(O.fromNullable(element));
     },
     [],
   );
 
   const handleDecompositionCanvasRef = useCallback(
     (element: HTMLCanvasElement | null) => {
-      decompositionCanvasRef.current = O.fromNullable(element);
+      setDecompositionCanvasElement(O.fromNullable(element));
     },
     [],
   );
 
   useEffect(() => {
-    if (O.isNone(decompositionCanvasRef.current)) {
+    if (O.isNone(decompositionCanvasElement)) {
       return;
     }
 
-    const canvasElement = decompositionCanvasRef.current.value;
-    const contextOption = O.fromNullable(canvasElement.getContext("2d"));
+    const contextOption = O.fromNullable(
+      decompositionCanvasElement.value.getContext("2d"),
+    );
     if (O.isNone(contextOption)) {
       return;
     }
@@ -479,6 +483,7 @@ export const useCharacterModeController = () => {
     context.putImageData(imageData, 0, 0);
   }, [
     decompositionCanvas,
+    decompositionCanvasElement,
     spritePalettes,
     stageHeight,
     stageScale,
@@ -902,25 +907,22 @@ export const useCharacterModeController = () => {
   };
 
   useLayoutEffect(() => {
-    if (O.isNone(composeCanvasElementRef.current)) {
+    if (O.isNone(composeCanvasElement)) {
       return;
     }
 
-    const composeCanvas = new FabricCanvas(
-      composeCanvasElementRef.current.value,
-      {
-        defaultCursor: "default",
-        enablePointerEvents: true,
-        fireRightClick: true,
-        fireMiddleClick: true,
-        hoverCursor: "grab",
-        imageSmoothingEnabled: false,
-        moveCursor: "grabbing",
-        preserveObjectStacking: true,
-        selection: false,
-        stopContextMenu: true,
-      },
-    );
+    const composeCanvas = new FabricCanvas(composeCanvasElement.value, {
+      defaultCursor: "default",
+      enablePointerEvents: true,
+      fireRightClick: true,
+      fireMiddleClick: true,
+      hoverCursor: "grab",
+      imageSmoothingEnabled: false,
+      moveCursor: "grabbing",
+      preserveObjectStacking: true,
+      selection: false,
+      stopContextMenu: true,
+    });
     composeCanvas.upperCanvasEl.setAttribute(
       "aria-label",
       "合成描画キャンバス",
@@ -947,7 +949,7 @@ export const useCharacterModeController = () => {
       });
       void composeCanvas.dispose();
     };
-  }, []);
+  }, [composeCanvasElement]);
 
   useEffect(() => {
     if (O.isNone(composeFabricCanvasRef.current)) {
@@ -1865,3 +1867,7 @@ export const useCharacterModeController = () => {
     viewportPanState,
   };
 };
+
+export type CharacterModeController = ReturnType<
+  typeof useCharacterModeController
+>;

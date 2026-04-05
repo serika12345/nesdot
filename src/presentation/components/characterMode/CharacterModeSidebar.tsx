@@ -13,8 +13,7 @@ import {
   ScrollArea,
   ToolButton,
 } from "../../App.styles";
-
-type CharacterEditorMode = "compose" | "decompose";
+import { type CharacterEditorMode } from "./view/characterEditorMode";
 
 const editorCardStyles = {
   position: "relative",
@@ -91,10 +90,10 @@ const LibrarySpritePreviewFrame = styled(Stack)({
     "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
 });
 
-interface CharacterModeComposeSidebarProps {
+interface CharacterModeSidebarProps {
   activeSetAvailable: boolean;
   activeSetName: string;
-  editorMode: CharacterEditorMode;
+  activeMode: CharacterEditorMode;
   projectSpriteSize: ProjectSpriteSize;
   projectSpriteSizeLocked: boolean;
   sprites: SpriteTile[];
@@ -112,15 +111,13 @@ interface CharacterModeComposeSidebarProps {
 }
 
 /**
- * キャラクター合成モード用のサイドバーを描画します。
- * セット名、編集モード、スプライト単位、ライブラリ一覧をまとめて編集できる導線を提供します。
+ * キャラクター編集ワークスペースの共通サイドバーを描画します。
+ * モード切替、セット名、スプライト単位、ライブラリ一覧をまとめて扱います。
  */
-export const CharacterModeComposeSidebar: React.FC<
-  CharacterModeComposeSidebarProps
-> = ({
+export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   activeSetAvailable,
   activeSetName,
-  editorMode,
+  activeMode,
   projectSpriteSize,
   projectSpriteSizeLocked,
   sprites,
@@ -167,7 +164,7 @@ export const CharacterModeComposeSidebar: React.FC<
             <WideToolButton
               type="button"
               aria-label="編集モード 合成"
-              active={editorMode === "compose"}
+              active={activeMode === "compose"}
               onClick={() => onEditorModeChange("compose")}
             >
               合成
@@ -175,7 +172,7 @@ export const CharacterModeComposeSidebar: React.FC<
             <WideToolButton
               type="button"
               aria-label="編集モード 分解"
-              active={editorMode === "decompose"}
+              active={activeMode === "decompose"}
               onClick={() => onEditorModeChange("decompose")}
             >
               分解

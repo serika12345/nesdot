@@ -208,38 +208,15 @@ const WorkspaceStageGridItem = styled(MaterialGrid)({
   flex: "1 1 0",
 });
 
-type CharacterWorkspaceGridProps = StackProps & {
-  decompose?: boolean;
-};
+type CharacterComposeWorkspaceGridProps = StackProps;
 
-export const CharacterWorkspaceGrid = React.forwardRef<
+export const CharacterComposeWorkspaceGrid = React.forwardRef<
   HTMLDivElement,
-  CharacterWorkspaceGridProps
->(function CharacterWorkspaceGrid({ decompose, children, ...props }, ref) {
+  CharacterComposeWorkspaceGridProps
+>(function CharacterComposeWorkspaceGrid({ children, ...props }, ref) {
   const childrenArray = React.Children.toArray(children);
   const sidebar = childrenArray[0];
   const stage = childrenArray[1];
-  const decompositionSidebar = childrenArray[2];
-
-  if (decompose === true) {
-    return (
-      <Stack ref={ref} spacing="1rem" minHeight={0} overflow="auto" {...props}>
-        <WorkspaceColumnsGrid container spacing={2}>
-          <DecomposeSidebarGridItem size={12}>
-            <DecomposeSidebarContainer>{sidebar}</DecomposeSidebarContainer>
-          </DecomposeSidebarGridItem>
-          <WorkspaceStageGridItem size={12}>
-            <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
-          </WorkspaceStageGridItem>
-          <DecompositionInspectorGridItem size={12}>
-            <DecompositionInspectorContainer>
-              {decompositionSidebar}
-            </DecompositionInspectorContainer>
-          </DecompositionInspectorGridItem>
-        </WorkspaceColumnsGrid>
-      </Stack>
-    );
-  }
 
   return (
     <Stack ref={ref} minHeight={0} spacing="1rem" overflow="auto" {...props}>
@@ -250,6 +227,36 @@ export const CharacterWorkspaceGrid = React.forwardRef<
         <WorkspaceStageGridItem size={12}>
           <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
         </WorkspaceStageGridItem>
+      </WorkspaceColumnsGrid>
+    </Stack>
+  );
+});
+
+type CharacterDecomposeWorkspaceGridProps = StackProps;
+
+export const CharacterDecomposeWorkspaceGrid = React.forwardRef<
+  HTMLDivElement,
+  CharacterDecomposeWorkspaceGridProps
+>(function CharacterDecomposeWorkspaceGrid({ children, ...props }, ref) {
+  const childrenArray = React.Children.toArray(children);
+  const sidebar = childrenArray[0];
+  const stage = childrenArray[1];
+  const decompositionInspector = childrenArray[2];
+
+  return (
+    <Stack ref={ref} spacing="1rem" minHeight={0} overflow="auto" {...props}>
+      <WorkspaceColumnsGrid container spacing={2}>
+        <DecomposeSidebarGridItem size={12}>
+          <DecomposeSidebarContainer>{sidebar}</DecomposeSidebarContainer>
+        </DecomposeSidebarGridItem>
+        <WorkspaceStageGridItem size={12}>
+          <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
+        </WorkspaceStageGridItem>
+        <DecompositionInspectorGridItem size={12}>
+          <DecompositionInspectorContainer>
+            {decompositionInspector}
+          </DecompositionInspectorContainer>
+        </DecompositionInspectorGridItem>
       </WorkspaceColumnsGrid>
     </Stack>
   );
@@ -296,15 +303,11 @@ const EditorCard = createStackLayout("EditorCard", {
   p: "1rem",
 });
 
-type StageEditorCardProps = StackProps & { decompose?: boolean };
-
-export const StageEditorCard = React.forwardRef<
-  HTMLDivElement,
-  StageEditorCardProps
->(function StageEditorCard({ decompose, ...props }, ref) {
-  void decompose;
+export const StageEditorCard = React.forwardRef<HTMLDivElement, StackProps>(
+  function StageEditorCard(props, ref) {
   return <EditorCard ref={ref} {...props} />;
-});
+  },
+);
 
 const DecompositionToolCardRoot = styled("div")({
   borderRadius: "1.125rem",

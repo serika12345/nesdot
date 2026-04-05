@@ -94,7 +94,7 @@ const WideToolButton = styled(ToolButton)({
   width: "100%",
 });
 
-interface CharacterModeDecomposeSidebarProps {
+interface CharacterModeDecompositionInspectorProps {
   selectedRegionId: O.Option<string>;
   selectedRegionAnalysis: O.Option<
     CharacterDecompositionAnalysis["regions"][number]
@@ -120,11 +120,11 @@ interface CharacterModeDecomposeSidebarProps {
 }
 
 /**
- * キャラクター分解モード用のサイドバーを描画します。
+ * キャラクター分解モード用のインスペクタを描画します。
  * 選択領域の詳細、適用可否、領域一覧をまとめて表示し、分解結果を確認しやすくする役割があります。
  */
-export const CharacterModeDecomposeSidebar: React.FC<
-  CharacterModeDecomposeSidebarProps
+export const CharacterModeDecompositionInspector: React.FC<
+  CharacterModeDecompositionInspectorProps
 > = ({
   selectedRegionId,
   selectedRegionAnalysis,
