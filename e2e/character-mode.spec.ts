@@ -374,6 +374,92 @@ test("character mode supports drag and drop placement and stage movement", async
     .toBe("1");
 });
 
+test("character decomposition keeps tools in the sidebar and preserves preview position", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1800, height: 640 });
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  await page.getByLabel("新規セット名").fill("Decompose Sidebar Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+
+  const composeStage = page.getByLabel("キャラクターステージ");
+  await expect(composeStage).toBeVisible();
+
+  const composeStageBox = await getLocatorRect(composeStage);
+
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+
+  const workspace = page.getByLabel("キャラクター編集ワークスペース");
+  const sidebar = page.getByRole("complementary", {
+    name: "キャラクター編集サイドバー",
+  });
+  const regionToolButton = page.getByRole("button", {
+    name: "分解ツール 切り取り",
+  });
+  const previewWidthInput = page.getByRole("spinbutton", {
+    name: "プレビューキャンバス幅",
+  });
+  const decomposeStage = page.getByLabel("キャラクターステージ");
+
+  await expect(sidebar).toBeVisible();
+  await expect(regionToolButton).toBeVisible();
+  await expect(previewWidthInput).toBeVisible();
+  await expect(decomposeStage).toBeVisible();
+
+  const [sidebarBox, regionToolButtonBox, decomposeStageBox] = await Promise.all([
+    getLocatorRect(sidebar),
+    getLocatorRect(regionToolButton),
+    getLocatorRect(decomposeStage),
+  ]);
+
+  expect(regionToolButtonBox.clientX).toBeGreaterThan(sidebarBox.clientX);
+  expect(regionToolButtonBox.clientX + regionToolButtonBox.width).toBeLessThan(
+    sidebarBox.clientX + sidebarBox.width,
+  );
+  expect(Math.abs(decomposeStageBox.clientX - composeStageBox.clientX)).toBeLessThan(
+    2,
+  );
+  expect(Math.abs(decomposeStageBox.clientY - composeStageBox.clientY)).toBeLessThan(
+    2,
+  );
+
+  const sidebarDimensions = await sidebar.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+
+  expect(sidebarDimensions.scrollHeight).toBeGreaterThan(
+    sidebarDimensions.clientHeight,
+  );
+
+  const previewWidthInputTopBefore = await previewWidthInput.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+
+  await sidebar.evaluate((element) => {
+    element.scrollTo({ top: element.scrollHeight });
+  });
+
+  await expect
+    .poll(async () => sidebar.evaluate((element) => element.scrollTop))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => workspace.evaluate((element) => element.scrollTop))
+    .toBe(0);
+  await expect
+    .poll(async () =>
+      previewWidthInput.evaluate((element) => element.getBoundingClientRect().top),
+    )
+    .toBe(previewWidthInputTopBefore);
+});
+
 test("character decomposition blocks mixed palettes and applies split regions", async ({
   page,
 }) => {

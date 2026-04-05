@@ -152,22 +152,6 @@ const ComposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
   },
 }));
 
-const DecomposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
-  [theme.breakpoints.up("xl")]: {
-    width: "17.5rem",
-    flexShrink: 0,
-  },
-}));
-
-const DecompositionInspectorContainer = styled(FullWidthContainer)(
-  ({ theme }) => ({
-    [theme.breakpoints.up("xl")]: {
-      width: "20rem",
-      flexShrink: 0,
-    },
-  }),
-);
-
 export const StageInputContainer = styled(FullWidthContainer)(({ theme }) => ({
   [theme.breakpoints.up("sm")]: {
     width: "7.5rem",
@@ -191,22 +175,6 @@ const ComposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
     flexBasis: "17.5rem",
     maxWidth: "17.5rem",
     height: "100%",
-  },
-}));
-
-const DecomposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
-  width: "100%",
-  [theme.breakpoints.up("xl")]: {
-    flexBasis: "17.5rem",
-    maxWidth: "17.5rem",
-  },
-}));
-
-const DecompositionInspectorGridItem = styled(MaterialGrid)(({ theme }) => ({
-  width: "100%",
-  [theme.breakpoints.up("xl")]: {
-    flexBasis: "20rem",
-    maxWidth: "20rem",
   },
 }));
 
@@ -239,36 +207,6 @@ export const CharacterComposeWorkspaceGrid = React.forwardRef<
         <WorkspaceStageGridItem size={12}>
           <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
         </WorkspaceStageGridItem>
-      </WorkspaceColumnsGrid>
-    </Stack>
-  );
-});
-
-type CharacterDecomposeWorkspaceGridProps = StackProps;
-
-export const CharacterDecomposeWorkspaceGrid = React.forwardRef<
-  HTMLDivElement,
-  CharacterDecomposeWorkspaceGridProps
->(function CharacterDecomposeWorkspaceGrid({ children, ...props }, ref) {
-  const childrenArray = React.Children.toArray(children);
-  const sidebar = childrenArray[0];
-  const stage = childrenArray[1];
-  const decompositionInspector = childrenArray[2];
-
-  return (
-    <Stack ref={ref} spacing="1rem" minHeight={0} overflow="auto" {...props}>
-      <WorkspaceColumnsGrid container spacing={2}>
-        <DecomposeSidebarGridItem size={12}>
-          <DecomposeSidebarContainer>{sidebar}</DecomposeSidebarContainer>
-        </DecomposeSidebarGridItem>
-        <WorkspaceStageGridItem size={12}>
-          <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
-        </WorkspaceStageGridItem>
-        <DecompositionInspectorGridItem size={12}>
-          <DecompositionInspectorContainer>
-            {decompositionInspector}
-          </DecompositionInspectorContainer>
-        </DecompositionInspectorGridItem>
       </WorkspaceColumnsGrid>
     </Stack>
   );

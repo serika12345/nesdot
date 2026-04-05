@@ -6,11 +6,22 @@ import { CharacterModeSidebarLibrary } from "./CharacterModeSidebarLibrary";
 import { CharacterModeSidebarSetNameCard } from "./CharacterModeSidebarSetNameCard";
 import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSpriteSizeCard";
 
-const SidebarRoot = styled(Stack)({
+export const CharacterModeSidebarRoot = styled(Stack)({
   "& > *": {
     flexShrink: 0,
   },
 });
+
+export const CharacterModeSidebarContent: React.FC = () => {
+  return (
+    <>
+      <CharacterModeSidebarSetNameCard />
+      <CharacterModeSidebarEditorModeCard />
+      <CharacterModeSidebarSpriteSizeCard />
+      <CharacterModeSidebarLibrary />
+    </>
+  );
+};
 
 /**
  * キャラクター編集ワークスペースの共通サイドバーを描画します。
@@ -18,7 +29,7 @@ const SidebarRoot = styled(Stack)({
  */
 export const CharacterModeSidebar: React.FC = () => {
   return (
-    <SidebarRoot
+    <CharacterModeSidebarRoot
       role="complementary"
       aria-label="キャラクター編集サイドバー"
       height="100%"
@@ -28,10 +39,7 @@ export const CharacterModeSidebar: React.FC = () => {
       overflow="auto"
       pr="0.25rem"
     >
-      <CharacterModeSidebarSetNameCard />
-      <CharacterModeSidebarEditorModeCard />
-      <CharacterModeSidebarSpriteSizeCard />
-      <CharacterModeSidebarLibrary />
-    </SidebarRoot>
+      <CharacterModeSidebarContent />
+    </CharacterModeSidebarRoot>
   );
 };
