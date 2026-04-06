@@ -684,20 +684,34 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
     name: "プレビューキャンバス幅",
   });
   const decomposeStage = page.getByLabel("キャラクターステージ");
+  const selectedRegionLabel = page.getByText("選択中の領域", { exact: true });
+  const spriteLibraryLabel = page.getByText("スプライトライブラリ", {
+    exact: true,
+  });
 
   await expect(sidebar).toBeVisible();
   await expect(viewport).toBeVisible();
   await expect(regionToolButton).toBeVisible();
   await expect(previewWidthInput).toBeVisible();
   await expect(decomposeStage).toBeVisible();
+  await expect(selectedRegionLabel).toBeVisible();
+  await expect(spriteLibraryLabel).toBeVisible();
 
-  const [sidebarBox, viewportBox, regionToolButtonBox, decomposeStageBox] =
-    await Promise.all([
-      getLocatorRect(sidebar),
-      getLocatorRect(viewport),
-      getLocatorRect(regionToolButton),
-      getLocatorRect(decomposeStage),
-    ]);
+  const [
+    sidebarBox,
+    viewportBox,
+    regionToolButtonBox,
+    decomposeStageBox,
+    selectedRegionLabelBox,
+    spriteLibraryLabelBox,
+  ] = await Promise.all([
+    getLocatorRect(sidebar),
+    getLocatorRect(viewport),
+    getLocatorRect(regionToolButton),
+    getLocatorRect(decomposeStage),
+    getLocatorRect(selectedRegionLabel),
+    getLocatorRect(spriteLibraryLabel),
+  ]);
 
   expect(regionToolButtonBox.clientX).toBeGreaterThan(
     sidebarBox.clientX + sidebarBox.width,
@@ -709,6 +723,9 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   expect(regionToolButtonBox.clientY).toBeGreaterThan(viewportBox.clientY);
   expect(regionToolButtonBox.clientY + regionToolButtonBox.height).toBeLessThan(
     viewportBox.clientY + viewportBox.height,
+  );
+  expect(selectedRegionLabelBox.clientY).toBeLessThan(
+    spriteLibraryLabelBox.clientY,
   );
   expect(
     Math.abs(decomposeStageBox.clientX - composeStageBox.clientX),

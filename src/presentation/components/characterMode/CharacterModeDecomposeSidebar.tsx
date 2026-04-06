@@ -21,8 +21,8 @@ export const CharacterModeDecomposeSidebar: React.FC = () => {
       overflow="auto"
       pr="0.25rem"
     >
-      <CharacterModeSidebarContent />
       <CharacterModeDecompositionInspector />
+      <CharacterModeSidebarContent />
     </CharacterModeSidebarRoot>
   );
 };

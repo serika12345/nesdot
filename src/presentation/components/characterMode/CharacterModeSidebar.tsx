@@ -41,8 +41,8 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
       overflow="auto"
       pr="0.25rem"
     >
-      <CharacterModeSidebarContent />
       {children}
+      <CharacterModeSidebarContent />
     </CharacterModeSidebarRoot>
   );
 };
