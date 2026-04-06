@@ -1,10 +1,7 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
-import {
-  MAX_SCREEN_SPRITES,
-  MAX_SPRITES_PER_SCANLINE,
-} from "../../../domain/screen/constraints";
+import { MAX_SCREEN_SPRITES } from "../../../domain/screen/constraints";
 import {
   HelperText,
   MetricCard,
@@ -27,30 +24,17 @@ const SummaryMetricCard = styled(MetricCard)({
   padding: 0,
 });
 
-const SummaryWideMetricCard = styled(SummaryMetricCard)({
-  flexBasis: "100%",
-});
-
-const SummaryMetricValue = styled(MetricValue)({
-  fontSize: "1.125rem",
-  whiteSpace: "nowrap",
-});
-
 interface ScreenModeSummaryPanelProps {
   spritesOnScreenCount: number;
-  screenWidth: number;
-  screenHeight: number;
   hasConstraintViolation: boolean;
 }
 
 /**
  * スクリーン配置の主要メトリクスを要約表示するセクションです。
- * 配置数と制約状況を先頭で見せ、詳細編集に入る前に全体状態を把握しやすくします。
+ * 配置数を先頭で見せ、詳細編集に入る前に全体状態を把握しやすくします。
  */
 export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
   spritesOnScreenCount,
-  screenWidth,
-  screenHeight,
   hasConstraintViolation,
 }) => {
   return (
@@ -62,18 +46,6 @@ export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
             {spritesOnScreenCount}/{MAX_SCREEN_SPRITES}
           </MetricValue>
         </SummaryMetricCard>
-        <SummaryMetricCard>
-          <MetricLabel>画面</MetricLabel>
-          <MetricValue>
-            {screenWidth}×{screenHeight}
-          </MetricValue>
-        </SummaryMetricCard>
-        <SummaryWideMetricCard>
-          <MetricLabel>制約</MetricLabel>
-          <SummaryMetricValue>
-            1ライン最大 {MAX_SPRITES_PER_SCANLINE}
-          </SummaryMetricValue>
-        </SummaryWideMetricCard>
       </SummaryMetricGrid>
 
       {hasConstraintViolation && (

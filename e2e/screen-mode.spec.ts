@@ -35,6 +35,22 @@ test("screen mode editor panel scrolls as a single unit", async ({ page }) => {
     .toBeGreaterThan(0);
 });
 
+test("screen mode summary omits screen and constraint metrics", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const editorPanel = page.getByRole("region", {
+    name: "スクリーン配置編集パネル",
+  });
+
+  await expect(editorPanel).toBeVisible();
+  await expect(editorPanel.getByText("配置中", { exact: true })).toBeVisible();
+  await expect(editorPanel.getByText("画面", { exact: true })).toHaveCount(0);
+  await expect(editorPanel.getByText("制約", { exact: true })).toHaveCount(0);
+});
+
 test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "画面配置");
@@ -87,4 +103,48 @@ test("screen mode supports canvas zooming and panning", async ({ page }) => {
 
   await expect.poll(async () => (await getCanvasSize(canvas)).width).toBe(768);
   await expect.poll(async () => (await getCanvasSize(canvas)).height).toBe(720);
+});
+
+test("screen mode keeps project action buttons grouped", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const shareButton = page.getByRole("button", { name: "共有", exact: true });
+  const restoreButton = page.getByRole("button", {
+    name: "復元",
+    exact: true,
+  });
+
+  await expect(shareButton).toBeVisible();
+  await expect(restoreButton).toBeVisible();
+
+  const [shareRect, restoreRect] = await Promise.all([
+    shareButton.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+      };
+    }),
+    restoreButton.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+      };
+    }),
+  ]);
+
+  expect(Math.abs(shareRect.top - restoreRect.top)).toBeLessThanOrEqual(2);
+
+  const horizontalGap =
+    shareRect.left <= restoreRect.left
+      ? restoreRect.left - shareRect.right
+      : shareRect.left - restoreRect.right;
+
+  expect(horizontalGap).toBeGreaterThanOrEqual(0);
+  expect(horizontalGap).toBeLessThanOrEqual(24);
 });

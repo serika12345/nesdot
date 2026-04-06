@@ -34,8 +34,6 @@ export const ScreenModeEditorPanel: React.FC<ScreenModeEditorPanelProps> = ({
         <ScreenModeEditorContent>
           <ScreenModeSummaryPanel
             spritesOnScreenCount={screenMode.spritesOnScreen.length}
-            screenWidth={screenMode.screen.width}
-            screenHeight={screenMode.screen.height}
             hasConstraintViolation={screenMode.scanReport.ok === false}
           />
           <ScreenModeCharacterPanel screenMode={screenMode} />

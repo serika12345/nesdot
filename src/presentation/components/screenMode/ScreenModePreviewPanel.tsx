@@ -1,5 +1,6 @@
-import React from "react";
+import { Stack } from "@mui/material";
 import * as O from "fp-ts/Option";
+import React from "react";
 import {
   Badge,
   DetailKey,
@@ -51,7 +52,9 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
       <PanelHeader>
         <PanelHeaderRow>
           <PanelTitle>画面プレビュー</PanelTitle>
-          <ProjectActions actions={projectActions} onImport={handleImport} />
+          <Stack direction="row" spacing={1} useFlexGap alignItems="center">
+            <ProjectActions actions={projectActions} onImport={handleImport} />
+          </Stack>
         </PanelHeaderRow>
 
         <ZoomControlsRow>
