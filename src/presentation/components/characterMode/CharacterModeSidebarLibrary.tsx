@@ -97,10 +97,19 @@ interface CharacterModeSidebarLibraryContentProps {
     event: React.PointerEvent<HTMLButtonElement>,
     spriteIndex: number,
   ) => void;
-  draggingSpriteIndex: O.Option<number>;
+  draggingSpriteIndex: number;
   id: string;
   sprites: ReadonlyArray<SpriteTile>;
 }
+
+const areSameLibraryContentProps = (
+  previous: CharacterModeSidebarLibraryContentProps,
+  next: CharacterModeSidebarLibraryContentProps,
+): boolean =>
+  previous.handleLibraryPointerDown === next.handleLibraryPointerDown &&
+  previous.draggingSpriteIndex === next.draggingSpriteIndex &&
+  previous.id === next.id &&
+  previous.sprites === next.sprites;
 
 const CharacterModeSidebarLibraryContent = React.memo(
   function CharacterModeSidebarLibraryContent({
@@ -116,10 +125,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
             <LibrarySpriteButton
               key={`library-sprite-${spriteIndex}`}
               type="button"
-              dragging={
-                O.isSome(draggingSpriteIndex) &&
-                draggingSpriteIndex.value === spriteIndex
-              }
+              dragging={draggingSpriteIndex === spriteIndex}
               draggable={false}
               aria-label={`ライブラリスプライト ${spriteIndex}`}
               onDragStart={(event) => event.preventDefault()}
@@ -147,6 +153,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
       </LibraryScrollArea>
     );
   },
+  areSameLibraryContentProps,
 );
 
 /**

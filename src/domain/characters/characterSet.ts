@@ -93,6 +93,56 @@ const insertOrdered = <T extends OrderedSpritePlacement>(
   return [...items.slice(0, insertIndex), next, ...items.slice(insertIndex)];
 };
 
+const resolvePlacementHex = (
+  placement: PreviewPlacement,
+  pixelY: number,
+  pixelX: number,
+  transparentHex: string,
+): string =>
+  pipe(
+    O.fromNullable(placement.hexPixels[pixelY]),
+    O.chain((row) => O.fromNullable(row[pixelX])),
+    O.getOrElse(() => transparentHex),
+  );
+
+const composePlacementOnGrid = (
+  grid: string[][],
+  placement: PreviewPlacement,
+  transparentHex: string,
+): string[][] => {
+  placement.tile.pixels.forEach((pixelRow, pixelY) => {
+    pixelRow.forEach((colorIndex, pixelX) => {
+      if (colorIndex === 0) {
+        return;
+      }
+
+      const targetY = placement.y + pixelY;
+      const targetX = placement.x + pixelX;
+      const rowOption = O.fromNullable(grid[targetY]);
+      if (O.isNone(rowOption)) {
+        return;
+      }
+
+      const cellOption = O.fromNullable(rowOption.value[targetX]);
+      if (O.isNone(cellOption)) {
+        return;
+      }
+
+      const nextHex = resolvePlacementHex(
+        placement,
+        pixelY,
+        pixelX,
+        transparentHex,
+      );
+
+      // eslint-disable-next-line functional/immutable-data -- mutate only this locally allocated output grid to avoid per-pixel full-array cloning; function inputs and external state remain immutable.
+      rowOption.value[targetX] = nextHex;
+    });
+  });
+
+  return grid;
+};
+
 const toScreenSprite = (
   sprite: CharacterSprite,
   index: number,
@@ -278,33 +328,11 @@ export const buildCharacterPreviewHexGrid = (
     Array.from({ length: width }, () => input.transparentHex),
   );
 
-  const composed = ordered.reduceRight((grid, placement) => {
-    return placement.tile.pixels.reduce((accRows, pixelRow, pixelY) => {
-      return pixelRow.reduce((accPixels, colorIndex, pixelX) => {
-        if (colorIndex === 0) {
-          return accPixels;
-        }
-
-        const targetY = placement.y + pixelY;
-        const targetX = placement.x + pixelX;
-        const rowOption = O.fromNullable(placement.hexPixels[pixelY]);
-        const colorOption = pipe(
-          rowOption,
-          O.chain((row) => O.fromNullable(row[pixelX])),
-        );
-        const nextHex = pipe(
-          colorOption,
-          O.getOrElse(() => input.transparentHex),
-        );
-
-        return accPixels.map((row, rowIndex) =>
-          rowIndex === targetY
-            ? row.map((hex, colIndex) => (colIndex === targetX ? nextHex : hex))
-            : row,
-        );
-      }, accRows);
-    }, grid);
-  }, initGrid);
+  const composed = ordered.reduceRight(
+    (grid, placement) =>
+      composePlacementOnGrid(grid, placement, input.transparentHex),
+    initGrid,
+  );
 
   return E.right(composed);
 };

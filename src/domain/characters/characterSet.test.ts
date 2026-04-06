@@ -213,4 +213,29 @@ describe("characterSet", () => {
 
     expect(E.isLeft(result)).toBe(true);
   });
+
+  it("does not mutate source data when building preview", () => {
+    const character = createCharacterSet({
+      id: "preview-pure",
+      name: "preview-pure",
+      sprites: [
+        { spriteIndex: 0, x: 2, y: 3, layer: 1 },
+        { spriteIndex: 1, x: 4, y: 5, layer: 0 },
+      ],
+    });
+    const sprites = [makeTile(8, 0, 1), makeTile(16, 1, 2)];
+    const palettes = createDefaultNesProjectState().spritePalettes;
+    const characterBefore = structuredClone(character);
+    const spritesBefore = structuredClone(sprites);
+
+    const result = buildCharacterPreviewHexGrid(character, {
+      sprites,
+      palettes,
+      transparentHex: "#00000000",
+    });
+
+    expect(E.isRight(result)).toBe(true);
+    expect(character).toEqual(characterBefore);
+    expect(sprites).toEqual(spritesBefore);
+  });
 });

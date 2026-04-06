@@ -318,13 +318,13 @@ export const useCharacterModeSpriteSize = (): CharacterModeSpriteSizeSlice =>
 
 type CharacterModeSpriteLibrarySlice = Readonly<{
   handleLibraryPointerDown: CharacterModeState["handleLibraryPointerDown"];
-  draggingSpriteIndex: O.Option<number>;
+  draggingSpriteIndex: number;
   isLibraryDraggable: boolean;
   sprites: CharacterModeState["sprites"];
 }>;
 
 const defaultCharacterModeSpriteLibrary: CharacterModeSpriteLibrarySlice = {
-  draggingSpriteIndex: O.none,
+  draggingSpriteIndex: -1,
   handleLibraryPointerDown: noopPointerButton,
   isLibraryDraggable: false,
   sprites: [],
@@ -336,7 +336,10 @@ export const useCharacterModeSpriteLibrary =
       (state) => ({
         draggingSpriteIndex: pipe(
           state.libraryDragState,
-          O.map((dragState) => dragState.spriteIndex),
+          O.match(
+            () => -1,
+            (dragState) => dragState.spriteIndex,
+          ),
         ),
         handleLibraryPointerDown: state.handleLibraryPointerDown,
         isLibraryDraggable:
