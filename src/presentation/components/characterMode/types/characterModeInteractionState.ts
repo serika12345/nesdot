@@ -35,6 +35,12 @@ export interface SpriteContextMenuState {
   spriteEditorIndex: number;
 }
 
+export interface DecompositionRegionContextMenuState {
+  clientX: number;
+  clientY: number;
+  regionId: string;
+}
+
 export interface FabricSpriteObjectEntry {
   index: number;
   object: FabricObject;

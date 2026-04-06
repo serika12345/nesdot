@@ -64,19 +64,20 @@ import {
 } from "../model/characterEditorModel";
 import { isProjectSpriteSizeLocked } from "../project/projectSpriteSizeLock";
 import {
-  type CharacterEditorMode,
-} from "../view/characterEditorMode";
-import {
   type DecompositionDrawState,
+  type DecompositionRegionContextMenuState,
   type DecompositionRegionDragState,
   type FabricSpriteObjectEntry,
   type LibraryDragState,
   type SpriteContextMenuState,
   type ViewportPanState,
 } from "../types/characterModeInteractionState";
+import { type CharacterEditorMode } from "../view/characterEditorMode";
 
 export const STAGE_CONTEXT_MENU_WIDTH = 180;
 export const STAGE_CONTEXT_MENU_HEIGHT = 280;
+export const DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH = 220;
+export const DECOMPOSITION_REGION_CONTEXT_MENU_HEIGHT = 92;
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 
 export const CHARACTER_MODE_STAGE_LIMITS = {
@@ -128,6 +129,10 @@ export const useCharacterModeInternalState = () => {
   const [spriteContextMenuState, setSpriteContextMenu] = useState<
     O.Option<SpriteContextMenuState>
   >(O.none);
+  const [
+    decompositionRegionContextMenuState,
+    setDecompositionRegionContextMenu,
+  ] = useState<O.Option<DecompositionRegionContextMenuState>>(O.none);
   const [decompositionTool, setDecompositionTool] =
     useState<DecompositionTool>("pen");
   const [decompositionPaletteIndex, setDecompositionPaletteIndex] =
@@ -152,10 +157,12 @@ export const useCharacterModeInternalState = () => {
   const [selectedRegionId, setSelectedRegionId] = useState<O.Option<string>>(
     O.none,
   );
-  const [composeCanvasElement, setComposeCanvasElement] =
-    useState<O.Option<HTMLCanvasElement>>(O.none);
-  const [decompositionCanvasElement, setDecompositionCanvasElement] =
-    useState<O.Option<HTMLCanvasElement>>(O.none);
+  const [composeCanvasElement, setComposeCanvasElement] = useState<
+    O.Option<HTMLCanvasElement>
+  >(O.none);
+  const [decompositionCanvasElement, setDecompositionCanvasElement] = useState<
+    O.Option<HTMLCanvasElement>
+  >(O.none);
 
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
@@ -266,6 +273,31 @@ export const useCharacterModeInternalState = () => {
         sprites,
       }),
     [decompositionCanvas, decompositionRegions, projectSpriteSize, sprites],
+  );
+
+  const decompositionRegionContextMenu = useMemo(
+    () =>
+      editorMode !== "decompose"
+        ? O.none
+        : pipe(
+            decompositionRegionContextMenuState,
+            O.chain((menuState) =>
+              pipe(
+                O.fromNullable(
+                  decompositionAnalysis.regions.find(
+                    (regionAnalysis) =>
+                      regionAnalysis.region.id === menuState.regionId,
+                  ),
+                ),
+                O.map(() => menuState),
+              ),
+            ),
+          ),
+    [
+      decompositionAnalysis.regions,
+      decompositionRegionContextMenuState,
+      editorMode,
+    ],
   );
 
   const selectedRegionAnalysis = useMemo(
@@ -888,7 +920,18 @@ export const useCharacterModeInternalState = () => {
       return;
     }
 
+    if (
+      typeof Element !== "undefined" &&
+      event.target instanceof Element &&
+      event.target.closest(
+        "[data-decomposition-region-context-menu-root='true']",
+      ) instanceof Element
+    ) {
+      return;
+    }
+
     setSpriteContextMenu(O.none);
+    setDecompositionRegionContextMenu(O.none);
   };
 
   const handleComposeContextMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -1424,6 +1467,8 @@ export const useCharacterModeInternalState = () => {
       return;
     }
 
+    setDecompositionRegionContextMenu(O.none);
+
     const pointOption =
       decompositionTool === "region"
         ? resolveDecompositionStagePoint(
@@ -1477,6 +1522,26 @@ export const useCharacterModeInternalState = () => {
     trySetPointerCapture(event.currentTarget, event.pointerId);
   };
 
+  const handleDecompositionRegionContextMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    region: CharacterDecompositionRegion,
+  ) => {
+    if (editorMode !== "decompose") {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedRegionId(O.some(region.id));
+    setDecompositionRegionContextMenu(
+      O.some({
+        clientX: event.clientX,
+        clientY: event.clientY,
+        regionId: region.id,
+      }),
+    );
+  };
+
   const handleDecompositionRegionPointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
     region: CharacterDecompositionRegion,
@@ -1491,6 +1556,7 @@ export const useCharacterModeInternalState = () => {
     }
 
     event.preventDefault();
+    setDecompositionRegionContextMenu(O.none);
     setSelectedRegionId(O.some(region.id));
     setDecompositionRegionDragState(
       O.some({
@@ -1505,16 +1571,32 @@ export const useCharacterModeInternalState = () => {
     trySetPointerCapture(event.currentTarget, event.pointerId);
   };
 
+  const removeDecompositionRegionById = (regionId: string) => {
+    setDecompositionRegions((current) =>
+      current.filter((region) => region.id !== regionId),
+    );
+    setSelectedRegionId((current) =>
+      pipe(
+        current,
+        O.match(
+          () => O.none,
+          (selectedId) =>
+            selectedId === regionId ? O.none : O.some(selectedId),
+        ),
+      ),
+    );
+    setDecompositionRegionContextMenu(O.none);
+  };
+
   const handleRemoveSelectedRegion = () => {
     pipe(
       selectedRegionId,
-      O.map((regionId) => {
-        setDecompositionRegions((current) =>
-          current.filter((region) => region.id !== regionId),
-        );
-        setSelectedRegionId(O.none);
-      }),
+      O.map((regionId) => removeDecompositionRegionById(regionId)),
     );
+  };
+
+  const handleDeleteContextMenuRegion = (regionId: string) => {
+    removeDecompositionRegionById(regionId);
   };
 
   const handleApplyDecomposition = () => {
@@ -1748,6 +1830,10 @@ export const useCharacterModeInternalState = () => {
     setSpriteContextMenu(O.none);
   };
 
+  const closeDecompositionRegionContextMenu = () => {
+    setDecompositionRegionContextMenu(O.none);
+  };
+
   const isSpriteDragging = (spriteIndex: number): boolean =>
     pipe(
       libraryDragState,
@@ -1770,6 +1856,7 @@ export const useCharacterModeInternalState = () => {
 
   const handleEditorModeChange = (mode: CharacterEditorMode) => {
     setSpriteContextMenu(O.none);
+    setDecompositionRegionContextMenu(O.none);
     setEditorMode(mode);
   };
 
@@ -1804,10 +1891,12 @@ export const useCharacterModeInternalState = () => {
     decompositionColorIndex,
     decompositionInvalidRegionCount,
     decompositionPaletteIndex,
+    decompositionRegionContextMenu,
     decompositionRegions,
     decompositionTool,
     decompositionValidRegionCount,
     editorMode,
+    closeDecompositionRegionContextMenu,
     handleApplyDecomposition,
     handleComposeCanvasRef,
     handleComposeContextMenu,
@@ -1816,8 +1905,10 @@ export const useCharacterModeInternalState = () => {
     handleDecompositionCanvasRef,
     handleDecompositionColorSlotSelect,
     handleDecompositionPaletteSelect,
+    handleDecompositionRegionContextMenu,
     handleDecompositionRegionPointerDown,
     handleDecompositionToolChange,
+    handleDeleteContextMenuRegion,
     handleDeleteSet,
     handleEditorModeChange,
     handleLibraryPointerDown,

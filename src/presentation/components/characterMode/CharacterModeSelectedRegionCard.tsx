@@ -46,12 +46,6 @@ const InspectorFieldGrid = styled("div")({
   gap: "1.5rem",
 });
 
-const DualActionGrid = styled("div")({
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: "1.25rem",
-});
-
 const WideToolButton = styled(ToolButton)({
   width: "100%",
 });
@@ -173,28 +167,18 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
         ),
       )}
 
-      <DualActionGrid>
-        <WideToolButton
-          type="button"
-          tone="danger"
-          disabled={O.isNone(selectedRegion.selectedRegionId)}
-          onClick={selectedRegion.handleRemoveSelectedRegion}
-        >
-          選択中領域を削除
-        </WideToolButton>
-        <WideToolButton
-          type="button"
-          tone="primary"
-          disabled={
-            O.isNone(decompositionOverview.activeSet) ||
-            decompositionOverview.decompositionAnalysis.regions.length === 0 ||
-            decompositionOverview.decompositionAnalysis.canApply === false
-          }
-          onClick={decompositionOverview.handleApplyDecomposition}
-        >
-          分解して現在のセットへ反映
-        </WideToolButton>
-      </DualActionGrid>
+      <WideToolButton
+        type="button"
+        tone="primary"
+        disabled={
+          O.isNone(decompositionOverview.activeSet) ||
+          decompositionOverview.decompositionAnalysis.regions.length === 0 ||
+          decompositionOverview.decompositionAnalysis.canApply === false
+        }
+        onClick={decompositionOverview.handleApplyDecomposition}
+      >
+        分解して現在のセットへ反映
+      </WideToolButton>
     </CharacterModeEditorCard>
   );
 };

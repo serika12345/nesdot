@@ -175,6 +175,12 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
                         regionAnalysis.region.id,
                       )
                     }
+                    onContextMenu={(event) =>
+                      decompositionRegions.handleDecompositionRegionContextMenu(
+                        event,
+                        regionAnalysis.region,
+                      )
+                    }
                     selectedState={isSelected}
                     issueState={hasIssues}
                     regionLeft={regionAnalysis.region.x * stageSize.stageScale}

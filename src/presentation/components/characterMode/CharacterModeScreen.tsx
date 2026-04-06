@@ -6,14 +6,15 @@ import {
   PanelTitle,
 } from "../../App.styles";
 import { ProjectActions } from "../common/ProjectActions";
+import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositionRegionMenu";
+import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
 import { CharacterModeSetHeader } from "./CharacterModeSetHeader";
 import { CharacterModeSpriteMenu } from "./CharacterModeSpriteMenu";
-import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 import {
   useCharacterModeProjectActions,
   useCharacterModeWorkspaceEvents,
 } from "./CharacterModeStateProvider";
-import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
+import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 
 /**
  * キャラクター編集画面の shell を描画します。
@@ -42,6 +43,7 @@ export const CharacterModeScreen: React.FC = () => {
         <CharacterModeSetHeader />
         <CharacterModeWorkspace />
         <CharacterModeSpriteMenu />
+        <CharacterModeDecompositionRegionMenu />
       </CharacterWorkspaceRoot>
     </Panel>
   );

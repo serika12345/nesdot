@@ -675,6 +675,38 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
     .toBe(previewWidthInputTopBefore);
 });
 
+test("character decomposition deletes selected regions from context menu", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  await page.getByLabel("新規セット名").fill("Decompose Context Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+  await page.getByRole("button", { name: "分解ツールを閉じる" }).click();
+
+  await expect(
+    page.getByRole("button", { name: "選択中領域を削除" }),
+  ).toHaveCount(0);
+
+  const firstRegionOverlay = page.getByLabel("切り取り領域 0");
+  await expect(firstRegionOverlay).toBeVisible();
+  await firstRegionOverlay.click({ button: "right" });
+
+  await expect(
+    page.getByRole("menu", { name: "切り取り領域メニュー" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "選択中領域を削除" }).click();
+  await expect(firstRegionOverlay).toHaveCount(0);
+});
+
 test("character decomposition blocks mixed palettes and applies split regions", async ({
   page,
 }) => {

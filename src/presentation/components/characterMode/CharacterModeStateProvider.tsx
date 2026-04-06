@@ -47,9 +47,17 @@ const noopRegionPointer = (
   void event;
   void region;
 };
+const noopRegionContextMenu = (
+  event: React.MouseEvent<HTMLButtonElement>,
+  region: { id: string; x: number; y: number },
+): void => {
+  void event;
+  void region;
+};
 
-const CharacterModeStateContext =
-  React.createContext<O.Option<CharacterModeState>>(O.none);
+const CharacterModeStateContext = React.createContext<
+  O.Option<CharacterModeState>
+>(O.none);
 
 const useCharacterModeSlice = <T,>(
   pick: (state: CharacterModeState) => T,
@@ -82,7 +90,10 @@ export const CharacterModeStateProvider: React.FC<
   );
 };
 
-type CharacterModeProjectActionsSlice = Pick<CharacterModeState, "projectActions">;
+type CharacterModeProjectActionsSlice = Pick<
+  CharacterModeState,
+  "projectActions"
+>;
 
 const defaultCharacterModeProjectActions: CharacterModeProjectActionsSlice = {
   projectActions: [],
@@ -170,11 +181,13 @@ const defaultCharacterModeSpriteMenuActions: CharacterModeSpriteMenuActionsSlice
   {
     focusStageElement: noop,
     handleDeleteContextMenuSprite: noopNumber,
-    handleShiftContextMenuSpriteLayer:
-      (spriteIndex: number, delta: number): void => {
-        void spriteIndex;
-        void delta;
-      },
+    handleShiftContextMenuSpriteLayer: (
+      spriteIndex: number,
+      delta: number,
+    ): void => {
+      void spriteIndex;
+      void delta;
+    },
   };
 
 export const useCharacterModeSpriteMenuActions =
@@ -212,7 +225,10 @@ export const useCharacterModeSetDraft = (): CharacterModeSetDraftSlice =>
 
 type CharacterModeSetSelectionSlice = Pick<
   CharacterModeState,
-  "characterSets" | "handleDeleteSet" | "handleSelectSet" | "selectedCharacterId"
+  | "characterSets"
+  | "handleDeleteSet"
+  | "handleSelectSet"
+  | "selectedCharacterId"
 >;
 
 const defaultCharacterModeSetSelection: CharacterModeSetSelectionSlice = {
@@ -441,20 +457,22 @@ export const useCharacterModeStageViewport =
       defaultCharacterModeStageViewport,
     );
 
-type CharacterModeViewportPanSlice = Pick<CharacterModeState, "viewportPanState">;
+type CharacterModeViewportPanSlice = Pick<
+  CharacterModeState,
+  "viewportPanState"
+>;
 
 const defaultCharacterModeViewportPan: CharacterModeViewportPanSlice = {
   viewportPanState: O.none,
 };
 
-export const useCharacterModeViewportPan =
-  (): CharacterModeViewportPanSlice =>
-    useCharacterModeSlice(
-      (state) => ({
-        viewportPanState: state.viewportPanState,
-      }),
-      defaultCharacterModeViewportPan,
-    );
+export const useCharacterModeViewportPan = (): CharacterModeViewportPanSlice =>
+  useCharacterModeSlice(
+    (state) => ({
+      viewportPanState: state.viewportPanState,
+    }),
+    defaultCharacterModeViewportPan,
+  );
 
 type CharacterModeComposeCanvasSlice = Pick<
   CharacterModeState,
@@ -517,9 +535,7 @@ export const useCharacterModeLibraryDragPreview =
 
 type CharacterModeDecompositionToolSlice = Pick<
   CharacterModeState,
-  | "decompositionTool"
-  | "handleDecompositionToolChange"
-  | "projectSpriteSize"
+  "decompositionTool" | "handleDecompositionToolChange" | "projectSpriteSize"
 >;
 
 const defaultCharacterModeDecompositionTool: CharacterModeDecompositionToolSlice =
@@ -575,7 +591,8 @@ export const useCharacterModeDecompositionPalette =
         decompositionPaletteIndex: state.decompositionPaletteIndex,
         handleDecompositionColorSlotSelect:
           state.handleDecompositionColorSlotSelect,
-        handleDecompositionPaletteSelect: state.handleDecompositionPaletteSelect,
+        handleDecompositionPaletteSelect:
+          state.handleDecompositionPaletteSelect,
         spritePalettes: state.spritePalettes,
       }),
       defaultCharacterModeDecompositionPalette,
@@ -592,10 +609,11 @@ type CharacterModeDecompositionCanvasSlice = Pick<
 const defaultCharacterModeDecompositionCanvas: CharacterModeDecompositionCanvasSlice =
   {
     decompositionCanvasCursor: "crosshair",
-    handleDecompositionCanvasPointerDown:
-      (event: React.PointerEvent<HTMLCanvasElement>) => {
-        void event;
-      },
+    handleDecompositionCanvasPointerDown: (
+      event: React.PointerEvent<HTMLCanvasElement>,
+    ) => {
+      void event;
+    },
     handleDecompositionCanvasRef: noopCanvasRef,
     handleStageRef: noopDivRef,
   };
@@ -617,6 +635,7 @@ type CharacterModeDecompositionRegionsSlice = Pick<
   CharacterModeState,
   | "decompositionAnalysis"
   | "decompositionRegions"
+  | "handleDecompositionRegionContextMenu"
   | "handleDecompositionRegionPointerDown"
   | "handleSelectRegion"
   | "selectedRegionId"
@@ -633,6 +652,7 @@ const defaultCharacterModeDecompositionRegions: CharacterModeDecompositionRegion
       canApply: false,
     },
     decompositionRegions: [],
+    handleDecompositionRegionContextMenu: noopRegionContextMenu,
     handleDecompositionRegionPointerDown: noopRegionPointer,
     handleSelectRegion: noopString,
     selectedRegionId: O.none,
@@ -644,12 +664,57 @@ export const useCharacterModeDecompositionRegions =
       (state) => ({
         decompositionAnalysis: state.decompositionAnalysis,
         decompositionRegions: state.decompositionRegions,
+        handleDecompositionRegionContextMenu:
+          state.handleDecompositionRegionContextMenu,
         handleDecompositionRegionPointerDown:
           state.handleDecompositionRegionPointerDown,
         handleSelectRegion: state.handleSelectRegion,
         selectedRegionId: state.selectedRegionId,
       }),
       defaultCharacterModeDecompositionRegions,
+    );
+
+type CharacterModeDecompositionRegionMenuStateSlice = Pick<
+  CharacterModeState,
+  "closeDecompositionRegionContextMenu" | "decompositionRegionContextMenu"
+>;
+
+const defaultCharacterModeDecompositionRegionMenuState: CharacterModeDecompositionRegionMenuStateSlice =
+  {
+    closeDecompositionRegionContextMenu: noop,
+    decompositionRegionContextMenu: O.none,
+  };
+
+export const useCharacterModeDecompositionRegionMenuState =
+  (): CharacterModeDecompositionRegionMenuStateSlice =>
+    useCharacterModeSlice(
+      (state) => ({
+        closeDecompositionRegionContextMenu:
+          state.closeDecompositionRegionContextMenu,
+        decompositionRegionContextMenu: state.decompositionRegionContextMenu,
+      }),
+      defaultCharacterModeDecompositionRegionMenuState,
+    );
+
+type CharacterModeDecompositionRegionMenuActionsSlice = Pick<
+  CharacterModeState,
+  "focusStageElement" | "handleDeleteContextMenuRegion"
+>;
+
+const defaultCharacterModeDecompositionRegionMenuActions: CharacterModeDecompositionRegionMenuActionsSlice =
+  {
+    focusStageElement: noop,
+    handleDeleteContextMenuRegion: noopString,
+  };
+
+export const useCharacterModeDecompositionRegionMenuActions =
+  (): CharacterModeDecompositionRegionMenuActionsSlice =>
+    useCharacterModeSlice(
+      (state) => ({
+        focusStageElement: state.focusStageElement,
+        handleDeleteContextMenuRegion: state.handleDeleteContextMenuRegion,
+      }),
+      defaultCharacterModeDecompositionRegionMenuActions,
     );
 
 type CharacterModeDecompositionOverviewSlice = Pick<
