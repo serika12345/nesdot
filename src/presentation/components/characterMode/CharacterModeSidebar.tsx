@@ -1,9 +1,7 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
-import { CharacterModeSidebarEditorModeCard } from "./CharacterModeSidebarEditorModeCard";
 import { CharacterModeSidebarLibrary } from "./CharacterModeSidebarLibrary";
-import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSpriteSizeCard";
 
 export const CharacterModeSidebarRoot = styled(Stack)({
   "& > *": {
@@ -15,8 +13,6 @@ export const CharacterModeSidebarContent = React.memo(
   function CharacterModeSidebarContent() {
     return (
       <>
-        <CharacterModeSidebarEditorModeCard />
-        <CharacterModeSidebarSpriteSizeCard />
         <CharacterModeSidebarLibrary />
       </>
     );
@@ -29,7 +25,7 @@ interface CharacterModeSidebarProps {
 
 /**
  * キャラクター編集ワークスペースの共通サイドバーを描画します。
- * モード切替、スプライト単位、ライブラリ一覧をまとめて扱います。
+ * ライブラリ一覧をまとめて扱います。
  */
 export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   children,

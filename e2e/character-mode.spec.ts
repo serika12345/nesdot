@@ -47,6 +47,12 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
+  const composeModeButton = page.getByRole("button", {
+    name: "編集モード 合成",
+  });
+  const spriteSize8Button = page.getByRole("button", {
+    name: "プロジェクトスプライトサイズ 8x8",
+  });
   const createSetButton = page.getByRole("button", { name: "セットを作成" });
   const shareButton = page.getByRole("button", { name: "共有" });
   const activeSetSelect = page.getByRole("combobox", {
@@ -59,6 +65,12 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
     0,
   );
   await expect(page.getByRole("textbox", { name: "セット名" })).toHaveCount(0);
+  await expect(page.getByText("編集モード", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("スプライト単位", { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(composeModeButton).toBeVisible();
+  await expect(spriteSize8Button).toBeVisible();
   await expect(createSetButton).toBeVisible();
   await expect(shareButton).toBeVisible();
   await expect(activeSetSelect).toBeVisible();
@@ -66,12 +78,16 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   await expect(deleteSetButton).toBeVisible();
 
   const [
+    composeModeButtonBox,
+    spriteSize8ButtonBox,
     createSetButtonBox,
     shareButtonBox,
     activeSetSelectBox,
     renameSetButtonBox,
     deleteSetButtonBox,
   ] = await Promise.all([
+    getLocatorRect(composeModeButton),
+    getLocatorRect(spriteSize8Button),
     getLocatorRect(createSetButton),
     getLocatorRect(shareButton),
     getLocatorRect(activeSetSelect),
@@ -90,6 +106,12 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   expect(createSetButtonBox.clientX + createSetButtonBox.width).toBeLessThan(
     shareButtonBox.clientX,
   );
+  expect(
+    composeModeButtonBox.clientX + composeModeButtonBox.width,
+  ).toBeLessThan(createSetButtonBox.clientX);
+  expect(
+    spriteSize8ButtonBox.clientX + spriteSize8ButtonBox.width,
+  ).toBeLessThan(createSetButtonBox.clientX);
   expect(selectRowBottomSpread).toBeLessThan(2);
   expect(activeSetSelectBox.clientX).toBeLessThan(renameSetButtonBox.clientX);
   expect(renameSetButtonBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);

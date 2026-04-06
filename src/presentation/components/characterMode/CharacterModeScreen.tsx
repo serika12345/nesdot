@@ -12,6 +12,8 @@ import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositi
 import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
 import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
 import { CharacterModeSetHeader } from "./CharacterModeSetHeader";
+import { CharacterModeSidebarEditorModeCard } from "./CharacterModeSidebarEditorModeCard";
+import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSpriteSizeCard";
 import { CharacterModeSpriteMenu } from "./CharacterModeSpriteMenu";
 import {
   useCharacterModeProjectActions,
@@ -42,6 +44,8 @@ export const CharacterModeScreen: React.FC = () => {
         <PanelHeaderRow>
           <PanelTitle>キャラクター編集</PanelTitle>
           <HeaderActions>
+            <CharacterModeSidebarEditorModeCard />
+            <CharacterModeSidebarSpriteSizeCard />
             <CharacterModeSetDraftFields />
             <ProjectActions actions={projectActions} />
           </HeaderActions>

@@ -1,9 +1,13 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import * as O from "fp-ts/Option";
 import React from "react";
-import { FieldLabel, ToolButton } from "../../App.styles";
+import { ToolButton } from "../../App.styles";
 import { CharacterModeEditorCard } from "./CharacterModeEditorCard";
-import { useCharacterModeEditorModeSetting } from "./CharacterModeStateProvider";
+import {
+  useCharacterModeEditorModeSetting,
+  useCharacterModeSetSelection,
+} from "./CharacterModeStateProvider";
 
 const OptionGrid = styled("div")({
   display: "grid",
@@ -20,16 +24,23 @@ const WideToolButton = styled(ToolButton)({
  */
 export const CharacterModeSidebarEditorModeCard: React.FC = () => {
   const editorMode = useCharacterModeEditorModeSetting();
+  const setSelection = useCharacterModeSetSelection();
+  const isDisabled = O.isNone(setSelection.selectedCharacterId);
 
   return (
-    <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
-      <Stack component="label" spacing="0.625rem">
-        <FieldLabel>編集モード</FieldLabel>
+    <CharacterModeEditorCard
+      minHeight={0}
+      spacing="0.875rem"
+      p="1rem"
+      useFlexGap
+    >
+      <Stack spacing="0.625rem">
         <OptionGrid>
           <WideToolButton
             type="button"
             aria-label="編集モード 合成"
             active={editorMode.editorMode === "compose"}
+            disabled={isDisabled}
             onClick={() => editorMode.handleEditorModeChange("compose")}
           >
             合成
@@ -38,6 +49,7 @@ export const CharacterModeSidebarEditorModeCard: React.FC = () => {
             type="button"
             aria-label="編集モード 分解"
             active={editorMode.editorMode === "decompose"}
+            disabled={isDisabled}
             onClick={() => editorMode.handleEditorModeChange("decompose")}
           >
             分解
