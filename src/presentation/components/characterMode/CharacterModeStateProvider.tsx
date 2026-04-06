@@ -8,6 +8,7 @@ import {
 } from "./hooks/useCharacterModeState";
 
 const noop = (): void => {};
+const noopBoolean = (): boolean => false;
 const noopString = (value: string): void => {
   void value;
 };
@@ -739,7 +740,7 @@ const defaultCharacterModeDecompositionOverview: CharacterModeDecompositionOverv
     },
     decompositionInvalidRegionCount: 0,
     decompositionValidRegionCount: 0,
-    handleApplyDecomposition: noop,
+    handleApplyDecomposition: noopBoolean,
   };
 
 export const useCharacterModeDecompositionOverview =

@@ -1567,57 +1567,61 @@ export const useCharacterModeInternalState = () => {
     removeDecompositionRegionById(regionId);
   };
 
-  const handleApplyDecomposition = () => {
+  const handleApplyDecomposition = (): boolean =>
     pipe(
       activeSet,
-      O.map((characterSet) => {
-        const result = applyCharacterDecomposition({
-          canvas: decompositionCanvas,
-          regions: decompositionRegions,
-          spriteSize: projectSpriteSize,
-          sprites,
-        });
+      O.match(
+        () => false,
+        (characterSet) => {
+          const result = applyCharacterDecomposition({
+            canvas: decompositionCanvas,
+            regions: decompositionRegions,
+            spriteSize: projectSpriteSize,
+            sprites,
+          });
 
-        if (E.isLeft(result)) {
-          return;
-        }
+          if (E.isLeft(result)) {
+            return false;
+          }
 
-        const nextScreen = {
-          ...screen,
-          sprites: screen.sprites.map((screenSprite) => {
-            const nextTileOption = O.fromNullable(
-              result.right.sprites[screenSprite.spriteIndex],
-            );
-            if (O.isNone(nextTileOption)) {
-              return screenSprite;
-            }
+          const nextScreen = {
+            ...screen,
+            sprites: screen.sprites.map((screenSprite) => {
+              const nextTileOption = O.fromNullable(
+                result.right.sprites[screenSprite.spriteIndex],
+              );
+              if (O.isNone(nextTileOption)) {
+                return screenSprite;
+              }
 
-            return {
-              ...screenSprite,
-              ...nextTileOption.value,
-            };
-          }),
-        };
-        const currentProjectState = useProjectState.getState();
-        useProjectState.setState({
-          sprites: result.right.sprites,
-          screen: nextScreen,
-          nes: mergeScreenIntoNesOam(currentProjectState.nes, nextScreen),
-        });
+              return {
+                ...screenSprite,
+                ...nextTileOption.value,
+              };
+            }),
+          };
+          const currentProjectState = useProjectState.getState();
+          useProjectState.setState({
+            sprites: result.right.sprites,
+            screen: nextScreen,
+            nes: mergeScreenIntoNesOam(currentProjectState.nes, nextScreen),
+          });
 
-        useCharacterState.setState((state) => ({
-          characterSets: state.characterSets.map((currentCharacterSet) =>
-            currentCharacterSet.id === characterSet.id
-              ? {
-                  ...currentCharacterSet,
-                  sprites: result.right.characterSprites,
-                }
-              : currentCharacterSet,
-          ),
-        }));
-      }),
+          useCharacterState.setState((state) => ({
+            characterSets: state.characterSets.map((currentCharacterSet) =>
+              currentCharacterSet.id === characterSet.id
+                ? {
+                    ...currentCharacterSet,
+                    sprites: result.right.characterSprites,
+                  }
+                : currentCharacterSet,
+            ),
+          }));
+
+          return true;
+        },
+      ),
     );
-  };
 
   const handleLibraryPointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,

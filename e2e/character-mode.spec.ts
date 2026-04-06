@@ -43,6 +43,15 @@ const createCharacterSet = async (
   await expect(createDialog).toHaveCount(0);
 };
 
+const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
+  const feedbackDialog = page.getByRole("dialog", {
+    name: "現在のセットへ反映しました",
+  });
+  await expect(feedbackDialog).toBeVisible();
+  await feedbackDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(feedbackDialog).toHaveCount(0);
+};
+
 test("character mode keeps set controls on a single row", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
@@ -891,6 +900,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   });
   await expect(applyButton).toBeEnabled();
   await applyButton.click();
+  await closeDecompositionAppliedDialog(page);
 
   await expect(
     page.getByRole("combobox", { name: "編集中のセット" }),
@@ -943,6 +953,7 @@ test("character decomposition respects project level 8x16 sprite size", async ({
   });
   await expect(applyButton).toBeEnabled();
   await applyButton.click();
+  await closeDecompositionAppliedDialog(page);
 
   await expect(
     page.getByRole("combobox", { name: "編集中のセット" }),
