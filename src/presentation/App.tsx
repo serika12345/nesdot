@@ -1,6 +1,7 @@
 import { GlobalStyles, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React, { useState } from "react";
+import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import {
   Container,
   LeftPane,
@@ -78,6 +79,8 @@ const isEditMode = (value: unknown): value is EditMode =>
  * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
  */
 export const App: React.FC = () => {
+  useDesktopAutoUpdate();
+
   const [editMode, setEditMode] = useState<EditMode>("sprite");
 
   const mainPanel = (() => {

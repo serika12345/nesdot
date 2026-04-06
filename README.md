@@ -151,6 +151,25 @@ UI の表示・操作フローに影響する変更:
 nix develop -c zsh -lc 'pnpm verify:full'
 ```
 
+## 自動アップデート (Desktop)
+
+このプロジェクトは Tauri Updater に対応しています。
+デスクトップ起動時に更新を確認し、更新が見つかった場合はダウンロードと再起動を案内します。
+
+- 更新チェック先: `https://github.com/paseri3739/nesdot/releases/latest/download/latest.json`
+- 署名検証: `src-tauri/tauri.conf.json` の updater `pubkey`
+
+### 初回セットアップ (リリース署名キー)
+
+Updater の署名は必須です。初回のみ秘密鍵を生成して GitHub Actions secret に登録してください。
+
+```sh
+nix develop -c zsh -lc 'pnpm tauri signer generate -w ~/.tauri/nesdot-updater.key --ci'
+gh secret set TAURI_SIGNING_PRIVATE_KEY -R paseri3739/nesdot < ~/.tauri/nesdot-updater.key
+```
+
+秘密鍵を失うと既存ユーザー向けアップデート署名を継続できなくなるため、安全な場所にバックアップしてください。
+
 ## 開発方針
 
 このリポジトリでは、機械的に強制できる品質ゲートを優先します。

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "nesdot",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "identifier": "com.paseri3739.nesdot",
   "build": {
     "beforeDevCommand": "pnpm dev:tauri",
@@ -25,6 +25,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -32,5 +33,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzNzNERjBFMUFGQjNDNwpSV1RIczYvaDhEMDNDRU1Kc0NNYjJiRGlLWXhDTnVsQUxMeUJtelg2SHE2WWZOVzQyb3NVRHE0cAo=",
+      "endpoints": [
+        "https://github.com/paseri3739/nesdot/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }
