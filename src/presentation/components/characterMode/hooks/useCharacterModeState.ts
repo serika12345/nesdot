@@ -28,7 +28,6 @@ import {
   CharacterSet,
   CharacterSprite,
 } from "../../../../domain/characters/characterSet";
-import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import { createEmptySpriteTile } from "../../../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
@@ -41,6 +40,7 @@ import {
 } from "../compose/composeCanvasHelpers";
 import {
   createDecompositionCanvas,
+  createDecompositionCanvasRgba,
   paintDecompositionPixel,
   resizeDecompositionCanvas,
   TRANSPARENT_DECOMPOSITION_PIXEL,
@@ -478,48 +478,20 @@ export const useCharacterModeInternalState = () => {
     }
 
     const context = contextOption.value;
-    const scaledWidth = stageWidth * stageScale;
-    const scaledHeight = stageHeight * stageScale;
-    const rgbaValues = decompositionCanvas.pixels.flatMap((pixelRow) =>
-      Array.from({ length: stageScale }, () =>
-        pixelRow.flatMap((pixel) => {
-          if (pixel.kind === "transparent") {
-            return Array.from({ length: stageScale }, () => [
-              0, 0, 0, 0,
-            ]).flat();
-          }
-
-          const hex = nesIndexToCssHex(
-            spritePalettes[pixel.paletteIndex][pixel.colorIndex],
-          );
-          const r = Number.parseInt(hex.slice(1, 3), 16);
-          const g = Number.parseInt(hex.slice(3, 5), 16);
-          const b = Number.parseInt(hex.slice(5, 7), 16);
-
-          return Array.from({ length: stageScale }, () => [
-            r,
-            g,
-            b,
-            255,
-          ]).flat();
-        }),
-      ).flat(),
+    const sourceWidth = decompositionCanvas.width;
+    const sourceHeight = decompositionCanvas.height;
+    const rgbaValues = createDecompositionCanvasRgba(
+      decompositionCanvas,
+      spritePalettes,
     );
-    const imageData = new ImageData(
-      Uint8ClampedArray.from(rgbaValues),
-      scaledWidth,
-      scaledHeight,
-    );
+    const imageData = new ImageData(rgbaValues, sourceWidth, sourceHeight);
 
-    context.clearRect(0, 0, scaledWidth, scaledHeight);
+    context.clearRect(0, 0, sourceWidth, sourceHeight);
     context.putImageData(imageData, 0, 0);
   }, [
     decompositionCanvas,
     decompositionCanvasElement,
     spritePalettes,
-    stageHeight,
-    stageScale,
-    stageWidth,
   ]);
 
   const getStageRect = (): O.Option<DOMRect> =>
