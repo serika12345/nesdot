@@ -28,9 +28,11 @@ jobs:
           enablement: true
 
       - name: Build site
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: >-
           nix develop -c bash -lc
-          'pnpm install --frozen-lockfile && pnpm build -- --base=/${{ github.event.repository.name }}/'
+          'pnpm install --frozen-lockfile && pnpm build'
 
       - uses: actions/upload-pages-artifact@v3
         with:
