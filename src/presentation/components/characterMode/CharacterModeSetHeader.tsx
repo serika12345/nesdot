@@ -1,7 +1,6 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
-import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
 import { CharacterModeSetSelectionFields } from "./CharacterModeSetSelectionFields";
 
 const SetHeaderRow = styled(Stack)(({ theme }) => ({
@@ -21,15 +20,12 @@ const SetHeaderGroup = styled(Stack)(({ theme }) => ({
 }));
 
 /**
- * キャラクターセットの作成、選択、削除を行うヘッダーです。
+ * キャラクターセットの選択、名前変更、削除を行うヘッダーです。
  * セット管理の主要操作を横断的にまとめ、ワークスペース上部からすぐ扱えるようにします。
  */
 export const CharacterModeSetHeader: React.FC = () => {
   return (
     <SetHeaderRow>
-      <SetHeaderGroup>
-        <CharacterModeSetDraftFields />
-      </SetHeaderGroup>
       <SetHeaderGroup>
         <CharacterModeSetSelectionFields />
       </SetHeaderGroup>

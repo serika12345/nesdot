@@ -24,45 +24,75 @@ const waitForCharacterWorkspaceUnlock = async (page: Page): Promise<void> => {
   ).toBeVisible();
 };
 
+const createCharacterSet = async (
+  page: Page,
+  setName: string,
+): Promise<void> => {
+  await page.getByRole("button", { name: "セットを作成" }).click();
+
+  const createDialog = page.getByRole("dialog", {
+    name: "キャラクターセットを作成",
+  });
+  await expect(createDialog).toBeVisible();
+
+  await createDialog
+    .getByRole("textbox", { name: "新規セット名" })
+    .fill(setName);
+  await createDialog.getByRole("button", { name: "作成する" }).click();
+
+  await expect(createDialog).toHaveCount(0);
+};
+
 test("character mode keeps set controls on a single row", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  const newNameInput = page.getByRole("textbox", { name: "新規セット名" });
   const createSetButton = page.getByRole("button", { name: "セットを作成" });
+  const shareButton = page.getByRole("button", { name: "共有" });
   const activeSetSelect = page.getByRole("combobox", {
     name: "編集中のセット",
   });
+  const renameSetButton = page.getByRole("button", { name: "セット名変更" });
   const deleteSetButton = page.getByRole("button", { name: "セットを削除" });
 
-  await expect(newNameInput).toBeVisible();
+  await expect(page.getByRole("textbox", { name: "新規セット名" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole("textbox", { name: "セット名" })).toHaveCount(0);
   await expect(createSetButton).toBeVisible();
+  await expect(shareButton).toBeVisible();
   await expect(activeSetSelect).toBeVisible();
+  await expect(renameSetButton).toBeVisible();
   await expect(deleteSetButton).toBeVisible();
 
   const [
-    newNameInputBox,
     createSetButtonBox,
+    shareButtonBox,
     activeSetSelectBox,
+    renameSetButtonBox,
     deleteSetButtonBox,
   ] = await Promise.all([
-    getLocatorRect(newNameInput),
     getLocatorRect(createSetButton),
+    getLocatorRect(shareButton),
     getLocatorRect(activeSetSelect),
+    getLocatorRect(renameSetButton),
     getLocatorRect(deleteSetButton),
   ]);
 
-  const bottoms = [
-    newNameInputBox.clientY + newNameInputBox.height,
-    createSetButtonBox.clientY + createSetButtonBox.height,
+  const selectRowBottoms = [
     activeSetSelectBox.clientY + activeSetSelectBox.height,
+    renameSetButtonBox.clientY + renameSetButtonBox.height,
     deleteSetButtonBox.clientY + deleteSetButtonBox.height,
   ];
-  const bottomSpread = Math.max(...bottoms) - Math.min(...bottoms);
+  const selectRowBottomSpread =
+    Math.max(...selectRowBottoms) - Math.min(...selectRowBottoms);
 
-  expect(bottomSpread).toBeLessThan(2);
-  expect(newNameInputBox.clientX).toBeLessThan(createSetButtonBox.clientX);
-  expect(createSetButtonBox.clientX).toBeLessThan(activeSetSelectBox.clientX);
+  expect(createSetButtonBox.clientX + createSetButtonBox.width).toBeLessThan(
+    shareButtonBox.clientX,
+  );
+  expect(selectRowBottomSpread).toBeLessThan(2);
+  expect(activeSetSelectBox.clientX).toBeLessThan(renameSetButtonBox.clientX);
+  expect(renameSetButtonBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
   expect(activeSetSelectBox.clientX).toBeLessThan(deleteSetButtonBox.clientX);
 });
 
@@ -76,8 +106,7 @@ test("character mode enables share actions only after a set is available", async
 
   await expect(shareButton).toBeDisabled();
 
-  await page.getByLabel("新規セット名").fill("Share Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Share Hero");
 
   await expect(shareButton).toBeEnabled();
 
@@ -100,8 +129,7 @@ test("character mode asks confirmation before deleting a set", async ({
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Delete Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Delete Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const activeSetSelect = page.getByRole("combobox", {
@@ -137,6 +165,36 @@ test("character mode asks confirmation before deleting a set", async ({
   await expect(deleteSetButton).toBeDisabled();
 });
 
+test("character mode renames set from dialog", async ({ page }) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Rename Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const activeSetSelect = page.getByRole("combobox", {
+    name: "編集中のセット",
+  });
+  const renameSetButton = page.getByRole("button", { name: "セット名変更" });
+
+  await expect(activeSetSelect).toContainText("Rename Hero (0 sprites)");
+  await expect(renameSetButton).toBeEnabled();
+
+  await renameSetButton.click();
+
+  const renameDialog = page.getByRole("dialog", { name: "セット名を変更" });
+  await expect(renameDialog).toBeVisible();
+
+  const renameTextbox = renameDialog.getByRole("textbox", {
+    name: "変更後のセット名",
+  });
+  await renameTextbox.fill("Renamed Hero");
+  await renameDialog.getByRole("button", { name: "変更する" }).click();
+
+  await expect(renameDialog).toHaveCount(0);
+  await expect(activeSetSelect).toContainText("Renamed Hero (0 sprites)");
+});
+
 test("character mode locks workspace interactions until a set is created", async ({
   page,
 }) => {
@@ -150,8 +208,7 @@ test("character mode locks workspace interactions until a set is created", async
     page.getByText("セットを作成すると編集できます", { exact: true }),
   ).toBeVisible();
 
-  await page.getByLabel("新規セット名").fill("Unlock Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Unlock Hero");
 
   await waitForCharacterWorkspaceUnlock(page);
   await expect(workspaceLock).toHaveCount(0);
@@ -163,8 +220,7 @@ test("character mode lets the sprite library collapse and expand", async ({
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Library Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Library Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const libraryLabel = page.getByText("スプライトライブラリ", { exact: true });
@@ -212,8 +268,7 @@ test("character mode preserves sprite library visibility across editor mode swit
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Library Mode Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Library Mode Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const closeLibraryButton = page.getByRole("button", {
@@ -246,8 +301,7 @@ test("character mode keeps preview fixed while the sidebar scrolls", async ({
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Scroll Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Scroll Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const workspace = page.getByLabel("キャラクター編集ワークスペース");
@@ -301,8 +355,7 @@ test("character mode supports drag and drop placement and stage movement", async
   await seedDiagonalSprite(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const viewport = page.getByLabel("プレビューキャンバスビュー");
@@ -570,8 +623,7 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Decompose Sidebar Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Decompose Sidebar Hero");
   await waitForCharacterWorkspaceUnlock(page);
 
   const composeStage = page.getByLabel("キャラクターステージ");
@@ -681,8 +733,7 @@ test("character decomposition deletes selected regions from context menu", async
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Decompose Context Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Decompose Context Hero");
   await waitForCharacterWorkspaceUnlock(page);
   await page.getByRole("button", { name: "編集モード 分解" }).click();
   await page.getByRole("button", { name: "分解ツールを開く" }).click();
@@ -714,8 +765,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   await page.setViewportSize({ width: 1800, height: 1200 });
   await openMode(page, "キャラクター編集");
 
-  await page.getByLabel("新規セット名").fill("Decompose Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Decompose Hero");
   await waitForCharacterWorkspaceUnlock(page);
   await page.getByRole("button", { name: "編集モード 分解" }).click();
   await page.getByRole("button", { name: "分解ツールを開く" }).click();
@@ -783,8 +833,7 @@ test("character decomposition respects project level 8x16 sprite size", async ({
     name: "プロジェクトスプライトサイズ 8x16",
   });
   await expect(size16Button).toBeDisabled();
-  await page.getByLabel("新規セット名").fill("Tall Hero");
-  await page.getByRole("button", { name: "セットを作成" }).click();
+  await createCharacterSet(page, "Tall Hero");
   await waitForCharacterWorkspaceUnlock(page);
   await expect(size16Button).toBeEnabled();
   await size16Button.click();

@@ -1,3 +1,5 @@
+import { Stack } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React from "react";
 import {
   Panel,
@@ -8,6 +10,7 @@ import {
 import { ProjectActions } from "../common/ProjectActions";
 import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositionRegionMenu";
 import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
+import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
 import { CharacterModeSetHeader } from "./CharacterModeSetHeader";
 import { CharacterModeSpriteMenu } from "./CharacterModeSpriteMenu";
 import {
@@ -15,6 +18,15 @@ import {
   useCharacterModeWorkspaceEvents,
 } from "./CharacterModeStateProvider";
 import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
+
+const HeaderActions = styled(Stack)(({ theme }) => ({
+  minWidth: 0,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  flexWrap: "wrap",
+  gap: theme.spacing(1.5),
+}));
 
 /**
  * キャラクター編集画面の shell を描画します。
@@ -29,7 +41,10 @@ export const CharacterModeScreen: React.FC = () => {
       <PanelHeader>
         <PanelHeaderRow>
           <PanelTitle>キャラクター編集</PanelTitle>
-          <ProjectActions actions={projectActions} />
+          <HeaderActions>
+            <CharacterModeSetDraftFields />
+            <ProjectActions actions={projectActions} />
+          </HeaderActions>
         </PanelHeaderRow>
       </PanelHeader>
 
