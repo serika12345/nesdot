@@ -3,7 +3,9 @@ import { type CharacterDecompositionCanvas } from "../../../../domain/characters
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import { createDecompositionCanvasRgba } from "./decompositionCanvas";
 
-const toRgbTriplet = (nesColorIndex: number): readonly [number, number, number] => {
+const toRgbTriplet = (
+  nesColorIndex: number,
+): readonly [number, number, number] => {
   const hex = nesIndexToCssHex(nesColorIndex);
 
   return [
@@ -16,28 +18,16 @@ const toRgbTriplet = (nesColorIndex: number): readonly [number, number, number] 
 describe("createDecompositionCanvasRgba", () => {
   it("maps decomposition pixels into RGBA slots", () => {
     const firstPalette: readonly [number, number, number, number] = [
-      0x0f,
-      0x11,
-      0x21,
-      0x31,
+      0x0f, 0x11, 0x21, 0x31,
     ];
     const secondPalette: readonly [number, number, number, number] = [
-      0x0f,
-      0x16,
-      0x26,
-      0x36,
+      0x0f, 0x16, 0x26, 0x36,
     ];
     const thirdPalette: readonly [number, number, number, number] = [
-      0x0f,
-      0x19,
-      0x29,
-      0x39,
+      0x0f, 0x19, 0x29, 0x39,
     ];
     const fourthPalette: readonly [number, number, number, number] = [
-      0x0f,
-      0x1c,
-      0x2c,
-      0x3c,
+      0x0f, 0x1c, 0x2c, 0x3c,
     ];
     const spritePalettes = [
       firstPalette,

@@ -488,11 +488,7 @@ export const useCharacterModeInternalState = () => {
 
     context.clearRect(0, 0, sourceWidth, sourceHeight);
     context.putImageData(imageData, 0, 0);
-  }, [
-    decompositionCanvas,
-    decompositionCanvasElement,
-    spritePalettes,
-  ]);
+  }, [decompositionCanvas, decompositionCanvasElement, spritePalettes]);
 
   const getStageRect = (): O.Option<DOMRect> =>
     pipe(
