@@ -139,7 +139,7 @@ export const App: React.FC = () => {
               <PanelHeader>
                 <PanelTitle>NES パレット</PanelTitle>
               </PanelHeader>
-              <ScrollArea flex={1} minHeight={0} pr="0.25rem">
+              <ScrollArea flex={1} minHeight={0}>
                 <PalettePicker />
               </ScrollArea>
             </Panel>

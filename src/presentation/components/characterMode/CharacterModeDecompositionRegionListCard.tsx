@@ -50,7 +50,12 @@ export const CharacterModeDecompositionRegionListCard: React.FC = () => {
   const decompositionRegions = useCharacterModeDecompositionRegions();
 
   return (
-    <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
+    <CharacterModeEditorCard
+      minHeight={0}
+      spacing="0.875rem"
+      p="1rem"
+      useFlexGap
+    >
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <FieldLabel>切り取り領域一覧</FieldLabel>
         <Badge tone="accent">
@@ -58,7 +63,7 @@ export const CharacterModeDecompositionRegionListCard: React.FC = () => {
         </Badge>
       </Stack>
 
-      <ScrollArea flex={1} minHeight={0} pr={0}>
+      <ScrollArea flex={1} minHeight={0}>
         <RegionList>
           {decompositionRegions.decompositionAnalysis.regions.map(
             (regionAnalysis, regionIndex) => {
@@ -76,7 +81,9 @@ export const CharacterModeDecompositionRegionListCard: React.FC = () => {
                   type="button"
                   selectedState={isSelected}
                   onClick={() =>
-                    decompositionRegions.handleSelectRegion(regionAnalysis.region.id)
+                    decompositionRegions.handleSelectRegion(
+                      regionAnalysis.region.id,
+                    )
                   }
                 >
                   <Stack spacing="0.625rem" width="100%">
@@ -87,7 +94,9 @@ export const CharacterModeDecompositionRegionListCard: React.FC = () => {
                     >
                       <FieldLabel>{`領域 ${regionIndex}`}</FieldLabel>
                       <Badge
-                        tone={regionAnalysis.issues.length > 0 ? "danger" : "accent"}
+                        tone={
+                          regionAnalysis.issues.length > 0 ? "danger" : "accent"
+                        }
                       >
                         {getRegionStatusLabel(regionAnalysis)}
                       </Badge>
@@ -96,7 +105,11 @@ export const CharacterModeDecompositionRegionListCard: React.FC = () => {
                       <Badge tone="neutral">{`x:${regionAnalysis.region.x}`}</Badge>
                       <Badge tone="neutral">{`y:${regionAnalysis.region.y}`}</Badge>
                       <Badge
-                        tone={regionAnalysis.issues.length > 0 ? "danger" : "neutral"}
+                        tone={
+                          regionAnalysis.issues.length > 0
+                            ? "danger"
+                            : "neutral"
+                        }
                       >
                         {regionAnalysis.issues.length > 0
                           ? regionAnalysis.issues.map(getIssueLabel).join(", ")

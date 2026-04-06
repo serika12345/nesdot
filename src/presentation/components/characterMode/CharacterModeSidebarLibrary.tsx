@@ -13,8 +13,8 @@ import {
 } from "../../App.styles";
 import { CharacterModeEditorCard } from "./CharacterModeEditorCard";
 import { useCharacterModeSpriteLibrary } from "./CharacterModeStateProvider";
-import { LIBRARY_PREVIEW_SCALE } from "./hooks/useCharacterModeState";
 import { CharacterModeTilePreview } from "./CharacterModeTilePreview";
+import { LIBRARY_PREVIEW_SCALE } from "./hooks/useCharacterModeState";
 
 const LibraryScrollArea = styled(ScrollArea)({
   scrollbarGutter: "stable",
@@ -29,30 +29,29 @@ const LibraryGrid = styled("div")({
 const LibrarySpriteButton = styled(ButtonBase, {
   shouldForwardProp: (prop) => prop !== "dragging",
 })<{ dragging?: boolean }>(({ dragging }) => ({
-    appearance: "none",
-    minHeight: "7.375rem",
-    padding: "0.75rem",
-    borderRadius: "1.125rem",
-    border:
-      dragging === true
-        ? "0.0625rem solid rgba(15, 118, 110, 0.42)"
-        : "0.0625rem solid rgba(148, 163, 184, 0.2)",
-    background:
-      dragging === true
-        ? "rgba(240, 253, 250, 0.96)"
-        : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
-    color: "var(--ink-strong)",
-    cursor: "inherit",
-    userSelect: "none",
-    touchAction: "none",
-    transition:
-      "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
-    boxShadow:
-      dragging === true
-        ? "0 1rem 1.875rem rgba(15, 118, 110, 0.16)"
-        : "0 0.625rem 1.125rem rgba(15, 23, 42, 0.08)",
-  }),
-);
+  appearance: "none",
+  minHeight: "7.375rem",
+  padding: "0.75rem",
+  borderRadius: "1.125rem",
+  border:
+    dragging === true
+      ? "0.0625rem solid rgba(15, 118, 110, 0.42)"
+      : "0.0625rem solid rgba(148, 163, 184, 0.2)",
+  background:
+    dragging === true
+      ? "rgba(240, 253, 250, 0.96)"
+      : "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94))",
+  color: "var(--ink-strong)",
+  cursor: "inherit",
+  userSelect: "none",
+  touchAction: "none",
+  transition:
+    "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+  boxShadow:
+    dragging === true
+      ? "0 1rem 1.875rem rgba(15, 118, 110, 0.16)"
+      : "0 0.625rem 1.125rem rgba(15, 23, 42, 0.08)",
+}));
 
 const LibrarySpriteTitle = styled("span")({
   fontSize: "0.6875rem",
@@ -111,7 +110,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
     sprites,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
-      <LibraryScrollArea id={id} flex={1} minHeight={0} pr={0}>
+      <LibraryScrollArea id={id} flex={1} minHeight={0}>
         <LibraryGrid>
           {sprites.map((spriteTile, spriteIndex) => (
             <LibrarySpriteButton
@@ -162,7 +161,8 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
   );
 
   React.useEffect(() => {
-    handleLibraryPointerDownRef.current = spriteLibrary.handleLibraryPointerDown;
+    handleLibraryPointerDownRef.current =
+      spriteLibrary.handleLibraryPointerDown;
   }, [spriteLibrary.handleLibraryPointerDown]);
 
   const handleStableLibraryPointerDown = React.useCallback(
@@ -173,7 +173,12 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
   );
 
   return (
-    <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
+    <CharacterModeEditorCard
+      minHeight={0}
+      spacing="0.875rem"
+      p="1rem"
+      useFlexGap
+    >
       <PanelHeaderRow>
         <Stack direction="row" spacing="0.75rem" alignItems="center">
           <FieldLabel>スプライトライブラリ</FieldLabel>
@@ -190,7 +195,9 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
             onClick={() => setIsLibraryOpen((previous) => !previous)}
           >
             {isLibraryOpen ? "閉じる" : "開く"}
-            <ExpandMoreRoundedIcon style={collapseChevronStyle(isLibraryOpen)} />
+            <ExpandMoreRoundedIcon
+              style={collapseChevronStyle(isLibraryOpen)}
+            />
           </CollapseToggle>
         </Stack>
       </PanelHeaderRow>
@@ -200,7 +207,9 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
         openState={isLibraryOpen}
         aria-hidden={isLibraryOpen === false}
       >
-        <LibraryInteractionRoot interactiveState={spriteLibrary.isLibraryDraggable}>
+        <LibraryInteractionRoot
+          interactiveState={spriteLibrary.isLibraryDraggable}
+        >
           <CharacterModeSidebarLibraryContent
             draggingSpriteIndex={spriteLibrary.draggingSpriteIndex}
             handleLibraryPointerDown={handleStableLibraryPointerDown}

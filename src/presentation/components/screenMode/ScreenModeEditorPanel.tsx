@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Panel,
-  PanelHeader,
-  PanelTitle,
-  ScrollArea,
-} from "../../App.styles";
+import { Panel, PanelHeader, PanelTitle, ScrollArea } from "../../App.styles";
 import type { ScreenModeState } from "./hooks/useScreenModeState";
 import { ScreenModeCharacterPanel } from "./ScreenModeCharacterPanel";
 import { ScreenModeGroupMovePanel } from "./ScreenModeGroupMovePanel";
@@ -25,11 +20,7 @@ export const ScreenModeEditorPanel: React.FC<ScreenModeEditorPanelProps> = ({
   screenMode,
 }) => {
   return (
-    <Panel
-      width={{ lg: "20rem", xl: "22.5rem" }}
-      flexShrink={0}
-      minHeight={0}
-    >
+    <Panel width={{ lg: "20rem", xl: "22.5rem" }} flexShrink={0} minHeight={0}>
       <PanelHeader>
         <PanelTitle>スクリーン配置</PanelTitle>
       </PanelHeader>

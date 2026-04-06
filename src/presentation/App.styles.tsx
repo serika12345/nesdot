@@ -467,23 +467,29 @@ export const CanvasViewport = createBoxLayout("CanvasViewport", {
   p: "1.125rem",
 });
 
+const ScrollColumnRoot = styled("div")({
+  scrollbarGutter: "stable",
+  marginRight: "-1.125rem",
+  paddingRight: "1.125rem",
+});
+
+const ScrollAreaRoot = styled("div")({
+  scrollbarGutter: "stable",
+  marginRight: "-1.125rem",
+  paddingRight: "1.125rem",
+});
+
 export const ScrollColumn = createStackLayout("ScrollColumn", {
-  component: styled("div")({
-    scrollbarGutter: "stable both-edges",
-  }),
+  component: ScrollColumnRoot,
   minHeight: 0,
   overflow: "auto",
   spacing: "1rem",
-  pr: "0.25rem",
 });
 
 export const ScrollArea = createBoxLayout("ScrollArea", {
-  component: styled("div")({
-    scrollbarGutter: "stable both-edges",
-  }),
+  component: ScrollAreaRoot,
   minHeight: 0,
   overflow: "auto",
-  pr: "0.25rem",
 });
 
 const MetricCardRoot = styled("div")({
