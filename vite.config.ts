@@ -9,7 +9,7 @@ import { getViteBase } from "./src/shared/viteBase";
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(({ command }) => {
-  const base = getViteBase(command, process.env);
+  const base = getViteBase(command);
 
   return {
   plugins: [
