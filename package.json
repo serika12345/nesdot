@@ -3,11 +3,11 @@
   "type": "module",
   "private": true,
   "productName": "nesdot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@10.32.1",
   "description": "An NES screen emulator built with Tauri and React.",
   "scripts": {
-    "icons:sync": "./scripts/sync-icons.sh",
+    "icons:sync": "bash ./scripts/sync-icons.sh",
     "dev": "pnpm icons:sync && vite",
     "dev:tauri": "node scripts/ensure-tauri-dev-server.mjs",
     "start": "pnpm icons:sync && tauri dev",
