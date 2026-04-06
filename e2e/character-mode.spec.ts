@@ -730,7 +730,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   await clickCanvasPixel(decompositionCanvas, 0, 0);
 
   await expect(
-    page.getByRole("button", { name: /領域 0 .*複数パレット/ }),
+    page.getByText("複数パレット", { exact: true }).first(),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "分解して現在のセットへ反映" }),
