@@ -370,6 +370,58 @@ test("character mode keeps preview fixed while the sidebar scrolls", async ({
     .toBe(previewWidthInputTopBefore);
 });
 
+test("character mode keeps preview viewport shell size when stage size is small", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1800, height: 900 });
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Viewport Shell Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const previewViewport = page.getByLabel("プレビューキャンバスビュー");
+  const previewWidthInput = page.getByRole("spinbutton", {
+    name: "プレビューキャンバス幅",
+  });
+  const previewHeightInput = page.getByRole("spinbutton", {
+    name: "プレビューキャンバス高さ",
+  });
+  const zoomOutButton = page.getByRole("button", { name: "-" });
+  const zoomLevelOneBadge = page.getByText("1x", { exact: true });
+
+  const assertViewportShellStableAcrossResize = async (): Promise<void> => {
+    await zoomOutButton.click();
+    await expect(zoomLevelOneBadge).toBeVisible();
+
+    await previewWidthInput.fill("320");
+    await previewHeightInput.fill("256");
+    await expect(previewWidthInput).toHaveValue("320");
+    await expect(previewHeightInput).toHaveValue("256");
+    const largeViewportRect = await getLocatorRect(previewViewport);
+
+    await previewWidthInput.fill("16");
+    await previewHeightInput.fill("16");
+    await expect(previewWidthInput).toHaveValue("16");
+    await expect(previewHeightInput).toHaveValue("16");
+    const smallViewportRect = await getLocatorRect(previewViewport);
+
+    expect(
+      Math.abs(largeViewportRect.width - smallViewportRect.width),
+    ).toBeLessThan(2);
+    expect(
+      Math.abs(largeViewportRect.height - smallViewportRect.height),
+    ).toBeLessThan(2);
+  };
+
+  await expect(previewViewport).toBeVisible();
+  await assertViewportShellStableAcrossResize();
+
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await expect(previewViewport).toBeVisible();
+  await assertViewportShellStableAcrossResize();
+});
+
 test("character mode supports drag and drop placement and stage movement", async ({
   page,
 }) => {

@@ -309,7 +309,9 @@ export const CharacterStageViewport = React.forwardRef<
     <CharacterStageViewportRoot
       ref={ref}
       dragging={dragging === true}
+      flex="1 1 0"
       minHeight={0}
+      minWidth={0}
       p="1.5rem"
       borderRadius={0}
       {...props}
