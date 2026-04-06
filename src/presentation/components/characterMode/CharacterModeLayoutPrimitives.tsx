@@ -255,7 +255,7 @@ const EditorCard = createStackLayout("EditorCard", {
 
 export const StageEditorCard = React.forwardRef<HTMLDivElement, StackProps>(
   function StageEditorCard(props, ref) {
-  return <EditorCard ref={ref} {...props} />;
+    return <EditorCard ref={ref} {...props} />;
   },
 );
 
@@ -392,7 +392,7 @@ export const RegionOverlayButton = styled(ButtonBase, {
     height: regionHeightPx,
     padding: "0.375rem",
     border:
-      issueState === true
+      selectedState === true || issueState === true
         ? "0.125rem solid rgba(190, 24, 93, 0.92)"
         : "0.125rem solid rgba(15, 118, 110, 0.92)",
     background:
@@ -401,7 +401,7 @@ export const RegionOverlayButton = styled(ButtonBase, {
         : "rgba(240, 253, 250, 0.18)",
     boxShadow:
       selectedState === true
-        ? "0 0 0 0.375rem rgba(15, 118, 110, 0.12)"
+        ? "0 0 0 0.375rem rgba(190, 24, 93, 0.12)"
         : "none",
     cursor: toolMode === "region" ? "grab" : "default",
     pointerEvents: toolMode === "region" ? "auto" : "none",
