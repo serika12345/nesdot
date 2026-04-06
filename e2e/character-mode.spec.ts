@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { gotoApp, openMode, selectMaterialOption } from "./support/app";
 import {
   clickCanvasPixel,
@@ -14,6 +14,15 @@ import {
   panViewportWithMiddleMouse,
   zoomViewportAtCenter,
 } from "./support/pointer";
+
+const waitForCharacterWorkspaceUnlock = async (page: Page): Promise<void> => {
+  await expect(
+    page.getByLabel("キャラクター編集ロックオーバーレイ"),
+  ).toHaveCount(0);
+  await expect(
+    page.getByLabel("キャラクター編集ワークスペース", { exact: true }),
+  ).toBeVisible();
+};
 
 test("character mode keeps set controls on a single row", async ({ page }) => {
   await gotoApp(page);
@@ -85,11 +94,35 @@ test("character mode enables share actions only after a set is available", async
   ).toBeVisible();
 });
 
+test("character mode locks workspace interactions until a set is created", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const workspaceLock = page.getByLabel("キャラクター編集ロックオーバーレイ");
+
+  await expect(workspaceLock).toBeVisible();
+  await expect(
+    page.getByText("セットを作成すると編集できます", { exact: true }),
+  ).toBeVisible();
+
+  await page.getByLabel("新規セット名").fill("Unlock Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+
+  await waitForCharacterWorkspaceUnlock(page);
+  await expect(workspaceLock).toHaveCount(0);
+});
+
 test("character mode lets the sprite library collapse and expand", async ({
   page,
 }) => {
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
+
+  await page.getByLabel("新規セット名").fill("Library Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
 
   const libraryLabel = page.getByText("スプライトライブラリ", { exact: true });
   const closeLibraryButton = page.getByRole("button", {
@@ -136,6 +169,10 @@ test("character mode preserves sprite library visibility across editor mode swit
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
+  await page.getByLabel("新規セット名").fill("Library Mode Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
+
   const closeLibraryButton = page.getByRole("button", {
     name: "スプライトライブラリを閉じる",
   });
@@ -165,6 +202,10 @@ test("character mode keeps preview fixed while the sidebar scrolls", async ({
   await page.setViewportSize({ width: 1440, height: 640 });
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
+
+  await page.getByLabel("新規セット名").fill("Scroll Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
 
   const workspace = page.getByLabel("キャラクター編集ワークスペース");
   const sidebar = page.getByRole("complementary", {
@@ -219,6 +260,7 @@ test("character mode supports drag and drop placement and stage movement", async
 
   await page.getByLabel("新規セット名").fill("Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
 
   const viewport = page.getByLabel("プレビューキャンバスビュー");
   const stage = page.getByLabel("キャラクターステージ");
@@ -487,6 +529,7 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
 
   await page.getByLabel("新規セット名").fill("Decompose Sidebar Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
 
   const composeStage = page.getByLabel("キャラクターステージ");
   await expect(composeStage).toBeVisible();
@@ -598,6 +641,7 @@ test("character decomposition blocks mixed palettes and applies split regions", 
 
   await page.getByLabel("新規セット名").fill("Decompose Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
   await page.getByRole("button", { name: "編集モード 分解" }).click();
   await page.getByRole("button", { name: "分解ツールを開く" }).click();
 
@@ -663,9 +707,12 @@ test("character decomposition respects project level 8x16 sprite size", async ({
   const size16Button = page.getByRole("button", {
     name: "プロジェクトスプライトサイズ 8x16",
   });
-  await size16Button.click();
+  await expect(size16Button).toBeDisabled();
   await page.getByLabel("新規セット名").fill("Tall Hero");
   await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
+  await expect(size16Button).toBeEnabled();
+  await size16Button.click();
   await page.getByRole("button", { name: "編集モード 分解" }).click();
   await page.getByRole("button", { name: "分解ツールを開く" }).click();
 
