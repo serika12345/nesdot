@@ -22,6 +22,19 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
       (value) => value,
     ),
   );
+  const handleDeleteSetWithConfirmation = (): void => {
+    if (activeSetId === "") {
+      return;
+    }
+
+    const shouldDelete = window.confirm("本当にセットを削除しますか？");
+
+    if (shouldDelete === false) {
+      return;
+    }
+
+    setSelection.handleDeleteSet(activeSetId);
+  };
 
   return (
     <>
@@ -56,12 +69,7 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
           type="button"
           tone="danger"
           disabled={O.isNone(setSelection.selectedCharacterId)}
-          onClick={() => {
-            if (activeSetId === "") {
-              return;
-            }
-            setSelection.handleDeleteSet(activeSetId);
-          }}
+          onClick={handleDeleteSetWithConfirmation}
         >
           セットを削除
         </ToolButton>

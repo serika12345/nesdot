@@ -94,6 +94,49 @@ test("character mode enables share actions only after a set is available", async
   ).toBeVisible();
 });
 
+test("character mode asks confirmation before deleting a set", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  await page.getByLabel("新規セット名").fill("Delete Hero");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const activeSetSelect = page.getByRole("combobox", {
+    name: "編集中のセット",
+  });
+  const deleteSetButton = page.getByRole("button", { name: "セットを削除" });
+
+  await expect(activeSetSelect).toContainText("Delete Hero (0 sprites)");
+
+  const cancelDialogPromise = page
+    .waitForEvent("dialog")
+    .then(async (dialog) => {
+      expect(dialog.message()).toContain("セットを削除");
+      await dialog.dismiss();
+    });
+  await deleteSetButton.click();
+  await cancelDialogPromise;
+
+  await expect(activeSetSelect).toContainText("Delete Hero (0 sprites)");
+
+  const acceptDialogPromise = page
+    .waitForEvent("dialog")
+    .then(async (dialog) => {
+      expect(dialog.message()).toContain("セットを削除");
+      await dialog.accept();
+    });
+  await deleteSetButton.click();
+  await acceptDialogPromise;
+
+  await expect(
+    page.getByLabel("キャラクター編集ロックオーバーレイ"),
+  ).toBeVisible();
+  await expect(deleteSetButton).toBeDisabled();
+});
+
 test("character mode locks workspace interactions until a set is created", async ({
   page,
 }) => {
