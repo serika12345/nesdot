@@ -101,6 +101,38 @@ nix develop -c zsh -lc 'pnpm start'
 nix develop -c zsh -lc 'pnpm build'
 ```
 
+### Nix パッケージビルド (macOS / Linux)
+
+`nix build` でホスト OS 向けのデスクトップバイナリをビルドできます。
+
+```sh
+nix build
+```
+
+出力:
+
+- `./result/bin/nesdot`
+
+Web 配布物のみをビルドしたい場合:
+
+```sh
+nix build .#web
+```
+
+出力:
+
+- `./result/dist`
+
+明示的にデスクトップビルドを指定する場合:
+
+```sh
+nix build .#desktop
+```
+
+注記:
+
+- Linux ビルドは Linux ホスト上で、macOS ビルドは macOS ホスト上で実行してください (クロスビルドは想定していません)。
+
 ### Lint
 
 ```sh
