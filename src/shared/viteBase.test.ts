@@ -34,4 +34,14 @@ describe("getViteBase", () => {
       }),
     ).toBe("/custom-path/");
   });
+
+  test("prioritizes root when VITE_BASE_PATH is explicitly slash", () => {
+    expect(
+      getViteBase("build", {
+        VITE_BASE_PATH: "/",
+        GITHUB_ACTIONS: "true",
+        GITHUB_REPOSITORY: "paseri3739/nesdot",
+      }),
+    ).toBe("/");
+  });
 });
