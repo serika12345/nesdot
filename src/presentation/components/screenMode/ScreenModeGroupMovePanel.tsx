@@ -25,7 +25,7 @@ import {
   ScreenModeSection,
   TwoColumnFieldGrid,
   collapseChevronStyle,
-} from "./ScreenModeLayoutPrimitives";
+} from "./ScreenModePrimitives";
 
 interface ScreenModeGroupMovePanelProps {
   screenMode: ScreenModeState;

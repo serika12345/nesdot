@@ -5,7 +5,7 @@ import {
   useProjectState,
 } from "../../../application/state/projectStore";
 import { renderSpriteTileToHexArray } from "../../../domain/nes/rendering";
-import { EmptyTilePreview } from "./CharacterModeLayoutPrimitives";
+import { EmptyTilePreview } from "./CharacterModePrimitives";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 

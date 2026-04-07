@@ -1,5 +1,5 @@
 import React from "react";
-import { CharacterComposeWorkspaceGrid } from "./CharacterModeLayoutPrimitives";
+import { CharacterComposeWorkspaceGrid } from "./CharacterModePrimitives";
 import { CharacterModeDecomposeSidebar } from "./CharacterModeDecomposeSidebar";
 import { CharacterModeDecomposePreviewCanvas } from "./CharacterModeDecomposePreviewCanvas";
 

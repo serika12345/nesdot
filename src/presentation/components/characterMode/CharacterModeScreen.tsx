@@ -8,7 +8,7 @@ import {
   type FileMenuState,
 } from "../common/fileMenuState";
 import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositionRegionMenu";
-import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
+import { CharacterWorkspaceRoot } from "./CharacterModePrimitives";
 import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
 import { CharacterModeSetSelectionFields } from "./CharacterModeSetSelectionFields";
 import { CharacterModeSidebarEditorModeCard } from "./CharacterModeSidebarEditorModeCard";

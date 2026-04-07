@@ -19,7 +19,7 @@ import {
   StageInputContainer,
   StageSurface,
   ViewportCenterWrap,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import {
   useCharacterModeDecompositionCanvas,
   useCharacterModeDecompositionRegions,

@@ -17,7 +17,7 @@ import {
   TwoColumnFieldGrid,
   WideTallToolButton,
   collapseChevronStyle,
-} from "./ScreenModeLayoutPrimitives";
+} from "./ScreenModePrimitives";
 
 interface ScreenModeSpritePlacementPanelProps {
   screenMode: ScreenModeState;

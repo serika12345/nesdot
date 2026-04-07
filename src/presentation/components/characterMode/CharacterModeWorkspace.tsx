@@ -9,7 +9,7 @@ import { CharacterModeDecompositionInspector } from "./CharacterModeDecompositio
 import {
   CharacterComposeWorkspaceGrid,
   FloatingLibraryPreview,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import { CharacterModeSidebar } from "./CharacterModeSidebar";
 import {
   useCharacterModeEditorModeValue,

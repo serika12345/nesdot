@@ -5,7 +5,7 @@ import React from "react";
 import {
   CharacterComposeWorkspaceGrid,
   FloatingLibraryPreview,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import { CharacterModeComposePreviewCanvas } from "./CharacterModeComposePreviewCanvas";
 import { CharacterModeSidebar } from "./CharacterModeSidebar";
 import { LIBRARY_PREVIEW_SCALE } from "./hooks/useCharacterModeState";

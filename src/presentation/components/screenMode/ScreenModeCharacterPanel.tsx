@@ -20,7 +20,7 @@ import {
   ScreenModeSection,
   TwoColumnFieldGrid,
   WideTallToolButton,
-} from "./ScreenModeLayoutPrimitives";
+} from "./ScreenModePrimitives";
 
 interface ScreenModeCharacterPanelProps {
   screenMode: ScreenModeState;

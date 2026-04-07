@@ -8,7 +8,7 @@ import {
   MetricLabel,
   MetricValue,
 } from "../../App.styles";
-import { ScreenModeSection } from "./ScreenModeLayoutPrimitives";
+import { ScreenModeSection } from "./ScreenModePrimitives";
 
 const SummaryMetricGrid = styled(Stack)({
   flexDirection: "row",

@@ -8,7 +8,7 @@ import {
   PaletteControlContainer,
   PaletteControlRow,
   PaletteSlotGrid,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import { CharacterModeEditorCard } from "./CharacterModeEditorCard";
 import { DECOMPOSITION_COLOR_SLOTS } from "./hooks/useCharacterModeState";
 import {

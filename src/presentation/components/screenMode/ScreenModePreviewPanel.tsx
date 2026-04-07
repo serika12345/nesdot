@@ -29,7 +29,7 @@ import {
   PreviewViewport,
   WarningList,
   ZoomControlsRow,
-} from "./ScreenModeLayoutPrimitives";
+} from "./ScreenModePrimitives";
 
 const shouldForwardStageProp = (prop: PropertyKey): boolean =>
   prop !== "draggingState" && prop !== "stageHeight" && prop !== "stageWidth";

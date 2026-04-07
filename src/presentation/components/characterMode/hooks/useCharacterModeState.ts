@@ -32,7 +32,7 @@ import { createEmptySpriteTile } from "../../../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import { type FileShareAction } from "../../common/fileMenuState";
-import { type DecompositionTool } from "../CharacterModeLayoutPrimitives";
+import { type DecompositionTool } from "../CharacterModePrimitives";
 import {
   createComposeSpriteSource,
   findComposeObjectEntry,

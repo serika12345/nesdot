@@ -3,7 +3,7 @@ import { Panel, PanelHeader, PanelTitle, ScrollArea } from "../../App.styles";
 import type { ScreenModeState } from "./hooks/useScreenModeState";
 import { ScreenModeCharacterPanel } from "./ScreenModeCharacterPanel";
 import { ScreenModeGroupMovePanel } from "./ScreenModeGroupMovePanel";
-import { ScreenModeEditorContent } from "./ScreenModeLayoutPrimitives";
+import { ScreenModeEditorContent } from "./ScreenModePrimitives";
 import { ScreenModeSelectedSpritePanel } from "./ScreenModeSelectedSpritePanel";
 import { ScreenModeSpritePlacementPanel } from "./ScreenModeSpritePlacementPanel";
 import { ScreenModeSummaryPanel } from "./ScreenModeSummaryPanel";

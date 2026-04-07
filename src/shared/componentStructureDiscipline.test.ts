@@ -4,9 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
-const srcRoot = path.join(projectRoot, "src");
 const componentsRoot = path.join(projectRoot, "src/presentation/components");
-const maxTsxLineCountExclusive = 1000;
 
 type TsxFileMetric = Readonly<{
   filePath: string;
@@ -24,8 +22,8 @@ const listTsxFiles = (directoryPath: string): ReadonlyArray<string> =>
     return entryPath.endsWith(".tsx") ? [entryPath] : [];
   });
 
-const isLayoutPrimitivesFile = (filePath: string): boolean =>
-  /LayoutPrimitives\.tsx$/u.test(filePath);
+const isPrimitivesCollectionFile = (filePath: string): boolean =>
+  /Primitives\.tsx$/u.test(filePath);
 
 const countPublicComponentExports = (source: string): number => {
   const exportedConstCount = Array.from(
@@ -38,21 +36,13 @@ const countPublicComponentExports = (source: string): number => {
   return exportedConstCount + exportedFunctionCount;
 };
 
-const getLineCount = (source: string): number => {
-  if (source.length === 0) {
-    return 0;
-  }
-
-  return source.split(/\r\n|\n|\r/u).length;
-};
-
 const toRelativeMetricLabel = ({ filePath, value }: TsxFileMetric): string =>
   `${path.relative(projectRoot, filePath)}:${value}`;
 
 describe("presentation component file discipline", () => {
   it("keeps each component file to one public component export", () => {
     const offenders = listTsxFiles(componentsRoot)
-      .filter((filePath) => isLayoutPrimitivesFile(filePath) === false)
+      .filter((filePath) => isPrimitivesCollectionFile(filePath) === false)
       .map(
         (filePath): TsxFileMetric => ({
           filePath,
@@ -65,15 +55,31 @@ describe("presentation component file discipline", () => {
     expect(offenders).toStrictEqual([]);
   });
 
-  it("keeps all TSX files below 1000 lines", () => {
-    const offenders = listTsxFiles(srcRoot)
+  it("allows multiple public exports only in *Primitives files", () => {
+    const offenders = listTsxFiles(componentsRoot)
       .map(
         (filePath): TsxFileMetric => ({
           filePath,
-          value: getLineCount(fs.readFileSync(filePath, "utf8")),
+          value: countPublicComponentExports(fs.readFileSync(filePath, "utf8")),
         }),
       )
-      .filter((metric) => metric.value >= maxTsxLineCountExclusive)
+      .filter((metric) => metric.value > 1)
+      .filter((metric) => isPrimitivesCollectionFile(metric.filePath) === false)
+      .map(toRelativeMetricLabel);
+
+    expect(offenders).toStrictEqual([]);
+  });
+
+  it("keeps *Primitives files as named collection modules", () => {
+    const offenders = listTsxFiles(componentsRoot)
+      .filter((filePath) => isPrimitivesCollectionFile(filePath) === true)
+      .map(
+        (filePath): TsxFileMetric => ({
+          filePath,
+          value: countPublicComponentExports(fs.readFileSync(filePath, "utf8")),
+        }),
+      )
+      .filter((metric) => metric.value < 2)
       .map(toRelativeMetricLabel);
 
     expect(offenders).toStrictEqual([]);

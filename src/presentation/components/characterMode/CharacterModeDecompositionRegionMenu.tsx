@@ -6,7 +6,7 @@ import {
   PortalOverlay,
   PositionedActionMenu,
   PositionedActionMenuButton,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import {
   useCharacterModeDecompositionRegionMenuActions,
   useCharacterModeDecompositionRegionMenuState,

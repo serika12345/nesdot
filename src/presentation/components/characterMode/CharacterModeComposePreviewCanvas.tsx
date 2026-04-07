@@ -13,7 +13,7 @@ import {
   StageInputContainer,
   StageSurface,
   ViewportCenterWrap,
-} from "./CharacterModeLayoutPrimitives";
+} from "./CharacterModePrimitives";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./hooks/useCharacterModeState";
 import {
   useCharacterModeComposeCanvas,
