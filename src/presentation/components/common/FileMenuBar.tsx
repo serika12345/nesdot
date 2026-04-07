@@ -211,6 +211,7 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   hidden = false,
 }) => {
   const appVersion = import.meta.env.VITE_APP_VERSION;
+  const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const aboutDialogTitleId = React.useId();
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
   const hasShareActions = fileMenuState.shareActions.length > 0;
@@ -353,7 +354,7 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
         <DialogTitle id={aboutDialogTitleId}>About</DialogTitle>
         <DialogContent>
           <AboutContentLayout>
-            <AboutIconImage src="/pwa-192x192.png" alt="nesdot icon" />
+            <AboutIconImage src={aboutIconSrc} alt="nesdot icon" />
             <AboutAppName>nesdot</AboutAppName>
             <AboutVersionText>{`Version ${appVersion}`}</AboutVersionText>
           </AboutContentLayout>

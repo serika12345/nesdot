@@ -191,6 +191,36 @@ UI の表示・操作フローに影響する変更:
 nix develop -c zsh -lc 'pnpm verify:full'
 ```
 
+## 自動リリース
+
+`develop -> main` マージ、タグ作成 (`vX.Y.Z`)、リリースワークフロー起動までを自動化できます。
+
+デフォルトは `0.0.1` ずつインクリメント (patch bump) です。
+
+```sh
+nix develop -c zsh -lc 'pnpm release:auto'
+```
+
+ドライラン:
+
+```sh
+nix develop -c zsh -lc 'pnpm release:auto:dry-run'
+```
+
+主なオプション:
+
+- `--part=patch|minor|major` (デフォルト: `patch`)
+- `--version=x.y.z` (明示指定、`--part` より優先)
+- `--source=develop` / `--target=main` / `--remote=origin`
+- `--skip-checks` / `--skip-e2e-console`
+
+例:
+
+```sh
+nix develop -c zsh -lc 'pnpm release:auto -- --part=minor'
+nix develop -c zsh -lc 'pnpm release:auto -- --version=0.2.0'
+```
+
 ## 自動アップデート (Desktop)
 
 このプロジェクトは Tauri Updater に対応しています。

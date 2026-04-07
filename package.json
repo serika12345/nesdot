@@ -25,6 +25,8 @@
     "verify": "pnpm lint && pnpm typecheck:safety && pnpm test",
     "verify:ui": "pnpm verify && pnpm test:e2e:console",
     "verify:full": "pnpm verify:ui && pnpm test:e2e",
+    "release:auto": "node scripts/release-automation.mjs",
+    "release:auto:dry-run": "node scripts/release-automation.mjs --dry-run",
     "tauri": "tauri"
   },
   "keywords": [],
