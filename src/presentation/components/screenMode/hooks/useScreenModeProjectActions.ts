@@ -7,7 +7,7 @@ import {
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
-import { type FileShareAction } from "../../common/fileMenuState";
+import { type FileShareAction } from "../../common/state/fileMenuState";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ProjectActionItem = FileShareAction;

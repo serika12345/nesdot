@@ -4,7 +4,7 @@ import {
   createDefaultNesProjectState,
   NesBackgroundPalettes,
   NesSpritePalettes,
-} from "../nes/nesProject";
+} from "./nesProject";
 import {
   ColorIndexOfPalette,
   Screen,

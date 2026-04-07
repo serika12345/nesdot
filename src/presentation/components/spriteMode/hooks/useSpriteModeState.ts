@@ -16,7 +16,7 @@ import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCa
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
-import { type FileShareAction } from "../../common/fileMenuState";
+import { type FileShareAction } from "../../common/state/fileMenuState";
 
 function makeEmptyTile(
   height: ProjectSpriteSize,

@@ -5,6 +5,12 @@ import { describe, expect, it } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 const componentsRoot = path.join(projectRoot, "src/presentation/components");
+const groupedComponentsRoots = [
+  path.join(componentsRoot, "characterMode"),
+  path.join(componentsRoot, "screenMode"),
+  path.join(componentsRoot, "spriteMode"),
+  path.join(componentsRoot, "common"),
+];
 
 type TsxFileMetric = Readonly<{
   filePath: string;
@@ -20,6 +26,17 @@ const listTsxFiles = (directoryPath: string): ReadonlyArray<string> =>
     }
 
     return entryPath.endsWith(".tsx") ? [entryPath] : [];
+  });
+
+const listDirectTsxFiles = (directoryPath: string): ReadonlyArray<string> =>
+  fs.readdirSync(directoryPath, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isFile() === false) {
+      return [];
+    }
+
+    return entry.name.endsWith(".tsx")
+      ? [path.join(directoryPath, entry.name)]
+      : [];
   });
 
 const isPrimitivesCollectionFile = (filePath: string): boolean =>
@@ -40,6 +57,14 @@ const toRelativeMetricLabel = ({ filePath, value }: TsxFileMetric): string =>
   `${path.relative(projectRoot, filePath)}:${value}`;
 
 describe("presentation component file discipline", () => {
+  it("keeps major component directories free of direct TSX files", () => {
+    const offenders = groupedComponentsRoots
+      .flatMap(listDirectTsxFiles)
+      .map((filePath) => path.relative(projectRoot, filePath));
+
+    expect(offenders).toStrictEqual([]);
+  });
+
   it("keeps each component file to one public component export", () => {
     const offenders = listTsxFiles(componentsRoot)
       .filter((filePath) => isPrimitivesCollectionFile(filePath) === false)

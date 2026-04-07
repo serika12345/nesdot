@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultNesProjectState } from "../nes/nesProject";
+import { createDefaultNesProjectState } from "./nesProject";
 import {
   resolveScreenRenderPalettes,
   resolveSpriteRenderPalettes,

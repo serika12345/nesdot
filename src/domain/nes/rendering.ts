@@ -6,7 +6,7 @@ import {
   NesProjectState,
   NesSpritePalettes,
   resolveBackgroundPaletteIndex,
-} from "../nes/nesProject";
+} from "./nesProject";
 import type { Screen, SpritePriority, SpriteTile } from "../project/project";
 import { NES_PALETTE_HEX } from "./palette";
 

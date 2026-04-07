@@ -21,18 +21,18 @@ import {
   ScrollArea,
   WorkspaceGrid,
 } from "./App.styles";
-import { CharacterMode } from "./components/characterMode/CharacterMode";
-import { DesktopAutoUpdateDialog } from "./components/common/DesktopAutoUpdateDialog";
-import { FileMenuBar, type WorkMode } from "./components/common/FileMenuBar";
+import { CharacterMode } from "./components/characterMode/core/CharacterMode";
+import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
+import { FileMenuBar, type WorkMode } from "./components/common/menu/FileMenuBar";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
-} from "./components/common/fileMenuState";
-import { PalettePicker } from "./components/common/PalettePicker";
-import { ScreenMode } from "./components/screenMode/ScreenMode";
-import { SpriteMode } from "./components/spriteMode/SpriteMode";
+} from "./components/common/state/fileMenuState";
+import { PalettePicker } from "./components/common/pickers/PalettePicker";
+import { ScreenMode } from "./components/screenMode/core/ScreenMode";
+import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
 import { getAppGlobalStyles } from "./theme";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
