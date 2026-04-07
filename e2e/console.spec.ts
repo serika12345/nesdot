@@ -67,6 +67,12 @@ test("shows global app menu controls", async ({ page }) => {
       .filter({ hasText: "ファイル" })
       .first(),
   ).toBeVisible();
+  await expect(
+    menuBar
+      .locator('[aria-haspopup="menu"]')
+      .filter({ hasText: "ヘルプ" })
+      .first(),
+  ).toBeVisible();
 
   await menuBar
     .locator('[aria-haspopup="menu"]')
@@ -97,6 +103,22 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(
     page.locator('[role="menuitem"]').filter({ hasText: "復元" }).first(),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await menuBar
+    .locator('[aria-haspopup="menu"]')
+    .filter({ hasText: "ヘルプ" })
+    .first()
+    .click();
+  await page
+    .locator('[role="menuitem"]')
+    .filter({ hasText: "About" })
+    .first()
+    .click();
+  await expect(page.getByRole("dialog", { name: "About" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "nesdot icon" })).toBeVisible();
+  await expect(page.getByText(/^Version /)).toBeVisible();
+  await expect(page.getByText("nesdot").first()).toBeVisible();
 });
 
 test("includes pwa manifest and app icons", async ({ page }) => {

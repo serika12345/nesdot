@@ -1,6 +1,13 @@
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import { Stack } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
@@ -170,12 +177,42 @@ const ModeSelectionMarker = styled("span")({
   flexShrink: 0,
 });
 
+const AboutContentLayout = styled(Stack)(({ theme }) => ({
+  minWidth: "12rem",
+  alignItems: "center",
+  gap: theme.spacing(1),
+  paddingTop: theme.spacing(1),
+  paddingBottom: theme.spacing(1),
+}));
+
+const AboutIconImage = styled("img")(({ theme }) => ({
+  width: "4.5rem",
+  height: "4.5rem",
+  borderRadius: theme.shape.borderRadius,
+}));
+
+const AboutAppName = styled("span")(({ theme }) => ({
+  fontSize: theme.typography.subtitle1.fontSize,
+  fontWeight: 700,
+  lineHeight: theme.typography.subtitle1.lineHeight,
+  color: theme.palette.text.primary,
+}));
+
+const AboutVersionText = styled("span")(({ theme }) => ({
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: theme.typography.body2.lineHeight,
+  color: theme.palette.text.secondary,
+}));
+
 export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   fileMenuState,
   editMode,
   onEditModeSelect,
   hidden = false,
 }) => {
+  const appVersion = import.meta.env.VITE_APP_VERSION;
+  const aboutDialogTitleId = React.useId();
+  const [isAboutOpen, setIsAboutOpen] = React.useState(false);
   const hasShareActions = fileMenuState.shareActions.length > 0;
   const hasRestoreAction = O.isSome(fileMenuState.restoreAction);
 
@@ -191,6 +228,14 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
         },
       ),
     );
+  };
+
+  const handleAboutSelect = (): void => {
+    setIsAboutOpen(true);
+  };
+
+  const handleAboutClose = (): void => {
+    setIsAboutOpen(false);
   };
 
   if (hidden === true) {
@@ -283,8 +328,42 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
               </FileMenuContent>
             </Menubar.Portal>
           </Menubar.Menu>
+
+          <Menubar.Menu>
+            <TriggerItem aria-haspopup="menu">ヘルプ</TriggerItem>
+
+            <Menubar.Portal>
+              <FileMenuContent
+                align="start"
+                sideOffset={6}
+                aria-label="ヘルプメニュー"
+              >
+                <FileMenuItem onSelect={handleAboutSelect}>About</FileMenuItem>
+              </FileMenuContent>
+            </Menubar.Portal>
+          </Menubar.Menu>
         </MenubarRoot>
       </MenuButtons>
+
+      <Dialog
+        open={isAboutOpen}
+        onClose={handleAboutClose}
+        aria-labelledby={aboutDialogTitleId}
+      >
+        <DialogTitle id={aboutDialogTitleId}>About</DialogTitle>
+        <DialogContent>
+          <AboutContentLayout>
+            <AboutIconImage src="/pwa-192x192.png" alt="nesdot icon" />
+            <AboutAppName>nesdot</AboutAppName>
+            <AboutVersionText>{`Version ${appVersion}`}</AboutVersionText>
+          </AboutContentLayout>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAboutClose} autoFocus>
+            閉じる
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MenuBarRoot>
   );
 };
