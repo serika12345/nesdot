@@ -538,6 +538,75 @@ test("screen mode places and deletes sprites via drag and context menu", async (
     .toBe(0);
 });
 
+test("screen mode supports keyboard nudge, escape close, and delete", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const spritePreview = page.getByRole("button", {
+    name: "スクリーンライブラリスプライト 0",
+    exact: true,
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(spritePreview).toBeVisible();
+
+  await dragLibraryItemToStage(spritePreview, stage, 111, { x: 128, y: 104 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(1);
+
+  await dragStageSelection(stage, 121, { x: 128, y: 104 }, { x: 128, y: 104 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).selectedCount)
+    .toBe(1);
+
+  const beforeNudge = await getScreenStageDebugState(stage);
+  const beforeSprite = beforeNudge.layout[0] ?? { x: 0, y: 0 };
+
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
+
+  await expect
+    .poll(async () => getScreenStageDebugState(stage))
+    .toMatchObject({
+      layout: [
+        {
+          x: beforeSprite.x + 1,
+          y: beforeSprite.y + 1,
+        },
+      ],
+    });
+
+  const afterNudge = await getScreenStageDebugState(stage);
+  const movedSprite = afterNudge.layout[0] ?? { x: 0, y: 0 };
+
+  await openStageContextMenuAt(
+    stage,
+    movedSprite.x + 1,
+    movedSprite.y + 1,
+    131,
+  );
+  const contextMenu = page.getByRole("menu", {
+    name: "スクリーン配置コンテキストメニュー",
+  });
+  await expect(contextMenu).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(contextMenu).toHaveCount(0);
+
+  await stage.focus();
+  await page.keyboard.press("Delete");
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(0);
+});
+
 test("screen mode supports character preview drop and grouped drag movement", async ({
   page,
 }) => {

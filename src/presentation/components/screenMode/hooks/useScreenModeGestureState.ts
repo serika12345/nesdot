@@ -112,6 +112,7 @@ export interface ScreenModeGestureStateResult {
   handleRaiseGestureContextMenuLayer: () => void;
   handleSetGesturePriorityBehind: () => void;
   handleSetGesturePriorityFront: () => void;
+  handleStageKeyDown: React.KeyboardEventHandler<HTMLDivElement>;
   handleStageContextMenu: React.MouseEventHandler<HTMLDivElement>;
   handleStagePointerDown: React.PointerEventHandler<HTMLDivElement>;
   handleStagePointerEnd: React.PointerEventHandler<HTMLDivElement>;
@@ -399,6 +400,52 @@ export const useScreenModeGestureState = ({
       return true;
     },
     [scan, screen, setScreenAndSyncNes],
+  );
+
+  const applyMoveEntriesDelta = React.useCallback(
+    (
+      entries: ReadonlyArray<StageMoveEntry>,
+      deltaX: number,
+      deltaY: number,
+      silent: boolean,
+    ): boolean => {
+      if (entries.length === 0) {
+        return false;
+      }
+
+      const boundedDelta = resolveBoundedDelta(screen, entries, deltaX, deltaY);
+      const nextSprites = screen.sprites.map((sprite, index) => {
+        const entry = entries.find((candidate) => candidate.index === index);
+
+        return typeof entry === "undefined"
+          ? sprite
+          : {
+              ...sprite,
+              x: entry.startX + boundedDelta.x,
+              y: entry.startY + boundedDelta.y,
+            };
+      });
+
+      const changed = nextSprites.some((sprite, index) => {
+        const previous = screen.sprites[index];
+
+        return (
+          typeof previous !== "undefined" &&
+          (sprite.x !== previous.x || sprite.y !== previous.y)
+        );
+      });
+
+      if (changed === false) {
+        return false;
+      }
+
+      return applySpritesWithValidation(
+        nextSprites,
+        "移動に失敗しました。制約違反:",
+        silent,
+      );
+    },
+    [applySpritesWithValidation, screen],
   );
 
   const resolveMenuTargetIndices = React.useCallback(
@@ -714,6 +761,77 @@ export const useScreenModeGestureState = ({
     ],
   );
 
+  const handleNudgeSelectedSprites = React.useCallback(
+    (direction: "left" | "right" | "up" | "down") => {
+      const entries = resolveMoveEntries(
+        screen.sprites,
+        gestureSelectedSpriteIndices,
+      );
+
+      if (direction === "left") {
+        applyMoveEntriesDelta(entries, -1, 0, false);
+        return;
+      }
+
+      if (direction === "right") {
+        applyMoveEntriesDelta(entries, 1, 0, false);
+        return;
+      }
+
+      if (direction === "up") {
+        applyMoveEntriesDelta(entries, 0, -1, false);
+        return;
+      }
+
+      applyMoveEntriesDelta(entries, 0, 1, false);
+    },
+    [applyMoveEntriesDelta, gestureSelectedSpriteIndices, screen.sprites],
+  );
+
+  const handleStageKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeGestureContextMenu();
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        handleNudgeSelectedSprites("left");
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        handleNudgeSelectedSprites("right");
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        handleNudgeSelectedSprites("up");
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        handleNudgeSelectedSprites("down");
+        return;
+      }
+
+      if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        handleDeleteGestureContextMenuSprites();
+      }
+    },
+    [
+      closeGestureContextMenu,
+      handleDeleteGestureContextMenuSprites,
+      handleNudgeSelectedSprites,
+    ],
+  );
+
   const handleLibrarySpritePointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLButtonElement>, spriteIndex: number) => {
       if (event.button !== 0) {
@@ -771,6 +889,8 @@ export const useScreenModeGestureState = ({
       if (O.isNone(stagePoint)) {
         return;
       }
+
+      event.currentTarget.focus();
 
       if (event.button === 2) {
         event.preventDefault();
@@ -899,42 +1019,7 @@ export const useScreenModeGestureState = ({
           const rawDeltaY = Math.round(
             (event.clientY - dragState.startClientY) / screenZoomLevel,
           );
-          const boundedDelta = resolveBoundedDelta(
-            screen,
-            dragState.entries,
-            rawDeltaX,
-            rawDeltaY,
-          );
-          const nextSprites = screen.sprites.map((sprite, index) => {
-            const entry = dragState.entries.find(
-              (candidate) => candidate.index === index,
-            );
-
-            return typeof entry === "undefined"
-              ? sprite
-              : {
-                  ...sprite,
-                  x: entry.startX + boundedDelta.x,
-                  y: entry.startY + boundedDelta.y,
-                };
-          });
-
-          const changed = nextSprites.some((sprite, index) => {
-            const previous = screen.sprites[index];
-
-            return (
-              typeof previous !== "undefined" &&
-              (sprite.x !== previous.x || sprite.y !== previous.y)
-            );
-          });
-
-          if (changed === true) {
-            applySpritesWithValidation(
-              nextSprites,
-              "移動に失敗しました。制約違反:",
-              true,
-            );
-          }
+          applyMoveEntriesDelta(dragState.entries, rawDeltaX, rawDeltaY, true);
         }),
       );
 
@@ -962,9 +1047,8 @@ export const useScreenModeGestureState = ({
       );
     },
     [
-      applySpritesWithValidation,
+      applyMoveEntriesDelta,
       resolveStagePointFromClient,
-      screen,
       screenZoomLevel,
       stageMarqueeState,
       stageMoveDragState,
@@ -1039,6 +1123,7 @@ export const useScreenModeGestureState = ({
     handleRaiseGestureContextMenuLayer,
     handleSetGesturePriorityBehind,
     handleSetGesturePriorityFront,
+    handleStageKeyDown,
     handleStageContextMenu,
     handleStagePointerDown,
     handleStagePointerEnd,

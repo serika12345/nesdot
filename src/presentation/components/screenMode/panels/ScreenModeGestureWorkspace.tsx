@@ -396,6 +396,7 @@ export const ScreenModeGestureWorkspace: React.FC<
     handleRaiseGestureContextMenuLayer,
     handleSetGesturePriorityBehind,
     handleSetGesturePriorityFront,
+    handleStageKeyDown,
     handleStageContextMenu,
     handleStagePointerDown,
     handleStagePointerMove,
@@ -670,7 +671,9 @@ export const ScreenModeGestureWorkspace: React.FC<
                 stageWidth={stageWidth}
                 stageHeight={stageHeight}
                 draggingState={isStageDragging}
+                tabIndex={0}
                 onContextMenu={handleStageContextMenu}
+                onKeyDown={handleStageKeyDown}
                 onPointerDown={handleStagePointerDown}
                 onPointerMove={handleStagePointerMove}
                 onPointerUp={handleStagePointerEnd}
