@@ -10,6 +10,9 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
   await expect(
     page.getByRole("heading", { name: "スプライト編集" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "スプライトキャンバス", exact: true }),
+  ).toHaveCount(0);
   await expect(page.getByLabel("スプライト番号")).toHaveValue("0");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
     "パレット 0",

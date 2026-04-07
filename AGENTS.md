@@ -67,6 +67,11 @@ These constraints are expected to be enforced by repository configuration and mu
 - Do not use mutating array methods such as `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, or `reverse`.
 - Do not rely on truthy/falsy coercion. Use explicit boolean expressions.
 - Do not introduce lint disables unless explicitly requested and justified in code review.
+- Exception policy for lint disable:
+	- The only permitted local disable is `functional/immutable-data`.
+	- It is allowed only when the user explicitly instructs it.
+	- It must be narrowly scoped (single line or smallest possible block) and include an inline reason comment.
+	- External immutability must still hold: never mutate function inputs, parameters, shared state, or values that escape the function boundary; only locally allocated internal buffers may be mutated.
 - Do not ignore failing tests or type errors.
 - Do not weaken tsconfig, ESLint rules, or tests just to make a change pass.
 

@@ -31,6 +31,7 @@ import {
 import { createEmptySpriteTile } from "../../../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
+import { type FileShareAction } from "../../common/fileMenuState";
 import { type DecompositionTool } from "../CharacterModeLayoutPrimitives";
 import {
   createComposeSpriteSource,
@@ -266,13 +267,28 @@ export const useCharacterModeInternalState = () => {
 
   const decompositionAnalysis = useMemo(
     () =>
-      analyzeCharacterDecomposition({
-        canvas: decompositionCanvas,
-        regions: decompositionRegions,
-        spriteSize: projectSpriteSize,
-        sprites,
-      }),
-    [decompositionCanvas, decompositionRegions, projectSpriteSize, sprites],
+      editorMode !== "decompose"
+        ? {
+            spriteSize: projectSpriteSize,
+            regions: [],
+            reusableSpriteCount: 0,
+            requiredNewSpriteCount: 0,
+            availableEmptySlotCount: 0,
+            canApply: false,
+          }
+        : analyzeCharacterDecomposition({
+            canvas: decompositionCanvas,
+            regions: decompositionRegions,
+            spriteSize: projectSpriteSize,
+            sprites,
+          }),
+    [
+      decompositionCanvas,
+      decompositionRegions,
+      editorMode,
+      projectSpriteSize,
+      sprites,
+    ],
   );
 
   const decompositionRegionContextMenu = useMemo(
@@ -315,80 +331,84 @@ export const useCharacterModeInternalState = () => {
     [decompositionAnalysis.regions, selectedRegionId],
   );
 
-  const previewState: CharacterPreviewState = useMemo(
-    () =>
-      pipe(
-        activeSet,
-        O.match(
-          (): CharacterPreviewState => ({ kind: "none" }),
-          (characterSet): CharacterPreviewState => {
-            const preview = buildCharacterPreviewHexGrid(characterSet, {
-              sprites,
-              palettes: spritePalettes,
-              transparentHex: PREVIEW_TRANSPARENT_HEX,
-            });
-
-            if (E.isLeft(preview)) {
-              return { kind: "error", message: preview.left };
-            }
-
-            return {
-              kind: "ready",
-              characterSet,
-              grid: preview.right,
-            };
-          },
-        ),
-      ),
-    [activeSet, sprites, spritePalettes],
-  );
-
   const projectActions = useMemo(
     () =>
       pipe(
         activeSet,
         O.match(
           () => [],
-          (characterSet) => [
-            {
-              label: "PNGエクスポート",
-              onSelect: () => {
-                if (previewState.kind !== "ready") {
-                  return;
-                }
+          (characterSet) => {
+            const resolvePreviewState = (): CharacterPreviewState => {
+              const preview = buildCharacterPreviewHexGrid(characterSet, {
+                sprites,
+                palettes: spritePalettes,
+                transparentHex: PREVIEW_TRANSPARENT_HEX,
+              });
 
-                void exportPng(previewState.grid, `${characterSet.name}.png`);
-              },
-            },
-            {
-              label: "SVGエクスポート",
-              onSelect: () => {
-                if (previewState.kind !== "ready") {
-                  return;
-                }
+              if (E.isLeft(preview)) {
+                return { kind: "error", message: preview.left };
+              }
 
-                void exportSvgSimple(
-                  previewState.grid,
-                  8,
-                  `${characterSet.name}.svg`,
-                );
+              return {
+                kind: "ready",
+                characterSet,
+                grid: preview.right,
+              };
+            };
+
+            return [
+              {
+                id: "share-export-png",
+                label: "PNGエクスポート",
+                onSelect: () => {
+                  const previewState = resolvePreviewState();
+                  if (previewState.kind !== "ready") {
+                    return;
+                  }
+
+                  void exportPng(previewState.grid, `${characterSet.name}.png`);
+                },
               },
-            },
-            {
-              label: "キャラクターJSON書き出し",
-              onSelect: () =>
-                void exportCharacterJson(
-                  {
-                    characterSets: [characterSet],
-                    selectedCharacterId: characterSet.id,
-                  },
-                  `${characterSet.name}.json`,
-                ),
-            },
-          ],
+              {
+                id: "share-export-svg",
+                label: "SVGエクスポート",
+                onSelect: () => {
+                  const previewState = resolvePreviewState();
+                  if (previewState.kind !== "ready") {
+                    return;
+                  }
+
+                  void exportSvgSimple(
+                    previewState.grid,
+                    8,
+                    `${characterSet.name}.svg`,
+                  );
+                },
+              },
+              {
+                id: "share-export-character-json",
+                label: "キャラクターJSON書き出し",
+                onSelect: () =>
+                  void exportCharacterJson(
+                    {
+                      characterSets: [characterSet],
+                      selectedCharacterId: characterSet.id,
+                    },
+                    `${characterSet.name}.json`,
+                  ),
+              },
+            ] satisfies ReadonlyArray<FileShareAction>;
+          },
         ),
       ),
-    [activeSet, exportCharacterJson, exportPng, exportSvgSimple, previewState],
+    [
+      activeSet,
+      exportCharacterJson,
+      exportPng,
+      exportSvgSimple,
+      spritePalettes,
+      sprites,
+    ],
   );
 
   const activeSetName = pipe(

@@ -1,20 +1,27 @@
 import React from "react";
-import { SplitLayout } from "../../App.styles";
-import { ScreenModeEditorPanel } from "./ScreenModeEditorPanel";
+import { type FileMenuState } from "../common/fileMenuState";
 import { useScreenModeState } from "./hooks/useScreenModeState";
 import { ScreenModePreviewPanel } from "./ScreenModePreviewPanel";
 
+interface ScreenModeProps {
+  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
+}
+
 /**
  * スクリーン配置モード全体の UI を描画します。
- * 編集パネルとプレビューパネルを並べ、左側の編集群は単一のスクロール領域に集約します。
+ * 左カラム編集を廃止し、ジェスチャー中心ワークスペースへ集約します。
  */
-export const ScreenMode: React.FC = () => {
+const ScreenModeComponent: React.FC<ScreenModeProps> = ({
+  onFileMenuStateChange,
+}) => {
   const screenMode = useScreenModeState();
 
   return (
-    <SplitLayout flex={1} height="100%">
-      <ScreenModeEditorPanel screenMode={screenMode} />
-      <ScreenModePreviewPanel screenMode={screenMode} />
-    </SplitLayout>
+    <ScreenModePreviewPanel
+      screenMode={screenMode}
+      onFileMenuStateChange={onFileMenuStateChange}
+    />
   );
 };
+
+export const ScreenMode = React.memo(ScreenModeComponent);

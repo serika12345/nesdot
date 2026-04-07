@@ -1,14 +1,11 @@
-import { GlobalStyles, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import React, { useState } from "react";
+import { GlobalStyles } from "@mui/material";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import {
   Container,
   LeftPane,
-  ModeSwitcherCard,
-  ModeSwitcherHeader,
-  ModeSwitcherLayout,
-  ModeSwitcherTitle,
   Panel,
   PanelHeader,
   PanelTitle,
@@ -17,62 +14,114 @@ import {
   WorkspaceGrid,
 } from "./App.styles";
 import { CharacterMode } from "./components/characterMode/CharacterMode";
+import { FileMenuBar, type WorkMode } from "./components/common/FileMenuBar";
+import {
+  emptyFileMenuState,
+  type FileMenuState,
+  type FileShareAction,
+  type FileShareActionId,
+} from "./components/common/fileMenuState";
 import { PalettePicker } from "./components/common/PalettePicker";
 import { ScreenMode } from "./components/screenMode/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/SpriteMode";
 import { getAppGlobalStyles } from "./theme";
 
-type EditMode = "screen" | "sprite" | "character";
+const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
+  eventName: string;
+  actionId: FileShareActionId;
+}> = [
+  {
+    eventName: "file-menu://share-export-chr",
+    actionId: "share-export-chr",
+  },
+  {
+    eventName: "file-menu://share-export-png",
+    actionId: "share-export-png",
+  },
+  {
+    eventName: "file-menu://share-export-svg",
+    actionId: "share-export-svg",
+  },
+  {
+    eventName: "file-menu://share-save-project",
+    actionId: "share-save-project",
+  },
+  {
+    eventName: "file-menu://share-export-character-json",
+    actionId: "share-export-character-json",
+  },
+];
 
-const SegmentedControl = styled(ToggleButtonGroup)({
-  width: "100%",
-  padding: "0.375rem",
-  borderRadius: "1.125rem",
-  background: "rgba(15, 23, 42, 0.05)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  "& .MuiToggleButtonGroup-grouped": {
-    flex: 1,
-    margin: 0,
-    border: 0,
-    borderRadius: "0.75rem",
+const NATIVE_MODE_EVENT_BINDINGS: ReadonlyArray<{
+  eventName: string;
+  mode: WorkMode;
+}> = [
+  {
+    eventName: "mode-menu://switch-sprite",
+    mode: "sprite",
   },
-});
+  {
+    eventName: "mode-menu://switch-character",
+    mode: "character",
+  },
+  {
+    eventName: "mode-menu://switch-screen",
+    mode: "screen",
+  },
+];
 
-const SegmentedButton = styled(ToggleButton)({
-  border: 0,
-  borderRadius: "0.75rem",
-  padding: "0.625rem 0.75rem",
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  letterSpacing: "0.01em",
-  textTransform: "none",
-  color: "var(--ink-strong)",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-  borderColor: "transparent",
-  boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-  transition:
-    "transform 160ms ease, box-shadow 160ms ease, background 160ms ease",
-  "&:hover": {
-    transform: "translateY(-0.0625rem)",
-    background:
-      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94))",
-  },
-  "&.Mui-selected": {
-    color: "var(--accent-contrast)",
-    background:
-      "linear-gradient(135deg, var(--accent-solid) 0%, var(--accent-emphasis) 100%)",
-    border: "0.0625rem solid var(--accent-border-strong)",
-    boxShadow: "0 0.875rem 1.625rem rgba(15, 118, 110, 0.22)",
-  },
-  "&.Mui-selected:hover": {
-    background:
-      "linear-gradient(135deg, var(--accent-solid) 0%, var(--accent-emphasis) 100%)",
-  },
-});
+const NATIVE_RESTORE_EVENT_NAME = "file-menu://restore-import";
 
-const isEditMode = (value: unknown): value is EditMode =>
-  value === "sprite" || value === "character" || value === "screen";
+const hasTauriRuntime = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return Reflect.has(window, "__TAURI_INTERNALS__");
+};
+
+const isMacNativeMenuRuntime = (): boolean => {
+  if (hasTauriRuntime() !== true) {
+    return false;
+  }
+
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  return navigator.userAgent.includes("Mac");
+};
+
+const runShareActionById = (
+  shareActions: ReadonlyArray<FileShareAction>,
+  actionId: FileShareActionId,
+): void => {
+  pipe(
+    O.fromNullable(shareActions.find((action) => action.id === actionId)),
+    O.match(
+      () => {
+        return;
+      },
+      (action) => {
+        action.onSelect();
+      },
+    ),
+  );
+};
+
+const runRestoreAction = (fileMenuState: FileMenuState): void => {
+  pipe(
+    fileMenuState.restoreAction,
+    O.match(
+      () => {
+        return;
+      },
+      (restoreAction) => {
+        void restoreAction.onSelect();
+      },
+    ),
+  );
+};
 
 /**
  * アプリ全体の編集モード切り替えと共通レイアウトを描画します。
@@ -81,63 +130,105 @@ const isEditMode = (value: unknown): value is EditMode =>
 export const App: React.FC = () => {
   useDesktopAutoUpdate();
 
-  const [editMode, setEditMode] = useState<EditMode>("sprite");
+  const [editMode, setEditMode] = useState<WorkMode>("sprite");
+  const [fileMenuState, setFileMenuState] =
+    useState<FileMenuState>(emptyFileMenuState);
+  const isNativeMacMenu = useMemo(() => isMacNativeMenuRuntime(), []);
+
+  useEffect(() => {
+    if (isNativeMacMenu !== true) {
+      return;
+    }
+
+    const registerNativeMenuListeners = async (): Promise<
+      ReadonlyArray<() => void>
+    > => {
+      try {
+        const eventModule = await import("@tauri-apps/api/event");
+        const shareUnlistenCallbacks = await Promise.all(
+          NATIVE_SHARE_EVENT_BINDINGS.map(({ eventName, actionId }) =>
+            eventModule.listen(eventName, () => {
+              runShareActionById(fileMenuState.shareActions, actionId);
+            }),
+          ),
+        );
+        const modeUnlistenCallbacks = await Promise.all(
+          NATIVE_MODE_EVENT_BINDINGS.map(({ eventName, mode }) =>
+            eventModule.listen(eventName, () => {
+              setEditMode(mode);
+            }),
+          ),
+        );
+
+        const restoreUnlistenCallback = await eventModule.listen(
+          NATIVE_RESTORE_EVENT_NAME,
+          () => {
+            runRestoreAction(fileMenuState);
+          },
+        );
+
+        return [
+          ...shareUnlistenCallbacks,
+          ...modeUnlistenCallbacks,
+          restoreUnlistenCallback,
+        ];
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.info(`[menu] native menu listener skipped: ${message}`);
+        return [];
+      }
+    };
+
+    const unlistenCallbacksPromise = registerNativeMenuListeners();
+
+    return () => {
+      void unlistenCallbacksPromise.then((unlistenCallbacks) => {
+        unlistenCallbacks.forEach((unlisten) => {
+          unlisten();
+        });
+      });
+    };
+  }, [fileMenuState, isNativeMacMenu]);
+
+  const handleFileMenuStateChange = useCallback(
+    (nextFileMenuState: FileMenuState): void => {
+      setFileMenuState(nextFileMenuState);
+    },
+    [],
+  );
+
+  const handleEditModeSelect = useCallback((nextEditMode: WorkMode): void => {
+    setEditMode(nextEditMode);
+  }, []);
 
   const mainPanel = (() => {
     if (editMode === "sprite") {
-      return <SpriteMode />;
+      return <SpriteMode onFileMenuStateChange={handleFileMenuStateChange} />;
     }
     if (editMode === "character") {
-      return <CharacterMode />;
+      return (
+        <CharacterMode onFileMenuStateChange={handleFileMenuStateChange} />
+      );
     }
-    return <ScreenMode />;
+    return <ScreenMode onFileMenuStateChange={handleFileMenuStateChange} />;
   })();
-
-  const handleEditModeChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    nextEditMode: unknown,
-  ): void => {
-    if (isEditMode(nextEditMode)) {
-      setEditMode(nextEditMode);
-    }
-  };
 
   return (
     <>
       <GlobalStyles styles={getAppGlobalStyles} />
 
-      <Container>
-        <WorkspaceGrid>
+      <Container spacing={{ xs: "0.75rem", md: "1rem" }}>
+        <FileMenuBar
+          fileMenuState={fileMenuState}
+          editMode={editMode}
+          onEditModeSelect={handleEditModeSelect}
+          hidden={isNativeMacMenu}
+        />
+
+        <WorkspaceGrid flex={1} minHeight={0}>
           <LeftPane>{mainPanel}</LeftPane>
 
           <RightPane>
-            <ModeSwitcherCard>
-              <ModeSwitcherLayout>
-                <ModeSwitcherHeader>
-                  <ModeSwitcherTitle>作業モード</ModeSwitcherTitle>
-                </ModeSwitcherHeader>
-                <SegmentedControl
-                  exclusive
-                  fullWidth
-                  value={editMode}
-                  onChange={handleEditModeChange}
-                >
-                  <SegmentedButton value="sprite" aria-label="スプライト編集">
-                    スプライト編集
-                  </SegmentedButton>
-                  <SegmentedButton
-                    value="character"
-                    aria-label="キャラクター編集"
-                  >
-                    キャラクター編集
-                  </SegmentedButton>
-                  <SegmentedButton value="screen" aria-label="画面配置">
-                    画面配置
-                  </SegmentedButton>
-                </SegmentedControl>
-              </ModeSwitcherLayout>
-            </ModeSwitcherCard>
-
             <Panel flex={1} minHeight={0}>
               <PanelHeader>
                 <PanelTitle>NES パレット</PanelTitle>

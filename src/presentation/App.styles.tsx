@@ -171,7 +171,7 @@ export const ModeSwitcherTitle = styled("h2")({
 export const WorkspaceGrid = createStackLayout("WorkspaceGrid", {
   direction: { xs: "column", lg: "row" },
   spacing: { xs: "1rem", xl: "1.25rem" },
-  height: "100%",
+  flex: "1 1 0",
   minHeight: 0,
   overflow: { xs: "auto", lg: "visible" },
 });

@@ -9,7 +9,6 @@
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "baseUrl": "./src",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,

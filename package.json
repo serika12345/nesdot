@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "productName": "nesdot",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "packageManager": "pnpm@10.32.1",
   "description": "An NES screen emulator built with Tauri and React.",
   "scripts": {
@@ -58,6 +58,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
+    "@radix-ui/react-menubar": "^1.1.16",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",

@@ -22,6 +22,14 @@ const ResponsiveActionContainer = styled("div")({
   flexShrink: 0,
 });
 
+const SetSelectContainer = styled("div")(({ theme }) => ({
+  minWidth: "14rem",
+  flex: "1 1 16rem",
+  [theme.breakpoints.down("sm")]: {
+    minWidth: "100%",
+  },
+}));
+
 /**
  * 編集対象セットの選択、名前変更、削除を扱う入力欄です。
  */
@@ -74,9 +82,9 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
 
   return (
     <>
-      <Field flex="1 1 0" minWidth={0}>
-        <FieldLabel>編集中のセット</FieldLabel>
+      <SetSelectContainer>
         <Select
+          fullWidth
           variant="outlined"
           inputProps={{
             "aria-label": "編集中のセット",
@@ -99,7 +107,7 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
             </MenuItem>
           ))}
         </Select>
-      </Field>
+      </SetSelectContainer>
       <ResponsiveActionContainer>
         <ToolButton
           type="button"
