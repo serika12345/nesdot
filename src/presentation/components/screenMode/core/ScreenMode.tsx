@@ -1,7 +1,7 @@
 import React from "react";
 import { type FileMenuState } from "../../common/state/fileMenuState";
 import { useScreenModeState } from "../hooks/useScreenModeState";
-import { ScreenModePreviewPanel } from "../panels/ScreenModePreviewPanel";
+import { ScreenModeWorkspacePanel } from "../panels/ScreenModeWorkspacePanel";
 
 interface ScreenModeProps {
   onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
@@ -17,7 +17,7 @@ const ScreenModeComponent: React.FC<ScreenModeProps> = ({
   const screenMode = useScreenModeState();
 
   return (
-    <ScreenModePreviewPanel
+    <ScreenModeWorkspacePanel
       screenMode={screenMode}
       onFileMenuStateChange={onFileMenuStateChange}
     />

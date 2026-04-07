@@ -7,28 +7,16 @@ import React from "react";
 import {
   Badge,
   CollapseToggle,
-  DetailKey,
-  DetailRow,
-  DetailValue,
   FieldLabel,
   HelperText,
-  Panel,
   PanelHeaderRow,
-  Spacer,
-  ToolButton,
 } from "../../../App.styles";
 import { CharacterModeTilePreview } from "../../characterMode/preview/CharacterModeTilePreview";
-import {
-  emptyFileMenuState,
-  type FileMenuState,
-} from "../../common/state/fileMenuState";
 import { ScreenCanvas } from "../../common/canvas/ScreenCanvas";
 import type { ScreenModeState } from "../hooks/useScreenModeState";
 import {
   PreviewCanvasWrap,
   PreviewViewport,
-  WarningList,
-  ZoomControlsRow,
 } from "../primitives/ScreenModePrimitives";
 
 const shouldForwardStageProp = (prop: PropertyKey): boolean =>
@@ -60,13 +48,6 @@ const shouldForwardOpenStateProp = (prop: PropertyKey): boolean =>
 const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
-});
-
-const GestureWorkspaceRoot = styled(Stack)({
-  position: "relative",
-  minHeight: 0,
-  minWidth: 0,
-  flex: "1 1 0",
 });
 
 const StageSurface = styled("div", {
@@ -375,26 +356,24 @@ const isCharacterDragState = (
     ),
   );
 
-interface ScreenModePreviewPanelProps {
+interface ScreenModeGestureWorkspaceProps {
   screenMode: ScreenModeState;
-  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
+  isSpriteOutlineVisible: boolean;
+  isSpriteIndexVisible: boolean;
 }
 
 /**
- * 画面プレビューとズーム、書き出し導線をまとめるパネルです。
+ * スクリーン配置モードのジェスチャー中心ワークスペースを描画します。
+ * ライブラリ表示、ステージ操作、コンテキストメニュー、ドラッグプレビューをまとめて扱います。
  */
-export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
-  screenMode,
-  onFileMenuStateChange,
-}) => {
+export const ScreenModeGestureWorkspace: React.FC<
+  ScreenModeGestureWorkspaceProps
+> = ({ screenMode, isSpriteOutlineVisible, isSpriteIndexVisible }) => {
   const spriteLibraryContentId = React.useId();
   const characterLibraryContentId = React.useId();
   const [isSpriteLibraryOpen, setIsSpriteLibraryOpen] = React.useState(true);
   const [isCharacterLibraryOpen, setIsCharacterLibraryOpen] =
     React.useState(true);
-  const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
-    React.useState(true);
-  const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
 
   const {
     screen,
@@ -402,8 +381,6 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
     characterPreviewCards,
     screenZoomLevel,
     viewportPanState,
-    scanReport,
-    projectActions,
     gestureContextMenu,
     gestureLibraryDragState,
     gestureMarqueeRect,
@@ -425,14 +402,8 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
     handleStagePointerEnd,
     handleToggleGestureFlipH,
     handleToggleGestureFlipV,
-    handleWorkspacePointerDownCapture,
-    handleWorkspacePointerMoveCapture,
-    handleWorkspacePointerEndCapture,
     setStageRef,
     setViewportRef,
-    handleImport,
-    handleZoomOut,
-    handleZoomIn,
     handleViewportWheel,
     handleViewportPointerDown,
     handleViewportPointerMove,
@@ -441,27 +412,6 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
 
   const stageWidth = screen.width * screenZoomLevel;
   const stageHeight = screen.height * screenZoomLevel;
-
-  const fileMenuState = React.useMemo<FileMenuState>(
-    () => ({
-      shareActions: projectActions,
-      restoreAction: O.some({
-        label: "復元",
-        onSelect: handleImport,
-      }),
-    }),
-    [handleImport, projectActions],
-  );
-
-  React.useEffect(() => {
-    onFileMenuStateChange(fileMenuState);
-  }, [fileMenuState, onFileMenuStateChange]);
-
-  React.useEffect(() => {
-    return () => {
-      onFileMenuStateChange(emptyFileMenuState);
-    };
-  }, [onFileMenuStateChange]);
 
   const contextMenuPosition = pipe(
     gestureContextMenu,
@@ -534,320 +484,247 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
     ),
   );
 
-  const handleWorkspaceContextMenuCapture = React.useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      event.preventDefault();
-    },
-    [],
-  );
-
   return (
-    <Panel
-      flex={1}
-      minHeight={0}
-      role="region"
-      aria-label="スクリーン配置ジェスチャーワークスペース"
-      onContextMenuCapture={handleWorkspaceContextMenuCapture}
-      onPointerDownCapture={handleWorkspacePointerDownCapture}
-      onPointerMoveCapture={handleWorkspacePointerMoveCapture}
-      onPointerUpCapture={handleWorkspacePointerEndCapture}
-      onPointerCancelCapture={handleWorkspacePointerEndCapture}
-    >
-      <ZoomControlsRow>
-        <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
-        <ToolButton
-          type="button"
-          aria-label="画面ズーム縮小"
-          onClick={handleZoomOut}
-        >
-          -
-        </ToolButton>
-        <ToolButton
-          type="button"
-          aria-label="画面ズーム拡大"
-          onClick={handleZoomIn}
-        >
-          +
-        </ToolButton>
-        <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
-        <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
-        <Spacer />
-        <ToolButton
-          type="button"
-          active={isSpriteOutlineVisible}
-          aria-label="スプライト外枠表示切り替え"
-          onClick={() =>
-            setIsSpriteOutlineVisible((previous) => previous === false)
-          }
-        >
-          外枠
-        </ToolButton>
-        <ToolButton
-          type="button"
-          active={isSpriteIndexVisible}
-          aria-label="スプライト番号表示切り替え"
-          onClick={() =>
-            setIsSpriteIndexVisible((previous) => previous === false)
-          }
-        >
-          #表示
-        </ToolButton>
-      </ZoomControlsRow>
-
+    <>
       <StageGuide>
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
       </StageGuide>
 
-      <GestureWorkspaceRoot>
-        <WorkspaceColumns>
-          <LibrarySidebar
-            role="complementary"
-            aria-label="スクリーン配置サイドバー"
+      <WorkspaceColumns>
+        <LibrarySidebar
+          role="complementary"
+          aria-label="スクリーン配置サイドバー"
+        >
+          <LibrarySection
+            role="region"
+            aria-label="スクリーン配置スプライトライブラリ"
           >
-            <LibrarySection
-              role="region"
-              aria-label="スクリーン配置スプライトライブラリ"
-            >
-              <LibraryHeader>
-                <Stack direction="row" spacing="0.75rem" alignItems="center">
-                  <FieldLabel>スプライトプレビュー</FieldLabel>
-                  <CollapseToggle
-                    type="button"
-                    open={isSpriteLibraryOpen}
-                    aria-expanded={isSpriteLibraryOpen}
-                    aria-controls={spriteLibraryContentId}
-                    aria-label={
-                      isSpriteLibraryOpen
-                        ? "スプライトプレビューを閉じる"
-                        : "スプライトプレビューを開く"
-                    }
-                    onClick={() =>
-                      setIsSpriteLibraryOpen((previous) => previous === false)
-                    }
-                  >
-                    {isSpriteLibraryOpen ? "閉じる" : "開く"}
-                    <ExpandMoreRoundedIcon
-                      style={collapseChevronStyle(isSpriteLibraryOpen)}
-                    />
-                  </CollapseToggle>
-                </Stack>
-              </LibraryHeader>
+            <LibraryHeader>
+              <Stack direction="row" spacing="0.75rem" alignItems="center">
+                <FieldLabel>スプライトプレビュー</FieldLabel>
+                <CollapseToggle
+                  type="button"
+                  open={isSpriteLibraryOpen}
+                  aria-expanded={isSpriteLibraryOpen}
+                  aria-controls={spriteLibraryContentId}
+                  aria-label={
+                    isSpriteLibraryOpen
+                      ? "スプライトプレビューを閉じる"
+                      : "スプライトプレビューを開く"
+                  }
+                  onClick={() =>
+                    setIsSpriteLibraryOpen((previous) => previous === false)
+                  }
+                >
+                  {isSpriteLibraryOpen ? "閉じる" : "開く"}
+                  <ExpandMoreRoundedIcon
+                    style={collapseChevronStyle(isSpriteLibraryOpen)}
+                  />
+                </CollapseToggle>
+              </Stack>
+            </LibraryHeader>
 
-              <LibrarySectionContent
-                id={spriteLibraryContentId}
-                openState={isSpriteLibraryOpen}
-                aria-hidden={isSpriteLibraryOpen === false}
-              >
-                <SpriteLibraryScrollArea>
-                  <SpriteLibraryGrid>
-                    {sprites.map((sprite, spriteIndex) => (
+            <LibrarySectionContent
+              id={spriteLibraryContentId}
+              openState={isSpriteLibraryOpen}
+              aria-hidden={isSpriteLibraryOpen === false}
+            >
+              <SpriteLibraryScrollArea>
+                <SpriteLibraryGrid>
+                  {sprites.map((sprite, spriteIndex) => (
+                    <LibraryPreviewButton
+                      key={`screen-library-sprite-${spriteIndex}`}
+                      type="button"
+                      aria-label={`スクリーンライブラリスプライト ${spriteIndex}`}
+                      draggingState={isSpriteDragState(
+                        gestureLibraryDragState,
+                        spriteIndex,
+                      )}
+                      draggable={false}
+                      onDragStart={(event) => event.preventDefault()}
+                      onPointerDown={(event) =>
+                        handleLibrarySpritePointerDown(event, spriteIndex)
+                      }
+                    >
+                      <LibraryButtonLayout>
+                        <CharacterModeTilePreview
+                          scale={3}
+                          tileOption={O.some(sprite)}
+                        />
+                        <PreviewLabel>{`Sprite ${spriteIndex}`}</PreviewLabel>
+                        <Badge tone="accent">{`${sprite.width}×${sprite.height}`}</Badge>
+                      </LibraryButtonLayout>
+                    </LibraryPreviewButton>
+                  ))}
+                </SpriteLibraryGrid>
+              </SpriteLibraryScrollArea>
+            </LibrarySectionContent>
+          </LibrarySection>
+
+          <LibrarySection
+            role="region"
+            aria-label="スクリーン配置キャラクターライブラリ"
+          >
+            <LibraryHeader>
+              <FieldLabel>キャラクタープレビュー</FieldLabel>
+              <LibraryHeaderActions>
+                <Badge tone="neutral">{`${characterPreviewCards.length} sets`}</Badge>
+                <CollapseToggle
+                  type="button"
+                  open={isCharacterLibraryOpen}
+                  aria-expanded={isCharacterLibraryOpen}
+                  aria-controls={characterLibraryContentId}
+                  aria-label={
+                    isCharacterLibraryOpen
+                      ? "キャラクタープレビューを閉じる"
+                      : "キャラクタープレビューを開く"
+                  }
+                  onClick={() =>
+                    setIsCharacterLibraryOpen((previous) => previous === false)
+                  }
+                >
+                  {isCharacterLibraryOpen ? "閉じる" : "開く"}
+                  <ExpandMoreRoundedIcon
+                    style={collapseChevronStyle(isCharacterLibraryOpen)}
+                  />
+                </CollapseToggle>
+              </LibraryHeaderActions>
+            </LibraryHeader>
+
+            <LibrarySectionContent
+              id={characterLibraryContentId}
+              openState={isCharacterLibraryOpen}
+              aria-hidden={isCharacterLibraryOpen === false}
+            >
+              {characterPreviewCards.length > 0 ? (
+                <LibraryScrollArea>
+                  <CharacterLibraryGrid>
+                    {characterPreviewCards.map((characterCard) => (
                       <LibraryPreviewButton
-                        key={`screen-library-sprite-${spriteIndex}`}
+                        key={`screen-library-character-${characterCard.id}`}
                         type="button"
-                        aria-label={`スクリーンライブラリスプライト ${spriteIndex}`}
-                        draggingState={isSpriteDragState(
+                        aria-label={`スクリーンキャラクタープレビュー ${characterCard.name}`}
+                        draggingState={isCharacterDragState(
                           gestureLibraryDragState,
-                          spriteIndex,
+                          characterCard.id,
                         )}
                         draggable={false}
                         onDragStart={(event) => event.preventDefault()}
                         onPointerDown={(event) =>
-                          handleLibrarySpritePointerDown(event, spriteIndex)
+                          handleLibraryCharacterPointerDown(
+                            event,
+                            characterCard.id,
+                          )
                         }
                       >
                         <LibraryButtonLayout>
-                          <CharacterModeTilePreview
-                            scale={3}
-                            tileOption={O.some(sprite)}
-                          />
-                          <PreviewLabel>{`Sprite ${spriteIndex}`}</PreviewLabel>
-                          <Badge tone="accent">{`${sprite.width}×${sprite.height}`}</Badge>
+                          <CharacterPreviewTiles>
+                            {characterCard.previewSpriteIndices.map(
+                              (spriteIndex) => (
+                                <CharacterModeTilePreview
+                                  key={`screen-library-character-sprite-${characterCard.id}-${spriteIndex}`}
+                                  scale={2}
+                                  tileOption={O.fromNullable(
+                                    sprites[spriteIndex],
+                                  )}
+                                />
+                              ),
+                            )}
+                          </CharacterPreviewTiles>
+                          <PreviewLabel>{characterCard.name}</PreviewLabel>
+                          <Badge tone="accent">{`${characterCard.spriteCount} sprites`}</Badge>
                         </LibraryButtonLayout>
                       </LibraryPreviewButton>
                     ))}
-                  </SpriteLibraryGrid>
-                </SpriteLibraryScrollArea>
-              </LibrarySectionContent>
-            </LibrarySection>
+                  </CharacterLibraryGrid>
+                </LibraryScrollArea>
+              ) : (
+                <HelperText>
+                  先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
+                </HelperText>
+              )}
+            </LibrarySectionContent>
+          </LibrarySection>
+        </LibrarySidebar>
 
-            <LibrarySection
-              role="region"
-              aria-label="スクリーン配置キャラクターライブラリ"
-            >
-              <LibraryHeader>
-                <FieldLabel>キャラクタープレビュー</FieldLabel>
-                <LibraryHeaderActions>
-                  <Badge tone="neutral">{`${characterPreviewCards.length} sets`}</Badge>
-                  <CollapseToggle
-                    type="button"
-                    open={isCharacterLibraryOpen}
-                    aria-expanded={isCharacterLibraryOpen}
-                    aria-controls={characterLibraryContentId}
-                    aria-label={
-                      isCharacterLibraryOpen
-                        ? "キャラクタープレビューを閉じる"
-                        : "キャラクタープレビューを開く"
-                    }
-                    onClick={() =>
-                      setIsCharacterLibraryOpen(
-                        (previous) => previous === false,
-                      )
-                    }
-                  >
-                    {isCharacterLibraryOpen ? "閉じる" : "開く"}
-                    <ExpandMoreRoundedIcon
-                      style={collapseChevronStyle(isCharacterLibraryOpen)}
-                    />
-                  </CollapseToggle>
-                </LibraryHeaderActions>
-              </LibraryHeader>
-
-              <LibrarySectionContent
-                id={characterLibraryContentId}
-                openState={isCharacterLibraryOpen}
-                aria-hidden={isCharacterLibraryOpen === false}
+        <StageWorkspace>
+          <PreviewViewport
+            ref={setViewportRef}
+            aria-label="画面プレビューキャンバスビュー"
+            onWheel={handleViewportWheel}
+            onPointerDown={handleViewportPointerDown}
+            onPointerMove={handleViewportPointerMove}
+            onPointerUp={handleViewportPointerEnd}
+            onPointerCancel={handleViewportPointerEnd}
+            onMouseDown={(event: React.MouseEvent<HTMLDivElement>) => {
+              if (event.button === 1) {
+                event.preventDefault();
+              }
+            }}
+            active={O.isSome(viewportPanState)}
+          >
+            <PreviewCanvasWrap>
+              <StageSurface
+                ref={setStageRef}
+                aria-label="スクリーン配置ステージ"
+                stageWidth={stageWidth}
+                stageHeight={stageHeight}
+                draggingState={isStageDragging}
+                onContextMenu={handleStageContextMenu}
+                onPointerDown={handleStagePointerDown}
+                onPointerMove={handleStagePointerMove}
+                onPointerUp={handleStagePointerEnd}
+                onPointerCancel={handleStagePointerEnd}
+                data-stage-sprite-count={screen.sprites.length}
+                data-selected-sprite-count={gestureSelectedSpriteCount}
+                data-stage-sprite-layout={gestureStageSpriteLayout}
               >
-                {characterPreviewCards.length > 0 ? (
-                  <LibraryScrollArea>
-                    <CharacterLibraryGrid>
-                      {characterPreviewCards.map((characterCard) => (
-                        <LibraryPreviewButton
-                          key={`screen-library-character-${characterCard.id}`}
-                          type="button"
-                          aria-label={`スクリーンキャラクタープレビュー ${characterCard.name}`}
-                          draggingState={isCharacterDragState(
-                            gestureLibraryDragState,
-                            characterCard.id,
-                          )}
-                          draggable={false}
-                          onDragStart={(event) => event.preventDefault()}
-                          onPointerDown={(event) =>
-                            handleLibraryCharacterPointerDown(
-                              event,
-                              characterCard.id,
-                            )
-                          }
-                        >
-                          <LibraryButtonLayout>
-                            <CharacterPreviewTiles>
-                              {characterCard.previewSpriteIndices.map(
-                                (spriteIndex) => (
-                                  <CharacterModeTilePreview
-                                    key={`screen-library-character-sprite-${characterCard.id}-${spriteIndex}`}
-                                    scale={2}
-                                    tileOption={O.fromNullable(
-                                      sprites[spriteIndex],
-                                    )}
-                                  />
-                                ),
-                              )}
-                            </CharacterPreviewTiles>
-                            <PreviewLabel>{characterCard.name}</PreviewLabel>
-                            <Badge tone="accent">{`${characterCard.spriteCount} sprites`}</Badge>
-                          </LibraryButtonLayout>
-                        </LibraryPreviewButton>
-                      ))}
-                    </CharacterLibraryGrid>
-                  </LibraryScrollArea>
-                ) : (
-                  <HelperText>
-                    先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
-                  </HelperText>
-                )}
-              </LibrarySectionContent>
-            </LibrarySection>
-          </LibrarySidebar>
+                <ScreenCanvas
+                  ariaLabel="画面プレビューキャンバス"
+                  scale={screenZoomLevel}
+                  showGrid={true}
+                />
 
-          <StageWorkspace>
-            <PreviewViewport
-              ref={setViewportRef}
-              aria-label="画面プレビューキャンバスビュー"
-              onWheel={handleViewportWheel}
-              onPointerDown={handleViewportPointerDown}
-              onPointerMove={handleViewportPointerMove}
-              onPointerUp={handleViewportPointerEnd}
-              onPointerCancel={handleViewportPointerEnd}
-              onMouseDown={(event: React.MouseEvent<HTMLDivElement>) => {
-                if (event.button === 1) {
-                  event.preventDefault();
-                }
-              }}
-              active={O.isSome(viewportPanState)}
-            >
-              <PreviewCanvasWrap>
-                <StageSurface
-                  ref={setStageRef}
-                  aria-label="スクリーン配置ステージ"
-                  stageWidth={stageWidth}
-                  stageHeight={stageHeight}
-                  draggingState={isStageDragging}
-                  onContextMenu={handleStageContextMenu}
-                  onPointerDown={handleStagePointerDown}
-                  onPointerMove={handleStagePointerMove}
-                  onPointerUp={handleStagePointerEnd}
-                  onPointerCancel={handleStagePointerEnd}
-                  data-stage-sprite-count={screen.sprites.length}
-                  data-selected-sprite-count={gestureSelectedSpriteCount}
-                  data-stage-sprite-layout={gestureStageSpriteLayout}
-                >
-                  <ScreenCanvas
-                    ariaLabel="画面プレビューキャンバス"
-                    scale={screenZoomLevel}
-                    showGrid={true}
-                  />
+                <StageInteractionLayer aria-hidden="true">
+                  {screen.sprites.map((sprite, index) => (
+                    <StageSpriteOutline
+                      key={`screen-stage-sprite-outline-${index}`}
+                      spriteX={sprite.x * screenZoomLevel}
+                      spriteY={sprite.y * screenZoomLevel}
+                      spriteWidth={sprite.width * screenZoomLevel}
+                      spriteHeight={sprite.height * screenZoomLevel}
+                      selectedState={gestureSelectedSpriteIndices.has(index)}
+                      outlineVisibleState={isSpriteOutlineVisible}
+                      data-stage-sprite-outline="true"
+                    >
+                      {isSpriteIndexVisible === true ? (
+                        <StageSpriteIndex>{`#${index}`}</StageSpriteIndex>
+                      ) : (
+                        <></>
+                      )}
+                    </StageSpriteOutline>
+                  ))}
 
-                  <StageInteractionLayer aria-hidden="true">
-                    {screen.sprites.map((sprite, index) => (
-                      <StageSpriteOutline
-                        key={`screen-stage-sprite-outline-${index}`}
-                        spriteX={sprite.x * screenZoomLevel}
-                        spriteY={sprite.y * screenZoomLevel}
-                        spriteWidth={sprite.width * screenZoomLevel}
-                        spriteHeight={sprite.height * screenZoomLevel}
-                        selectedState={gestureSelectedSpriteIndices.has(index)}
-                        outlineVisibleState={isSpriteOutlineVisible}
-                        data-stage-sprite-outline="true"
-                      >
-                        {isSpriteIndexVisible === true ? (
-                          <StageSpriteIndex>{`#${index}`}</StageSpriteIndex>
-                        ) : (
-                          <></>
-                        )}
-                      </StageSpriteOutline>
-                    ))}
-
-                    {pipe(
-                      gestureMarqueeRect,
-                      O.match(
-                        () => <></>,
-                        (rect) => (
-                          <StageMarquee
-                            marqueeX={rect.x * screenZoomLevel}
-                            marqueeY={rect.y * screenZoomLevel}
-                            marqueeWidth={rect.width * screenZoomLevel}
-                            marqueeHeight={rect.height * screenZoomLevel}
-                          />
-                        ),
+                  {pipe(
+                    gestureMarqueeRect,
+                    O.match(
+                      () => <></>,
+                      (rect) => (
+                        <StageMarquee
+                          marqueeX={rect.x * screenZoomLevel}
+                          marqueeY={rect.y * screenZoomLevel}
+                          marqueeWidth={rect.width * screenZoomLevel}
+                          marqueeHeight={rect.height * screenZoomLevel}
+                        />
                       ),
-                    )}
-                  </StageInteractionLayer>
-                </StageSurface>
-              </PreviewCanvasWrap>
-            </PreviewViewport>
-          </StageWorkspace>
-        </WorkspaceColumns>
-      </GestureWorkspaceRoot>
-
-      {scanReport.ok === false && (
-        <WarningList>
-          {scanReport.errors.map((error) => (
-            <DetailRow key={error}>
-              <DetailKey>警告</DetailKey>
-              <DetailValue>{error}</DetailValue>
-            </DetailRow>
-          ))}
-        </WarningList>
-      )}
+                    ),
+                  )}
+                </StageInteractionLayer>
+              </StageSurface>
+            </PreviewCanvasWrap>
+          </PreviewViewport>
+        </StageWorkspace>
+      </WorkspaceColumns>
 
       <Menu
         open={O.isSome(contextMenuPosition)}
@@ -881,6 +758,6 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
       </Menu>
 
       {floatingPreview}
-    </Panel>
+    </>
   );
 };
