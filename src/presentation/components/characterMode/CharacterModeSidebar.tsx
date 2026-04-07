@@ -3,21 +3,11 @@ import { styled } from "@mui/material/styles";
 import React from "react";
 import { CharacterModeSidebarLibrary } from "./CharacterModeSidebarLibrary";
 
-export const CharacterModeSidebarRoot = styled(Stack)({
+const CharacterModeSidebarRoot = styled(Stack)({
   "& > *": {
     flexShrink: 0,
   },
 });
-
-export const CharacterModeSidebarContent = React.memo(
-  function CharacterModeSidebarContent() {
-    return (
-      <>
-        <CharacterModeSidebarLibrary />
-      </>
-    );
-  },
-);
 
 interface CharacterModeSidebarProps {
   children?: React.ReactNode;
@@ -42,7 +32,7 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
       pr="0.25rem"
     >
       {children}
-      <CharacterModeSidebarContent />
+      <CharacterModeSidebarLibrary />
     </CharacterModeSidebarRoot>
   );
 };

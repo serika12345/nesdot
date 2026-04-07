@@ -1,9 +1,6 @@
 import React from "react";
 import { CharacterModeDecompositionInspector } from "./CharacterModeDecompositionInspector";
-import {
-  CharacterModeSidebarContent,
-  CharacterModeSidebarRoot,
-} from "./CharacterModeSidebar";
+import { CharacterModeSidebar } from "./CharacterModeSidebar";
 
 /**
  * キャラクター分解モードの左サイドバーを描画します。
@@ -11,18 +8,8 @@ import {
  */
 export const CharacterModeDecomposeSidebar: React.FC = () => {
   return (
-    <CharacterModeSidebarRoot
-      role="complementary"
-      aria-label="キャラクター編集サイドバー"
-      height="100%"
-      minWidth={0}
-      minHeight={0}
-      spacing="1rem"
-      overflow="auto"
-      pr="0.25rem"
-    >
+    <CharacterModeSidebar>
       <CharacterModeDecompositionInspector />
-      <CharacterModeSidebarContent />
-    </CharacterModeSidebarRoot>
+    </CharacterModeSidebar>
   );
 };
