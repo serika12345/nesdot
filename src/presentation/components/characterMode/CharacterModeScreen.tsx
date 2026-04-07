@@ -1,13 +1,12 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import * as O from "fp-ts/Option";
 import React from "react";
+import { Panel } from "../../App.styles";
 import {
-  Panel,
-  PanelHeader,
-  PanelHeaderRow,
-  PanelTitle,
-} from "../../App.styles";
-import { ProjectActions } from "../common/ProjectActions";
+  emptyFileMenuState,
+  type FileMenuState,
+} from "../common/fileMenuState";
 import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositionRegionMenu";
 import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
 import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
@@ -21,7 +20,15 @@ import {
 } from "./CharacterModeStateProvider";
 import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 
-const HeaderActions = styled(Stack)(({ theme }) => ({
+const ControlRow = styled(Stack)(({ theme }) => ({
+  minWidth: 0,
+  flexDirection: "row",
+  alignItems: "center",
+  gap: theme.spacing(1.5),
+  flexWrap: "wrap",
+}));
+
+const ControlRowActions = styled(Stack)(({ theme }) => ({
   minWidth: 0,
   flexDirection: "row",
   alignItems: "center",
@@ -30,28 +37,40 @@ const HeaderActions = styled(Stack)(({ theme }) => ({
   gap: theme.spacing(1.5),
 }));
 
+interface CharacterModeScreenProps {
+  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
+}
+
 /**
  * キャラクター編集画面の shell を描画します。
- * ヘッダー、ワークスペース、コンテキストメニューの配置だけを担当します。
+ * 操作列、ワークスペース、コンテキストメニューの配置だけを担当します。
  */
-export const CharacterModeScreen: React.FC = () => {
+export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
+  onFileMenuStateChange,
+}) => {
   const { projectActions } = useCharacterModeProjectActions();
   const workspaceEvents = useCharacterModeWorkspaceEvents();
 
+  const fileMenuState = React.useMemo<FileMenuState>(
+    () => ({
+      shareActions: projectActions,
+      restoreAction: O.none,
+    }),
+    [projectActions],
+  );
+
+  React.useEffect(() => {
+    onFileMenuStateChange(fileMenuState);
+  }, [fileMenuState, onFileMenuStateChange]);
+
+  React.useEffect(() => {
+    return () => {
+      onFileMenuStateChange(emptyFileMenuState);
+    };
+  }, [onFileMenuStateChange]);
+
   return (
     <Panel flex={1} minHeight={0} height="100%">
-      <PanelHeader>
-        <PanelHeaderRow>
-          <PanelTitle>キャラクター編集</PanelTitle>
-          <HeaderActions>
-            <CharacterModeSidebarEditorModeCard />
-            <CharacterModeSidebarSpriteSizeCard />
-            <CharacterModeSetDraftFields />
-            <ProjectActions actions={projectActions} />
-          </HeaderActions>
-        </PanelHeaderRow>
-      </PanelHeader>
-
       <CharacterWorkspaceRoot
         flex={1}
         onPointerDownCapture={workspaceEvents.handleWorkspacePointerDownCapture}
@@ -59,6 +78,13 @@ export const CharacterModeScreen: React.FC = () => {
         onPointerUpCapture={workspaceEvents.handleWorkspacePointerEnd}
         onPointerCancelCapture={workspaceEvents.handleWorkspacePointerEnd}
       >
+        <ControlRow>
+          <ControlRowActions>
+            <CharacterModeSidebarEditorModeCard />
+            <CharacterModeSidebarSpriteSizeCard />
+            <CharacterModeSetDraftFields />
+          </ControlRowActions>
+        </ControlRow>
         <CharacterModeSetHeader />
         <CharacterModeWorkspace />
         <CharacterModeSpriteMenu />

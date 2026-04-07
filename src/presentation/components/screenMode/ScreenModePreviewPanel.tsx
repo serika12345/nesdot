@@ -13,14 +13,15 @@ import {
   FieldLabel,
   HelperText,
   Panel,
-  PanelHeader,
   PanelHeaderRow,
-  PanelTitle,
   Spacer,
   ToolButton,
 } from "../../App.styles";
 import { CharacterModeTilePreview } from "../characterMode/CharacterModeTilePreview";
-import { ProjectActions } from "../common/ProjectActions";
+import {
+  emptyFileMenuState,
+  type FileMenuState,
+} from "../common/fileMenuState";
 import { ScreenCanvas } from "../common/ScreenCanvas";
 import type { ScreenModeState } from "./hooks/useScreenModeState";
 import {
@@ -376,6 +377,7 @@ const isCharacterDragState = (
 
 interface ScreenModePreviewPanelProps {
   screenMode: ScreenModeState;
+  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
 }
 
 /**
@@ -383,6 +385,7 @@ interface ScreenModePreviewPanelProps {
  */
 export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
   screenMode,
+  onFileMenuStateChange,
 }) => {
   const spriteLibraryContentId = React.useId();
   const characterLibraryContentId = React.useId();
@@ -438,6 +441,27 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
 
   const stageWidth = screen.width * screenZoomLevel;
   const stageHeight = screen.height * screenZoomLevel;
+
+  const fileMenuState = React.useMemo<FileMenuState>(
+    () => ({
+      shareActions: projectActions,
+      restoreAction: O.some({
+        label: "復元",
+        onSelect: handleImport,
+      }),
+    }),
+    [handleImport, projectActions],
+  );
+
+  React.useEffect(() => {
+    onFileMenuStateChange(fileMenuState);
+  }, [fileMenuState, onFileMenuStateChange]);
+
+  React.useEffect(() => {
+    return () => {
+      onFileMenuStateChange(emptyFileMenuState);
+    };
+  }, [onFileMenuStateChange]);
 
   const contextMenuPosition = pipe(
     gestureContextMenu,
@@ -529,59 +553,50 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
       onPointerUpCapture={handleWorkspacePointerEndCapture}
       onPointerCancelCapture={handleWorkspacePointerEndCapture}
     >
-      <PanelHeader>
-        <PanelHeaderRow>
-          <PanelTitle>画面配置ジェスチャー</PanelTitle>
-          <Stack direction="row" spacing={1} useFlexGap alignItems="center">
-            <ProjectActions actions={projectActions} onImport={handleImport} />
-          </Stack>
-        </PanelHeaderRow>
+      <ZoomControlsRow>
+        <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
+        <ToolButton
+          type="button"
+          aria-label="画面ズーム縮小"
+          onClick={handleZoomOut}
+        >
+          -
+        </ToolButton>
+        <ToolButton
+          type="button"
+          aria-label="画面ズーム拡大"
+          onClick={handleZoomIn}
+        >
+          +
+        </ToolButton>
+        <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
+        <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
+        <Spacer />
+        <ToolButton
+          type="button"
+          active={isSpriteOutlineVisible}
+          aria-label="スプライト外枠表示切り替え"
+          onClick={() =>
+            setIsSpriteOutlineVisible((previous) => previous === false)
+          }
+        >
+          外枠
+        </ToolButton>
+        <ToolButton
+          type="button"
+          active={isSpriteIndexVisible}
+          aria-label="スプライト番号表示切り替え"
+          onClick={() =>
+            setIsSpriteIndexVisible((previous) => previous === false)
+          }
+        >
+          #表示
+        </ToolButton>
+      </ZoomControlsRow>
 
-        <ZoomControlsRow>
-          <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
-          <ToolButton
-            type="button"
-            aria-label="画面ズーム縮小"
-            onClick={handleZoomOut}
-          >
-            -
-          </ToolButton>
-          <ToolButton
-            type="button"
-            aria-label="画面ズーム拡大"
-            onClick={handleZoomIn}
-          >
-            +
-          </ToolButton>
-          <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
-          <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
-          <Spacer />
-          <ToolButton
-            type="button"
-            active={isSpriteOutlineVisible}
-            aria-label="スプライト外枠表示切り替え"
-            onClick={() =>
-              setIsSpriteOutlineVisible((previous) => previous === false)
-            }
-          >
-            外枠
-          </ToolButton>
-          <ToolButton
-            type="button"
-            active={isSpriteIndexVisible}
-            aria-label="スプライト番号表示切り替え"
-            onClick={() =>
-              setIsSpriteIndexVisible((previous) => previous === false)
-            }
-          >
-            #表示
-          </ToolButton>
-        </ZoomControlsRow>
-
-        <StageGuide>
-          スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
-        </StageGuide>
-      </PanelHeader>
+      <StageGuide>
+        スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
+      </StageGuide>
 
       <GestureWorkspaceRoot>
         <WorkspaceColumns>

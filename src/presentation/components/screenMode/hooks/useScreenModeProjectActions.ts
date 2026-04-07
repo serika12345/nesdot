@@ -7,12 +7,10 @@ import {
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
+import { type FileShareAction } from "../../common/fileMenuState";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
-type ProjectActionItem = {
-  label: string;
-  onSelect: () => void;
-};
+type ProjectActionItem = FileShareAction;
 
 type ScreenModeProjectActionsDependencies = Pick<
   ScreenModeProjectStateResult,
@@ -63,17 +61,23 @@ export const useScreenModeProjectActions = ({
     }
   };
 
-  const projectActions = useMemo(
+  const projectActions = useMemo<ProjectActionItem[]>(
     () => [
       {
+        id: "share-export-png",
         label: "PNGエクスポート",
         onSelect: () => exportPng(getHexArrayForScreen(screen)),
       },
       {
+        id: "share-export-svg",
         label: "SVGエクスポート",
         onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)),
       },
-      { label: "保存", onSelect: () => exportJSON(projectState) },
+      {
+        id: "share-save-project",
+        label: "保存",
+        onSelect: () => exportJSON(projectState),
+      },
     ],
     [exportJSON, exportPng, exportSvgSimple, projectState, screen],
   );

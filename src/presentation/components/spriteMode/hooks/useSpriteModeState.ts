@@ -1,7 +1,7 @@
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   type ColorIndexOfPalette,
   getHexArrayForSpriteTile,
@@ -16,6 +16,7 @@ import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCa
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
+import { type FileShareAction } from "../../common/fileMenuState";
 
 function makeEmptyTile(
   height: ProjectSpriteSize,
@@ -162,24 +163,39 @@ export const useSpriteModeInternalState = () => {
     setTool(nextTool);
   };
 
-  const projectActions = [
-    {
-      label: "CHRエクスポート",
-      onSelect: () => exportChr(activeTile, activePalette),
-    },
-    {
-      label: "PNGエクスポート",
-      onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)),
-    },
-    {
-      label: "SVGエクスポート",
-      onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)),
-    },
-    {
-      label: "保存",
-      onSelect: () => exportJSON(projectState),
-    },
-  ];
+  const projectActions = useMemo<ReadonlyArray<FileShareAction>>(
+    () => [
+      {
+        id: "share-export-chr",
+        label: "CHRエクスポート",
+        onSelect: () => exportChr(activeTile, activePalette),
+      },
+      {
+        id: "share-export-png",
+        label: "PNGエクスポート",
+        onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)),
+      },
+      {
+        id: "share-export-svg",
+        label: "SVGエクスポート",
+        onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)),
+      },
+      {
+        id: "share-save-project",
+        label: "保存",
+        onSelect: () => exportJSON(projectState),
+      },
+    ],
+    [
+      activePalette,
+      activeTile,
+      exportChr,
+      exportJSON,
+      exportPng,
+      exportSvgSimple,
+      projectState,
+    ],
+  );
 
   return {
     activePalette,

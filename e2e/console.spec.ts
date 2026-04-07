@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openFileMenu } from "./support/app";
 
 test("captures browser console and page errors", async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -36,8 +37,66 @@ test("layout follows window resize", async ({ page }) => {
     () => window.getComputedStyle(document.body).minWidth,
   );
 
-  await expect(page.getByRole("heading", { name: "作業モード" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("toolbar", { name: "ファイル操作メニューバー" })
+      .locator('[aria-haspopup="menu"]')
+      .filter({ hasText: "作業モード" })
+      .first(),
+  ).toBeVisible();
   expect(bodyMinWidth).toBe("0px");
+});
+
+test("shows global app menu controls", async ({ page }) => {
+  await page.goto("/");
+
+  const menuBar = page.getByRole("toolbar", {
+    name: "ファイル操作メニューバー",
+  });
+
+  await expect(menuBar).toBeVisible();
+  await expect(
+    menuBar
+      .locator('[aria-haspopup="menu"]')
+      .filter({ hasText: "作業モード" })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    menuBar
+      .locator('[aria-haspopup="menu"]')
+      .filter({ hasText: "ファイル" })
+      .first(),
+  ).toBeVisible();
+
+  await menuBar
+    .locator('[aria-haspopup="menu"]')
+    .filter({ hasText: "作業モード" })
+    .first()
+    .click();
+  await expect(
+    page
+      .locator('[role="menuitem"]')
+      .filter({ hasText: "スプライト編集" })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('[role="menuitem"]')
+      .filter({ hasText: "キャラクター編集" })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    page.locator('[role="menuitem"]').filter({ hasText: "画面配置" }).first(),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await openFileMenu(page);
+  await expect(
+    page.locator('[role="menuitem"]').filter({ hasText: "共有" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.locator('[role="menuitem"]').filter({ hasText: "復元" }).first(),
+  ).toBeVisible();
 });
 
 test("includes pwa manifest and app icons", async ({ page }) => {

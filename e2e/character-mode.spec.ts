@@ -1,5 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
-import { gotoApp, openMode, selectMaterialOption } from "./support/app";
+import {
+  gotoApp,
+  openFileMenu,
+  openMode,
+  openShareSubmenu,
+  selectMaterialOption,
+} from "./support/app";
 import {
   clickCanvasPixel,
   clickComposeCanvasAtPosition,
@@ -63,7 +69,6 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
     name: "プロジェクトスプライトサイズ 8x8",
   });
   const createSetButton = page.getByRole("button", { name: "セットを作成" });
-  const shareButton = page.getByRole("button", { name: "共有" });
   const activeSetSelect = page.getByRole("combobox", {
     name: "編集中のセット",
   });
@@ -78,10 +83,12 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   await expect(page.getByText("スプライト単位", { exact: true })).toHaveCount(
     0,
   );
+  await expect(
+    page.getByRole("heading", { name: "キャラクター編集", exact: true }),
+  ).toHaveCount(0);
   await expect(composeModeButton).toBeVisible();
   await expect(spriteSize8Button).toBeVisible();
   await expect(createSetButton).toBeVisible();
-  await expect(shareButton).toBeVisible();
   await expect(activeSetSelect).toBeVisible();
   await expect(renameSetButton).toBeVisible();
   await expect(deleteSetButton).toBeVisible();
@@ -90,7 +97,6 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
     composeModeButtonBox,
     spriteSize8ButtonBox,
     createSetButtonBox,
-    shareButtonBox,
     activeSetSelectBox,
     renameSetButtonBox,
     deleteSetButtonBox,
@@ -98,7 +104,6 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
     getLocatorRect(composeModeButton),
     getLocatorRect(spriteSize8Button),
     getLocatorRect(createSetButton),
-    getLocatorRect(shareButton),
     getLocatorRect(activeSetSelect),
     getLocatorRect(renameSetButton),
     getLocatorRect(deleteSetButton),
@@ -112,9 +117,6 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
   const selectRowBottomSpread =
     Math.max(...selectRowBottoms) - Math.min(...selectRowBottoms);
 
-  expect(createSetButtonBox.clientX + createSetButtonBox.width).toBeLessThan(
-    shareButtonBox.clientX,
-  );
   expect(
     composeModeButtonBox.clientX + composeModeButtonBox.width,
   ).toBeLessThan(createSetButtonBox.clientX);
@@ -133,15 +135,22 @@ test("character mode enables share actions only after a set is available", async
   await gotoApp(page);
   await openMode(page, "キャラクター編集");
 
-  const shareButton = page.getByRole("button", { name: "共有" });
+  await openFileMenu(page);
 
-  await expect(shareButton).toBeDisabled();
+  const shareMenuItem = page
+    .locator('[role="menuitem"]')
+    .filter({ hasText: "共有" })
+    .first();
+
+  await expect(shareMenuItem).toHaveAttribute("aria-disabled", "true");
+  await page.keyboard.press("Escape");
 
   await createCharacterSet(page, "Share Hero");
 
-  await expect(shareButton).toBeEnabled();
+  await openFileMenu(page);
+  await expect(shareMenuItem).not.toHaveAttribute("aria-disabled", "true");
 
-  await shareButton.click();
+  await openShareSubmenu(page);
 
   await expect(
     page.getByRole("menuitem", { name: "PNGエクスポート" }),

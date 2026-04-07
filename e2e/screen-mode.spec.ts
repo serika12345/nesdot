@@ -245,6 +245,10 @@ test("screen mode uses a gesture-first workspace with preview libraries", async 
   await openMode(page, "画面配置");
 
   await expect(
+    page.getByRole("heading", { name: "画面配置ジェスチャー", exact: true }),
+  ).toHaveCount(0);
+
+  await expect(
     page.getByLabel("スクリーン配置ジェスチャーワークスペース", {
       exact: true,
     }),

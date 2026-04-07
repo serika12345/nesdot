@@ -31,6 +31,7 @@ import {
 import { createEmptySpriteTile } from "../../../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
+import { type FileShareAction } from "../../common/fileMenuState";
 import { type DecompositionTool } from "../CharacterModeLayoutPrimitives";
 import {
   createComposeSpriteSource,
@@ -357,6 +358,7 @@ export const useCharacterModeInternalState = () => {
 
             return [
               {
+                id: "share-export-png",
                 label: "PNGエクスポート",
                 onSelect: () => {
                   const previewState = resolvePreviewState();
@@ -368,6 +370,7 @@ export const useCharacterModeInternalState = () => {
                 },
               },
               {
+                id: "share-export-svg",
                 label: "SVGエクスポート",
                 onSelect: () => {
                   const previewState = resolvePreviewState();
@@ -383,6 +386,7 @@ export const useCharacterModeInternalState = () => {
                 },
               },
               {
+                id: "share-export-character-json",
                 label: "キャラクターJSON書き出し",
                 onSelect: () =>
                   void exportCharacterJson(
@@ -393,7 +397,7 @@ export const useCharacterModeInternalState = () => {
                     `${characterSet.name}.json`,
                   ),
               },
-            ];
+            ] satisfies ReadonlyArray<FileShareAction>;
           },
         ),
       ),
