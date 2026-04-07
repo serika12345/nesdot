@@ -14,6 +14,7 @@ import {
   WorkspaceGrid,
 } from "./App.styles";
 import { CharacterMode } from "./components/characterMode/CharacterMode";
+import { DesktopAutoUpdateDialog } from "./components/common/DesktopAutoUpdateDialog";
 import { FileMenuBar, type WorkMode } from "./components/common/FileMenuBar";
 import {
   emptyFileMenuState,
@@ -128,7 +129,7 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
  * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
  */
 export const App: React.FC = () => {
-  useDesktopAutoUpdate();
+  const desktopAutoUpdate = useDesktopAutoUpdate();
 
   const [editMode, setEditMode] = useState<WorkMode>("sprite");
   const [fileMenuState, setFileMenuState] =
@@ -216,6 +217,12 @@ export const App: React.FC = () => {
   return (
     <>
       <GlobalStyles styles={getAppGlobalStyles} />
+      <DesktopAutoUpdateDialog
+        state={desktopAutoUpdate.dialogState}
+        progressPercent={desktopAutoUpdate.progressPercent}
+        onDialogClose={desktopAutoUpdate.onDialogClose}
+        onRestartNow={desktopAutoUpdate.onRestartNow}
+      />
 
       <Container spacing={{ xs: "0.75rem", md: "1rem" }}>
         <FileMenuBar
