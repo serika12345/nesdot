@@ -70,6 +70,12 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(
     menuBar
       .locator('[aria-haspopup="menu"]')
+      .filter({ hasText: "編集" })
+      .first(),
+  ).toBeVisible();
+  await expect(
+    menuBar
+      .locator('[aria-haspopup="menu"]')
       .filter({ hasText: "ヘルプ" })
       .first(),
   ).toBeVisible();
@@ -94,6 +100,27 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(
     page.locator('[role="menuitem"]').filter({ hasText: "画面配置" }).first(),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await menuBar
+    .locator('[aria-haspopup="menu"]')
+    .filter({ hasText: "編集" })
+    .first()
+    .click();
+  const undoMenuItem = page
+    .locator('[role="menuitem"]')
+    .filter({ hasText: "アンドゥ" })
+    .first();
+  const redoMenuItem = page
+    .locator('[role="menuitem"]')
+    .filter({ hasText: "リドゥ" })
+    .first();
+  await expect(undoMenuItem).toBeVisible();
+  await expect(undoMenuItem).toContainText(/(Ctrl\+Z|Cmd\+Z)/);
+  await expect(redoMenuItem).toBeVisible();
+  await expect(redoMenuItem).toContainText(
+    /(Ctrl\+Shift\+Z|Ctrl\+Y|Cmd\+Shift\+Z)/,
+  );
   await page.keyboard.press("Escape");
 
   await openFileMenu(page);

@@ -21,7 +21,8 @@ interface FileMenuBarProps {
   fileMenuState: FileMenuState;
   editMode: WorkMode;
   onEditModeSelect: (mode: WorkMode) => void;
-  hidden?: boolean;
+  onUndoSelect: () => void;
+  onRedoSelect: () => void;
 }
 
 const WORK_MODE_ITEMS: ReadonlyArray<{
@@ -177,6 +178,13 @@ const ModeSelectionMarker = styled("span")({
   flexShrink: 0,
 });
 
+const MenuItemShortcutText = styled("span")(({ theme }) => ({
+  fontSize: theme.typography.caption.fontSize,
+  lineHeight: theme.typography.caption.lineHeight,
+  color: theme.palette.text.secondary,
+  whiteSpace: "nowrap",
+}));
+
 const AboutContentLayout = styled(Stack)(({ theme }) => ({
   minWidth: "12rem",
   alignItems: "center",
@@ -208,7 +216,8 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   fileMenuState,
   editMode,
   onEditModeSelect,
-  hidden = false,
+  onUndoSelect,
+  onRedoSelect,
 }) => {
   const appVersion = import.meta.env.VITE_APP_VERSION;
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
@@ -216,6 +225,19 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
   const hasShareActions = fileMenuState.shareActions.length > 0;
   const hasRestoreAction = O.isSome(fileMenuState.restoreAction);
+  const shortcutLabels = React.useMemo(
+    () =>
+      typeof navigator !== "undefined" && navigator.userAgent.includes("Mac")
+        ? {
+            undo: "Cmd+Z",
+            redo: "Cmd+Shift+Z",
+          }
+        : {
+            undo: "Ctrl+Z",
+            redo: "Ctrl+Shift+Z / Ctrl+Y",
+          },
+    [],
+  );
 
   const handleRestoreSelect = (): void => {
     pipe(
@@ -238,10 +260,6 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   const handleAboutClose = (): void => {
     setIsAboutOpen(false);
   };
-
-  if (hidden === true) {
-    return <></>;
-  }
 
   return (
     <MenuBarRoot role="toolbar" aria-label="ファイル操作メニューバー">
@@ -279,6 +297,35 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
                     </FileMenuItem>
                   );
                 })}
+              </FileMenuContent>
+            </Menubar.Portal>
+          </Menubar.Menu>
+
+          <Menubar.Menu>
+            <TriggerItem aria-haspopup="menu">編集</TriggerItem>
+
+            <Menubar.Portal>
+              <FileMenuContent
+                align="start"
+                sideOffset={6}
+                aria-label="編集メニュー"
+              >
+                <FileMenuItem onSelect={onUndoSelect}>
+                  <SubmenuItemLayout>
+                    <span>アンドゥ</span>
+                    <MenuItemShortcutText>
+                      {shortcutLabels.undo}
+                    </MenuItemShortcutText>
+                  </SubmenuItemLayout>
+                </FileMenuItem>
+                <FileMenuItem onSelect={onRedoSelect}>
+                  <SubmenuItemLayout>
+                    <span>リドゥ</span>
+                    <MenuItemShortcutText>
+                      {shortcutLabels.redo}
+                    </MenuItemShortcutText>
+                  </SubmenuItemLayout>
+                </FileMenuItem>
               </FileMenuContent>
             </Menubar.Portal>
           </Menubar.Menu>

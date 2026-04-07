@@ -9,6 +9,8 @@ const MENU_ID_SHARE_EXPORT_SVG: &str = "share-export-svg";
 const MENU_ID_SHARE_SAVE_PROJECT: &str = "share-save-project";
 const MENU_ID_SHARE_EXPORT_CHARACTER_JSON: &str = "share-export-character-json";
 const MENU_ID_RESTORE_IMPORT: &str = "restore-import";
+const MENU_ID_EDIT_UNDO: &str = "edit-undo";
+const MENU_ID_EDIT_REDO: &str = "edit-redo";
 const MENU_ID_MODE_SPRITE: &str = "mode-sprite";
 const MENU_ID_MODE_CHARACTER: &str = "mode-character";
 const MENU_ID_MODE_SCREEN: &str = "mode-screen";
@@ -20,6 +22,8 @@ const MENU_EVENT_SHARE_SAVE_PROJECT: &str = "file-menu://share-save-project";
 const MENU_EVENT_SHARE_EXPORT_CHARACTER_JSON: &str =
     "file-menu://share-export-character-json";
 const MENU_EVENT_RESTORE_IMPORT: &str = "file-menu://restore-import";
+const MENU_EVENT_EDIT_UNDO: &str = "edit-menu://undo";
+const MENU_EVENT_EDIT_REDO: &str = "edit-menu://redo";
 const MENU_EVENT_MODE_SPRITE: &str = "mode-menu://switch-sprite";
 const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
@@ -56,6 +60,20 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
     )?;
     let restore_import =
         MenuItem::with_id(app, MENU_ID_RESTORE_IMPORT, "復元", true, None::<&str>)?;
+    let edit_undo = MenuItem::with_id(
+        app,
+        MENU_ID_EDIT_UNDO,
+        "アンドゥ",
+        true,
+        Some("CmdOrCtrl+Z"),
+    )?;
+    let edit_redo = MenuItem::with_id(
+        app,
+        MENU_ID_EDIT_REDO,
+        "リドゥ",
+        true,
+        Some("CmdOrCtrl+Shift+Z"),
+    )?;
     let mode_sprite =
         MenuItem::with_id(app, MENU_ID_MODE_SPRITE, "スプライト編集", true, None::<&str>)?;
     let mode_character = MenuItem::with_id(
@@ -83,8 +101,9 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
 
     let mode_submenu =
         Submenu::with_items(app, "作業モード", true, &[&mode_sprite, &mode_character, &mode_screen])?;
+    let edit_submenu = Submenu::with_items(app, "編集", true, &[&edit_undo, &edit_redo])?;
     let file_submenu = Submenu::with_items(app, "ファイル", true, &[&share_submenu, &restore_import])?;
-    let menu = Menu::with_items(app, &[&app_submenu, &mode_submenu, &file_submenu])?;
+    let menu = Menu::with_items(app, &[&app_submenu, &mode_submenu, &edit_submenu, &file_submenu])?;
     app.set_menu(menu)?;
 
     Ok(())
@@ -126,6 +145,8 @@ pub fn run() {
                 emit_file_menu_event(app_handle, MENU_EVENT_SHARE_EXPORT_CHARACTER_JSON)
             }
             MENU_ID_RESTORE_IMPORT => emit_file_menu_event(app_handle, MENU_EVENT_RESTORE_IMPORT),
+            MENU_ID_EDIT_UNDO => emit_file_menu_event(app_handle, MENU_EVENT_EDIT_UNDO),
+            MENU_ID_EDIT_REDO => emit_file_menu_event(app_handle, MENU_EVENT_EDIT_REDO),
             MENU_ID_MODE_SPRITE => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SPRITE),
             MENU_ID_MODE_CHARACTER => emit_file_menu_event(app_handle, MENU_EVENT_MODE_CHARACTER),
             MENU_ID_MODE_SCREEN => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SCREEN),
