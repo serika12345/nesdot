@@ -314,6 +314,114 @@ test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await expect.poll(async () => (await getCanvasSize(canvas)).height).toBe(720);
 });
 
+test("screen mode toggles sprite outlines from the zoom row", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const spritePreview = page.getByRole("button", {
+    name: "スクリーンライブラリスプライト 0",
+    exact: true,
+  });
+  const outlineToggle = page.getByRole("button", {
+    name: "スプライト外枠表示切り替え",
+    exact: true,
+  });
+  const indexToggle = page.getByRole("button", {
+    name: "スプライト番号表示切り替え",
+    exact: true,
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(spritePreview).toBeVisible();
+  await expect(outlineToggle).toBeVisible();
+  await expect(indexToggle).toBeVisible();
+
+  const [outlineToggleRect, indexToggleRect] = await Promise.all([
+    getLocatorRect(outlineToggle),
+    getLocatorRect(indexToggle),
+  ]);
+
+  expect(outlineToggleRect.clientX).toBeLessThan(indexToggleRect.clientX);
+
+  await dragLibraryItemToStage(spritePreview, stage, 19, { x: 120, y: 104 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(1);
+
+  const stageOutline = stage
+    .locator("[data-stage-sprite-outline='true']")
+    .first();
+
+  await expect(stageOutline).toHaveCount(1);
+
+  await expect
+    .poll(async () =>
+      stageOutline.evaluate(
+        (element) => window.getComputedStyle(element).borderTopStyle,
+      ),
+    )
+    .toBe("solid");
+
+  await outlineToggle.click();
+
+  await expect
+    .poll(async () =>
+      stageOutline.evaluate(
+        (element) => window.getComputedStyle(element).borderTopStyle,
+      ),
+    )
+    .toBe("none");
+
+  await outlineToggle.click();
+
+  await expect
+    .poll(async () =>
+      stageOutline.evaluate(
+        (element) => window.getComputedStyle(element).borderTopStyle,
+      ),
+    )
+    .toBe("solid");
+});
+
+test("screen mode toggles sprite index labels from the zoom row", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const spritePreview = page.getByRole("button", {
+    name: "スクリーンライブラリスプライト 0",
+    exact: true,
+  });
+  const indexToggle = page.getByRole("button", {
+    name: "スプライト番号表示切り替え",
+    exact: true,
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(spritePreview).toBeVisible();
+  await expect(indexToggle).toBeVisible();
+
+  await dragLibraryItemToStage(spritePreview, stage, 21, { x: 112, y: 96 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(1);
+
+  await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
+
+  await indexToggle.click();
+  await expect(stage.getByText("#0", { exact: true })).toBeVisible();
+
+  await indexToggle.click();
+  await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
+});
+
 test("screen mode places and deletes sprites via drag and context menu", async ({
   page,
 }) => {
@@ -323,6 +431,7 @@ test("screen mode places and deletes sprites via drag and context menu", async (
   const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
   const spritePreview = page.getByRole("button", {
     name: "スクリーンライブラリスプライト 0",
+    exact: true,
   });
 
   await expect(stage).toBeVisible();
@@ -334,10 +443,56 @@ test("screen mode places and deletes sprites via drag and context menu", async (
     .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
     .toBe(1);
 
+  const [stagePoint, libraryPoint] = await Promise.all([
+    getLocatorPoint(stage, 128, 104),
+    getLocatorPoint(spritePreview, 20, 20),
+  ]);
+
   await openStageContextMenuAt(stage, 128, 104, 41);
   await expect(
     page.getByRole("menu", { name: "スクリーン配置コンテキストメニュー" }),
   ).toBeVisible();
+
+  const [stagePreventsNativeContextMenu, libraryPreventsNativeContextMenu] =
+    await Promise.all([
+      page.evaluate((point) => {
+        const target = document.elementFromPoint(point.clientX, point.clientY);
+        if (target instanceof Element === false) {
+          return false;
+        }
+
+        const contextMenuEvent = new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          button: 2,
+          buttons: 2,
+          clientX: point.clientX,
+          clientY: point.clientY,
+        });
+
+        return target.dispatchEvent(contextMenuEvent) === false;
+      }, stagePoint),
+      page.evaluate((point) => {
+        const target = document.elementFromPoint(point.clientX, point.clientY);
+        if (target instanceof Element === false) {
+          return false;
+        }
+
+        const contextMenuEvent = new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          button: 2,
+          buttons: 2,
+          clientX: point.clientX,
+          clientY: point.clientY,
+        });
+
+        return target.dispatchEvent(contextMenuEvent) === false;
+      }, libraryPoint),
+    ]);
+
+  expect(stagePreventsNativeContextMenu).toBe(true);
+  expect(libraryPreventsNativeContextMenu).toBe(true);
 
   await page.getByRole("menuitem", { name: "削除", exact: true }).click();
 

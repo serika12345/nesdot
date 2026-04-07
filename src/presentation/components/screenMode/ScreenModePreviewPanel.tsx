@@ -16,6 +16,7 @@ import {
   PanelHeader,
   PanelHeaderRow,
   PanelTitle,
+  Spacer,
   ToolButton,
 } from "../../App.styles";
 import { CharacterModeTilePreview } from "../characterMode/CharacterModeTilePreview";
@@ -33,6 +34,7 @@ const shouldForwardStageProp = (prop: PropertyKey): boolean =>
   prop !== "draggingState" && prop !== "stageHeight" && prop !== "stageWidth";
 
 const shouldForwardSpriteOutlineProp = (prop: PropertyKey): boolean =>
+  prop !== "outlineVisibleState" &&
   prop !== "selectedState" &&
   prop !== "spriteHeight" &&
   prop !== "spriteWidth" &&
@@ -93,23 +95,47 @@ const StageSpriteOutline = styled("div", {
   spriteWidth: number;
   spriteHeight: number;
   selectedState: boolean;
-}>(({ selectedState, spriteHeight, spriteWidth, spriteX, spriteY }) => ({
-  position: "absolute",
-  left: spriteX,
-  top: spriteY,
-  width: spriteWidth,
-  height: spriteHeight,
-  border:
-    selectedState === true
-      ? "0.125rem solid rgba(20, 184, 166, 0.92)"
-      : "0.0625rem solid rgba(148, 163, 184, 0.68)",
-  borderRadius: "0.5rem",
-  background:
-    selectedState === true
-      ? "rgba(45, 212, 191, 0.1)"
-      : "rgba(255, 255, 255, 0.02)",
-  pointerEvents: "none",
-}));
+  outlineVisibleState: boolean;
+}>(({
+  outlineVisibleState,
+  selectedState,
+  spriteHeight,
+  spriteWidth,
+  spriteX,
+  spriteY,
+}) => {
+  if (outlineVisibleState === false) {
+    return {
+      position: "absolute",
+      left: spriteX,
+      top: spriteY,
+      width: spriteWidth,
+      height: spriteHeight,
+      border: "none",
+      borderRadius: 0,
+      background: "transparent",
+      pointerEvents: "none",
+    };
+  }
+
+  return {
+    position: "absolute",
+    left: spriteX,
+    top: spriteY,
+    width: spriteWidth,
+    height: spriteHeight,
+    border:
+      selectedState === true
+        ? "0.125rem solid rgba(20, 184, 166, 0.92)"
+        : "0.0625rem solid rgba(148, 163, 184, 0.68)",
+    borderRadius: 0,
+    background:
+      selectedState === true
+        ? "rgba(45, 212, 191, 0.1)"
+        : "rgba(255, 255, 255, 0.02)",
+    pointerEvents: "none",
+  };
+});
 
 const StageSpriteIndex = styled("span")({
   position: "absolute",
@@ -352,6 +378,9 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
   const [isSpriteLibraryOpen, setIsSpriteLibraryOpen] = React.useState(true);
   const [isCharacterLibraryOpen, setIsCharacterLibraryOpen] =
     React.useState(true);
+  const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
+    React.useState(true);
+  const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
 
   const {
     screen,
@@ -470,12 +499,20 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
     ),
   );
 
+  const handleWorkspaceContextMenuCapture = React.useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault();
+    },
+    [],
+  );
+
   return (
     <Panel
       flex={1}
       minHeight={0}
       role="region"
       aria-label="スクリーン配置ジェスチャーワークスペース"
+      onContextMenuCapture={handleWorkspaceContextMenuCapture}
       onPointerDownCapture={handleWorkspacePointerDownCapture}
       onPointerMoveCapture={handleWorkspacePointerMoveCapture}
       onPointerUpCapture={handleWorkspacePointerEndCapture}
@@ -507,6 +544,27 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
           </ToolButton>
           <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
           <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
+          <Spacer />
+          <ToolButton
+            type="button"
+            active={isSpriteOutlineVisible}
+            aria-label="スプライト外枠表示切り替え"
+            onClick={() =>
+              setIsSpriteOutlineVisible((previous) => previous === false)
+            }
+          >
+            外枠
+          </ToolButton>
+          <ToolButton
+            type="button"
+            active={isSpriteIndexVisible}
+            aria-label="スプライト番号表示切り替え"
+            onClick={() =>
+              setIsSpriteIndexVisible((previous) => previous === false)
+            }
+          >
+            #表示
+          </ToolButton>
         </ZoomControlsRow>
 
         <StageGuide>
@@ -722,8 +780,14 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
                         spriteWidth={sprite.width * screenZoomLevel}
                         spriteHeight={sprite.height * screenZoomLevel}
                         selectedState={gestureSelectedSpriteIndices.has(index)}
+                        outlineVisibleState={isSpriteOutlineVisible}
+                        data-stage-sprite-outline="true"
                       >
-                        <StageSpriteIndex>{`#${index}`}</StageSpriteIndex>
+                        {isSpriteIndexVisible === true ? (
+                          <StageSpriteIndex>{`#${index}`}</StageSpriteIndex>
+                        ) : (
+                          <></>
+                        )}
                       </StageSpriteOutline>
                     ))}
 
