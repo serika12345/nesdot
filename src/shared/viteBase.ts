@@ -62,9 +62,7 @@ export const getViteBase = (
       configuredBasePathOption.value,
     );
 
-    if (normalizedConfiguredBasePath !== ROOT_BASE_PATH) {
-      return normalizedConfiguredBasePath;
-    }
+    return normalizedConfiguredBasePath;
   }
 
   const isGitHubActions = env.GITHUB_ACTIONS === "true";
