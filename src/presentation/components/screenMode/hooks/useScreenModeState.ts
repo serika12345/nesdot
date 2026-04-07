@@ -1,3 +1,4 @@
+import { useScreenModeGestureState } from "./useScreenModeGestureState";
 import { useScreenModeGroupMoveState } from "./useScreenModeGroupMoveState";
 import { useScreenModePlacementState } from "./useScreenModePlacementState";
 import { useScreenModeProjectActions } from "./useScreenModeProjectActions";
@@ -41,6 +42,15 @@ export const useScreenModeState = () => {
 
   const viewportState = useScreenModeViewportState();
 
+  const gestureState = useScreenModeGestureState({
+    screen: projectModel.screen,
+    sprites: projectModel.sprites,
+    characterSets: projectModel.characterSets,
+    scan,
+    setScreenAndSyncNes,
+    screenZoomLevel: viewportState.screenZoomLevel,
+  });
+
   const projectActionsState = useScreenModeProjectActions({
     screen: projectModel.screen,
     projectState: projectModel.projectState,
@@ -50,6 +60,7 @@ export const useScreenModeState = () => {
 
   return {
     screen: projectModel.screen,
+    sprites: projectModel.sprites,
     spritesOnScreen: projectModel.spritesOnScreen,
     characterSets: projectModel.characterSets,
     selectedCharacterId: projectModel.selectedCharacterId,
@@ -60,6 +71,7 @@ export const useScreenModeState = () => {
     ...groupMoveState,
     ...viewportState,
     ...projectActionsState,
+    ...gestureState,
   };
 };
 
