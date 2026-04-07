@@ -10,7 +10,7 @@ import {
 import { CharacterModeDecompositionRegionMenu } from "./CharacterModeDecompositionRegionMenu";
 import { CharacterWorkspaceRoot } from "./CharacterModeLayoutPrimitives";
 import { CharacterModeSetDraftFields } from "./CharacterModeSetDraftFields";
-import { CharacterModeSetHeader } from "./CharacterModeSetHeader";
+import { CharacterModeSetSelectionFields } from "./CharacterModeSetSelectionFields";
 import { CharacterModeSidebarEditorModeCard } from "./CharacterModeSidebarEditorModeCard";
 import { CharacterModeSidebarSpriteSizeCard } from "./CharacterModeSidebarSpriteSizeCard";
 import { CharacterModeSpriteMenu } from "./CharacterModeSpriteMenu";
@@ -21,20 +21,30 @@ import {
 import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 
 const ControlRow = styled(Stack)(({ theme }) => ({
+  width: "100%",
   minWidth: 0,
   flexDirection: "row",
   alignItems: "center",
-  gap: theme.spacing(1.5),
+  justifyContent: "space-between",
+  gap: theme.spacing(1),
   flexWrap: "wrap",
 }));
 
-const ControlRowActions = styled(Stack)(({ theme }) => ({
+const PrimaryActionGroup = styled(Stack)(({ theme }) => ({
   minWidth: 0,
   flexDirection: "row",
   alignItems: "center",
-  justifyContent: "flex-end",
+  gap: theme.spacing(1),
   flexWrap: "wrap",
-  gap: theme.spacing(1.5),
+}));
+
+const SetActionGroup = styled(Stack)(({ theme }) => ({
+  minWidth: 0,
+  flex: "1 1 24rem",
+  flexDirection: "row",
+  alignItems: "flex-end",
+  justifyContent: "flex-end",
+  gap: theme.spacing(1),
 }));
 
 interface CharacterModeScreenProps {
@@ -79,13 +89,15 @@ export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
         onPointerCancelCapture={workspaceEvents.handleWorkspacePointerEnd}
       >
         <ControlRow>
-          <ControlRowActions>
+          <PrimaryActionGroup>
             <CharacterModeSidebarEditorModeCard />
             <CharacterModeSidebarSpriteSizeCard />
             <CharacterModeSetDraftFields />
-          </ControlRowActions>
+          </PrimaryActionGroup>
+          <SetActionGroup>
+            <CharacterModeSetSelectionFields />
+          </SetActionGroup>
         </ControlRow>
-        <CharacterModeSetHeader />
         <CharacterModeWorkspace />
         <CharacterModeSpriteMenu />
         <CharacterModeDecompositionRegionMenu />

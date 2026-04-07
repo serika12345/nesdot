@@ -79,6 +79,9 @@ test("character mode keeps set controls on a single row", async ({ page }) => {
     0,
   );
   await expect(page.getByRole("textbox", { name: "セット名" })).toHaveCount(0);
+  await expect(page.getByText("編集中のセット", { exact: true })).toHaveCount(
+    0,
+  );
   await expect(page.getByText("編集モード", { exact: true })).toHaveCount(0);
   await expect(page.getByText("スプライト単位", { exact: true })).toHaveCount(
     0,
