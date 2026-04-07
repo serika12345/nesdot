@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   gotoApp,
   openFileMenu,
@@ -56,6 +56,117 @@ const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
   await expect(feedbackDialog).toBeVisible();
   await feedbackDialog.getByRole("button", { name: "閉じる" }).click();
   await expect(feedbackDialog).toHaveCount(0);
+};
+
+const dragLibrarySpriteToStage = async (
+  page: Page,
+  spriteIndex: number,
+  pointerId: number,
+  dropPoint: { x: number; y: number },
+): Promise<void> => {
+  const stage = page.getByLabel("キャラクターステージ");
+  const librarySprite = page.getByRole("button", {
+    name: `ライブラリスプライト ${spriteIndex}`,
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(librarySprite).toBeVisible();
+
+  const [stageRect, libraryRect] = await Promise.all([
+    getLocatorRect(stage),
+    getLocatorRect(librarySprite),
+  ]);
+
+  const sourceClientX = libraryRect.clientX + libraryRect.width / 2;
+  const sourceClientY = libraryRect.clientY + libraryRect.height / 2;
+  const destinationClientX = stageRect.clientX + dropPoint.x;
+  const destinationClientY = stageRect.clientY + dropPoint.y;
+
+  await librarySprite.dispatchEvent("pointerdown", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: sourceClientX,
+    clientY: sourceClientY,
+  });
+  await librarySprite.dispatchEvent("pointermove", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: destinationClientX,
+    clientY: destinationClientY,
+  });
+  await librarySprite.dispatchEvent("pointerup", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    clientX: destinationClientX,
+    clientY: destinationClientY,
+  });
+};
+
+const hasVisibleComposePixels = async (
+  composeCanvas: Locator,
+): Promise<boolean> =>
+  composeCanvas.evaluate((element) => {
+    if (element instanceof HTMLElement === false) {
+      return false;
+    }
+
+    const candidate = Array.from(element.querySelectorAll("canvas")).find(
+      (canvasElement) => canvasElement.getAttribute("data-fabric") !== "top",
+    );
+
+    if (candidate instanceof HTMLCanvasElement === false) {
+      return false;
+    }
+
+    const context = candidate.getContext("2d");
+    if (context instanceof CanvasRenderingContext2D === false) {
+      return false;
+    }
+
+    const alphaStep = 4;
+    const alphaChannelOffset = 3;
+    const pixelData = context.getImageData(
+      0,
+      0,
+      candidate.width,
+      candidate.height,
+    );
+
+    return pixelData.data.some(
+      (value, index) => index % alphaStep === alphaChannelOffset && value > 0,
+    );
+  });
+
+const paintSpriteModePixel = async (
+  page: Page,
+  pixel: { x: number; y: number },
+): Promise<void> => {
+  const spriteCanvas = page
+    .getByRole("region", { name: "スプライトキャンバスパネル" })
+    .locator("canvas")
+    .first();
+
+  await expect(spriteCanvas).toBeVisible();
+
+  const spriteCanvasScale = 24;
+  const point = await getLocatorPoint(
+    spriteCanvas,
+    (pixel.x + 0.5) * spriteCanvasScale,
+    (pixel.y + 0.5) * spriteCanvasScale,
+  );
+
+  await page.mouse.move(point.clientX, point.clientY);
+  await page.mouse.down();
+  await page.mouse.up();
 };
 
 test("character mode keeps set controls on a single row", async ({ page }) => {
@@ -335,6 +446,53 @@ test("character mode preserves sprite library visibility across editor mode swit
   await page.getByRole("button", { name: "編集モード 合成" }).click();
   await expect(openLibraryButton).toBeVisible();
   await expect(librarySprite).toHaveCount(0);
+});
+
+test("character mode redraws compose canvas immediately after switching modes", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "スプライト編集");
+  await paintSpriteModePixel(page, { x: 4, y: 4 });
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Compose Roundtrip Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  await dragLibrarySpriteToStage(page, 0, 31, { x: 160, y: 144 });
+
+  const composeStage = page.getByLabel("キャラクターステージ");
+  await expect
+    .poll(async () => (await getStageDebugState(composeStage)).stageSpriteCount)
+    .toBe("1");
+
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+  await expect(composeCanvas).toBeVisible();
+  await clickComposeCanvasAtPosition(composeCanvas, 500, 500, 88);
+  await expect
+    .poll(async () => hasVisibleComposePixels(composeCanvas))
+    .toBe(true);
+
+  await openMode(page, "スプライト編集");
+  await openMode(page, "キャラクター編集");
+
+  const returnedComposeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+  const returnedStage = page.getByLabel("キャラクターステージ");
+
+  await expect(returnedComposeCanvas).toBeVisible();
+  await expect
+    .poll(
+      async () => (await getStageDebugState(returnedStage)).stageSpriteCount,
+    )
+    .toBe("1");
+  await clickComposeCanvasAtPosition(returnedComposeCanvas, 500, 500, 89);
+  await expect
+    .poll(async () => hasVisibleComposePixels(returnedComposeCanvas))
+    .toBe(true);
 });
 
 test("character mode keeps preview fixed while the sidebar scrolls", async ({
