@@ -188,6 +188,10 @@ const WorkspaceColumns = styled(Stack)(({ theme }) => ({
 const LibrarySidebar = styled(Stack)(({ theme }) => ({
   minHeight: 0,
   minWidth: 0,
+  maxHeight: "100%",
+  overflowY: "auto",
+  overflowX: "hidden",
+  scrollbarGutter: "stable",
   gap: theme.spacing(1.5),
   [theme.breakpoints.up("lg")]: {
     width: "21rem",
@@ -202,6 +206,9 @@ const StageWorkspace = styled(Stack)({
 });
 
 const LibrarySection = styled(Stack)({
+  position: "relative",
+  flexShrink: 0,
+  overflow: "hidden",
   borderRadius: "1rem",
   border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
   background:
@@ -234,6 +241,10 @@ const LibraryScrollArea = styled("div")({
   overflowX: "hidden",
   paddingRight: "0.25rem",
   scrollbarGutter: "stable",
+});
+
+const SpriteLibraryScrollArea = styled(LibraryScrollArea)({
+  maxHeight: "13.5rem",
 });
 
 const SpriteLibraryGrid = styled("div")({
@@ -583,9 +594,8 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
               aria-label="スクリーン配置スプライトライブラリ"
             >
               <LibraryHeader>
-                <FieldLabel>スプライトプレビュー</FieldLabel>
-                <LibraryHeaderActions>
-                  <Badge tone="neutral">{`${sprites.length} items`}</Badge>
+                <Stack direction="row" spacing="0.75rem" alignItems="center">
+                  <FieldLabel>スプライトプレビュー</FieldLabel>
                   <CollapseToggle
                     type="button"
                     open={isSpriteLibraryOpen}
@@ -605,7 +615,7 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
                       style={collapseChevronStyle(isSpriteLibraryOpen)}
                     />
                   </CollapseToggle>
-                </LibraryHeaderActions>
+                </Stack>
               </LibraryHeader>
 
               <LibrarySectionContent
@@ -613,7 +623,7 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
                 openState={isSpriteLibraryOpen}
                 aria-hidden={isSpriteLibraryOpen === false}
               >
-                <LibraryScrollArea>
+                <SpriteLibraryScrollArea>
                   <SpriteLibraryGrid>
                     {sprites.map((sprite, spriteIndex) => (
                       <LibraryPreviewButton
@@ -641,7 +651,7 @@ export const ScreenModePreviewPanel: React.FC<ScreenModePreviewPanelProps> = ({
                       </LibraryPreviewButton>
                     ))}
                   </SpriteLibraryGrid>
-                </LibraryScrollArea>
+                </SpriteLibraryScrollArea>
               </LibrarySectionContent>
             </LibrarySection>
 

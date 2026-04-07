@@ -260,6 +260,39 @@ test("screen mode uses a gesture-first workspace with preview libraries", async 
   ).toBeVisible();
 });
 
+test("screen mode keeps sprite and character library sections separated", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 760, height: 1800 });
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const spriteLibrary = page.getByRole("region", {
+    name: "スクリーン配置スプライトライブラリ",
+    exact: true,
+  });
+  const characterLibrary = page.getByRole("region", {
+    name: "スクリーン配置キャラクターライブラリ",
+    exact: true,
+  });
+
+  await expect(spriteLibrary).toBeVisible();
+  await expect(characterLibrary).toBeVisible();
+
+  const [spriteRect, characterRect] = await Promise.all([
+    getLocatorRect(spriteLibrary),
+    getLocatorRect(characterLibrary),
+  ]);
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+
+  expect(spriteRect.clientY + spriteRect.height).toBeLessThanOrEqual(
+    characterRect.clientY,
+  );
+  expect(characterRect.clientY + characterRect.height).toBeLessThanOrEqual(
+    viewportHeight + 1,
+  );
+});
+
 test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "画面配置");
