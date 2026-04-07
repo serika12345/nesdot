@@ -116,7 +116,28 @@ test("shows global app menu controls", async ({ page }) => {
     .first()
     .click();
   await expect(page.getByRole("dialog", { name: "About" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "nesdot icon" })).toBeVisible();
+  const aboutIcon = page.getByRole("img", { name: "nesdot icon" });
+  await expect(aboutIcon).toBeVisible();
+
+  const manifestHref = await page
+    .locator('link[rel="manifest"]')
+    .getAttribute("href");
+  expect(manifestHref).not.toBeNull();
+
+  const expectedAboutIconPathname = new URL(
+    manifestHref ?? "/manifest.webmanifest",
+    page.url(),
+  ).pathname.replace(/manifest\.webmanifest$/u, "pwa-192x192.png");
+
+  const aboutIconPathname = await aboutIcon.evaluate((element) => {
+    if (element instanceof HTMLImageElement) {
+      return new URL(element.src).pathname;
+    }
+
+    return "";
+  });
+
+  expect(aboutIconPathname).toBe(expectedAboutIconPathname);
   await expect(page.getByText(/^Version /)).toBeVisible();
   await expect(page.getByText("nesdot").first()).toBeVisible();
 });
