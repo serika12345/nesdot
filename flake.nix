@@ -33,6 +33,24 @@
           webkitgtk_4_1
         ];
 
+        linuxDevPackages =
+          linuxBuildInputs
+          ++ (with pkgs; [
+            dbus
+            libdrm
+            libxkbcommon
+            nspr
+            nss
+            wayland
+            xdg-utils
+            xdotool
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXrandr
+            xorg.libxcb
+          ]);
+
         darwinBuildInputs = with pkgs; [
           libiconv
         ];
@@ -130,20 +148,7 @@
               clippy
               pkg-config
             ])
-            ++ lib.optionals pkgs.stdenv.isLinux (
-              with pkgs;
-              [
-                glib
-                glib-networking
-                gtk3
-                libayatana-appindicator
-                librsvg
-                libsoup_3
-                xdotool
-                openssl
-                webkitgtk_4_1
-              ]
-            )
+            ++ lib.optionals pkgs.stdenv.isLinux linuxDevPackages
             ++ lib.optionals pkgs.stdenv.isDarwin (
               with pkgs;
               [
