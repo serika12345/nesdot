@@ -12,11 +12,16 @@
       "preLaunchTask": "Run Frontend Dev Server"
     },
     {
-      "type": "node-terminal",
+      "type": "lldb",
       "request": "launch",
       "name": "Launch Tauri Desktop",
-      "command": "echo Tauri dev is started by the Run Tauri Dev task.",
-      "preLaunchTask": "Run Tauri Dev"
+      "program": "${workspaceFolder}/src-tauri/target/debug/nesdot",
+      "cwd": "${workspaceFolder}/src-tauri",
+      "sourceLanguages": ["rust"],
+      "env": {
+        "RUST_BACKTRACE": "1"
+      },
+      "preLaunchTask": "Prepare Tauri Rust Debug"
     },
     {
       "type": "chrome",
@@ -31,8 +36,10 @@
   "compounds": [
     {
       "name": "Launch Tauri Desktop + Attach Frontend",
-      "configurations": ["Attach Frontend (Chrome, 1420)"],
-      "preLaunchTask": "Run Tauri Dev",
+      "configurations": [
+        "Launch Tauri Desktop",
+        "Attach Frontend (Chrome, 1420)"
+      ],
       "stopAll": true
     }
   ]

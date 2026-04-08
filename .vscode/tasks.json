@@ -50,6 +50,32 @@
       }
     },
     {
+      "label": "Build Tauri Debug Binary",
+      "type": "shell",
+      "command": "nix",
+      "args": [
+        "develop",
+        "-c",
+        "zsh",
+        "-lc",
+        "cargo build --manifest-path src-tauri/Cargo.toml"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Prepare Tauri Rust Debug",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Run Frontend Dev Server", "Build Tauri Debug Binary"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
       "label": "Format Check",
       "type": "shell",
       "command": "nix",

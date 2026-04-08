@@ -8,6 +8,7 @@
     "jnoortheen.nix-ide",
     "ms-vscode-remote.remote-wsl",
     "ms-playwright.playwright",
-    "rust-lang.rust-analyzer"
+    "rust-lang.rust-analyzer",
+    "vadimcn.vscode-lldb"
   ]
 }

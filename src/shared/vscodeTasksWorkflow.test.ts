@@ -30,6 +30,17 @@ describe("vscode tasks workflow", () => {
     expect(tasksJson).toContain('"endsPattern": "ready in"');
   });
 
+  test("defines tasks that prepare the Rust debug session inside the Nix dev shell", () => {
+    const tasksJson = readTextFile("../../.vscode/tasks.json");
+
+    expect(tasksJson).toContain('"Build Tauri Debug Binary"');
+    expect(tasksJson).toContain('"Prepare Tauri Rust Debug"');
+    expect(tasksJson).toContain(
+      '"cargo build --manifest-path src-tauri/Cargo.toml"',
+    );
+    expect(tasksJson).toContain('"Run Frontend Dev Server"');
+  });
+
   test("defines VS Code tasks for the main verification gates", () => {
     const tasksJson = readTextFile("../../.vscode/tasks.json");
 
