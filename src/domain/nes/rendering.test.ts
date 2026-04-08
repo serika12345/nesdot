@@ -1,18 +1,23 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import {
-  createDefaultNesProjectState,
-  NesBackgroundPalettes,
-  NesSpritePalettes,
-} from "./nesProject";
+import { getMatrixItem } from "../../shared/arrayAccess";
 import {
   ColorIndexOfPalette,
   Screen,
   SpriteInScreen,
   SpriteTile,
 } from "../project/project";
-import { getMatrixItem } from "../../shared/arrayAccess";
+import {
+  createDefaultProjectStateV2,
+  type ProjectStateV2,
+} from "../project/projectV2";
+import {
+  createDefaultNesProjectState,
+  NesBackgroundPalettes,
+  NesSpritePalettes,
+} from "./nesProject";
 import { nesIndexToCssHex } from "./palette";
+import { buildNesProjection } from "./projection";
 import {
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
@@ -60,12 +65,11 @@ function createScreenSprite(
   };
 }
 
-function setTilePixel<T extends SpriteTile>(
-  tile: T,
-  y: number,
-  x: number,
-  value: ColorIndexOfPalette,
-): T & SpriteTile {
+function setTilePixel<
+  T extends {
+    pixels: ReadonlyArray<ReadonlyArray<ColorIndexOfPalette>>;
+  },
+>(tile: T, y: number, x: number, value: ColorIndexOfPalette): T {
   return {
     ...tile,
     pixels: tile.pixels.map((row, rowIndex) =>
@@ -394,6 +398,51 @@ describe("renderScreenToHexArray", () => {
     };
 
     const rendered = renderScreenToHexArray(createScreen([]), nes);
+
+    expectRenderedHex(rendered, 0, 0, 7);
+    expectRenderedHex(rendered, 0, 1, 45);
+  });
+
+  it("renders background from the normalized v2 project state through NES projection", () => {
+    const state = createDefaultProjectStateV2();
+    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+      state.palettes.background[0],
+      state.palettes.background[1],
+      [45, 5, 6, 7],
+      state.palettes.background[3],
+    ];
+    const nextState: ProjectStateV2 = {
+      ...state,
+      backgroundTiles: state.backgroundTiles.map((tile, tileIndex) =>
+        tileIndex === 0 ? setTilePixel(tile, 0, 0, 3) : tile,
+      ),
+      palettes: {
+        ...state.palettes,
+        universalBackgroundColor: 45,
+        background: nextBackgroundPalettes,
+      },
+      screen: {
+        ...state.screen,
+        background: {
+          ...state.screen.background,
+          tileIndices: state.screen.background.tileIndices.map((tile, index) =>
+            index === 0 ? 0 : tile,
+          ),
+          paletteIndices: state.screen.background.paletteIndices.map(
+            (paletteIndex, index) => (index === 0 ? 2 : paletteIndex),
+          ),
+        },
+      },
+    };
+
+    const rendered = renderScreenToHexArray(
+      {
+        width: nextState.screen.width,
+        height: nextState.screen.height,
+        sprites: Array.from(nextState.screen.sprites),
+      },
+      buildNesProjection(nextState),
+    );
 
     expectRenderedHex(rendered, 0, 0, 7);
     expectRenderedHex(rendered, 0, 1, 45);
