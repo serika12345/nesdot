@@ -16,13 +16,13 @@ describe("getViteBase", () => {
     expect(getViteBase("build", {})).toBe("/");
   });
 
-  test("returns the repository base while building in GitHub Actions", () => {
+  test("returns the root base while building in GitHub Actions without an explicit base", () => {
     expect(
       getViteBase("build", {
         GITHUB_ACTIONS: "true",
         GITHUB_REPOSITORY: "paseri3739/nesdot",
       }),
-    ).toBe("/nesdot/");
+    ).toBe("/");
   });
 
   test("prioritizes a manually configured base path", () => {
@@ -43,5 +43,15 @@ describe("getViteBase", () => {
         GITHUB_REPOSITORY: "paseri3739/nesdot",
       }),
     ).toBe("/");
+  });
+
+  test("ignores GitHub repository metadata once an explicit base is provided", () => {
+    expect(
+      getViteBase("build", {
+        VITE_BASE_PATH: "/nesdot/",
+        GITHUB_ACTIONS: "true",
+        GITHUB_REPOSITORY: "another-owner/another-repo",
+      }),
+    ).toBe("/nesdot/");
   });
 });

@@ -103,6 +103,12 @@ nix develop -c zsh -lc 'pnpm start'
 nix develop -c zsh -lc 'pnpm build'
 ```
 
+`base` パスは `VITE_BASE_PATH` だけで決まります。
+
+- 未指定: `/`
+- GitHub Pages: workflow で `VITE_BASE_PATH=/<repo-name>/` を明示
+- Desktop 配布物: workflow で `VITE_BASE_PATH=/` を明示
+
 ### Nix パッケージビルド (macOS / Linux)
 
 `nix build` でホスト OS 向けのデスクトップバイナリをビルドできます。

@@ -23,29 +23,9 @@ const normalizeBasePath = (basePath: string): string => {
   return ensureTrailingSlash(ensureLeadingSlash(trimmedBasePath));
 };
 
-const getRepositoryName = (repositorySlug: string): O.Option<string> => {
-  const segments = repositorySlug.split("/");
-
-  if (segments.length !== 2) {
-    return O.none;
-  }
-
-  const repositoryNameOption = O.fromNullable(segments[1]);
-
-  if (O.isNone(repositoryNameOption)) {
-    return O.none;
-  }
-
-  if (repositoryNameOption.value === "") {
-    return O.none;
-  }
-
-  return repositoryNameOption;
-};
-
 /**
- * 実行環境に応じた Vite の base パスを決定します。
- * GitHub Pages ビルドでは `/repo-name/` を返し、通常開発とデスクトップ向けビルドでは `/` を返します。
+ * Vite の base パスを決定します。
+ * build 時は `VITE_BASE_PATH` を唯一の明示入力として使い、未指定時のみ `/` を返します。
  */
 export const getViteBase = (
   command: ViteCommand,
@@ -65,23 +45,5 @@ export const getViteBase = (
     return normalizedConfiguredBasePath;
   }
 
-  const isGitHubActions = env.GITHUB_ACTIONS === "true";
-
-  if (isGitHubActions !== true) {
-    return ROOT_BASE_PATH;
-  }
-
-  const repositorySlugOption = O.fromNullable(env.GITHUB_REPOSITORY);
-
-  if (O.isNone(repositorySlugOption)) {
-    return ROOT_BASE_PATH;
-  }
-
-  const repositoryNameOption = getRepositoryName(repositorySlugOption.value);
-
-  if (O.isNone(repositoryNameOption)) {
-    return ROOT_BASE_PATH;
-  }
-
-  return normalizeBasePath(repositoryNameOption.value);
+  return ROOT_BASE_PATH;
 };
