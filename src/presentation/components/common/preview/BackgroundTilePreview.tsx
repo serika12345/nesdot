@@ -9,6 +9,7 @@ import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import { type BackgroundTile } from "../../../../domain/project/projectV2";
 
 interface BackgroundTilePreviewProps {
+  ariaLabel?: string;
   scale: number;
   tile: BackgroundTile;
   palette: NesSubPalette;
@@ -65,6 +66,7 @@ const drawBackgroundTilePreview = (
 };
 
 const BackgroundTilePreviewComponent: React.FC<BackgroundTilePreviewProps> = ({
+  ariaLabel,
   palette,
   scale,
   tile,
@@ -95,7 +97,14 @@ const BackgroundTilePreviewComponent: React.FC<BackgroundTilePreviewProps> = ({
     );
   }, [palette, scale, tile, universalBackgroundColor]);
 
-  return (
+  return typeof ariaLabel === "string" ? (
+    <CanvasElement
+      ref={handleCanvasRef}
+      width={tile.width * scale}
+      height={tile.height * scale}
+      aria-label={ariaLabel}
+    />
+  ) : (
     <CanvasElement
       ref={handleCanvasRef}
       width={tile.width * scale}

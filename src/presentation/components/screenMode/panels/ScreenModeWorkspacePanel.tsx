@@ -1,8 +1,12 @@
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { useProjectState } from "../../../../application/state/projectStore";
+import { decodeBackgroundTileAtIndex } from "../../../../domain/nes/backgroundEditing";
+import { createEmptyBackgroundTile } from "../../../../domain/project/projectV2";
 import {
   Badge,
   DetailKey,
@@ -45,6 +49,7 @@ const HeaderActionCluster = styled(Stack)({
 export const ScreenModeWorkspacePanel: React.FC<
   ScreenModeWorkspacePanelProps
 > = ({ screenMode, onFileMenuStateChange }) => {
+  const nes = useProjectState((state) => state.nes);
   const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
     React.useState(true);
   const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
@@ -92,19 +97,53 @@ export const ScreenModeWorkspacePanel: React.FC<
     [],
   );
 
+  const grabbedBackgroundTile = React.useMemo(() => {
+    if (O.isNone(backgroundEditingState.grabbedTileIndex)) {
+      return O.none;
+    }
+
+    const decodedTile = decodeBackgroundTileAtIndex(
+      nes.chrBytes,
+      backgroundEditingState.grabbedTileIndex.value,
+    );
+
+    return O.some(
+      E.isRight(decodedTile) ? decodedTile.right : createEmptyBackgroundTile(),
+    );
+  }, [backgroundEditingState.grabbedTileIndex, nes.chrBytes]);
+
+  const grabbedTilePreview =
+    backgroundEditingState.editingTarget === "bgTile" &&
+    O.isSome(grabbedBackgroundTile)
+      ? O.some(grabbedBackgroundTile.value)
+      : O.none;
+
   const backgroundPlacementMockOverlay = pipe(
     backgroundEditingState.cursorOverlay,
     O.match(
       () => <></>,
-      (overlayState) => (
-        <ScreenModeBackgroundPlacementMockOverlay
-          placementHeight={overlayState.height}
-          placementWidth={overlayState.width}
-          placementX={overlayState.x}
-          placementY={overlayState.y}
-          screenZoomLevel={screenZoomLevel}
-        />
-      ),
+      (overlayState) =>
+        O.isSome(grabbedTilePreview) ? (
+          <ScreenModeBackgroundPlacementMockOverlay
+            placement={overlayState}
+            preview={{
+              kind: "tile",
+              palette:
+                nes.backgroundPalettes[
+                  backgroundEditingState.activePaletteIndex
+                ],
+              tile: grabbedTilePreview.value,
+              universalBackgroundColor: nes.universalBackgroundColor,
+            }}
+            screenZoomLevel={screenZoomLevel}
+          />
+        ) : (
+          <ScreenModeBackgroundPlacementMockOverlay
+            placement={overlayState}
+            preview={{ kind: "none" }}
+            screenZoomLevel={screenZoomLevel}
+          />
+        ),
     ),
   );
   const backgroundEditingProps =

@@ -1,11 +1,33 @@
 import { styled } from "@mui/material/styles";
 import React from "react";
+import {
+  type NesColorIndex,
+  type NesSubPalette,
+} from "../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
+
+interface BackgroundPlacementOverlayPlacement {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
+type BackgroundPlacementOverlayPreview =
+  | {
+      kind: "none";
+    }
+  | {
+      kind: "tile";
+      palette: NesSubPalette;
+      tile: BackgroundTile;
+      universalBackgroundColor: NesColorIndex;
+    };
 
 interface ScreenModeBackgroundPlacementMockOverlayProps {
-  placementHeight: number;
-  placementWidth: number;
-  placementX: number;
-  placementY: number;
+  placement: BackgroundPlacementOverlayPlacement;
+  preview: BackgroundPlacementOverlayPreview;
   screenZoomLevel: number;
 }
 
@@ -38,23 +60,24 @@ const OverlayRoot = styled("div", {
   justifyContent: "flex-start",
 }));
 
+const OverlayPreview = styled("div")({
+  position: "absolute",
+  inset: 0,
+  overflow: "hidden",
+  opacity: 0.94,
+});
+
 /**
  * screen mode の BG 編集カーソルを stage 上へ重ね描画します。
  * BG タイル配置では 8x8、BG 属性配置では 16x16 のスナップ領域を表示します。
  */
 export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
   ScreenModeBackgroundPlacementMockOverlayProps
-> = ({
-  placementHeight,
-  placementWidth,
-  placementX,
-  placementY,
-  screenZoomLevel,
-}) => {
-  const overlayLeft = placementX * screenZoomLevel;
-  const overlayTop = placementY * screenZoomLevel;
-  const overlayWidth = placementWidth * screenZoomLevel;
-  const overlayHeight = placementHeight * screenZoomLevel;
+> = ({ placement, preview, screenZoomLevel }) => {
+  const overlayLeft = placement.x * screenZoomLevel;
+  const overlayTop = placement.y * screenZoomLevel;
+  const overlayWidth = placement.width * screenZoomLevel;
+  const overlayHeight = placement.height * screenZoomLevel;
 
   return (
     <OverlayRoot
@@ -64,6 +87,20 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
       overlayTop={overlayTop}
       overlayWidth={overlayWidth}
       overlayHeight={overlayHeight}
-    />
+    >
+      {preview.kind === "tile" ? (
+        <OverlayPreview>
+          <BackgroundTilePreview
+            ariaLabel="BG配置タイルプレビューキャンバス"
+            scale={screenZoomLevel}
+            tile={preview.tile}
+            palette={preview.palette}
+            universalBackgroundColor={preview.universalBackgroundColor}
+          />
+        </OverlayPreview>
+      ) : (
+        <></>
+      )}
+    </OverlayRoot>
   );
 };

@@ -321,6 +321,9 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
       ),
     )
     .not.toBe(beforeBgTilePixel);
+  const afterBgTilePixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
 
   await page
     .getByRole("button", { name: "パレットを開く", exact: true })
@@ -381,6 +384,12 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
     name: "BG配置プレビュー",
     exact: true,
   });
+  const placementOverlayCanvas = page.getByLabel(
+    "BG配置タイルプレビューキャンバス",
+    {
+      exact: true,
+    },
+  );
   const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
   const screenCanvas = page.getByLabel("画面プレビューキャンバス", {
     exact: true,
@@ -413,6 +422,14 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
       };
     })
     .toEqual({ x: 80, y: 48 });
+  await expect(placementOverlayCanvas).toBeVisible();
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(placementOverlayCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .toBe(afterBgTilePixel);
 
   await stage.hover({ position: { x: 120, y: 92 } });
 
