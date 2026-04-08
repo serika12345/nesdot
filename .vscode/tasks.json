@@ -4,8 +4,8 @@
     {
       "label": "Run Frontend Dev Server",
       "type": "shell",
-      "command": "pnpm",
-      "args": ["dev"],
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm dev"],
       "isBackground": true,
       "problemMatcher": {
         "pattern": [
@@ -26,11 +26,135 @@
     {
       "label": "Run Tauri Dev",
       "type": "shell",
-      "command": "pnpm",
-      "args": ["start"],
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm start"],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": [
+          {
+            "regexp": ".",
+            "file": 1,
+            "location": 2,
+            "message": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "ready in",
+          "endsPattern": "ready in"
+        }
+      },
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Format Check",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm format:check"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Verify",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Verify UI",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:ui"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Verify Full",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:full"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Verify Rust",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:rust"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Run Unit Tests",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm test"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Run Console E2E",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm test:e2e:console"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Run Full E2E",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm test:e2e"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Install E2E Browsers",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm e2e:install"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
       }
     }
   ]

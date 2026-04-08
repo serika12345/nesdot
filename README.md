@@ -229,6 +229,9 @@ nix develop -c zsh -lc 'pnpm verify:full'
 nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
+VS Code では `Terminal: Run Task` から `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
+`Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
+
 ## 自動リリース
 
 `develop -> main` マージ、タグ作成 (`vX.Y.Z`)、リリースワークフロー起動までを自動化できます。
