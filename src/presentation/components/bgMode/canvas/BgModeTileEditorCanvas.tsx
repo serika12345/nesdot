@@ -143,6 +143,7 @@ const BgModeTileEditorCanvasComponent: React.FC<
 > = ({ onPaintPixel, palette, tile, universalBackgroundColor }) => {
   const canvasElementRef = React.useRef<O.Option<HTMLCanvasElement>>(O.none);
   const isPaintingRef = React.useRef(false);
+  const lastPaintedPixelRef = React.useRef<O.Option<string>>(O.none);
 
   const handleCanvasRef = React.useCallback(
     (element: HTMLCanvasElement | null) => {
@@ -166,15 +167,31 @@ const BgModeTileEditorCanvasComponent: React.FC<
     );
   }, [palette, tile, universalBackgroundColor]);
 
+  const paintResolvedPixel = React.useCallback(
+    (pixelX: number, pixelY: number): void => {
+      const nextPixelKey = `${pixelX}:${pixelY}`;
+
+      if (O.isSome(lastPaintedPixelRef.current)) {
+        if (lastPaintedPixelRef.current.value === nextPixelKey) {
+          return;
+        }
+      }
+
+      lastPaintedPixelRef.current = O.some(nextPixelKey);
+      onPaintPixel(pixelX, pixelY);
+    },
+    [onPaintPixel],
+  );
+
   const handlePointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       isPaintingRef.current = true;
 
       const tilePixel = resolveTilePixelFromPointerEvent(event);
 
-      onPaintPixel(tilePixel.pixelX, tilePixel.pixelY);
+      paintResolvedPixel(tilePixel.pixelX, tilePixel.pixelY);
     },
-    [onPaintPixel],
+    [paintResolvedPixel],
   );
 
   const handlePointerMove = React.useCallback(
@@ -185,13 +202,14 @@ const BgModeTileEditorCanvasComponent: React.FC<
 
       const tilePixel = resolveTilePixelFromPointerEvent(event);
 
-      onPaintPixel(tilePixel.pixelX, tilePixel.pixelY);
+      paintResolvedPixel(tilePixel.pixelX, tilePixel.pixelY);
     },
-    [onPaintPixel],
+    [paintResolvedPixel],
   );
 
   const handlePointerEnd = React.useCallback(() => {
     isPaintingRef.current = false;
+    lastPaintedPixelRef.current = O.none;
   }, []);
 
   return (

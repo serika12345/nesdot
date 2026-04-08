@@ -34,6 +34,18 @@ const isValidPaletteIndex = (
   paletteIndex === 2 ||
   paletteIndex === 3;
 
+const updateBitPlaneByte = (
+  byte: number,
+  shift: number,
+  bitValue: 0 | 1,
+): number => {
+  const bitMask = 1 << shift;
+
+  return bitValue === 1 ? byte | bitMask : byte & ~bitMask;
+};
+
+const toBitValue = (value: number): 0 | 1 => (value === 0 ? 0 : 1);
+
 const resolveChrSliceStart = (tileIndex: number): E.Either<string, number> => {
   if (isValidBackgroundTileIndex(tileIndex) === false) {
     return E.left(`background tile index out of range: ${tileIndex}`);
@@ -41,22 +53,6 @@ const resolveChrSliceStart = (tileIndex: number): E.Either<string, number> => {
 
   return E.right(tileIndex * CHR_BYTES_PER_TILE);
 };
-
-const replaceTilePixel = (
-  tile: BackgroundTile,
-  pixelX: number,
-  pixelY: number,
-  nextColorIndex: ColorIndexOfPalette,
-): BackgroundTile => ({
-  ...tile,
-  pixels: tile.pixels.map((row, rowIndex) =>
-    rowIndex === pixelY
-      ? row.map((value, columnIndex) =>
-          columnIndex === pixelX ? nextColorIndex : value,
-        )
-      : row,
-  ),
-});
 
 export const decodeBackgroundTileAtIndex = (
   chrBytes: ReadonlyArray<number>,
@@ -115,13 +111,35 @@ export const replaceBackgroundTilePixel = (
     return E.left(`background tile pixel out of range: (${pixelX}, ${pixelY})`);
   }
 
-  return E.chain((tile: BackgroundTile) =>
-    replaceBackgroundTileAtIndex(
-      chrBytes,
-      tileIndex,
-      replaceTilePixel(tile, pixelX, pixelY, nextColorIndex),
-    ),
-  )(decodeBackgroundTileAtIndex(chrBytes, tileIndex));
+  const chrSliceStart = resolveChrSliceStart(tileIndex);
+
+  if (E.isLeft(chrSliceStart)) {
+    return chrSliceStart;
+  }
+
+  const plane0Index = chrSliceStart.right + pixelY;
+  const plane1Index = chrSliceStart.right + 8 + pixelY;
+  const shift = 7 - pixelX;
+  const plane0 = chrBytes[plane0Index] ?? 0;
+  const plane1 = chrBytes[plane1Index] ?? 0;
+  const nextPlane0 = updateBitPlaneByte(
+    plane0,
+    shift,
+    toBitValue(nextColorIndex & 1),
+  );
+  const nextPlane1 = updateBitPlaneByte(
+    plane1,
+    shift,
+    toBitValue((nextColorIndex >> 1) & 1),
+  );
+  const nextChrBytes = Array.from(chrBytes);
+
+  // eslint-disable-next-line functional/immutable-data -- performance hot path: mutate only the newly allocated CHR buffer so pointer painting does not remap all 4096 bytes on every move.
+  nextChrBytes[plane0Index] = nextPlane0;
+  // eslint-disable-next-line functional/immutable-data -- performance hot path: mutate only the newly allocated CHR buffer so pointer painting does not remap all 4096 bytes on every move.
+  nextChrBytes[plane1Index] = nextPlane1;
+
+  return E.right(nextChrBytes);
 };
 
 export const setNameTableTileAtPixel = (

@@ -88,10 +88,80 @@ const chevronStyle = (open: boolean): React.CSSProperties => ({
   transition: "transform 160ms ease",
 });
 
+interface BgTileLibraryPreviewState {
+  activePaletteIndex: BgPaletteIndex;
+  backgroundPalettes: ReturnType<
+    typeof useBgModeEditingState
+  >["backgroundPalettes"];
+  universalBackgroundColor: ReturnType<
+    typeof useBgModeEditingState
+  >["universalBackgroundColor"];
+}
+
+interface BgTileLibraryProps {
+  onSelectTile: (tileIndex: number) => void;
+  previewState: BgTileLibraryPreviewState;
+  selectedTileIndex: number;
+  tiles: ReturnType<typeof useBgModeEditingState>["visibleBackgroundTiles"];
+}
+
+const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
+  onSelectTile,
+  previewState,
+  selectedTileIndex,
+  tiles,
+}) => {
+  return (
+    <TileLibraryGrid>
+      {tiles.map((tile, tileIndex) => (
+        <ToolButton
+          key={`bg-tile-preview-${tileIndex}`}
+          type="button"
+          active={selectedTileIndex === tileIndex}
+          aria-label={`#${formatTileNumber(tileIndex)}`}
+          aria-pressed={selectedTileIndex === tileIndex}
+          onClick={() => {
+            onSelectTile(tileIndex);
+          }}
+        >
+          <TileButtonLayout>
+            <BackgroundTilePreview
+              scale={6}
+              tile={tile}
+              palette={
+                previewState.backgroundPalettes[previewState.activePaletteIndex]
+              }
+              universalBackgroundColor={previewState.universalBackgroundColor}
+            />
+            <span>{`#${formatTileNumber(tileIndex)}`}</span>
+          </TileButtonLayout>
+        </ToolButton>
+      ))}
+    </TileLibraryGrid>
+  );
+};
+
+const BgTileLibrary = React.memo(BgTileLibraryComponent);
+
 const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
   onFileMenuStateChange,
 }) => {
   const bgModeState = useBgModeEditingState();
+  const deferredVisibleBackgroundTiles = React.useDeferredValue(
+    bgModeState.visibleBackgroundTiles,
+  );
+  const tileLibraryPreviewState = React.useMemo<BgTileLibraryPreviewState>(
+    () => ({
+      activePaletteIndex: bgModeState.activePaletteIndex,
+      backgroundPalettes: bgModeState.backgroundPalettes,
+      universalBackgroundColor: bgModeState.universalBackgroundColor,
+    }),
+    [
+      bgModeState.activePaletteIndex,
+      bgModeState.backgroundPalettes,
+      bgModeState.universalBackgroundColor,
+    ],
+  );
 
   React.useEffect(() => {
     onFileMenuStateChange(emptyFileMenuState);
@@ -119,36 +189,12 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
         </PanelHeader>
 
         <ScrollArea flex={1} minHeight={0}>
-          <TileLibraryGrid>
-            {bgModeState.visibleBackgroundTiles.map((tile, tileIndex) => (
-              <ToolButton
-                key={`bg-tile-preview-${tileIndex}`}
-                type="button"
-                active={bgModeState.selectedTileIndex === tileIndex}
-                aria-label={`#${formatTileNumber(tileIndex)}`}
-                aria-pressed={bgModeState.selectedTileIndex === tileIndex}
-                onClick={() => {
-                  bgModeState.setSelectedTileIndex(tileIndex);
-                }}
-              >
-                <TileButtonLayout>
-                  <BackgroundTilePreview
-                    scale={6}
-                    tile={tile}
-                    palette={
-                      bgModeState.backgroundPalettes[
-                        bgModeState.activePaletteIndex
-                      ]
-                    }
-                    universalBackgroundColor={
-                      bgModeState.universalBackgroundColor
-                    }
-                  />
-                  <span>{`#${formatTileNumber(tileIndex)}`}</span>
-                </TileButtonLayout>
-              </ToolButton>
-            ))}
-          </TileLibraryGrid>
+          <BgTileLibrary
+            onSelectTile={bgModeState.setSelectedTileIndex}
+            previewState={tileLibraryPreviewState}
+            selectedTileIndex={bgModeState.selectedTileIndex}
+            tiles={deferredVisibleBackgroundTiles}
+          />
         </ScrollArea>
       </Panel>
 

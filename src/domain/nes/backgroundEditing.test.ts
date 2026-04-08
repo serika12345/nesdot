@@ -26,6 +26,35 @@ describe("backgroundEditing", () => {
     }
   });
 
+  it("updates only the target tile bitplane bytes for a pixel write", () => {
+    const chrBytes = Array.from({ length: 4096 }, (_, index) => {
+      if (index === 0) {
+        return 0b00010000;
+      }
+
+      if (index === 8) {
+        return 0b00100000;
+      }
+
+      return 0;
+    });
+
+    const result = replaceBackgroundTilePixel(chrBytes, 0, 1, 0, 3);
+
+    expect(E.isRight(result)).toBe(true);
+
+    if (E.isRight(result)) {
+      const changedIndices = result.right
+        .map((value, index) => ({ index, value }))
+        .filter(({ index, value }) => value !== chrBytes[index]);
+
+      expect(changedIndices).toEqual([
+        { index: 0, value: 0b01010000 },
+        { index: 8, value: 0b00100000 | 0b01000000 },
+      ]);
+    }
+  });
+
   it("updates the name table tile index at a pixel position", () => {
     const nameTable = createEmptyNameTable();
 

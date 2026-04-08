@@ -163,7 +163,7 @@ const clearPointerInteraction = (
   hasRecordedPointerSnapshot: false,
 });
 
-const recordUndoSnapshot = (snapshot: UndoSnapshot): void => {
+const recordUndoSnapshot = (captureSnapshot: () => UndoSnapshot): void => {
   const runtime = undoRuntimeRef.current;
 
   if (runtime.isApplyingHistoryChange === true) {
@@ -175,7 +175,7 @@ const recordUndoSnapshot = (snapshot: UndoSnapshot): void => {
       return;
     }
 
-    pushPointerUndoSnapshot(runtime, snapshot);
+    pushPointerUndoSnapshot(runtime, captureSnapshot());
     return;
   }
 
@@ -183,7 +183,7 @@ const recordUndoSnapshot = (snapshot: UndoSnapshot): void => {
     return;
   }
 
-  pushUndoSnapshot(runtime, snapshot);
+  pushUndoSnapshot(runtime, captureSnapshot());
 };
 
 const applyUndoSnapshot = (snapshot: UndoSnapshot): void => {
@@ -204,10 +204,10 @@ const handleProjectStoreChange = (
     return;
   }
 
-  recordUndoSnapshot({
+  recordUndoSnapshot(() => ({
     project: cloneProjectSnapshot(previousProjectState),
     character: captureCurrentCharacterSnapshot(),
-  });
+  }));
 };
 
 const handleCharacterStoreChange = (
@@ -229,13 +229,13 @@ const handleCharacterStoreChange = (
     return;
   }
 
-  recordUndoSnapshot({
+  recordUndoSnapshot(() => ({
     project: cloneProjectSnapshot(useProjectState.getState()),
     character: cloneCharacterSnapshot({
       characterSets: previousCharacterState.characterSets,
       selectedCharacterId: previousCharacterState.selectedCharacterId,
     }),
-  });
+  }));
 };
 
 /**
