@@ -5,6 +5,17 @@ export type ScreenModeEditingTarget = "sprite" | "bgTile" | "bgPalette";
 
 type BgPaletteIndex = 0 | 1 | 2 | 3;
 
+interface BackgroundPlacementPreviewPosition {
+  x: number;
+  y: number;
+}
+
+const DEFAULT_BACKGROUND_PLACEMENT_PREVIEW_POSITION: BackgroundPlacementPreviewPosition =
+  {
+    x: 80,
+    y: 48,
+  };
+
 /**
  * screen mode の BG 系 UI モック state を管理します。
  * store や domain へ接続せず、導線確認に必要な target 切り替えと dialog 状態だけをローカルで保持します。
@@ -15,6 +26,10 @@ export const useScreenModeBackgroundMockUi = () => {
   const [isTilePickerOpen, setIsTilePickerOpen] = React.useState(false);
   const [activePaletteIndex, setActivePaletteIndex] =
     React.useState<BgPaletteIndex>(0);
+  const [placementPreviewPosition, setPlacementPreviewPosition] =
+    React.useState<BackgroundPlacementPreviewPosition>(
+      DEFAULT_BACKGROUND_PLACEMENT_PREVIEW_POSITION,
+    );
   const [grabbedTileIndex, setGrabbedTileIndex] = React.useState<
     O.Option<number>
   >(O.none);
@@ -55,6 +70,13 @@ export const useScreenModeBackgroundMockUi = () => {
     [],
   );
 
+  const handlePlacementPreviewMove = React.useCallback(
+    (nextPosition: BackgroundPlacementPreviewPosition): void => {
+      setPlacementPreviewPosition(nextPosition);
+    },
+    [],
+  );
+
   return {
     activePaletteIndex,
     closeTilePicker,
@@ -63,8 +85,10 @@ export const useScreenModeBackgroundMockUi = () => {
     handleBackgroundPaletteSelect,
     handleBackgroundTileSelect,
     handleMockStagePlacement,
+    handlePlacementPreviewMove,
     isTilePickerOpen,
     openTilePicker,
+    placementPreviewPosition,
   };
 };
 

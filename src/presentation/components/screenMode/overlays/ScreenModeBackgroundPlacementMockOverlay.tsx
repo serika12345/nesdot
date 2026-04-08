@@ -2,11 +2,11 @@ import { styled } from "@mui/material/styles";
 import React from "react";
 
 interface ScreenModeBackgroundPlacementMockOverlayProps {
+  placementX: number;
+  placementY: number;
   screenZoomLevel: number;
 }
 
-const MOCK_STAGE_TILE_X = 10;
-const MOCK_STAGE_TILE_Y = 6;
 const MOCK_STAGE_TILE_SIZE = 8;
 
 const shouldForwardOverlayProp = (prop: PropertyKey): boolean =>
@@ -28,7 +28,7 @@ const OverlayRoot = styled("div", {
   top: overlayTop,
   width: overlayWidth,
   height: overlayHeight,
-  borderRadius: "0.625rem",
+  borderRadius: 0,
   border: "0.125rem dashed rgba(20, 184, 166, 0.9)",
   background: "rgba(45, 212, 191, 0.14)",
   boxShadow: "0 0 0 0.375rem rgba(45, 212, 191, 0.08)",
@@ -44,10 +44,9 @@ const OverlayRoot = styled("div", {
  */
 export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
   ScreenModeBackgroundPlacementMockOverlayProps
-> = ({ screenZoomLevel }) => {
-  const overlayLeft =
-    MOCK_STAGE_TILE_X * MOCK_STAGE_TILE_SIZE * screenZoomLevel;
-  const overlayTop = MOCK_STAGE_TILE_Y * MOCK_STAGE_TILE_SIZE * screenZoomLevel;
+> = ({ placementX, placementY, screenZoomLevel }) => {
+  const overlayLeft = placementX * screenZoomLevel;
+  const overlayTop = placementY * screenZoomLevel;
   const overlayWidth = MOCK_STAGE_TILE_SIZE * screenZoomLevel;
   const overlayHeight = MOCK_STAGE_TILE_SIZE * screenZoomLevel;
 

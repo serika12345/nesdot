@@ -344,12 +344,50 @@ test("screen mode shows BG tile placement mock flow", async ({ page }) => {
     name: "BG配置プレビュー",
     exact: true,
   });
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
 
   await expect(placementOverlay).toBeVisible();
+  await expect
+    .poll(async () =>
+      placementOverlay.evaluate(
+        (element) => window.getComputedStyle(element).borderTopLeftRadius,
+      ),
+    )
+    .toBe("0px");
 
-  await page.getByLabel("スクリーン配置ステージ", { exact: true }).click({
-    position: { x: 84, y: 60 },
-  });
+  await stage.hover({ position: { x: 84, y: 60 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 80, y: 48 });
+
+  await stage.hover({ position: { x: 120, y: 92 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 112, y: 80 });
+
+  await stage.click({ position: { x: 84, y: 60 } });
 
   await expect(placementOverlay).toHaveCount(0);
   await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);

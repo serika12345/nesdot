@@ -98,16 +98,21 @@ export const ScreenModeWorkspacePanel: React.FC<
       () => <></>,
       () => (
         <ScreenModeBackgroundPlacementMockOverlay
+          placementX={backgroundMockUi.placementPreviewPosition.x}
+          placementY={backgroundMockUi.placementPreviewPosition.y}
           screenZoomLevel={screenZoomLevel}
         />
       ),
     ),
   );
-  const backgroundPlacementMockGestureProps =
+  const backgroundPlacementMockProps =
     backgroundMockUi.editingTarget === "bgTile"
       ? {
-          onBackgroundPlacementMockClick:
-            backgroundMockUi.handleMockStagePlacement,
+          backgroundPlacementMock: {
+            overlay: backgroundPlacementMockOverlay,
+            onClick: backgroundMockUi.handleMockStagePlacement,
+            onPointerMove: backgroundMockUi.handlePlacementPreviewMove,
+          },
         }
       : {};
 
@@ -177,8 +182,7 @@ export const ScreenModeWorkspacePanel: React.FC<
         screenMode={screenMode}
         isSpriteOutlineVisible={isSpriteOutlineVisible}
         isSpriteIndexVisible={isSpriteIndexVisible}
-        backgroundPlacementMockOverlay={backgroundPlacementMockOverlay}
-        {...backgroundPlacementMockGestureProps}
+        {...backgroundPlacementMockProps}
       />
 
       <ScreenModeBackgroundTilePickerDialog

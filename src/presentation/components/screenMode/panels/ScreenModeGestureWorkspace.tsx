@@ -360,8 +360,11 @@ interface ScreenModeGestureWorkspaceProps {
   screenMode: ScreenModeState;
   isSpriteOutlineVisible: boolean;
   isSpriteIndexVisible: boolean;
-  backgroundPlacementMockOverlay?: React.ReactNode;
-  onBackgroundPlacementMockClick?: () => void;
+  backgroundPlacementMock?: {
+    overlay: React.ReactNode;
+    onClick: () => void;
+    onPointerMove: (position: { x: number; y: number }) => void;
+  };
 }
 
 /**
@@ -374,8 +377,7 @@ export const ScreenModeGestureWorkspace: React.FC<
   screenMode,
   isSpriteOutlineVisible,
   isSpriteIndexVisible,
-  backgroundPlacementMockOverlay,
-  onBackgroundPlacementMockClick,
+  backgroundPlacementMock,
 }) => {
   const spriteLibraryContentId = React.useId();
   const characterLibraryContentId = React.useId();
@@ -425,6 +427,41 @@ export const ScreenModeGestureWorkspace: React.FC<
   const contextMenuPosition = pipe(
     gestureContextMenu,
     O.map((menu) => resolveMenuPosition(menu.clientX, menu.clientY)),
+  );
+
+  const resolveBackgroundPlacementMockPosition = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>): { x: number; y: number } => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const relativeX = event.clientX - rect.left;
+      const relativeY = event.clientY - rect.top;
+      const stageX = Math.floor(relativeX / screenZoomLevel);
+      const stageY = Math.floor(relativeY / screenZoomLevel);
+
+      return {
+        x: Math.min(Math.floor(stageX / 8) * 8, screen.width - 8),
+        y: Math.min(Math.floor(stageY / 8) * 8, screen.height - 8),
+      };
+    },
+    [screen.height, screen.width, screenZoomLevel],
+  );
+
+  const handleStagePointerMoveWithBackgroundPlacementMock = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      handleStagePointerMove(event);
+
+      if (typeof backgroundPlacementMock === "undefined") {
+        return;
+      }
+
+      backgroundPlacementMock.onPointerMove(
+        resolveBackgroundPlacementMockPosition(event),
+      );
+    },
+    [
+      backgroundPlacementMock,
+      handleStagePointerMove,
+      resolveBackgroundPlacementMockPosition,
+    ],
   );
 
   const floatingPreview = pipe(
@@ -683,10 +720,12 @@ export const ScreenModeGestureWorkspace: React.FC<
                 onContextMenu={handleStageContextMenu}
                 onKeyDown={handleStageKeyDown}
                 onPointerDown={handleStagePointerDown}
-                onPointerMove={handleStagePointerMove}
+                onPointerMove={
+                  handleStagePointerMoveWithBackgroundPlacementMock
+                }
                 onPointerUp={handleStagePointerEnd}
                 onPointerCancel={handleStagePointerEnd}
-                onClick={onBackgroundPlacementMockClick}
+                onClick={backgroundPlacementMock?.onClick}
                 data-stage-sprite-count={screen.sprites.length}
                 data-selected-sprite-count={gestureSelectedSpriteCount}
                 data-stage-sprite-layout={gestureStageSpriteLayout}
@@ -733,7 +772,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                   )}
                 </StageInteractionLayer>
 
-                {backgroundPlacementMockOverlay ?? <></>}
+                {backgroundPlacementMock?.overlay ?? <></>}
               </StageSurface>
             </PreviewCanvasWrap>
           </PreviewViewport>
