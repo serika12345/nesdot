@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.vite/
+src-tauri/target/
+src-tauri/gen/
+.direnv/
+pnpm-lock.yaml

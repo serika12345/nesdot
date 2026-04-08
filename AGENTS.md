@@ -9,7 +9,7 @@
 
 When instructions conflict, follow this order:
 
-1. Commands that must pass mechanically (`lint`, `typecheck`, `test`, `e2e`)
+1. Commands that must pass mechanically (`format`, `lint`, `typecheck`, `test`, `e2e`)
 2. Existing repository architecture and public types
 3. Design principles in this file
 4. Local convenience
@@ -24,7 +24,7 @@ For every task, follow this sequence:
 2. Identify the smallest safe change.
 3. Add or update tests before changing implementation when the behavior is observable and testable.
 4. Implement the code.
-5. Run the required verification commands for the change scope.
+5. Run the required verification commands for the change scope, including `pnpm format:check`.
 6. Do not finish while required commands are failing.
 
 ## 4. Verification Matrix
@@ -32,24 +32,33 @@ For every task, follow this sequence:
 Run the minimum required checks below.
 
 ### 4.1 Any code change
+
+- `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
 - `pnpm test`
 
 ### 4.2 UI code change
+
 A UI change means edits under React components, hooks used by components, styling, rendering flow, or user interactions.
 
 Run:
+
+- `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
 - `pnpm test`
 - `pnpm test:e2e:console`
 
 If the change affects visible behavior or interaction flow, also run:
+
 - `pnpm test:e2e`
 
 ### 4.3 Config or toolchain change
+
 For changes to lint config, tsconfig, vite config, playwright config, vitest config, package scripts, or nix/dev-shell settings, run all of:
+
+- `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
 - `pnpm test`
@@ -68,10 +77,10 @@ These constraints are expected to be enforced by repository configuration and mu
 - Do not rely on truthy/falsy coercion. Use explicit boolean expressions.
 - Do not introduce lint disables unless explicitly requested and justified in code review.
 - Exception policy for lint disable:
-	- The only permitted local disable is `functional/immutable-data`.
-	- It is allowed only when the user explicitly instructs it.
-	- It must be narrowly scoped (single line or smallest possible block) and include an inline reason comment.
-	- External immutability must still hold: never mutate function inputs, parameters, shared state, or values that escape the function boundary; only locally allocated internal buffers may be mutated.
+  - The only permitted local disable is `functional/immutable-data`.
+  - It is allowed only when the user explicitly instructs it.
+  - It must be narrowly scoped (single line or smallest possible block) and include an inline reason comment.
+  - External immutability must still hold: never mutate function inputs, parameters, shared state, or values that escape the function boundary; only locally allocated internal buffers may be mutated.
 - Do not ignore failing tests or type errors.
 - Do not weaken tsconfig, ESLint rules, or tests just to make a change pass.
 
@@ -80,6 +89,7 @@ These constraints are expected to be enforced by repository configuration and mu
 Any data that crosses into the application from outside trusted in-memory domain values must be validated at runtime before use.
 
 Examples:
+
 - `JSON.parse`
 - file imports
 - local storage / IndexedDB reads
@@ -88,6 +98,7 @@ Examples:
 - browser APIs returning untyped data
 
 Rules:
+
 - Use `zod` for runtime validation.
 - Parse external data into validated domain values before passing it to state setters or core logic.
 - Keep unsafe operations localized at the boundary.
@@ -165,11 +176,13 @@ Allowed `sx` usage is limited to small, local, non-reusable adjustments when all
 4. only theme-backed values are used.
 
 Good examples of allowed `sx` usage:
+
 - one-off flex alignment for a single container,
 - a small gap adjustment using theme spacing,
 - temporary composition glue between existing shared components.
 
 Disallowed examples of `sx` usage:
+
 - building full component skins,
 - defining button or card variants inline,
 - repeated page-level layout patterns,
@@ -201,6 +214,7 @@ When a component needs recurring styling, use one of these, in order:
 If the same visual or layout pattern appears more than once, do not solve it twice with inline styling. Extract it.
 
 Examples of patterns that should be extracted:
+
 - page sections,
 - card containers,
 - form rows,
@@ -254,6 +268,7 @@ Pages should assemble shared structure, not invent styling locally.
 A task is not complete unless all of the following are true:
 
 - The requested change is implemented.
+- `pnpm format:check` passes.
 - Required tests for the change scope pass.
 - Lint passes.
 - Type safety checks pass.

@@ -1,5 +1,10 @@
 import React from "react";
-import { Panel, PanelHeader, PanelTitle, ScrollArea } from "../../../App.styles";
+import {
+  Panel,
+  PanelHeader,
+  PanelTitle,
+  ScrollArea,
+} from "../../../App.styles";
 import type { ScreenModeState } from "../hooks/useScreenModeState";
 import { ScreenModeCharacterPanel } from "./ScreenModeCharacterPanel";
 import { ScreenModeGroupMovePanel } from "./ScreenModeGroupMovePanel";

@@ -9,9 +9,7 @@ import {
 import { CharacterModeComposePreviewCanvas } from "./CharacterModeComposePreviewCanvas";
 import { CharacterModeSidebar } from "../sidebar/CharacterModeSidebar";
 import { LIBRARY_PREVIEW_SCALE } from "../hooks/useCharacterModeState";
-import {
-  useCharacterModeLibraryDragPreview,
-} from "../core/CharacterModeStateProvider";
+import { useCharacterModeLibraryDragPreview } from "../core/CharacterModeStateProvider";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 
 /**

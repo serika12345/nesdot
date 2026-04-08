@@ -2,7 +2,12 @@ import { ButtonBase, MenuItem, Select, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
-import { Badge, FieldLabel, PanelHeaderRow, ToolButton } from "../../../App.styles";
+import {
+  Badge,
+  FieldLabel,
+  PanelHeaderRow,
+  ToolButton,
+} from "../../../App.styles";
 import {
   DecompositionToolGrid,
   PaletteControlContainer,
@@ -18,20 +23,22 @@ import {
 
 const PaletteSlotButton = styled(ButtonBase, {
   shouldForwardProp: (prop) => prop !== "selectedState" && prop !== "colorHex",
-})<{ selectedState?: boolean; colorHex: string }>(({ selectedState, colorHex }) => ({
-  width: "2.625rem",
-  height: "2.625rem",
-  borderRadius: "0.875rem",
-  border:
-    selectedState === true
-      ? "0.1875rem solid #0f766e"
-      : "0.0625rem solid rgba(148, 163, 184, 0.28)",
-  boxShadow:
-    selectedState === true
-      ? "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)"
-      : "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
-  backgroundColor: colorHex,
-}));
+})<{ selectedState?: boolean; colorHex: string }>(
+  ({ selectedState, colorHex }) => ({
+    width: "2.625rem",
+    height: "2.625rem",
+    borderRadius: "0.875rem",
+    border:
+      selectedState === true
+        ? "0.1875rem solid #0f766e"
+        : "0.0625rem solid rgba(148, 163, 184, 0.28)",
+    boxShadow:
+      selectedState === true
+        ? "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)"
+        : "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
+    backgroundColor: colorHex,
+  }),
+);
 
 /**
  * 分解モード専用のツールと描画パレット設定カードです。
@@ -41,7 +48,12 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
   const decompositionPalette = useCharacterModeDecompositionPalette();
 
   return (
-    <CharacterModeEditorCard minHeight={0} spacing="0.875rem" p="1rem" useFlexGap>
+    <CharacterModeEditorCard
+      minHeight={0}
+      spacing="0.875rem"
+      p="1rem"
+      useFlexGap
+    >
       <PanelHeaderRow>
         <FieldLabel>分解ツール</FieldLabel>
         <Badge tone="neutral">
@@ -62,7 +74,9 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
           type="button"
           aria-label="分解ツール 消しゴム"
           active={decompositionTool.decompositionTool === "eraser"}
-          onClick={() => decompositionTool.handleDecompositionToolChange("eraser")}
+          onClick={() =>
+            decompositionTool.handleDecompositionToolChange("eraser")
+          }
         >
           消しゴム
         </ToolButton>
@@ -70,7 +84,9 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
           type="button"
           aria-label="分解ツール 切り取り"
           active={decompositionTool.decompositionTool === "region"}
-          onClick={() => decompositionTool.handleDecompositionToolChange("region")}
+          onClick={() =>
+            decompositionTool.handleDecompositionToolChange("region")
+          }
         >
           切り取り
         </ToolButton>

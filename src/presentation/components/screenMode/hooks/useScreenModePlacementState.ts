@@ -2,9 +2,7 @@ import * as E from "fp-ts/Either";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import {
-  type SpriteInScreen,
-} from "../../../../application/state/projectStore";
+import { type SpriteInScreen } from "../../../../application/state/projectStore";
 import { expandCharacterToScreenSprites } from "../../../../domain/characters/characterSet";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 

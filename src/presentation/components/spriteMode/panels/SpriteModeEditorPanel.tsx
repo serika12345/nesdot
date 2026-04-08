@@ -1,9 +1,11 @@
-import {
-  Chip,
-  Stack,
-} from "@mui/material";
+import { Chip, Stack } from "@mui/material";
 import React from "react";
-import { Panel, PanelHeader, PanelTitle, ScrollArea } from "../../../App.styles";
+import {
+  Panel,
+  PanelHeader,
+  PanelTitle,
+  ScrollArea,
+} from "../../../App.styles";
 import { SpriteModeEditorSelectionFields } from "../forms/SpriteModeEditorSelectionFields";
 import { useSpriteModeProjectSpriteSize } from "../core/SpriteModeStateProvider";
 

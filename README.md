@@ -141,6 +141,18 @@ nix build .#desktop
 nix develop -c zsh -lc 'pnpm lint'
 ```
 
+### Format
+
+```sh
+nix develop -c zsh -lc 'pnpm format'
+```
+
+### Format Check
+
+```sh
+nix develop -c zsh -lc 'pnpm format:check'
+```
+
 ### 型安全チェック
 
 ```sh
@@ -245,6 +257,7 @@ gh secret set TAURI_SIGNING_PRIVATE_KEY -R paseri3739/nesdot < ~/.tauri/nesdot-u
 このリポジトリでは、機械的に強制できる品質ゲートを優先します。
 
 - `lint`
+- `format:check`
 - `typecheck:safety`
 - `test`
 - `test:e2e:console`

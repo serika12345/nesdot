@@ -19,12 +19,11 @@ const createStackLayout = (
 ) => {
   void displayName;
 
-  return React.forwardRef<HTMLDivElement, StackProps>(function LayoutComponent(
-    props,
-    ref,
-  ) {
-    return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
-  });
+  return React.forwardRef<HTMLDivElement, StackProps>(
+    function LayoutComponent(props, ref) {
+      return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+    },
+  );
 };
 
 export const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
@@ -81,9 +80,7 @@ export const ZoomControlsRow = styled(PanelHeaderRow)({
   justifyContent: "flex-start",
 });
 
-export const collapseChevronStyle = (
-  open: boolean,
-): React.CSSProperties => ({
+export const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
 });

@@ -445,7 +445,7 @@ type BgModeState = {
   activeTileIndex: number;
   activeBackgroundPaletteIndex: 0 | 1 | 2 | 3;
   tool: "pen" | "eraser";
-}
+};
 ```
 
 ### 1.1 SpriteMode との差分

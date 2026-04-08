@@ -10,7 +10,11 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
-import { ActionMenu, ActionMenuButton, CanvasViewport } from "../../../App.styles";
+import {
+  ActionMenu,
+  ActionMenuButton,
+  CanvasViewport,
+} from "../../../App.styles";
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 

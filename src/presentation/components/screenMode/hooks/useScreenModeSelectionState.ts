@@ -1,11 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import {
-  useMemo,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
   type SpriteInScreen,
   type SpritePriority,

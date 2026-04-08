@@ -42,7 +42,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 - Avoid mutating arrays and parameter mutation.
 - Validate external data at boundaries with zod.
 
-7. Run the full verification suite (do not downscope by change type).
+7. Run the full verification suite, including `pnpm format:check` (do not downscope by change type).
 8. If checks fail, fix root cause and rerun until green.
 9. Report exactly what changed, commands run, pass/fail status, and residual risks.
 
@@ -63,6 +63,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 
 Always run all commands below for every code change:
 
+- pnpm format:check
 - pnpm lint
 - pnpm typecheck:safety
 - pnpm test

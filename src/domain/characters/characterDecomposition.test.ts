@@ -238,7 +238,9 @@ describe("characterDecomposition", () => {
     expect(result.right.characterSprites).toEqual([
       { spriteIndex: 1, x: 8, y: 4, layer: 0 },
     ]);
-    expect(result.right.sprites[1]).toEqual(createPaintedTile(16, 3, tileEntries));
+    expect(result.right.sprites[1]).toEqual(
+      createPaintedTile(16, 3, tileEntries),
+    );
   });
 
   it("rejects overlapping cut regions", () => {

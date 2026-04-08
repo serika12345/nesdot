@@ -1,9 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import {
-  MenuItem,
-  OutlinedInput,
-  Select,
-} from "@mui/material";
+import { MenuItem, OutlinedInput, Select } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -65,7 +61,9 @@ export const ScreenModeSelectedSpritePanel: React.FC<
             onClick={() => setIsSelectionOpen((previous) => !previous)}
           >
             {isSelectionOpen ? "閉じる" : "開く"}
-            <ExpandMoreRoundedIcon style={collapseChevronStyle(isSelectionOpen)} />
+            <ExpandMoreRoundedIcon
+              style={collapseChevronStyle(isSelectionOpen)}
+            />
           </CollapseToggle>
         </PanelHeaderRow>
         <PanelTitle>選択中のスプライト</PanelTitle>

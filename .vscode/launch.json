@@ -1,21 +1,21 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Frontend (Chrome, 1420)",
-            "url": "http://localhost:1420",
-            "webRoot": "${workspaceFolder}/src",
-            "sourceMaps": true,
-            "skipFiles": ["<node_internals>/**"],
-            "preLaunchTask": "Run Frontend Dev Server"
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "Launch Tauri Desktop",
-            "command": "pnpm start"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Frontend (Chrome, 1420)",
+      "url": "http://localhost:1420",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Run Frontend Dev Server"
+    },
+    {
+      "type": "node-terminal",
+      "request": "launch",
+      "name": "Launch Tauri Desktop",
+      "command": "pnpm start"
+    }
+  ]
 }

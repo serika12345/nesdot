@@ -1,9 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import {
-  MenuItem,
-  OutlinedInput,
-  Select,
-} from "@mui/material";
+import { MenuItem, OutlinedInput, Select } from "@mui/material";
 import React from "react";
 import { getGroupBounds } from "../../../../domain/screen/spriteGroup";
 import {
@@ -61,7 +57,9 @@ export const ScreenModeGroupMovePanel: React.FC<
             onClick={() => setIsGroupMoveOpen((previous) => !previous)}
           >
             {isGroupMoveOpen ? "閉じる" : "開く"}
-            <ExpandMoreRoundedIcon style={collapseChevronStyle(isGroupMoveOpen)} />
+            <ExpandMoreRoundedIcon
+              style={collapseChevronStyle(isGroupMoveOpen)}
+            />
           </CollapseToggle>
         </PanelHeaderRow>
         <PanelTitle>グループ移動</PanelTitle>

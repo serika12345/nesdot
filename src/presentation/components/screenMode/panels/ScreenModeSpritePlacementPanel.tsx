@@ -51,7 +51,9 @@ export const ScreenModeSpritePlacementPanel: React.FC<
             onClick={() => setIsPlacementOpen((previous) => !previous)}
           >
             {isPlacementOpen ? "閉じる" : "開く"}
-            <ExpandMoreRoundedIcon style={collapseChevronStyle(isPlacementOpen)} />
+            <ExpandMoreRoundedIcon
+              style={collapseChevronStyle(isPlacementOpen)}
+            />
           </CollapseToggle>
         </PanelHeaderRow>
         <PanelTitle>スプライト追加</PanelTitle>

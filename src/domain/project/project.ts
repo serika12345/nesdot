@@ -59,7 +59,9 @@ export const createEmptySpriteTile = (
   width: 8,
   height,
   paletteIndex,
-  pixels: Array.from({ length: height }, () => Array.from({ length: 8 }, () => 0)),
+  pixels: Array.from({ length: height }, () =>
+    Array.from({ length: 8 }, () => 0),
+  ),
 });
 
 /**
@@ -78,7 +80,9 @@ export const createDefaultProjectState = (
       height: 240,
       sprites: [],
     },
-    sprites: Array.from({ length: 64 }, () => createEmptySpriteTile(spriteSize)),
+    sprites: Array.from({ length: 64 }, () =>
+      createEmptySpriteTile(spriteSize),
+    ),
     nes: {
       ...nes,
       ppuControl: {

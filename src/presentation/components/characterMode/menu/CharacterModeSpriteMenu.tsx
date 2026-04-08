@@ -35,7 +35,10 @@ export const CharacterModeSpriteMenu: React.FC = () => {
               typeof window === "undefined" ? menu.clientY : window.innerHeight;
             const left = Math.max(
               12,
-              Math.min(menu.clientX, viewportWidth - STAGE_CONTEXT_MENU_WIDTH - 12),
+              Math.min(
+                menu.clientX,
+                viewportWidth - STAGE_CONTEXT_MENU_WIDTH - 12,
+              ),
             );
             const top = Math.max(
               12,

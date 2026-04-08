@@ -2,7 +2,12 @@ import { OutlinedInput } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Badge, FieldLabel, PanelHeaderRow, ToolButton } from "../../../App.styles";
+import {
+  Badge,
+  FieldLabel,
+  PanelHeaderRow,
+  ToolButton,
+} from "../../../App.styles";
 import {
   CharacterStageViewport,
   ComposeCanvasMount,
@@ -109,8 +114,12 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
             aria-label="キャラクターステージ"
             data-active-set-name={stageDisplay.activeSetName}
             data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
-            data-selected-sprite-index={stageDisplay.selectedSpriteStageMetadata.index}
-            data-selected-sprite-layer={stageDisplay.selectedSpriteStageMetadata.layer}
+            data-selected-sprite-index={
+              stageDisplay.selectedSpriteStageMetadata.index
+            }
+            data-selected-sprite-layer={
+              stageDisplay.selectedSpriteStageMetadata.layer
+            }
             data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
             data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
             tabIndex={0}
@@ -121,7 +130,9 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
             stageHeightPx={stageSize.stageHeight * stageSize.stageScale}
             stageScale={stageSize.stageScale}
           >
-            <ComposeCanvasMount onCanvasRef={composeCanvas.handleComposeCanvasRef} />
+            <ComposeCanvasMount
+              onCanvasRef={composeCanvas.handleComposeCanvasRef}
+            />
 
             {pipe(
               dragPreview.libraryDragState,

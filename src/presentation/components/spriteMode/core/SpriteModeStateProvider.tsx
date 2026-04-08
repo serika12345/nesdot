@@ -15,8 +15,9 @@ const noopNumber = (value: number): void => {
   void value;
 };
 
-const SpriteModeStateContext =
-  React.createContext<O.Option<SpriteModeState>>(O.none);
+const SpriteModeStateContext = React.createContext<O.Option<SpriteModeState>>(
+  O.none,
+);
 
 const useSpriteModeSlice = <T,>(
   pick: (state: SpriteModeState) => T,
@@ -59,15 +60,14 @@ const defaultSpriteModeProjectActions: SpriteModeProjectActionsSlice = {
   projectActions: [],
 };
 
-export const useSpriteModeProjectActions =
-  (): SpriteModeProjectActionsSlice =>
-    useSpriteModeSlice(
-      (state) => ({
-        handleImport: state.handleImport,
-        projectActions: state.projectActions,
-      }),
-      defaultSpriteModeProjectActions,
-    );
+export const useSpriteModeProjectActions = (): SpriteModeProjectActionsSlice =>
+  useSpriteModeSlice(
+    (state) => ({
+      handleImport: state.handleImport,
+      projectActions: state.projectActions,
+    }),
+    defaultSpriteModeProjectActions,
+  );
 
 type SpriteModePaletteSlotsSlice = Pick<
   SpriteModeState,

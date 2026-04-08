@@ -1,8 +1,4 @@
-import {
-  MenuItem,
-  OutlinedInput,
-  Select,
-} from "@mui/material";
+import { MenuItem, OutlinedInput, Select } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -119,7 +115,9 @@ export const ScreenModeCharacterPanel: React.FC<
         activeCharacter,
         O.match(
           () => (
-            <HelperText>配置するキャラクターセットを選択してください。</HelperText>
+            <HelperText>
+              配置するキャラクターセットを選択してください。
+            </HelperText>
           ),
           (characterSet) => (
             <HelperText>

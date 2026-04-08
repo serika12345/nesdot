@@ -193,9 +193,10 @@ const muiGuidancePlugin = {
               return;
             }
 
-            const topLevelPropertyCount = node.value.expression.properties.filter(
-              (property) => property.type === "Property",
-            ).length;
+            const topLevelPropertyCount =
+              node.value.expression.properties.filter(
+                (property) => property.type === "Property",
+              ).length;
 
             if (topLevelPropertyCount > MUI_SX_MAX_PROPERTIES) {
               report(node.value.expression, "tooManyProperties");
@@ -341,7 +342,11 @@ const config = [
     },
   },
   {
-    files: ["src/infrastructure/**/*.{ts,tsx}", "src/presentation/**/*.{ts,tsx}", "src/main.tsx"],
+    files: [
+      "src/infrastructure/**/*.{ts,tsx}",
+      "src/presentation/**/*.{ts,tsx}",
+      "src/main.tsx",
+    ],
     rules: {
       "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
     },
