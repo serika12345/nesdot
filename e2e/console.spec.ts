@@ -6,6 +6,7 @@ import {
   openFileMenu,
   openMode,
 } from "./support/app";
+import { serveBuiltAppAtBasePath } from "./support/staticPreview";
 
 const isMenuItemDisabled = async (locator: Locator): Promise<boolean> =>
   locator.evaluate((element) => {
@@ -65,6 +66,49 @@ test("captures browser console and page errors", async ({ page }) => {
 
   expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
+});
+
+test("loads a pages-style built artifact without console or page errors", async ({
+  page,
+}) => {
+  const staticPreview = await serveBuiltAppAtBasePath("/nesdot/");
+  const consoleErrors: string[] = [];
+  const pageErrors: string[] = [];
+
+  page.on("console", (message) => {
+    const line = `[browser:${message.type()}] ${message.text()}`;
+    console.log(line);
+
+    if (message.type() === "error") {
+      consoleErrors[consoleErrors.length] = line;
+    }
+  });
+
+  page.on("pageerror", (error) => {
+    const line = `[pageerror] ${error.message}`;
+    console.log(line);
+    pageErrors[pageErrors.length] = line;
+  });
+
+  try {
+    await page.goto(staticPreview.url);
+
+    await expect(getMenuTrigger(page, "作業モード")).toBeVisible();
+    await expect(page.locator('link[rel="manifest"]').first()).toHaveAttribute(
+      "href",
+      "/nesdot/manifest.webmanifest",
+    );
+    await expect(
+      page.locator('link[rel="icon"][type="image/svg+xml"]'),
+    ).toHaveAttribute("href", "/nesdot/favicon.svg");
+
+    await page.waitForTimeout(500);
+
+    expect(consoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  } finally {
+    await staticPreview.dispose();
+  }
 });
 
 test("layout follows window resize", async ({ page }) => {
