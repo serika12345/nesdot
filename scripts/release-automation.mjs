@@ -244,13 +244,13 @@ const runVerification = ({ run, skipChecks, skipE2EConsole }) => {
     return;
   }
 
-  run(["pnpm", "lint"]);
-  run(["pnpm", "typecheck:safety"]);
-  run(["pnpm", "test"]);
+  run(["pnpm", "verify"]);
 
   if (skipE2EConsole !== true) {
     run(["pnpm", "test:e2e:console"]);
   }
+
+  run(["pnpm", "verify:rust"]);
 };
 
 const ensureTagDoesNotExist = ({ run, tagName }) => {
