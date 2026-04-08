@@ -1,76 +1,115 @@
-# CSP style-src Hardening TODO
+# CSP `style-src` Hardening TODO（2026-04 時点）
 
-目的:
+## 目的
 
-- `src-tauri/tauri.conf.json` の `app.security.csp.style-src` と `app.security.devCsp.style-src` から `'unsafe-inline'` を外せる状態にする。
-- UI の見た目と操作を維持したまま、inline style 依存と runtime style injection の扱いを整理する。
+- [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) の `app.security.csp.style-src` と `app.security.devCsp.style-src` から `'unsafe-inline'` を外せる状態にする
+- UI の見た目と操作を維持したまま、inline style 依存と runtime style injection の境界を整理する
 
-現状の主なブロッカー:
+## 現在の状態
 
-- `src/presentation/**` に React の `style={...}` がまだ残っている。
-- `src/presentation/components/characterMode/hooks/useCharacterModeState.ts` などに DOM の `.style.setProperty(...)` が残っている。
-- MUI / Emotion が runtime に `<style>` タグを挿入するため、`'unsafe-inline'` を消すには nonce 対応の方針決定が必要。
+- `'unsafe-inline'` はまだ [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) の `csp` / `devCsp` 両方で必須になっています
+- [../scripts/verify-security.mjs](../scripts/verify-security.mjs) は現時点で `style-src` に `'unsafe-inline'` が含まれることを検査しており、[../src/shared/securityWorkflow.test.ts](../src/shared/securityWorkflow.test.ts) も同じ前提です
+- [../src/main.tsx](../src/main.tsx) には Emotion nonce を付ける `CacheProvider` / `createCache` が未導入です
+- Presentation 層とインフラ層に `style={...}` と DOM 直接 style 操作が残っています
 
-TODO 1. Presentation 層の `style={...}` を削減する
+この TODO は「CSP をすぐ締める」ためのものではなく、「締めても壊れない状態に順番に寄せる」ための作業メモです。
 
-- Chevron 回転用の `style` を `styled(...)` か state prop を受ける専用コンポーネントへ寄せる。
-- 対象候補:
-  - `src/presentation/components/common/actions/ProjectActions.tsx`
-  - `src/presentation/components/characterMode/decomposition/CharacterModeDecompositionToolOverlay.tsx`
-  - `src/presentation/components/characterMode/sidebar/CharacterModeSidebarLibrary.tsx`
-  - `src/presentation/components/screenMode/panels/ScreenModeSpritePlacementPanel.tsx`
-  - `src/presentation/components/screenMode/panels/ScreenModeSelectedSpritePanel.tsx`
-  - `src/presentation/components/screenMode/panels/ScreenModeGroupMovePanel.tsx`
-  - `src/presentation/components/screenMode/panels/ScreenModeGestureWorkspace.tsx`
-  - `src/presentation/components/bgMode/panels/BgModeWorkspacePanel.tsx`
+## ブロッカー 1. Emotion / MUI の nonce 経路が未整備
 
-- レイアウトや swatch 用の `style` を shared primitive / `styled(...)` へ寄せる。
-- 対象候補:
-  - `src/presentation/components/common/pickers/PalettePicker.tsx`
-  - `src/presentation/components/spriteMode/overlay/SpriteModeToolOverlay.tsx`
-  - `src/presentation/components/spriteMode/menu/SpriteModeToolMenu.tsx`
-  - `src/presentation/components/spriteMode/forms/SpriteModePaletteSlots.tsx`
-  - `src/presentation/components/characterMode/preview/CharacterModeTilePreview.tsx`
+現状の root render は [../src/main.tsx](../src/main.tsx) の `ThemeProvider` + `CssBaseline` + `App` だけです。
 
-TODO 2. DOM 直接 style 操作を class / render 条件ベースへ寄せる
+- `CacheProvider` は未導入
+- `createCache({ nonce, ... })` も未導入
+- Tauri 側 nonce を frontend へどう渡すかも未決定
 
-- `src/presentation/components/characterMode/hooks/useCharacterModeState.ts`
-  - `image-rendering` の直接設定を canvas mount 側の styled 定義へ移す。
-  - `display` / `pointer-events` の切り替えは wrapper style mutation ではなく conditional render か state prop へ移す。
+`'unsafe-inline'` を外す本丸はここです。`style={...}` を減らすだけでは完了しません。
 
-- `src/infrastructure/browser/canvas/useGhost.ts`
-  - `img.style.*` によるドラッグゴースト描画を見直す。
-  - 候補は className + CSS 変数、または React / portal 側での preview 表示への移行。
+## ブロッカー 2. `style={...}` がまだ残っている
 
-- `src/infrastructure/browser/useImportImage.ts`
-  - `input.setAttribute("style", "display:none")` を `hidden` か class ベースへ変更する。
+### 回転 chevron / 開閉 UI 系
 
-TODO 3. Emotion / MUI の CSP nonce 方針を決める
+- [../src/presentation/components/common/actions/ProjectActions.tsx](../src/presentation/components/common/actions/ProjectActions.tsx)
+- [../src/presentation/components/characterMode/decomposition/CharacterModeDecompositionToolOverlay.tsx](../src/presentation/components/characterMode/decomposition/CharacterModeDecompositionToolOverlay.tsx)
+- [../src/presentation/components/characterMode/sidebar/CharacterModeSidebarLibrary.tsx](../src/presentation/components/characterMode/sidebar/CharacterModeSidebarLibrary.tsx)
+- [../src/presentation/components/screenMode/panels/ScreenModeSpritePlacementPanel.tsx](../src/presentation/components/screenMode/panels/ScreenModeSpritePlacementPanel.tsx)
+- [../src/presentation/components/screenMode/panels/ScreenModeSelectedSpritePanel.tsx](../src/presentation/components/screenMode/panels/ScreenModeSelectedSpritePanel.tsx)
+- [../src/presentation/components/screenMode/panels/ScreenModeGroupMovePanel.tsx](../src/presentation/components/screenMode/panels/ScreenModeGroupMovePanel.tsx)
+- [../src/presentation/components/screenMode/panels/ScreenModeGestureWorkspace.tsx](../src/presentation/components/screenMode/panels/ScreenModeGestureWorkspace.tsx)
+- [../src/presentation/components/bgMode/panels/BgModeWorkspacePanel.tsx](../src/presentation/components/bgMode/panels/BgModeWorkspacePanel.tsx)
 
-- `src/main.tsx` に Emotion `CacheProvider` + `createCache({ key, nonce, prepend: true })` を導入できるか検証する。
-- `GlobalStyles` と `styled(...)` が生成する runtime style tag に nonce を付与する。
-- Tauri v2 側で使う nonce の受け渡し方法を確定する。
-  - Tauri が付与する nonce を frontend から参照できるか確認する。
-  - 参照できない場合は、Tauri 設定と矛盾しない nonce 受け渡し方法を別途設計する。
+### レイアウト / swatch / canvas style 系
 
-TODO 4. CSP を締める
+- [../src/presentation/components/common/pickers/PalettePicker.tsx](../src/presentation/components/common/pickers/PalettePicker.tsx)
+- [../src/presentation/components/spriteMode/overlay/SpriteModeToolOverlay.tsx](../src/presentation/components/spriteMode/overlay/SpriteModeToolOverlay.tsx)
+- [../src/presentation/components/spriteMode/menu/SpriteModeToolMenu.tsx](../src/presentation/components/spriteMode/menu/SpriteModeToolMenu.tsx)
+- [../src/presentation/components/spriteMode/forms/SpriteModePaletteSlots.tsx](../src/presentation/components/spriteMode/forms/SpriteModePaletteSlots.tsx)
+- [../src/presentation/components/characterMode/preview/CharacterModeTilePreview.tsx](../src/presentation/components/characterMode/preview/CharacterModeTilePreview.tsx)
 
-- `src-tauri/tauri.conf.json` から `style-src` の `'unsafe-inline'` を削除する。
-- `scripts/verify-security.mjs` で `style-src` に `'unsafe-inline'` が残っていたら失敗させる。
-- `src/shared/securityWorkflow.test.ts` も同じ前提に更新する。
+まずはこの層を減らして、nonce 対応前に片付けられるものを片付けるのが安全です。
 
-TODO 5. 回帰確認を追加する
+## ブロッカー 3. DOM 直接 style 操作が残っている
 
-- dev / build の両方で CSP violation が出ないことを確認する。
-- 必要なら console E2E に CSP violation 非発生の観点を追加する。
+### ドラッグゴースト
 
-実装の切り分け案:
+[../src/infrastructure/browser/canvas/useGhost.ts](../src/infrastructure/browser/canvas/useGhost.ts) が `img.style.*` で次を直接変更しています。
 
-1. Presentation 層の `style={...}` を減らす PR
-2. DOM 直接 style 操作を減らす PR
-3. Emotion nonce 導入と `style-src` tightening を行う PR
+- `position`
+- `pointerEvents`
+- `opacity`
+- `transform`
+- `zIndex`
+- `left`
+- `top`
 
-未解決メモ:
+### character compose canvas
 
-- `MUI + Emotion + Tauri v2` で nonce をどう安定供給するかは実装前に再確認が必要。
-- `style-src 'unsafe-inline'` を外すための本丸は Emotion の runtime style tag 対応で、`style={...}` 削減だけでは完了しない。
+[../src/presentation/components/characterMode/hooks/useCharacterModeState.ts](../src/presentation/components/characterMode/hooks/useCharacterModeState.ts) が `composeCanvas.lowerCanvasEl` / `upperCanvasEl` / `wrapperEl` に対して `style.setProperty(...)` を使っています。
+
+- `image-rendering`
+- `display`
+- `pointer-events`
+
+### import fallback input
+
+[../src/infrastructure/browser/useImportImage.ts](../src/infrastructure/browser/useImportImage.ts) が `input.setAttribute("style", "display:none")` を使っています。
+
+ここは `hidden` や class ベースに寄せやすいので、比較的先に片付けられます。
+
+## ブロッカー 4. 検証コードの前提がまだ逆向き
+
+`'unsafe-inline'` を外す作業では、設定ファイルだけでなく検証コードも同じ PR で更新する必要があります。
+
+- [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json): `style-src` の tightening
+- [../scripts/verify-security.mjs](../scripts/verify-security.mjs): 現状は `'unsafe-inline'` の存在を要求しているため、条件を反転する必要がある
+- [../src/shared/securityWorkflow.test.ts](../src/shared/securityWorkflow.test.ts): 期待値の更新が必要
+- console E2E: dev / build の両方で CSP violation が出ないことを確認したい
+
+## 推奨する作業順
+
+### 1. 先に片付けやすい inline style を減らす
+
+- chevron 回転や小さな `style={...}` を `styled(...)` や state prop に寄せる
+- `useImportImage.ts` の hidden input を `hidden` / class 化する
+
+### 2. DOM 直接 style 操作を class / render 条件へ寄せる
+
+- `useGhost.ts`
+- `useCharacterModeState.ts`
+
+### 3. Emotion nonce を導入する
+
+- `CacheProvider`
+- `createCache({ nonce, prepend: true })`
+- Tauri から nonce を受け取る経路
+
+### 4. その後に CSP と検証コードを締める
+
+- `tauri.conf.json`
+- `verify-security.mjs`
+- `securityWorkflow.test.ts`
+- CSP violation の回帰確認
+
+## 未解決メモ
+
+- `MUI + Emotion + Tauri v2` の nonce 供給方法は、実装前に再確認が必要
+- `style-src 'unsafe-inline'` を外すための本丸は Emotion の runtime style tag 対応で、`style={...}` 削減だけでは完了しない
