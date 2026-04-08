@@ -12,8 +12,8 @@ export interface StageDebugState {
 
 export const seedDiagonalSprite = async (page: Page): Promise<void> => {
   await page.evaluate(async () => {
-    const { useProjectState } =
-      await import("../../src/application/state/projectStore");
+    const projectStoreModulePath = "/application/state/projectStore";
+    const { useProjectState } = await import(projectStoreModulePath);
 
     const current = useProjectState.getState();
     const nextSprites = current.sprites.map((sprite, spriteIndex) =>
