@@ -1,12 +1,13 @@
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   type ColorIndexOfPalette,
   getHexArrayForSpriteTile,
   type PaletteIndex,
   type ProjectSpriteSize,
+  type ProjectStoreState,
   type SpriteTile,
   useProjectState,
 } from "../../../../application/state/projectStore";
@@ -16,7 +17,7 @@ import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCa
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
-import { type FileShareAction } from "../../common/fileMenuState";
+import { type FileShareAction } from "../../common/state/fileMenuState";
 
 function makeEmptyTile(
   height: ProjectSpriteSize,
@@ -31,6 +32,92 @@ function toPaletteIndex(index: number): PaletteIndex | false {
   }
   return false;
 }
+
+interface CreateSpriteModeProjectActionsDependencies {
+  exportChr: (tile: SpriteTile, paletteIndex: PaletteIndex) => void;
+  exportPng: (hexArray: string[][]) => void;
+  exportSvgSimple: (hexArray: string[][]) => void;
+  exportJSON: (projectState: ProjectStoreState) => void;
+  getActivePalette: () => PaletteIndex;
+  getActiveSprite: () => number;
+  getProjectState: () => ProjectStoreState;
+}
+
+const resolveSpriteTileForExport = (
+  projectState: ProjectStoreState,
+  activeSprite: number,
+  activePalette: PaletteIndex,
+): SpriteTile =>
+  pipe(
+    getArrayItem(projectState.sprites, activeSprite),
+    O.getOrElse(() => makeEmptyTile(projectState.spriteSize, activePalette)),
+  );
+
+export const createSpriteModeProjectActions = ({
+  exportChr,
+  exportPng,
+  exportSvgSimple,
+  exportJSON,
+  getActivePalette,
+  getActiveSprite,
+  getProjectState,
+}: CreateSpriteModeProjectActionsDependencies): ReadonlyArray<FileShareAction> => [
+  {
+    id: "share-export-chr",
+    label: "CHRエクスポート",
+    onSelect: () => {
+      const activePalette = getActivePalette();
+      const activeSprite = getActiveSprite();
+      const projectState = getProjectState();
+      const tile = resolveSpriteTileForExport(
+        projectState,
+        activeSprite,
+        activePalette,
+      );
+
+      exportChr(tile, activePalette);
+    },
+  },
+  {
+    id: "share-export-png",
+    label: "PNGエクスポート",
+    onSelect: () => {
+      const activePalette = getActivePalette();
+      const activeSprite = getActiveSprite();
+      const projectState = getProjectState();
+      const tile = resolveSpriteTileForExport(
+        projectState,
+        activeSprite,
+        activePalette,
+      );
+
+      exportPng(getHexArrayForSpriteTile(tile));
+    },
+  },
+  {
+    id: "share-export-svg",
+    label: "SVGエクスポート",
+    onSelect: () => {
+      const activePalette = getActivePalette();
+      const activeSprite = getActiveSprite();
+      const projectState = getProjectState();
+      const tile = resolveSpriteTileForExport(
+        projectState,
+        activeSprite,
+        activePalette,
+      );
+
+      exportSvgSimple(getHexArrayForSpriteTile(tile));
+    },
+  },
+  {
+    id: "share-save-project",
+    label: "保存",
+    onSelect: () => {
+      exportJSON(getProjectState());
+    },
+  },
+];
 
 /**
  * スプライト編集画面の内部 state を組み立てます。
@@ -53,7 +140,6 @@ export const useSpriteModeInternalState = () => {
   const palettes = useProjectState((state) => state.nes.spritePalettes);
   const sprites = useProjectState((state) => state.sprites);
   const screen = useProjectState((state) => state.screen);
-  const projectState = useProjectState((state) => state);
   const { exportChr, exportPng, exportSvgSimple, exportJSON } =
     useExportImage();
   const { importJSON } = useImportImage();
@@ -113,7 +199,7 @@ export const useSpriteModeInternalState = () => {
     handleTileChange(nextTile, activeSprite);
   };
 
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     try {
       await importJSON((data) => {
         const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
@@ -133,7 +219,7 @@ export const useSpriteModeInternalState = () => {
     } catch (error) {
       alert(`インポートに失敗しました: ${String(error)}`);
     }
-  };
+  }, [activeSprite, importJSON]);
 
   const handleClearSprite = async () => {
     const message = "本当にクリアしますか？";
@@ -164,36 +250,23 @@ export const useSpriteModeInternalState = () => {
   };
 
   const projectActions = useMemo<ReadonlyArray<FileShareAction>>(
-    () => [
-      {
-        id: "share-export-chr",
-        label: "CHRエクスポート",
-        onSelect: () => exportChr(activeTile, activePalette),
-      },
-      {
-        id: "share-export-png",
-        label: "PNGエクスポート",
-        onSelect: () => exportPng(getHexArrayForSpriteTile(activeTile)),
-      },
-      {
-        id: "share-export-svg",
-        label: "SVGエクスポート",
-        onSelect: () => exportSvgSimple(getHexArrayForSpriteTile(activeTile)),
-      },
-      {
-        id: "share-save-project",
-        label: "保存",
-        onSelect: () => exportJSON(projectState),
-      },
-    ],
+    () =>
+      createSpriteModeProjectActions({
+        exportChr,
+        exportJSON,
+        exportPng,
+        exportSvgSimple,
+        getActivePalette: () => activePalette,
+        getActiveSprite: () => activeSprite,
+        getProjectState: useProjectState.getState,
+      }),
     [
       activePalette,
-      activeTile,
+      activeSprite,
       exportChr,
       exportJSON,
       exportPng,
       exportSvgSimple,
-      projectState,
     ],
   );
 

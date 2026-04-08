@@ -13,6 +13,8 @@ export default defineConfig(({ command }) => {
   const base = getViteBase(command);
 
   return {
+    root: "src",
+    publicDir: "../public",
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
     },
@@ -71,10 +73,14 @@ export default defineConfig(({ command }) => {
       }),
     ],
     base,
+    build: {
+      outDir: "../dist",
+      emptyOutDir: true,
+    },
     clearScreen: false,
     test: {
       environment: "node",
-      include: ["src/**/*.test.ts"],
+      include: ["**/*.test.ts"],
     },
     server: {
       port: 1420,

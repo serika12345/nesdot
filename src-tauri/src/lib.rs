@@ -1,7 +1,7 @@
 use tauri::Emitter;
 
 #[cfg(target_os = "macos")]
-use tauri::menu::{AboutMetadataBuilder, Menu, MenuItem, Submenu, SubmenuBuilder};
+use tauri::menu::{AboutMetadataBuilder, IsMenuItem, Menu, MenuItem, Submenu, SubmenuBuilder};
 
 const MENU_ID_SHARE_EXPORT_CHR: &str = "share-export-chr";
 const MENU_ID_SHARE_EXPORT_PNG: &str = "share-export-png";
@@ -9,19 +9,24 @@ const MENU_ID_SHARE_EXPORT_SVG: &str = "share-export-svg";
 const MENU_ID_SHARE_SAVE_PROJECT: &str = "share-save-project";
 const MENU_ID_SHARE_EXPORT_CHARACTER_JSON: &str = "share-export-character-json";
 const MENU_ID_RESTORE_IMPORT: &str = "restore-import";
+const MENU_ID_EDIT_UNDO: &str = "edit-undo";
+const MENU_ID_EDIT_REDO: &str = "edit-redo";
 const MENU_ID_MODE_SPRITE: &str = "mode-sprite";
 const MENU_ID_MODE_CHARACTER: &str = "mode-character";
+const MENU_ID_MODE_BG: &str = "mode-bg";
 const MENU_ID_MODE_SCREEN: &str = "mode-screen";
 
 const MENU_EVENT_SHARE_EXPORT_CHR: &str = "file-menu://share-export-chr";
 const MENU_EVENT_SHARE_EXPORT_PNG: &str = "file-menu://share-export-png";
 const MENU_EVENT_SHARE_EXPORT_SVG: &str = "file-menu://share-export-svg";
 const MENU_EVENT_SHARE_SAVE_PROJECT: &str = "file-menu://share-save-project";
-const MENU_EVENT_SHARE_EXPORT_CHARACTER_JSON: &str =
-    "file-menu://share-export-character-json";
+const MENU_EVENT_SHARE_EXPORT_CHARACTER_JSON: &str = "file-menu://share-export-character-json";
 const MENU_EVENT_RESTORE_IMPORT: &str = "file-menu://restore-import";
+const MENU_EVENT_EDIT_UNDO: &str = "edit-menu://undo";
+const MENU_EVENT_EDIT_REDO: &str = "edit-menu://redo";
 const MENU_EVENT_MODE_SPRITE: &str = "mode-menu://switch-sprite";
 const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
+const MENU_EVENT_MODE_BG: &str = "mode-menu://switch-bg";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
 
 #[cfg(target_os = "macos")]
@@ -39,12 +44,27 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         .about(Some(app_about_metadata))
         .build()?;
 
-    let share_export_chr =
-        MenuItem::with_id(app, MENU_ID_SHARE_EXPORT_CHR, "CHRエクスポート", true, None::<&str>)?;
-    let share_export_png =
-        MenuItem::with_id(app, MENU_ID_SHARE_EXPORT_PNG, "PNGエクスポート", true, None::<&str>)?;
-    let share_export_svg =
-        MenuItem::with_id(app, MENU_ID_SHARE_EXPORT_SVG, "SVGエクスポート", true, None::<&str>)?;
+    let share_export_chr = MenuItem::with_id(
+        app,
+        MENU_ID_SHARE_EXPORT_CHR,
+        "CHRエクスポート",
+        true,
+        None::<&str>,
+    )?;
+    let share_export_png = MenuItem::with_id(
+        app,
+        MENU_ID_SHARE_EXPORT_PNG,
+        "PNGエクスポート",
+        true,
+        None::<&str>,
+    )?;
+    let share_export_svg = MenuItem::with_id(
+        app,
+        MENU_ID_SHARE_EXPORT_SVG,
+        "SVGエクスポート",
+        true,
+        None::<&str>,
+    )?;
     let share_save_project =
         MenuItem::with_id(app, MENU_ID_SHARE_SAVE_PROJECT, "保存", true, None::<&str>)?;
     let share_export_character_json = MenuItem::with_id(
@@ -56,8 +76,27 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
     )?;
     let restore_import =
         MenuItem::with_id(app, MENU_ID_RESTORE_IMPORT, "復元", true, None::<&str>)?;
-    let mode_sprite =
-        MenuItem::with_id(app, MENU_ID_MODE_SPRITE, "スプライト編集", true, None::<&str>)?;
+    let edit_undo = MenuItem::with_id(
+        app,
+        MENU_ID_EDIT_UNDO,
+        "アンドゥ",
+        true,
+        Some("CmdOrCtrl+Z"),
+    )?;
+    let edit_redo = MenuItem::with_id(
+        app,
+        MENU_ID_EDIT_REDO,
+        "リドゥ",
+        true,
+        Some("CmdOrCtrl+Shift+Z"),
+    )?;
+    let mode_sprite = MenuItem::with_id(
+        app,
+        MENU_ID_MODE_SPRITE,
+        "スプライト編集",
+        true,
+        None::<&str>,
+    )?;
     let mode_character = MenuItem::with_id(
         app,
         MENU_ID_MODE_CHARACTER,
@@ -65,26 +104,28 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         true,
         None::<&str>,
     )?;
-    let mode_screen =
-        MenuItem::with_id(app, MENU_ID_MODE_SCREEN, "画面配置", true, None::<&str>)?;
+    let mode_bg = MenuItem::with_id(app, MENU_ID_MODE_BG, "BG編集", true, None::<&str>)?;
+    let mode_screen = MenuItem::with_id(app, MENU_ID_MODE_SCREEN, "画面配置", true, None::<&str>)?;
+    let share_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![
+        &share_export_chr,
+        &share_export_png,
+        &share_export_svg,
+        &share_save_project,
+        &share_export_character_json,
+    ];
+    let mode_items: Vec<&(dyn IsMenuItem<R> + 'static)> =
+        vec![&mode_sprite, &mode_character, &mode_bg, &mode_screen];
+    let edit_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&edit_undo, &edit_redo];
 
-    let share_submenu = Submenu::with_items(
-        app,
-        "共有",
-        true,
-        &[
-            &share_export_chr,
-            &share_export_png,
-            &share_export_svg,
-            &share_save_project,
-            &share_export_character_json,
-        ],
-    )?;
+    let share_submenu = Submenu::with_items(app, "共有", true, share_items.as_slice())?;
 
-    let mode_submenu =
-        Submenu::with_items(app, "作業モード", true, &[&mode_sprite, &mode_character, &mode_screen])?;
-    let file_submenu = Submenu::with_items(app, "ファイル", true, &[&share_submenu, &restore_import])?;
-    let menu = Menu::with_items(app, &[&app_submenu, &mode_submenu, &file_submenu])?;
+    let mode_submenu = Submenu::with_items(app, "作業モード", true, mode_items.as_slice())?;
+    let edit_submenu = Submenu::with_items(app, "編集", true, edit_items.as_slice())?;
+    let file_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&share_submenu, &restore_import];
+    let file_submenu = Submenu::with_items(app, "ファイル", true, file_items.as_slice())?;
+    let menu_items: Vec<&(dyn IsMenuItem<R> + 'static)> =
+        vec![&app_submenu, &mode_submenu, &edit_submenu, &file_submenu];
+    let menu = Menu::with_items(app, menu_items.as_slice())?;
     app.set_menu(menu)?;
 
     Ok(())
@@ -96,6 +137,7 @@ fn emit_file_menu_event<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>, eve
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let app_context = tauri::generate_context!("tauri.conf.json");
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -126,11 +168,14 @@ pub fn run() {
                 emit_file_menu_event(app_handle, MENU_EVENT_SHARE_EXPORT_CHARACTER_JSON)
             }
             MENU_ID_RESTORE_IMPORT => emit_file_menu_event(app_handle, MENU_EVENT_RESTORE_IMPORT),
+            MENU_ID_EDIT_UNDO => emit_file_menu_event(app_handle, MENU_EVENT_EDIT_UNDO),
+            MENU_ID_EDIT_REDO => emit_file_menu_event(app_handle, MENU_EVENT_EDIT_REDO),
             MENU_ID_MODE_SPRITE => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SPRITE),
             MENU_ID_MODE_CHARACTER => emit_file_menu_event(app_handle, MENU_EVENT_MODE_CHARACTER),
+            MENU_ID_MODE_BG => emit_file_menu_event(app_handle, MENU_EVENT_MODE_BG),
             MENU_ID_MODE_SCREEN => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SCREEN),
             _ => {}
         })
-        .run(tauri::generate_context!())
+        .run(app_context)
         .expect("error while running tauri application");
 }

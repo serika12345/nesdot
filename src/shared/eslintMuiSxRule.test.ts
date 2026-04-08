@@ -5,7 +5,7 @@ import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 const lintedFilePath =
-  "src/presentation/components/characterMode/CharacterMode.tsx";
+  "src/presentation/components/characterMode/core/CharacterMode.tsx";
 const lintTestTimeoutMs = 15_000;
 const eslint = new ESLint({
   cwd: projectRoot,

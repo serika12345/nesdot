@@ -137,7 +137,9 @@ const splitTopLevelMembers = (source: string): ReadonlyArray<string> =>
 const isPropMember = (member: string): boolean =>
   /^[A-Za-z0-9_]+\??:/.test(member.trim());
 
-const getPropDefinitions = (filePath: string): ReadonlyArray<PropDefinition> => {
+const getPropDefinitions = (
+  filePath: string,
+): ReadonlyArray<PropDefinition> => {
   const source = stripComments(fs.readFileSync(filePath, "utf8"));
 
   return Array.from(source.matchAll(propDeclarationPattern)).map((match) => {

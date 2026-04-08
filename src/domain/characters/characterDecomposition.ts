@@ -109,7 +109,8 @@ const isRegionOutOfBounds = (
   }
 
   return (
-    region.x + SPRITE_WIDTH > canvas.width || region.y + spriteSize > canvas.height
+    region.x + SPRITE_WIDTH > canvas.width ||
+    region.y + spriteSize > canvas.height
   );
 };
 
@@ -146,15 +147,15 @@ const extractRegionPixels = (
 const collectPaletteIndices = (
   pixels: ReadonlyArray<ReadonlyArray<CharacterDecompositionPixel>>,
 ): PaletteIndex[] =>
-  pixels.flatMap((row) =>
-    row.flatMap((pixel) =>
-      isTransparentPixel(pixel) ? [] : [pixel.paletteIndex],
-    ),
-  ).reduce<PaletteIndex[]>(
-    (acc, paletteIndex) =>
-      acc.includes(paletteIndex) ? acc : [...acc, paletteIndex],
-    [],
-  );
+  pixels
+    .flatMap((row) =>
+      row.flatMap((pixel) =>
+        isTransparentPixel(pixel) ? [] : [pixel.paletteIndex],
+      ),
+    )
+    .reduce<
+      PaletteIndex[]
+    >((acc, paletteIndex) => (acc.includes(paletteIndex) ? acc : [...acc, paletteIndex]), []);
 
 const toSpriteTile = (
   pixels: ReadonlyArray<ReadonlyArray<CharacterDecompositionPixel>>,
@@ -283,13 +284,12 @@ const analyzeBaseRegion = (
     paletteIndex: O.some(paletteIndexOption.value),
     matchedSpriteIndex,
     tile: O.some(tile),
-    resolution:
-      O.isSome(matchedSpriteIndex)
-        ? {
-            kind: "existing",
-            spriteIndex: matchedSpriteIndex.value,
-          }
-        : { kind: "invalid" },
+    resolution: O.isSome(matchedSpriteIndex)
+      ? {
+          kind: "existing",
+          spriteIndex: matchedSpriteIndex.value,
+        }
+      : { kind: "invalid" },
   };
 };
 
@@ -411,7 +411,9 @@ const buildCharacterDecompositionPlan = (
 const buildFailureMessage = (
   analysis: CharacterDecompositionAnalysis,
 ): string => {
-  const hasInvalidRegion = analysis.regions.some((region) => region.issues.length > 0);
+  const hasInvalidRegion = analysis.regions.some(
+    (region) => region.issues.length > 0,
+  );
   if (hasInvalidRegion === true) {
     return "cannot apply character decomposition with invalid regions";
   }
@@ -468,9 +470,9 @@ const resolveAssignedSpriteIndex = (
       ),
     );
 
-    return O.map((assignedSlot: AssignedSpriteSlot) => assignedSlot.spriteIndex)(
-      assignedSlotOption,
-    );
+    return O.map(
+      (assignedSlot: AssignedSpriteSlot) => assignedSlot.spriteIndex,
+    )(assignedSlotOption);
   }
 
   return O.none;
@@ -480,36 +482,37 @@ const buildCharacterSprites = (
   regions: ReadonlyArray<CharacterDecompositionRegionAnalysis>,
   assignedSlots: ReadonlyArray<AssignedSpriteSlot>,
 ): E.Either<string, CharacterSprite[]> =>
-  regions.reduce<E.Either<string, CharacterSprite[]>>(
-    (acc, region, layer) => {
-      if (E.isLeft(acc)) {
-        return acc;
-      }
+  regions.reduce<E.Either<string, CharacterSprite[]>>((acc, region, layer) => {
+    if (E.isLeft(acc)) {
+      return acc;
+    }
 
-      const spriteIndexOption = resolveAssignedSpriteIndex(region, assignedSlots);
-      if (O.isNone(spriteIndexOption)) {
-        return E.left("failed to resolve a sprite index for a decomposition region");
-      }
+    const spriteIndexOption = resolveAssignedSpriteIndex(region, assignedSlots);
+    if (O.isNone(spriteIndexOption)) {
+      return E.left(
+        "failed to resolve a sprite index for a decomposition region",
+      );
+    }
 
-      return E.right([
-        ...acc.right,
-        {
-          spriteIndex: spriteIndexOption.value,
-          x: region.region.x,
-          y: region.region.y,
-          layer,
-        },
-      ]);
-    },
-    E.right([]),
-  );
+    return E.right([
+      ...acc.right,
+      {
+        spriteIndex: spriteIndexOption.value,
+        x: region.region.x,
+        y: region.region.y,
+        layer,
+      },
+    ]);
+  }, E.right([]));
 
 const applyAssignedTiles = (
   sprites: ReadonlyArray<SpriteTile>,
   assignedSlots: ReadonlyArray<AssignedSpriteSlot>,
 ): SpriteTile[] =>
   sprites.map((sprite, spriteIndex) => {
-    const assignedSlot = assignedSlots.find((slot) => slot.spriteIndex === spriteIndex);
+    const assignedSlot = assignedSlots.find(
+      (slot) => slot.spriteIndex === spriteIndex,
+    );
     return assignedSlot?.tile ?? sprite;
   });
 
@@ -519,7 +522,8 @@ const applyAssignedTiles = (
  */
 export const analyzeCharacterDecomposition = (
   input: CharacterDecompositionInput,
-): CharacterDecompositionAnalysis => buildCharacterDecompositionPlan(input).analysis;
+): CharacterDecompositionAnalysis =>
+  buildCharacterDecompositionPlan(input).analysis;
 
 /**
  * 分解解析の結果をもとにスプライト割り当てとキャラクター構成を確定します。

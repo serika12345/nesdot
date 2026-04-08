@@ -16,8 +16,21 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
-      - name: Run verify
+      - name: Run base verification
         run: nix develop -c bash -lc 'pnpm install --frozen-lockfile && pnpm verify'
+
+      - name: Run Rust verification
+        run: nix develop -c bash -lc 'pnpm verify:rust'
 
       - name: Run UI console check
         run: nix develop -c bash -lc 'pnpm e2e:install && pnpm verify:ui'
+
+  audit-cves:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Run dependency CVE audit
+        run: nix develop -c bash -lc 'pnpm install --frozen-lockfile && pnpm verify:cve'

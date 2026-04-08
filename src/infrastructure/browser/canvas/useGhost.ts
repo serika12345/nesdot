@@ -2,10 +2,7 @@ import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
 import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { NesSpritePalettes } from "../../../domain/nes/nesProject";
-import {
-  PaletteIndex,
-  SpriteTile,
-} from "../../../domain/project/project";
+import { PaletteIndex, SpriteTile } from "../../../domain/project/project";
 import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
 
 /**
@@ -67,10 +64,7 @@ export const useGhost = ({
           const inBounds = gx >= 0 && gy >= 0 && gx < width && gy < height;
           if (inBounds === true) {
             const colorIdxOption = getMatrixItem(tile.pixels, gy, gx);
-            if (
-              O.isNone(colorIdxOption) ||
-              colorIdxOption.value === 0
-            ) {
+            if (O.isNone(colorIdxOption) || colorIdxOption.value === 0) {
               return;
             }
 

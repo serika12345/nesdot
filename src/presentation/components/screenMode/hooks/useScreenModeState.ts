@@ -52,8 +52,6 @@ export const useScreenModeState = () => {
   });
 
   const projectActionsState = useScreenModeProjectActions({
-    screen: projectModel.screen,
-    projectState: projectModel.projectState,
     scan,
     setSelectedSpriteIndex,
   });

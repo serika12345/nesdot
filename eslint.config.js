@@ -193,9 +193,10 @@ const muiGuidancePlugin = {
               return;
             }
 
-            const topLevelPropertyCount = node.value.expression.properties.filter(
-              (property) => property.type === "Property",
-            ).length;
+            const topLevelPropertyCount =
+              node.value.expression.properties.filter(
+                (property) => property.type === "Property",
+              ).length;
 
             if (topLevelPropertyCount > MUI_SX_MAX_PROPERTIES) {
               report(node.value.expression, "tooManyProperties");
@@ -256,6 +257,38 @@ const restrictedSyntaxDomainOnly = [
   },
 ];
 
+const restrictedSyntaxSecurity = [
+  {
+    selector:
+      "AssignmentExpression[left.type='MemberExpression'][left.property.type='Identifier'][left.property.name='innerHTML']",
+    message:
+      "Do not assign raw HTML with `innerHTML` or `outerHTML`. Render elements explicitly or sanitize at a dedicated boundary.",
+  },
+  {
+    selector:
+      "AssignmentExpression[left.type='MemberExpression'][left.property.type='Identifier'][left.property.name='outerHTML']",
+    message:
+      "Do not assign raw HTML with `innerHTML` or `outerHTML`. Render elements explicitly or sanitize at a dedicated boundary.",
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.property.type='Identifier'][callee.property.name='insertAdjacentHTML']",
+    message:
+      "Do not inject raw HTML with `insertAdjacentHTML`. Render elements explicitly or sanitize at a dedicated boundary.",
+  },
+  {
+    selector:
+      "CallExpression[callee.type='MemberExpression'][callee.object.type='Identifier'][callee.object.name='document'][callee.property.type='Identifier'][callee.property.name='write']",
+    message:
+      "Do not use `document.write`. Use explicit DOM construction instead.",
+  },
+  {
+    selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+    message:
+      "Do not use `dangerouslySetInnerHTML`. Render trusted elements explicitly instead.",
+  },
+];
+
 /** @type {import("eslint").Linter.FlatConfig[]} */
 const config = [
   {
@@ -303,6 +336,11 @@ const config = [
       "no-undef": "off",
       "no-undefined": "error",
 
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-new-func": "error",
+      "no-script-url": "error",
+
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/prefer-as-const": "off",
@@ -318,7 +356,11 @@ const config = [
 
       "mui-guidance/restrict-sx": "error",
 
-      "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
+      "no-restricted-syntax": [
+        "error",
+        ...restrictedSyntaxCommon,
+        ...restrictedSyntaxSecurity,
+      ],
 
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
@@ -336,14 +378,23 @@ const config = [
       "no-restricted-syntax": [
         "error",
         ...restrictedSyntaxCommon,
+        ...restrictedSyntaxSecurity,
         ...restrictedSyntaxDomainOnly,
       ],
     },
   },
   {
-    files: ["src/infrastructure/**/*.{ts,tsx}", "src/presentation/**/*.{ts,tsx}", "src/main.tsx"],
+    files: [
+      "src/infrastructure/**/*.{ts,tsx}",
+      "src/presentation/**/*.{ts,tsx}",
+      "src/main.tsx",
+    ],
     rules: {
-      "no-restricted-syntax": ["error", ...restrictedSyntaxCommon],
+      "no-restricted-syntax": [
+        "error",
+        ...restrictedSyntaxCommon,
+        ...restrictedSyntaxSecurity,
+      ],
     },
   },
   {

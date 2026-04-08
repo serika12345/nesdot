@@ -1,21 +1,46 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Frontend (Chrome, 1420)",
-            "url": "http://localhost:1420",
-            "webRoot": "${workspaceFolder}/src",
-            "sourceMaps": true,
-            "skipFiles": ["<node_internals>/**"],
-            "preLaunchTask": "Run Frontend Dev Server"
-        },
-        {
-            "type": "node-terminal",
-            "request": "launch",
-            "name": "Launch Tauri Desktop",
-            "command": "pnpm start"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Frontend (Chrome, 1420)",
+      "url": "http://localhost:1420",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Run Frontend Dev Server"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Launch Tauri Desktop",
+      "program": "${workspaceFolder}/src-tauri/target/debug/nesdot",
+      "cwd": "${workspaceFolder}/src-tauri",
+      "sourceLanguages": ["rust"],
+      "env": {
+        "RUST_BACKTRACE": "1"
+      },
+      "preLaunchTask": "Prepare Tauri Rust Debug"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Attach Frontend (Chrome, 1420)",
+      "url": "http://localhost:1420",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Tauri Desktop + Attach Frontend",
+      "configurations": [
+        "Launch Tauri Desktop",
+        "Attach Frontend (Chrome, 1420)"
+      ],
+      "stopAll": true
+    }
+  ]
 }

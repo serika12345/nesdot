@@ -1,20 +1,33 @@
 import * as O from "fp-ts/Option";
-import { useMemo, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import {
   getHexArrayForScreen,
   useProjectState,
+  type ProjectStoreState,
 } from "../../../../application/state/projectStore";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import useImportImage from "../../../../infrastructure/browser/useImportImage";
-import { type FileShareAction } from "../../common/fileMenuState";
+import { type FileShareAction } from "../../common/state/fileMenuState";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ProjectActionItem = FileShareAction;
 
+interface CreateScreenModeProjectActionsDependencies {
+  exportPng: (hexArray: string[][]) => void;
+  exportSvgSimple: (hexArray: string[][]) => void;
+  exportJSON: (projectState: ProjectStoreState) => void;
+  getProjectState: () => ProjectStoreState;
+}
+
 type ScreenModeProjectActionsDependencies = Pick<
   ScreenModeProjectStateResult,
-  "screen" | "projectState" | "scan"
+  "scan"
 > & {
   setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
 };
@@ -24,19 +37,46 @@ export interface ScreenModeProjectActionsResult {
   handleImport: () => Promise<void>;
 }
 
+export const createScreenModeProjectActions = ({
+  exportPng,
+  exportSvgSimple,
+  exportJSON,
+  getProjectState,
+}: CreateScreenModeProjectActionsDependencies): ProjectActionItem[] => [
+  {
+    id: "share-export-png",
+    label: "PNGエクスポート",
+    onSelect: () => {
+      exportPng(getHexArrayForScreen(getProjectState().screen));
+    },
+  },
+  {
+    id: "share-export-svg",
+    label: "SVGエクスポート",
+    onSelect: () => {
+      exportSvgSimple(getHexArrayForScreen(getProjectState().screen));
+    },
+  },
+  {
+    id: "share-save-project",
+    label: "保存",
+    onSelect: () => {
+      exportJSON(getProjectState());
+    },
+  },
+];
+
 /**
  * `screenMode` の保存・エクスポート・インポート導線を扱います。
  */
 export const useScreenModeProjectActions = ({
-  screen,
-  projectState,
   scan,
   setSelectedSpriteIndex,
 }: ScreenModeProjectActionsDependencies): ScreenModeProjectActionsResult => {
   const { exportPng, exportSvgSimple, exportJSON } = useExportImage();
   const { importJSON } = useImportImage();
 
-  const handleImport = async (): Promise<void> => {
+  const handleImport = useCallback(async (): Promise<void> => {
     try {
       await importJSON((data) => {
         const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
@@ -59,27 +99,17 @@ export const useScreenModeProjectActions = ({
     } catch (error) {
       alert("インポートに失敗しました: " + String(error));
     }
-  };
+  }, [importJSON, scan, setSelectedSpriteIndex]);
 
   const projectActions = useMemo<ProjectActionItem[]>(
-    () => [
-      {
-        id: "share-export-png",
-        label: "PNGエクスポート",
-        onSelect: () => exportPng(getHexArrayForScreen(screen)),
-      },
-      {
-        id: "share-export-svg",
-        label: "SVGエクスポート",
-        onSelect: () => exportSvgSimple(getHexArrayForScreen(screen)),
-      },
-      {
-        id: "share-save-project",
-        label: "保存",
-        onSelect: () => exportJSON(projectState),
-      },
-    ],
-    [exportJSON, exportPng, exportSvgSimple, projectState, screen],
+    () =>
+      createScreenModeProjectActions({
+        exportJSON,
+        exportPng,
+        exportSvgSimple,
+        getProjectState: useProjectState.getState,
+      }),
+    [exportJSON, exportPng, exportSvgSimple],
   );
 
   return {

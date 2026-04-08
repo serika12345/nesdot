@@ -31,8 +31,8 @@ import {
 import { createEmptySpriteTile } from "../../../../domain/project/project";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
-import { type FileShareAction } from "../../common/fileMenuState";
-import { type DecompositionTool } from "../CharacterModeLayoutPrimitives";
+import { type FileShareAction } from "../../common/state/fileMenuState";
+import { type DecompositionTool } from "../primitives/CharacterModePrimitives";
 import {
   createComposeSpriteSource,
   findComposeObjectEntry,
@@ -164,6 +164,7 @@ export const useCharacterModeInternalState = () => {
   const [decompositionCanvasElement, setDecompositionCanvasElement] = useState<
     O.Option<HTMLCanvasElement>
   >(O.none);
+  const [composeCanvasReadyTick, setComposeCanvasReadyTick] = useState(0);
 
   const stageElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
   const viewportElementRef = useRef<O.Option<HTMLDivElement>>(O.none);
@@ -970,6 +971,7 @@ export const useCharacterModeInternalState = () => {
     Object.assign(composeFabricCanvasRef, {
       current: O.some(composeCanvas),
     });
+    setComposeCanvasReadyTick((current) => current + 1);
 
     return () => {
       Object.assign(composeFabricObjectEntriesRef, {
@@ -1088,6 +1090,8 @@ export const useCharacterModeInternalState = () => {
     composeCanvas.requestRenderAll();
   }, [
     activeSet,
+    composeCanvasElement,
+    composeCanvasReadyTick,
     stageHeight,
     stageScale,
     stageWidth,

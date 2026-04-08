@@ -40,10 +40,7 @@ const FALLBACK_TILE: SpriteTile = makeTile(8, 0);
  * スプライト編集用 canvas の描画、描画ツール、並べ替え操作を束ねるフックです。
  * 編集ロジックを React コンポーネント本体から分離し、canvas props と更新 API に集約する意図があります。
  */
-export const useSpriteCanvas = ({
-  display,
-  interaction,
-}: UseCanvasParams) => {
+export const useSpriteCanvas = ({ display, interaction }: UseCanvasParams) => {
   const { scale = 24, showGrid = true, target } = display;
   const {
     activeColorIndex,
@@ -115,10 +112,7 @@ export const useSpriteCanvas = ({
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {
         const colorIndexOption = getMatrixItem(tile.pixels, y, x);
-        if (
-          O.isNone(colorIndexOption) ||
-          colorIndexOption.value === 0
-        ) {
+        if (O.isNone(colorIndexOption) || colorIndexOption.value === 0) {
           return;
         }
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_ICON="$ROOT_DIR/nesdot.svg"
+SOURCE_ICON="$ROOT_DIR/src/assets/nesdot.svg"
 PUBLIC_DIR="$ROOT_DIR/public"
 TAURI_ICONS_DIR="$ROOT_DIR/src-tauri/icons"
 TMP_ROOT="$(mktemp -d)"
@@ -97,4 +97,4 @@ else
   echo "Skipping macOS-specific icon tile generation (requires Darwin host with sips and iconutil)"
 fi
 
-echo "Icon sync completed from nesdot.svg"
+echo "Icon sync completed from src/assets/nesdot.svg"

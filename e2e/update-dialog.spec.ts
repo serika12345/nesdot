@@ -53,3 +53,31 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
     .click();
   await expect(failedDialog).toBeHidden();
 });
+
+test("desktop auto-update dialog respects per-state dismissal rules", async ({
+  page,
+}) => {
+  await page.goto(
+    "/?__debug-update-dialog-state=downloading&__debug-update-dialog-version=0.1.7&__debug-update-dialog-progress=42",
+  );
+
+  const downloadingDialog = page.getByRole("dialog", {
+    name: "アップデートをダウンロード中",
+  });
+
+  await expect(downloadingDialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(downloadingDialog).toBeVisible();
+
+  await page.goto(
+    "/?__debug-update-dialog-state=ready&__debug-update-dialog-version=0.1.7",
+  );
+
+  const readyDialog = page.getByRole("dialog", {
+    name: "アップデートの準備が完了しました",
+  });
+
+  await expect(readyDialog).toBeVisible();
+  await readyDialog.getByRole("button", { name: "あとで" }).click();
+  await expect(readyDialog).toBeHidden();
+});

@@ -1,6 +1,13 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { gotoApp, openMode } from "./support/app";
 import {
+  clickLogicalCanvasPixel,
+  formatCanvasPixelColor,
+  readLogicalCanvasPixel,
+} from "./support/canvas";
+import {
+  clickLocatorWithMouseAtOffset,
+  dispatchPointerClickAtOffset,
   getCanvasSize,
   getLocatorPoint,
   getLocatorRect,
@@ -297,6 +304,197 @@ test("screen mode keeps sprite and character library sections separated", async 
   );
 });
 
+test("screen mode shows BG tile placement flow", async ({ page }) => {
+  await gotoApp(page);
+  await openMode(page, "BG編集");
+
+  await page.getByRole("button", { name: "#005", exact: true }).click();
+  const bgCanvas = page.getByLabel("BGタイル編集キャンバス", { exact: true });
+  const beforeBgTilePixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
+  await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .not.toBe(beforeBgTilePixel);
+  const afterBgTilePixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
+
+  await page
+    .getByRole("button", { name: "パレットを開く", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "背景パレット 1 スロット 1", exact: true })
+    .click();
+  await page.getByRole("button", { name: "NES色 #02", exact: true }).click();
+
+  await openMode(page, "画面配置");
+
+  await expect(page.getByText("編集対象", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/既存のスプライト配置ジェスチャー/u)).toHaveCount(
+    0,
+  );
+  await expect(page.getByText(/大型ダイアログで BG タイルを選び/u)).toHaveCount(
+    0,
+  );
+  await expect(page.getByText(/BG 属性モックでは/u)).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "BGタイル", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "BG属性", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("未選択", { exact: true })).toHaveCount(0);
+
+  await expect(
+    page.getByRole("button", { name: "BGタイル追加", exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
+
+  const pickerDialog = page.getByRole("dialog", {
+    name: "BG編集",
+  });
+
+  await expect(pickerDialog).toBeVisible();
+  await expect(
+    pickerDialog.getByRole("button", { name: "BGタイル", exact: true }),
+  ).toBeVisible();
+  await expect(
+    pickerDialog.getByRole("button", { name: "BG属性", exact: true }),
+  ).toBeVisible();
+  const bgTile255Preview = pickerDialog.getByRole("button", {
+    name: "BGタイルプレビュー 255",
+    exact: true,
+  });
+  await bgTile255Preview.scrollIntoViewIfNeeded();
+  await expect(bgTile255Preview).toBeVisible();
+  await pickerDialog
+    .getByRole("button", { name: "BGタイルプレビュー 5", exact: true })
+    .click();
+  await expect(pickerDialog).toHaveCount(0);
+
+  const placementOverlay = page.getByRole("img", {
+    name: "BG配置プレビュー",
+    exact: true,
+  });
+  const placementOverlayCanvas = page.getByLabel(
+    "BG配置タイルプレビューキャンバス",
+    {
+      exact: true,
+    },
+  );
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const screenCanvas = page.getByLabel("画面プレビューキャンバス", {
+    exact: true,
+  });
+  const beforeRenderSignature = await screenCanvas.getAttribute(
+    "data-render-signature",
+  );
+
+  await expect(placementOverlay).toBeVisible();
+  await expect
+    .poll(async () =>
+      placementOverlay.evaluate(
+        (element) => window.getComputedStyle(element).borderTopLeftRadius,
+      ),
+    )
+    .toBe("0px");
+
+  await stage.hover({ position: { x: 84, y: 60 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 80, y: 48 });
+  await expect(placementOverlayCanvas).toBeVisible();
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(placementOverlayCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .toBe(afterBgTilePixel);
+
+  await stage.hover({ position: { x: 120, y: 92 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 112, y: 80 });
+
+  await stage.hover({ position: { x: 84, y: 60 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 80, y: 48 });
+
+  await clickLocatorWithMouseAtOffset(page, stage, { x: 84, y: 60 });
+
+  await expect(placementOverlay).toHaveCount(0);
+  await expect(screenCanvas).not.toHaveAttribute(
+    "data-render-signature",
+    beforeRenderSignature ?? "",
+  );
+
+  const afterTilePlacementSignature = await screenCanvas.getAttribute(
+    "data-render-signature",
+  );
+
+  await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
+  await pickerDialog
+    .getByRole("button", { name: "BG属性", exact: true })
+    .click();
+  await pickerDialog
+    .getByRole("button", { name: "BG属性パレット 1", exact: true })
+    .click();
+
+  await dispatchPointerClickAtOffset(stage, 403, { x: 84, y: 60 });
+
+  await expect(screenCanvas).not.toHaveAttribute(
+    "data-render-signature",
+    afterTilePlacementSignature ?? "",
+  );
+
+  await expect(placementOverlay).toHaveCount(0);
+  await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("未選択", { exact: true })).toHaveCount(0);
+});
+
 test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "画面配置");
@@ -362,6 +560,10 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     name: "スクリーンライブラリスプライト 0",
     exact: true,
   });
+  const bgAddButton = page.getByRole("button", {
+    name: "BGタイル追加",
+    exact: true,
+  });
   const outlineToggle = page.getByRole("button", {
     name: "スプライト外枠表示切り替え",
     exact: true,
@@ -373,14 +575,18 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
+  await expect(bgAddButton).toBeVisible();
   await expect(outlineToggle).toBeVisible();
   await expect(indexToggle).toBeVisible();
 
-  const [outlineToggleRect, indexToggleRect] = await Promise.all([
-    getLocatorRect(outlineToggle),
-    getLocatorRect(indexToggle),
-  ]);
+  const [bgAddButtonRect, outlineToggleRect, indexToggleRect] =
+    await Promise.all([
+      getLocatorRect(bgAddButton),
+      getLocatorRect(outlineToggle),
+      getLocatorRect(indexToggle),
+    ]);
 
+  expect(bgAddButtonRect.clientX).toBeLessThan(outlineToggleRect.clientX);
   expect(outlineToggleRect.clientX).toBeLessThan(indexToggleRect.clientX);
 
   await dragLibraryItemToStage(spritePreview, stage, 19, { x: 120, y: 104 });
@@ -389,9 +595,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
     .toBe(1);
 
-  const stageOutline = stage
-    .locator("[data-stage-sprite-outline='true']")
-    .first();
+  const stageOutline = stage.locator("[data-stage-sprite-outline='true']");
 
   await expect(stageOutline).toHaveCount(1);
 
@@ -532,6 +736,75 @@ test("screen mode places and deletes sprites via drag and context menu", async (
   expect(libraryPreventsNativeContextMenu).toBe(true);
 
   await page.getByRole("menuitem", { name: "削除", exact: true }).click();
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(0);
+});
+
+test("screen mode supports keyboard nudge, escape close, and delete", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const spritePreview = page.getByRole("button", {
+    name: "スクリーンライブラリスプライト 0",
+    exact: true,
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(spritePreview).toBeVisible();
+
+  await dragLibraryItemToStage(spritePreview, stage, 111, { x: 128, y: 104 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
+    .toBe(1);
+
+  await dragStageSelection(stage, 121, { x: 128, y: 104 }, { x: 128, y: 104 });
+
+  await expect
+    .poll(async () => (await getScreenStageDebugState(stage)).selectedCount)
+    .toBe(1);
+
+  const beforeNudge = await getScreenStageDebugState(stage);
+  const beforeSprite = beforeNudge.layout[0] ?? { x: 0, y: 0 };
+
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowDown");
+
+  await expect
+    .poll(async () => getScreenStageDebugState(stage))
+    .toMatchObject({
+      layout: [
+        {
+          x: beforeSprite.x + 1,
+          y: beforeSprite.y + 1,
+        },
+      ],
+    });
+
+  const afterNudge = await getScreenStageDebugState(stage);
+  const movedSprite = afterNudge.layout[0] ?? { x: 0, y: 0 };
+
+  await openStageContextMenuAt(
+    stage,
+    movedSprite.x + 1,
+    movedSprite.y + 1,
+    131,
+  );
+  const contextMenu = page.getByRole("menu", {
+    name: "スクリーン配置コンテキストメニュー",
+  });
+  await expect(contextMenu).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(contextMenu).toHaveCount(0);
+
+  await stage.focus();
+  await page.keyboard.press("Delete");
 
   await expect
     .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)

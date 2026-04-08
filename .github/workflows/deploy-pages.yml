@@ -32,7 +32,7 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: >-
           nix develop -c bash -lc
-          'pnpm install --frozen-lockfile && pnpm build'
+          'pnpm install --frozen-lockfile && pnpm e2e:install && pnpm verify:full && pnpm build'
 
       - uses: actions/upload-pages-artifact@v3
         with:

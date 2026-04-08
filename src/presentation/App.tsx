@@ -2,6 +2,14 @@ import { GlobalStyles } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  beginGlobalUndoPointerInteraction,
+  cancelGlobalUndoPointerInteraction,
+  endGlobalUndoPointerInteraction,
+  initializeGlobalUndoTracking,
+  redoLatestGlobalChange,
+  undoLatestGlobalChange,
+} from "../application/state/undoHistory";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import {
   Container,
@@ -13,18 +21,22 @@ import {
   ScrollArea,
   WorkspaceGrid,
 } from "./App.styles";
-import { CharacterMode } from "./components/characterMode/CharacterMode";
-import { DesktopAutoUpdateDialog } from "./components/common/DesktopAutoUpdateDialog";
-import { FileMenuBar, type WorkMode } from "./components/common/FileMenuBar";
+import { BgMode } from "./components/bgMode/core/BgMode";
+import { CharacterMode } from "./components/characterMode/core/CharacterMode";
+import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
+import {
+  FileMenuBar,
+  type WorkMode,
+} from "./components/common/menu/FileMenuBar";
+import { PalettePicker } from "./components/common/pickers/PalettePicker";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
-} from "./components/common/fileMenuState";
-import { PalettePicker } from "./components/common/PalettePicker";
-import { ScreenMode } from "./components/screenMode/ScreenMode";
-import { SpriteMode } from "./components/spriteMode/SpriteMode";
+} from "./components/common/state/fileMenuState";
+import { ScreenMode } from "./components/screenMode/core/ScreenMode";
+import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
 import { getAppGlobalStyles } from "./theme";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
@@ -66,12 +78,110 @@ const NATIVE_MODE_EVENT_BINDINGS: ReadonlyArray<{
     mode: "character",
   },
   {
+    eventName: "mode-menu://switch-bg",
+    mode: "bg",
+  },
+  {
     eventName: "mode-menu://switch-screen",
     mode: "screen",
   },
 ];
 
 const NATIVE_RESTORE_EVENT_NAME = "file-menu://restore-import";
+const NATIVE_UNDO_EVENT_NAME = "edit-menu://undo";
+const NATIVE_REDO_EVENT_NAME = "edit-menu://redo";
+
+const isEditableTarget = (target: EventTarget): boolean => {
+  if (target instanceof HTMLInputElement) {
+    return true;
+  }
+
+  if (target instanceof HTMLTextAreaElement) {
+    return true;
+  }
+
+  if (target instanceof HTMLSelectElement) {
+    return true;
+  }
+
+  if (target instanceof HTMLElement) {
+    return target.isContentEditable;
+  }
+
+  return false;
+};
+
+const shouldHandleGlobalUndoShortcut = (event: KeyboardEvent): boolean => {
+  const pressedUndoKey = event.key.toLowerCase() === "z";
+  const hasUndoModifier = event.metaKey === true || event.ctrlKey === true;
+  const hasOnlyUndoModifiers =
+    event.altKey === false && event.shiftKey === false;
+  const isEditable = pipe(
+    O.fromNullable(event.target),
+    O.match(
+      () => false,
+      (target) => isEditableTarget(target),
+    ),
+  );
+
+  if (pressedUndoKey === false) {
+    return false;
+  }
+
+  if (hasUndoModifier === false) {
+    return false;
+  }
+
+  if (hasOnlyUndoModifiers === false) {
+    return false;
+  }
+
+  if (isEditable === true) {
+    return false;
+  }
+
+  if (event.isComposing === true) {
+    return false;
+  }
+
+  return true;
+};
+
+const shouldHandleGlobalRedoShortcut = (event: KeyboardEvent): boolean => {
+  const lowerKey = event.key.toLowerCase();
+  const hasUndoModifier = event.metaKey === true || event.ctrlKey === true;
+  const isRedoByShiftZ = lowerKey === "z" && event.shiftKey === true;
+  const isRedoByCtrlY = lowerKey === "y" && event.shiftKey === false;
+  const isEditable = pipe(
+    O.fromNullable(event.target),
+    O.match(
+      () => false,
+      (target) => isEditableTarget(target),
+    ),
+  );
+
+  if (hasUndoModifier === false) {
+    return false;
+  }
+
+  if (event.altKey === true) {
+    return false;
+  }
+
+  if (isRedoByShiftZ === false && isRedoByCtrlY === false) {
+    return false;
+  }
+
+  if (isEditable === true) {
+    return false;
+  }
+
+  if (event.isComposing === true) {
+    return false;
+  }
+
+  return true;
+};
 
 const hasTauriRuntime = (): boolean => {
   if (typeof window === "undefined") {
@@ -136,6 +246,64 @@ export const App: React.FC = () => {
     useState<FileMenuState>(emptyFileMenuState);
   const isNativeMacMenu = useMemo(() => isMacNativeMenuRuntime(), []);
 
+  const handleUndoSelect = useCallback((): void => {
+    undoLatestGlobalChange();
+  }, []);
+
+  const handleRedoSelect = useCallback((): void => {
+    redoLatestGlobalChange();
+  }, []);
+
+  useEffect(() => {
+    const stopUndoTracking = initializeGlobalUndoTracking();
+
+    const handleWindowKeyDown = (event: KeyboardEvent): void => {
+      if (shouldHandleGlobalUndoShortcut(event) === true) {
+        const didUndo = undoLatestGlobalChange();
+        if (didUndo === true) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (shouldHandleGlobalRedoShortcut(event) === true) {
+        const didRedo = redoLatestGlobalChange();
+        if (didRedo === true) {
+          event.preventDefault();
+        }
+        return;
+      }
+    };
+
+    const handlePointerDown = (): void => {
+      beginGlobalUndoPointerInteraction();
+    };
+
+    const handlePointerEnd = (): void => {
+      endGlobalUndoPointerInteraction();
+    };
+
+    const handleWindowBlur = (): void => {
+      cancelGlobalUndoPointerInteraction();
+    };
+
+    window.addEventListener("keydown", handleWindowKeyDown);
+    window.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("pointerup", handlePointerEnd, true);
+    window.addEventListener("pointercancel", handlePointerEnd, true);
+    window.addEventListener("blur", handleWindowBlur);
+
+    return () => {
+      window.removeEventListener("keydown", handleWindowKeyDown);
+      window.removeEventListener("pointerdown", handlePointerDown, true);
+      window.removeEventListener("pointerup", handlePointerEnd, true);
+      window.removeEventListener("pointercancel", handlePointerEnd, true);
+      window.removeEventListener("blur", handleWindowBlur);
+      cancelGlobalUndoPointerInteraction();
+      stopUndoTracking();
+    };
+  }, []);
+
   useEffect(() => {
     if (isNativeMacMenu !== true) {
       return;
@@ -168,10 +336,26 @@ export const App: React.FC = () => {
           },
         );
 
+        const undoUnlistenCallback = await eventModule.listen(
+          NATIVE_UNDO_EVENT_NAME,
+          () => {
+            handleUndoSelect();
+          },
+        );
+
+        const redoUnlistenCallback = await eventModule.listen(
+          NATIVE_REDO_EVENT_NAME,
+          () => {
+            handleRedoSelect();
+          },
+        );
+
         return [
           ...shareUnlistenCallbacks,
           ...modeUnlistenCallbacks,
           restoreUnlistenCallback,
+          undoUnlistenCallback,
+          redoUnlistenCallback,
         ];
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
@@ -189,7 +373,7 @@ export const App: React.FC = () => {
         });
       });
     };
-  }, [fileMenuState, isNativeMacMenu]);
+  }, [fileMenuState, handleRedoSelect, handleUndoSelect, isNativeMacMenu]);
 
   const handleFileMenuStateChange = useCallback(
     (nextFileMenuState: FileMenuState): void => {
@@ -205,6 +389,9 @@ export const App: React.FC = () => {
   const mainPanel = (() => {
     if (editMode === "sprite") {
       return <SpriteMode onFileMenuStateChange={handleFileMenuStateChange} />;
+    }
+    if (editMode === "bg") {
+      return <BgMode onFileMenuStateChange={handleFileMenuStateChange} />;
     }
     if (editMode === "character") {
       return (
@@ -225,12 +412,17 @@ export const App: React.FC = () => {
       />
 
       <Container spacing={{ xs: "0.75rem", md: "1rem" }}>
-        <FileMenuBar
-          fileMenuState={fileMenuState}
-          editMode={editMode}
-          onEditModeSelect={handleEditModeSelect}
-          hidden={isNativeMacMenu}
-        />
+        {isNativeMacMenu === true ? (
+          <></>
+        ) : (
+          <FileMenuBar
+            fileMenuState={fileMenuState}
+            editMode={editMode}
+            onEditModeSelect={handleEditModeSelect}
+            onUndoSelect={handleUndoSelect}
+            onRedoSelect={handleRedoSelect}
+          />
+        )}
 
         <WorkspaceGrid flex={1} minHeight={0}>
           <LeftPane>{mainPanel}</LeftPane>

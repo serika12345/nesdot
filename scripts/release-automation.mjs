@@ -10,6 +10,7 @@ const RELEASE_FILES = Object.freeze({
   packageJson: "package.json",
   tauriConfig: "src-tauri/tauri.conf.json",
   cargoToml: "src-tauri/Cargo.toml",
+  cargoLock: "src-tauri/Cargo.lock",
 });
 
 const VALID_BUMP_PARTS = Object.freeze(["patch", "minor", "major"]);
@@ -238,19 +239,25 @@ const writeVersionFiles = ({ repoRoot, nextVersion, dryRun }) => {
   writeFileSync(cargoTomlPath, nextCargoTomlText);
 };
 
+const formatVersionFiles = (run) => {
+  const filePaths = [RELEASE_FILES.packageJson, RELEASE_FILES.tauriConfig];
+
+  run(["pnpm", "exec", "prettier", "--write", ...filePaths]);
+};
+
 const runVerification = ({ run, skipChecks, skipE2EConsole }) => {
   if (skipChecks === true) {
     console.info("[release-automation] skip checks (--skip-checks)");
     return;
   }
 
-  run(["pnpm", "lint"]);
-  run(["pnpm", "typecheck:safety"]);
-  run(["pnpm", "test"]);
+  run(["pnpm", "verify"]);
 
   if (skipE2EConsole !== true) {
     run(["pnpm", "test:e2e:console"]);
   }
+
+  run(["pnpm", "verify:rust"]);
 };
 
 const ensureTagDoesNotExist = ({ run, tagName }) => {
@@ -311,6 +318,7 @@ const release = ({
   }
 
   writeVersionFiles({ repoRoot, nextVersion, dryRun });
+  formatVersionFiles(run);
 
   runVerification({ run, skipChecks, skipE2EConsole });
 
@@ -323,6 +331,7 @@ const release = ({
     RELEASE_FILES.packageJson,
     RELEASE_FILES.tauriConfig,
     RELEASE_FILES.cargoToml,
+    RELEASE_FILES.cargoLock,
   ]);
   run([
     "git",

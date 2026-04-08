@@ -1,9 +1,7 @@
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useRef } from "react";
-import {
-  getHexArrayForScreen,
-  useProjectState,
-} from "../../../application/state/projectStore";
+import { useProjectState } from "../../../application/state/projectStore";
+import { renderScreenToHexArray } from "../../../domain/nes/rendering";
 
 export type Tool = "pen" | "eraser";
 export interface UseCanvasParams {
@@ -19,11 +17,28 @@ export const useScreenCanvas = ({
   scale = 24,
   showGrid = true,
 }: UseCanvasParams) => {
-  const screen = useProjectState((s) => s.screen);
   const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
-  const width = screen.width;
-  const height = screen.height;
+  const renderSignature = (
+    hexGrid: ReadonlyArray<ReadonlyArray<string>>,
+  ): string =>
+    String(
+      hexGrid.reduce(
+        (gridChecksum, row) =>
+          row.reduce(
+            (rowChecksum, hex) =>
+              Array.from(hex).reduce(
+                (hexChecksum, character) =>
+                  (Math.imul(hexChecksum, 16777619) ^
+                    character.charCodeAt(0)) >>>
+                  0,
+                rowChecksum,
+              ),
+            gridChecksum,
+          ),
+        2166136261,
+      ),
+    );
 
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
@@ -31,12 +46,21 @@ export const useScreenCanvas = ({
     const ctxOption = O.fromNullable(cvs.getContext("2d"));
     if (O.isNone(ctxOption)) return;
     const ctx = ctxOption.value;
+    const state = useProjectState.getState();
+    const screen = state.screen;
+    const nes = state.nes;
+    const width = screen.width;
+    const height = screen.height;
 
     cvs.width = width * scale;
     cvs.height = height * scale;
     ctx.imageSmoothingEnabled = false;
 
-    const hexGrid = getHexArrayForScreen(screen);
+    const hexGrid = renderScreenToHexArray(screen, nes);
+    Object.assign(cvs.dataset, {
+      renderSignature: renderSignature(hexGrid),
+    });
+
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {
         const rowOption = O.fromNullable(hexGrid[y]);
@@ -54,20 +78,23 @@ export const useScreenCanvas = ({
 
     // グリッド
     if (showGrid === true) {
-      ctx.strokeStyle = "rgba(0,0,0,0.2)";
-      ctx.lineWidth = 1;
-      Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
-        ctx.beginPath();
-        ctx.moveTo(gx * scale + 0.5, 0);
-        ctx.lineTo(gx * scale + 0.5, height * scale);
-        ctx.stroke();
-      });
-      Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
-        ctx.beginPath();
-        ctx.moveTo(0, gy * scale + 0.5);
-        ctx.lineTo(width * scale, gy * scale + 0.5);
-        ctx.stroke();
-      });
+      if (scale >= 4) {
+        ctx.strokeStyle = "rgba(0,0,0,0.2)";
+        ctx.lineWidth = 1;
+        Array.from({ length: width + 1 }, (_, gx) => gx).forEach((gx) => {
+          ctx.beginPath();
+          ctx.moveTo(gx * scale + 0.5, 0);
+          ctx.lineTo(gx * scale + 0.5, height * scale);
+          ctx.stroke();
+        });
+        Array.from({ length: height + 1 }, (_, gy) => gy).forEach((gy) => {
+          ctx.beginPath();
+          ctx.moveTo(0, gy * scale + 0.5);
+          ctx.lineTo(width * scale, gy * scale + 0.5);
+          ctx.stroke();
+        });
+      }
+
       // 8x8境界強調
       ctx.strokeStyle = "rgba(0,0,0,0.5)";
       Array.from(
@@ -89,10 +116,16 @@ export const useScreenCanvas = ({
         ctx.stroke();
       });
     }
-  }, [scale, showGrid, screen, width, height]);
+  }, [scale, showGrid]);
 
   useEffect(() => {
     drawAll();
+
+    const unsubscribe = useProjectState.subscribe(() => {
+      drawAll();
+    });
+
+    return unsubscribe;
   }, [drawAll]);
 
   const paintingRef = useRef(false);

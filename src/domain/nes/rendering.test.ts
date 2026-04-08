@@ -1,19 +1,26 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import {
-  createDefaultNesProjectState,
-  NesBackgroundPalettes,
-  NesSpritePalettes,
-} from "../nes/nesProject";
+import { getMatrixItem } from "../../shared/arrayAccess";
 import {
   ColorIndexOfPalette,
   Screen,
   SpriteInScreen,
   SpriteTile,
 } from "../project/project";
-import { getMatrixItem } from "../../shared/arrayAccess";
-import { nesIndexToCssHex } from "./palette";
 import {
+  createDefaultProjectStateV2,
+  type ProjectStateV2,
+} from "../project/projectV2";
+import {
+  createDefaultNesProjectState,
+  NES_EMPTY_BACKGROUND_TILE_INDEX,
+  NesBackgroundPalettes,
+  NesSpritePalettes,
+} from "./nesProject";
+import { nesIndexToCssHex } from "./palette";
+import { buildNesProjection } from "./projection";
+import {
+  renderProjectStateV2ToHexArray,
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "./rendering";
@@ -60,12 +67,11 @@ function createScreenSprite(
   };
 }
 
-function setTilePixel<T extends SpriteTile>(
-  tile: T,
-  y: number,
-  x: number,
-  value: ColorIndexOfPalette,
-): T & SpriteTile {
+function setTilePixel<
+  T extends {
+    pixels: ReadonlyArray<ReadonlyArray<ColorIndexOfPalette>>;
+  },
+>(tile: T, y: number, x: number, value: ColorIndexOfPalette): T {
   return {
     ...tile,
     pixels: tile.pixels.map((row, rowIndex) =>
@@ -394,6 +400,120 @@ describe("renderScreenToHexArray", () => {
     };
 
     const rendered = renderScreenToHexArray(createScreen([]), nes);
+
+    expectRenderedHex(rendered, 0, 0, 7);
+    expectRenderedHex(rendered, 0, 1, 45);
+  });
+
+  it("treats the empty background tile sentinel as unplaced even if tile 255 has pixels", () => {
+    const nesBase = cloneNesState(createDefaultNesProjectState());
+    const lastTileChrStart = 255 * 16;
+    const nes = {
+      ...nesBase,
+      universalBackgroundColor: 45,
+      backgroundPalettes: updateBackgroundPalettes(
+        nesBase.backgroundPalettes,
+        0,
+        [45, 5, 6, 7],
+      ),
+      nameTable: {
+        ...nesBase.nameTable,
+        tileIndices: nesBase.nameTable.tileIndices.map(
+          () => NES_EMPTY_BACKGROUND_TILE_INDEX,
+        ),
+      },
+      chrBytes: nesBase.chrBytes.map((value, index) => {
+        if (index === lastTileChrStart || index === lastTileChrStart + 8) {
+          return 0b10000000;
+        }
+
+        return value;
+      }),
+    };
+
+    const rendered = renderScreenToHexArray(createScreen([]), nes);
+
+    expectRenderedHex(rendered, 0, 0, 45);
+  });
+
+  it("renders background from the normalized v2 project state through NES projection", () => {
+    const state = createDefaultProjectStateV2();
+    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+      state.palettes.background[0],
+      state.palettes.background[1],
+      [45, 5, 6, 7],
+      state.palettes.background[3],
+    ];
+    const nextState: ProjectStateV2 = {
+      ...state,
+      backgroundTiles: state.backgroundTiles.map((tile, tileIndex) =>
+        tileIndex === 0 ? setTilePixel(tile, 0, 0, 3) : tile,
+      ),
+      palettes: {
+        ...state.palettes,
+        universalBackgroundColor: 45,
+        background: nextBackgroundPalettes,
+      },
+      screen: {
+        ...state.screen,
+        background: {
+          ...state.screen.background,
+          tileIndices: state.screen.background.tileIndices.map((tile, index) =>
+            index === 0 ? 0 : tile,
+          ),
+          paletteIndices: state.screen.background.paletteIndices.map(
+            (paletteIndex, index) => (index === 0 ? 2 : paletteIndex),
+          ),
+        },
+      },
+    };
+
+    const rendered = renderScreenToHexArray(
+      {
+        width: nextState.screen.width,
+        height: nextState.screen.height,
+        sprites: Array.from(nextState.screen.sprites),
+      },
+      buildNesProjection(nextState),
+    );
+
+    expectRenderedHex(rendered, 0, 0, 7);
+    expectRenderedHex(rendered, 0, 1, 45);
+  });
+
+  it("renders directly from a normalized v2 project state", () => {
+    const state = createDefaultProjectStateV2();
+    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+      state.palettes.background[0],
+      state.palettes.background[1],
+      [45, 5, 6, 7],
+      state.palettes.background[3],
+    ];
+    const nextState: ProjectStateV2 = {
+      ...state,
+      backgroundTiles: state.backgroundTiles.map((tile, tileIndex) =>
+        tileIndex === 0 ? setTilePixel(tile, 0, 0, 3) : tile,
+      ),
+      palettes: {
+        ...state.palettes,
+        universalBackgroundColor: 45,
+        background: nextBackgroundPalettes,
+      },
+      screen: {
+        ...state.screen,
+        background: {
+          ...state.screen.background,
+          tileIndices: state.screen.background.tileIndices.map((tile, index) =>
+            index === 0 ? 0 : tile,
+          ),
+          paletteIndices: state.screen.background.paletteIndices.map(
+            (paletteIndex, index) => (index === 0 ? 2 : paletteIndex),
+          ),
+        },
+      },
+    };
+
+    const rendered = renderProjectStateV2ToHexArray(nextState);
 
     expectRenderedHex(rendered, 0, 0, 7);
     expectRenderedHex(rendered, 0, 1, 45);
