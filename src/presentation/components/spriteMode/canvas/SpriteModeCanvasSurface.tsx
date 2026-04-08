@@ -43,7 +43,7 @@ export const SpriteModeCanvasSurface: React.FC = () => {
       alignItems="center"
       justifyContent="center"
     >
-      <CanvasElement {...canvasProps} />
+      <CanvasElement aria-label="スプライト編集キャンバス" {...canvasProps} />
     </Stack>
   );
 };

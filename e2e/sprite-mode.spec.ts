@@ -1,5 +1,54 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { gotoApp, openMode, selectMaterialOption } from "./support/app";
+import {
+  formatCanvasPixelColor,
+  readLogicalCanvasPixel,
+} from "./support/canvas";
+import { getLocatorPoint, getLocatorRect } from "./support/pointer";
+
+const getSpriteCanvas = (page: Page): Locator =>
+  page.getByLabel("スプライト編集キャンバス", { exact: true });
+
+const readSpriteCanvasColor = async (
+  canvas: Locator,
+  pixelX: number,
+  pixelY: number,
+  logicalHeight = 8,
+): Promise<string> =>
+  formatCanvasPixelColor(
+    await readLogicalCanvasPixel(canvas, pixelX, pixelY, 8, logicalHeight),
+  );
+
+const clickSpriteCanvasLogicalPixel = async (
+  page: Page,
+  canvas: Locator,
+  pixelX: number,
+  pixelY: number,
+  logicalHeight = 8,
+): Promise<void> => {
+  const rect = await getLocatorRect(canvas);
+  const point = await getLocatorPoint(
+    canvas,
+    (pixelX + 0.5) * (rect.width / 8),
+    (pixelY + 0.5) * (rect.height / logicalHeight),
+  );
+
+  await page.mouse.move(point.clientX, point.clientY);
+  await page.mouse.down();
+  await page.mouse.up();
+};
+
+const pressUndoShortcut = async (page: Page): Promise<void> => {
+  const isMac = await page.evaluate(() => navigator.userAgent.includes("Mac"));
+
+  await page.keyboard.press(isMac ? "Meta+Z" : "Control+Z");
+};
+
+const pressRedoShortcut = async (page: Page): Promise<void> => {
+  const isMac = await page.evaluate(() => navigator.userAgent.includes("Mac"));
+
+  await page.keyboard.press(isMac ? "Meta+Shift+Z" : "Control+Y");
+};
 
 test("sprite mode keeps form controls and tool panel interactions working", async ({
   page,
@@ -61,4 +110,88 @@ test("sprite canvas panel stretches to the bottom of the workspace", async ({
   const bottomGap = leftPaneBottom - canvasPanelBottom;
 
   expect(bottomGap).toBeLessThanOrEqual(24);
+});
+
+test("sprite mode paints pixels and supports global undo and redo shortcuts", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "スプライト編集");
+
+  const spriteCanvas = getSpriteCanvas(page);
+
+  await expect(spriteCanvas).toBeVisible();
+
+  const initialPixel = await readSpriteCanvasColor(spriteCanvas, 1, 1);
+
+  await clickSpriteCanvasLogicalPixel(page, spriteCanvas, 1, 1);
+
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 1, 1))
+    .not.toBe(initialPixel);
+
+  const paintedPixel = await readSpriteCanvasColor(spriteCanvas, 1, 1);
+
+  await pressUndoShortcut(page);
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 1, 1))
+    .toBe(initialPixel);
+
+  await pressRedoShortcut(page);
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 1, 1))
+    .toBe(paintedPixel);
+});
+
+test("sprite mode asks confirmation before clearing the current sprite", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "スプライト編集");
+
+  const spriteCanvas = getSpriteCanvas(page);
+
+  await expect(spriteCanvas).toBeVisible();
+
+  const initialPixel = await readSpriteCanvasColor(spriteCanvas, 2, 2);
+
+  await clickSpriteCanvasLogicalPixel(page, spriteCanvas, 2, 2);
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 2, 2))
+    .not.toBe(initialPixel);
+
+  const paintedPixel = await readSpriteCanvasColor(spriteCanvas, 2, 2);
+
+  await page.getByRole("button", { name: "ツールを開く" }).click();
+
+  const clearButton = page.getByRole("button", { name: "クリア" });
+  await expect(clearButton).toBeVisible();
+
+  const cancelDialogPromise = page
+    .waitForEvent("dialog")
+    .then(async (dialog) => {
+      expect(dialog.message()).toContain("本当にクリアしますか？");
+      await dialog.dismiss();
+    });
+
+  await clearButton.click();
+  await cancelDialogPromise;
+
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 2, 2))
+    .toBe(paintedPixel);
+
+  const acceptDialogPromise = page
+    .waitForEvent("dialog")
+    .then(async (dialog) => {
+      expect(dialog.message()).toContain("本当にクリアしますか？");
+      await dialog.accept();
+    });
+
+  await clearButton.click();
+  await acceptDialogPromise;
+
+  await expect
+    .poll(async () => readSpriteCanvasColor(spriteCanvas, 2, 2))
+    .toBe(initialPixel);
 });

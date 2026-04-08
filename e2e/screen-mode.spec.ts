@@ -595,9 +595,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
     .toBe(1);
 
-  const stageOutline = stage
-    .locator("[data-stage-sprite-outline='true']")
-    .first();
+  const stageOutline = stage.locator("[data-stage-sprite-outline='true']");
 
   await expect(stageOutline).toHaveCount(1);
 

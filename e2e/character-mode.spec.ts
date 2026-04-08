@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
+  getVisibleMenuItem,
   gotoApp,
   openFileMenu,
   openMode,
@@ -119,9 +120,7 @@ const hasVisibleComposePixels = async (
       return false;
     }
 
-    const candidate = Array.from(element.querySelectorAll("canvas")).find(
-      (canvasElement) => canvasElement.getAttribute("data-fabric") !== "top",
-    );
+    const candidate = element.querySelector('[data-fabric="main"]');
 
     if (candidate instanceof HTMLCanvasElement === false) {
       return false;
@@ -150,10 +149,9 @@ const paintSpriteModePixel = async (
   page: Page,
   pixel: { x: number; y: number },
 ): Promise<void> => {
-  const spriteCanvas = page
-    .getByRole("region", { name: "スプライトキャンバスパネル" })
-    .locator("canvas")
-    .first();
+  const spriteCanvas = page.getByLabel("スプライト編集キャンバス", {
+    exact: true,
+  });
 
   await expect(spriteCanvas).toBeVisible();
 
@@ -251,10 +249,7 @@ test("character mode enables share actions only after a set is available", async
 
   await openFileMenu(page);
 
-  const shareMenuItem = page
-    .locator('[role="menuitem"]')
-    .filter({ hasText: "共有" })
-    .first();
+  const shareMenuItem = getVisibleMenuItem(page, "共有");
 
   await expect(shareMenuItem).toHaveAttribute("aria-disabled", "true");
   await page.keyboard.press("Escape");
@@ -1050,7 +1045,9 @@ test("character decomposition blocks mixed palettes and applies split regions", 
   await clickCanvasPixel(decompositionCanvas, 0, 0);
 
   await expect(
-    page.getByText("複数パレット", { exact: true }).first(),
+    page
+      .getByRole("button", { name: "切り取り領域 0", exact: true })
+      .getByText("複数パレット", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "分解して現在のセットへ反映" }),

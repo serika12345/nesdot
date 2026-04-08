@@ -12,9 +12,8 @@ export interface StageDebugState {
 
 export const seedDiagonalSprite = async (page: Page): Promise<void> => {
   await page.evaluate(async () => {
-    const { useProjectState } = await import(
-      "../../src/application/state/projectStore"
-    );
+    const { useProjectState } =
+      await import("../../src/application/state/projectStore");
 
     const current = useProjectState.getState();
     const nextSprites = current.sprites.map((sprite, spriteIndex) =>
@@ -42,8 +41,10 @@ export const getStageDebugState = async (
 ): Promise<StageDebugState> =>
   locator.evaluate((element) => ({
     activeSetName: element.getAttribute("data-active-set-name") ?? "",
-    selectedSpriteIndex: element.getAttribute("data-selected-sprite-index") ?? "",
-    selectedSpriteLayer: element.getAttribute("data-selected-sprite-layer") ?? "",
+    selectedSpriteIndex:
+      element.getAttribute("data-selected-sprite-index") ?? "",
+    selectedSpriteLayer:
+      element.getAttribute("data-selected-sprite-layer") ?? "",
     selectedSpriteX: element.getAttribute("data-selected-sprite-x") ?? "",
     selectedSpriteY: element.getAttribute("data-selected-sprite-y") ?? "",
     stageSpriteCount: element.getAttribute("data-stage-sprite-count") ?? "",
@@ -63,8 +64,7 @@ export const clickComposeCanvasAtPosition = async (
   pointerId: number,
 ): Promise<void> => {
   const fabricCanvas = locator.locator('[data-fabric="top"]');
-  const target =
-    (await fabricCanvas.count()) > 0 ? fabricCanvas.first() : locator;
+  const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(locator, stageX, stageY);
 
   await target.dispatchEvent("pointerdown", {
@@ -93,8 +93,7 @@ export const openComposeCanvasSpriteContextMenu = async (
   scale: number,
 ): Promise<void> => {
   const fabricCanvas = locator.locator('[data-fabric="top"]');
-  const target =
-    (await fabricCanvas.count()) > 0 ? fabricCanvas.first() : locator;
+  const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(
     locator,
     (sprite.x + 4) * scale,
@@ -129,7 +128,9 @@ export const clickCanvasPixel = async (
   const rect = await locator.evaluate((element) => {
     const bounds = element.getBoundingClientRect();
     const stageWidth = Number(element.getAttribute("data-stage-width") ?? "0");
-    const stageHeight = Number(element.getAttribute("data-stage-height") ?? "0");
+    const stageHeight = Number(
+      element.getAttribute("data-stage-height") ?? "0",
+    );
 
     return {
       width: bounds.width,
