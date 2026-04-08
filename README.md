@@ -159,6 +159,9 @@ nix develop -c zsh -lc 'pnpm format'
 nix develop -c zsh -lc 'pnpm format:check'
 ```
 
+インデント、改行コード、末尾改行、末尾空白などのエディタ既定値は `.editorconfig` で統一しています。
+コード整形そのものは引き続き Prettier を基準にします。
+
 ### Rust Native Verification
 
 ```sh
