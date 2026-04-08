@@ -5,6 +5,7 @@
     "esbenp.prettier-vscode",
     "mkhl.direnv",
     "jnoortheen.nix-ide",
-    "ms-playwright.playwright"
+    "ms-playwright.playwright",
+    "rust-lang.rust-analyzer"
   ]
 }
