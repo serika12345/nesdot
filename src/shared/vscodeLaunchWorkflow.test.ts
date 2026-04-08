@@ -32,4 +32,14 @@ describe("vscode launch workflow", () => {
     expect(extensionsJson).toContain('"rust-lang.rust-analyzer"');
     expect(extensionsJson).toContain('"vadimcn.vscode-lldb"');
   });
+
+  test("configures CodeLLDB to use the system macOS debugserver path", () => {
+    const settingsJson = readTextFile("../../.vscode/settings.json");
+
+    expect(settingsJson).toContain('"lldb.adapterEnv": {');
+    expect(settingsJson).toContain('"LLDB_DEBUGSERVER_PATH"');
+    expect(settingsJson).toContain(
+      '"/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/Resources/debugserver"',
+    );
+  });
 });

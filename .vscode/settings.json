@@ -84,6 +84,9 @@
     "editor.defaultFormatter": "rust-lang.rust-analyzer",
     "editor.formatOnSave": true
   },
+  "lldb.adapterEnv": {
+    "LLDB_DEBUGSERVER_PATH": "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/Resources/debugserver"
+  },
   "rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
   "rust-analyzer.cargo.buildScripts.enable": true,
   "rust-analyzer.procMacro.enable": true,

@@ -309,6 +309,7 @@ VS Code では `Terminal: Run Task` から `Verify Security`, `Verify CVE`, `Ver
 `Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
 Rust 側でブレークポイントを使う場合は、推奨拡張の `CodeLLDB` を入れたうえで `Launch Tauri Desktop` を使ってください。
 この起動は `Run Frontend Dev Server` と Rust デバッグ用ビルドを Nix dev shell 内で準備し、その後 VS Code から `src-tauri/target/debug/nesdot` を LLDB で起動します。
+macOS では CodeLLDB が bundled backend から `debugserver` を解決できず `executable doesn't exist: '(empty)'` になる場合があるため、workspace 設定で system `debugserver` も明示しています。
 
 ## 自動リリース
 
