@@ -1,4 +1,6 @@
 import { NesProjectState } from "../nes/nesProject";
+import { buildNesProjection } from "../nes/projection";
+import { type ProjectStateV2 } from "../project/projectV2";
 
 export const MAX_SCREEN_SPRITES = 64;
 export const MAX_SPRITES_PER_SCANLINE = 8;
@@ -54,4 +56,14 @@ export function scanNesSpriteConstraints(
   const errors = [...spriteCountError, ...scanlineError];
 
   return errors.length > 0 ? { ok: false, errors } : { ok: true };
+}
+
+/**
+ * 正規化済み v2 project state を NES projection へ変換してスプライト制約を検査します。
+ * UI/store が NES raw state を保持しなくても、同じ制約検査を pure function として再利用できます。
+ */
+export function scanProjectStateV2SpriteConstraints(
+  projectState: ProjectStateV2,
+): ScreenConstraintReport {
+  return scanNesSpriteConstraints(buildNesProjection(projectState));
 }

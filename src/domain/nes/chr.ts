@@ -99,6 +99,17 @@ export const encodeBackgroundTile = (tile: BackgroundTile): Uint8Array =>
   packPixelsToChr(tile.pixels);
 
 /**
+ * 複数の 8x8 背景タイルを連結済み CHR バイト列へ変換します。
+ * 正規化された BG タイル集合から、そのまま renderer/export へ渡せる CHR 配列を構築します。
+ */
+export const encodeBackgroundTilesToChrBytes = (
+  tiles: ReadonlyArray<BackgroundTile>,
+): Uint8Array =>
+  new Uint8Array(
+    tiles.flatMap((tile) => Array.from(encodeBackgroundTile(tile))),
+  );
+
+/**
  * 16 バイトの CHR データを 8x8 背景タイルへ戻します。
  * 旧形式インポートや projection 検証で、bitplane を UI 用ピクセルへ復元する用途を担います。
  */

@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultNesProjectState } from "../nes/nesProject";
+import { createEmptySpriteTile, type SpriteInScreen } from "../project/project";
+import { createDefaultProjectStateV2 } from "../project/projectV2";
 import {
   MAX_SCREEN_SPRITES,
   MAX_SPRITES_PER_SCANLINE,
   scanNesSpriteConstraints,
+  scanProjectStateV2SpriteConstraints,
 } from "./constraints";
 
 describe("scanNesSpriteConstraints", () => {
@@ -76,5 +79,40 @@ describe("scanNesSpriteConstraints", () => {
       "y=9, 10, 11",
     );
     expect(result.ok === false ? result.errors[0] : "").toContain("18");
+  });
+});
+
+describe("scanProjectStateV2SpriteConstraints", () => {
+  it("reports scanline overflow from normalized screen sprites", () => {
+    const state = createDefaultProjectStateV2();
+    const nextSprites: ReadonlyArray<SpriteInScreen> = Array.from(
+      { length: 9 },
+      (_, index) => ({
+        ...createEmptySpriteTile(8),
+        x: index * 8,
+        y: 0,
+        spriteIndex: index,
+        priority: "front",
+        flipH: false,
+        flipV: false,
+      }),
+    );
+    const nextState = {
+      ...state,
+      screen: {
+        ...state.screen,
+        sprites: nextSprites,
+      },
+    };
+
+    const result = scanProjectStateV2SpriteConstraints(nextState);
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false ? result.errors[0] : "").toContain(
+      `上限(${MAX_SPRITES_PER_SCANLINE})`,
+    );
+    expect(result.ok === false ? result.errors[0] : "").toContain(
+      "y=0, 1, 2, 3, 4, 5, 6, 7",
+    );
   });
 });

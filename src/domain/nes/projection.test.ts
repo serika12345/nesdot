@@ -12,6 +12,7 @@ import {
   buildAttributeTable,
   buildNameTable,
   buildNesProjection,
+  buildOamFromScreenSprites,
 } from "./projection";
 import { renderScreenToHexArray } from "./rendering";
 
@@ -134,6 +135,29 @@ describe("projection", () => {
     const attributeTable = buildAttributeTable(nextState.screen.background);
 
     expect(attributeTable.bytes[56]).toBe(0x0e);
+  });
+
+  it("builds OAM entries directly from normalized screen sprites", () => {
+    const oam = buildOamFromScreenSprites([
+      {
+        ...createEmptySpriteTile(8, 2),
+        x: 12,
+        y: 34,
+        spriteIndex: 9,
+        priority: "behindBg",
+        flipH: true,
+        flipV: false,
+      },
+    ]);
+
+    expect(oam).toEqual([
+      {
+        x: 12,
+        y: 33,
+        tileIndex: 9,
+        attributeByte: 0b0110_0010,
+      },
+    ]);
   });
 
   it("renders background pixels from a normalized v2 project via NES projection", () => {

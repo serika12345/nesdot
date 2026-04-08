@@ -1,3 +1,4 @@
+import { type SpriteInScreen } from "../project/project";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   SCREEN_BACKGROUND_PALETTE_HEIGHT,
@@ -7,13 +8,14 @@ import {
   type ScreenBackground,
 } from "../project/projectV2";
 import { toOamEntryFromScreenSprite } from "../screen/oamSync";
-import { encodeBackgroundTile } from "./chr";
+import { encodeBackgroundTilesToChrBytes } from "./chr";
 import {
   type NesAttributeTable,
   type NesBackgroundPalettes,
   type NesNameTable,
   type NesProjectState,
   type NesSpritePalettes,
+  type OamSpriteEntry,
 } from "./nesProject";
 
 const cloneBackgroundPalettes = (
@@ -54,9 +56,13 @@ const resolveBackgroundPaletteRegion = (
 const buildChrBytes = (
   backgroundTiles: ProjectStateV2["backgroundTiles"],
 ): number[] =>
-  Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) => {
-    return backgroundTiles[tileIndex] ?? createEmptyBackgroundTile();
-  }).flatMap((tile) => Array.from(encodeBackgroundTile(tile)));
+  Array.from(
+    encodeBackgroundTilesToChrBytes(
+      Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) => {
+        return backgroundTiles[tileIndex] ?? createEmptyBackgroundTile();
+      }),
+    ),
+  );
 
 export const buildNameTable = (background: ScreenBackground): NesNameTable => ({
   widthTiles: 32,
@@ -97,6 +103,10 @@ export const buildAttributeTable = (
   }),
 });
 
+export const buildOamFromScreenSprites = (
+  sprites: ReadonlyArray<SpriteInScreen>,
+): OamSpriteEntry[] => sprites.map(toOamEntryFromScreenSprite);
+
 export const buildNesProjection = (
   projectState: ProjectStateV2,
 ): NesProjectState => ({
@@ -106,7 +116,7 @@ export const buildNesProjection = (
   universalBackgroundColor: projectState.palettes.universalBackgroundColor,
   backgroundPalettes: cloneBackgroundPalettes(projectState.palettes.background),
   spritePalettes: cloneSpritePalettes(projectState.palettes.sprite),
-  oam: projectState.screen.sprites.map(toOamEntryFromScreenSprite),
+  oam: buildOamFromScreenSprites(projectState.screen.sprites),
   ppuControl: {
     spriteSize: projectState.spriteSize,
     backgroundPatternTable: projectState.ppuControl.backgroundPatternTable,
