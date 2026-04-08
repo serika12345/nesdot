@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useCharacterState } from "../../../../application/state/characterStore";
 import {
   type ProjectStoreState,
@@ -19,7 +19,6 @@ export interface ScreenModeProjectStateResult {
   nes: ProjectStoreState["nes"];
   sprites: SpriteTile[];
   spritesOnScreen: Screen["sprites"];
-  projectState: ProjectStoreState;
   characterSets: ReadonlyArray<CharacterSet>;
   selectedCharacterId: O.Option<string>;
   activeCharacter: O.Option<CharacterSet>;
@@ -44,7 +43,6 @@ export const useScreenModeProjectState = (): ScreenModeProjectStateResult => {
   const nes = useProjectState((state) => state.nes);
   const sprites = useProjectState((state) => state.sprites);
   const spritesOnScreen = useProjectState((state) => state.screen.sprites);
-  const projectState = useProjectState((state) => state);
 
   const characterSets = useCharacterState((state) => state.characterSets);
   const selectedCharacterId = useCharacterState(
@@ -65,30 +63,34 @@ export const useScreenModeProjectState = (): ScreenModeProjectStateResult => {
     [characterSets, selectedCharacterId],
   );
 
-  const scan = (
-    checkeeScreen = useProjectState.getState().screen,
-    checkeeNes = useProjectState.getState().nes,
-  ): ScreenModeScanReport =>
-    scanNesSpriteConstraints(mergeScreenIntoNesOam(checkeeNes, checkeeScreen));
+  const scan = useCallback(
+    (
+      checkeeScreen = useProjectState.getState().screen,
+      checkeeNes = useProjectState.getState().nes,
+    ): ScreenModeScanReport =>
+      scanNesSpriteConstraints(
+        mergeScreenIntoNesOam(checkeeNes, checkeeScreen),
+      ),
+    [],
+  );
 
-  const setScreenAndSyncNes = (
-    nextScreen: Screen,
-    nextNes = nes,
-  ): void => {
-    useProjectState.setState({
-      screen: nextScreen,
-      nes: mergeScreenIntoNesOam(nextNes, nextScreen),
-    });
-  };
+  const setScreenAndSyncNes = useCallback(
+    (nextScreen: Screen, nextNes = useProjectState.getState().nes): void => {
+      useProjectState.setState({
+        screen: nextScreen,
+        nes: mergeScreenIntoNesOam(nextNes, nextScreen),
+      });
+    },
+    [],
+  );
 
-  const scanReport = useMemo(() => scan(screen, nes), [nes, screen]);
+  const scanReport = useMemo(() => scan(screen, nes), [nes, scan, screen]);
 
   return {
     screen,
     nes,
     sprites,
     spritesOnScreen,
-    projectState,
     characterSets,
     selectedCharacterId,
     activeCharacter,
