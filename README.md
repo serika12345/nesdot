@@ -159,6 +159,16 @@ nix develop -c zsh -lc 'pnpm format'
 nix develop -c zsh -lc 'pnpm format:check'
 ```
 
+### Rust Native Verification
+
+```sh
+nix develop -c zsh -lc 'pnpm rust:fmt:check'
+nix develop -c zsh -lc 'pnpm rust:check'
+nix develop -c zsh -lc 'pnpm rust:lint'
+nix develop -c zsh -lc 'pnpm rust:test'
+nix develop -c zsh -lc 'pnpm verify:rust'
+```
+
 ### 型安全チェック
 
 ```sh
@@ -207,6 +217,12 @@ UI の表示・操作フローに影響する変更:
 
 ```sh
 nix develop -c zsh -lc 'pnpm verify:full'
+```
+
+`src-tauri` や Rust 向けの build / release tooling を変更した場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
 ## 自動リリース

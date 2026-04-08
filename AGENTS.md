@@ -9,7 +9,7 @@
 
 When instructions conflict, follow this order:
 
-1. Commands that must pass mechanically (`format`, `lint`, `typecheck`, `test`, `e2e`)
+1. Commands that must pass mechanically (`format`, `lint`, `typecheck`, `test`, `e2e`, `rust:fmt`, `rust:check`, `rust:lint`, `rust:test`)
 2. Existing repository architecture and public types
 3. Design principles in this file
 4. Local convenience
@@ -24,7 +24,7 @@ For every task, follow this sequence:
 2. Identify the smallest safe change.
 3. Add or update tests before changing implementation when the behavior is observable and testable.
 4. Implement the code.
-5. Run the required verification commands for the change scope, including `pnpm format:check`.
+5. Run the required verification commands for the change scope, including `pnpm format:check` and `pnpm verify:rust` when Rust-native files or Rust-specific tooling are touched.
 6. Do not finish while required commands are failing.
 
 ## 4. Verification Matrix
@@ -63,6 +63,17 @@ For changes to lint config, tsconfig, vite config, playwright config, vitest con
 - `pnpm typecheck:safety`
 - `pnpm test`
 - `pnpm test:e2e:console`
+
+### 4.4 Rust or Tauri native change
+
+For changes under `src-tauri`, `src-tauri/Cargo.toml`, or Rust-specific scripts and release workflows, run all of:
+
+- `pnpm rust:fmt:check`
+- `pnpm rust:check`
+- `pnpm rust:lint`
+- `pnpm rust:test`
+
+If the change also touches TypeScript, frontend tooling, or UI behavior, run the corresponding checks above in addition to `pnpm verify:rust`.
 
 ## 5. Non-Negotiable Coding Constraints
 

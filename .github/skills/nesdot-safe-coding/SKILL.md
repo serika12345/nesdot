@@ -22,6 +22,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 - Requested behavior change
 - Suspected affected files
 - Whether UI-visible behavior changes
+- Whether src-tauri or Rust-specific tooling is affected
 
 ## Procedure
 
@@ -32,6 +33,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 - Domain-only logic
 - UI/rendering/interaction logic
 - Config/toolchain change
+- Rust/Tauri native or release-tooling change
 
 4. Define the smallest safe patch.
 5. For observable behavior changes, add or update tests first.
@@ -42,7 +44,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 - Avoid mutating arrays and parameter mutation.
 - Validate external data at boundaries with zod.
 
-7. Run the full verification suite, including `pnpm format:check` (do not downscope by change type).
+7. Run the required verification suite for the change scope, including `pnpm format:check` and `pnpm verify:rust` whenever src-tauri or Rust-specific workflows/scripts are touched.
 8. If checks fail, fix root cause and rerun until green.
 9. Report exactly what changed, commands run, pass/fail status, and residual risks.
 
@@ -54,6 +56,8 @@ Deliver a minimal, correct change that follows repository constraints and passes
   Treat as UI change and run e2e console checks.
 - If visible interaction flow changed:
   Also run full e2e.
+- If files under src-tauri or Rust-specific workflows/scripts are edited:
+  Also run `pnpm verify:rust`.
 - If lint/type/test conflict with style preference:
   Prioritize mechanical gates.
 - If unexpected unrelated workspace changes appear while editing:
@@ -61,14 +65,20 @@ Deliver a minimal, correct change that follows repository constraints and passes
 
 ## Required Verification
 
-Always run all commands below for every code change:
+Run the AGENTS.md verification matrix for the change scope.
+
+Base repository checks:
 
 - pnpm format:check
 - pnpm lint
 - pnpm typecheck:safety
 - pnpm test
-- pnpm test:e2e:console
-- pnpm test:e2e
+
+Additional checks by scope:
+
+- pnpm test:e2e:console for UI or toolchain changes
+- pnpm test:e2e for visible interaction-flow changes
+- pnpm verify:rust for src-tauri, Cargo.toml, or Rust-specific scripts and workflows
 
 ## Command Execution Rule
 
