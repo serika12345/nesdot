@@ -1,3 +1,6 @@
+import { Stack } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
@@ -13,7 +16,10 @@ import {
   emptyFileMenuState,
   type FileMenuState,
 } from "../../common/state/fileMenuState";
+import { ScreenModeBackgroundTilePickerDialog } from "../dialogs/ScreenModeBackgroundTilePickerDialog";
+import { useScreenModeBackgroundMockUi } from "../hooks/useScreenModeBackgroundMockUi";
 import type { ScreenModeState } from "../hooks/useScreenModeState";
+import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
   WarningList,
   ZoomControlsRow,
@@ -25,6 +31,13 @@ interface ScreenModeWorkspacePanelProps {
   onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
 }
 
+const HeaderActionCluster = styled(Stack)({
+  flexDirection: "row",
+  alignItems: "center",
+  gap: "0.625rem",
+  flexWrap: "nowrap",
+});
+
 /**
  * スクリーン配置モードのワークスペース全体を描画します。
  * ファイルメニュー状態連携と上部操作列のオーケストレーションを担当します。
@@ -35,6 +48,7 @@ export const ScreenModeWorkspacePanel: React.FC<
   const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
     React.useState(true);
   const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
+  const backgroundMockUi = useScreenModeBackgroundMockUi();
 
   const {
     projectActions,
@@ -78,6 +92,25 @@ export const ScreenModeWorkspacePanel: React.FC<
     [],
   );
 
+  const backgroundPlacementMockOverlay = pipe(
+    backgroundMockUi.grabbedTileIndex,
+    O.match(
+      () => <></>,
+      () => (
+        <ScreenModeBackgroundPlacementMockOverlay
+          screenZoomLevel={screenZoomLevel}
+        />
+      ),
+    ),
+  );
+  const backgroundPlacementMockGestureProps =
+    backgroundMockUi.editingTarget === "bgTile"
+      ? {
+          onBackgroundPlacementMockClick:
+            backgroundMockUi.handleMockStagePlacement,
+        }
+      : {};
+
   return (
     <Panel
       flex={1}
@@ -109,32 +142,51 @@ export const ScreenModeWorkspacePanel: React.FC<
         <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
         <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
         <Spacer />
-        <ToolButton
-          type="button"
-          active={isSpriteOutlineVisible}
-          aria-label="スプライト外枠表示切り替え"
-          onClick={() =>
-            setIsSpriteOutlineVisible((previous) => previous === false)
-          }
-        >
-          外枠
-        </ToolButton>
-        <ToolButton
-          type="button"
-          active={isSpriteIndexVisible}
-          aria-label="スプライト番号表示切り替え"
-          onClick={() =>
-            setIsSpriteIndexVisible((previous) => previous === false)
-          }
-        >
-          #表示
-        </ToolButton>
+        <HeaderActionCluster>
+          <ToolButton
+            type="button"
+            aria-label="BGタイル追加"
+            onClick={backgroundMockUi.openTilePicker}
+          >
+            BGタイル追加
+          </ToolButton>
+          <ToolButton
+            type="button"
+            active={isSpriteOutlineVisible}
+            aria-label="スプライト外枠表示切り替え"
+            onClick={() =>
+              setIsSpriteOutlineVisible((previous) => previous === false)
+            }
+          >
+            外枠
+          </ToolButton>
+          <ToolButton
+            type="button"
+            active={isSpriteIndexVisible}
+            aria-label="スプライト番号表示切り替え"
+            onClick={() =>
+              setIsSpriteIndexVisible((previous) => previous === false)
+            }
+          >
+            #表示
+          </ToolButton>
+        </HeaderActionCluster>
       </ZoomControlsRow>
 
       <ScreenModeGestureWorkspace
         screenMode={screenMode}
         isSpriteOutlineVisible={isSpriteOutlineVisible}
         isSpriteIndexVisible={isSpriteIndexVisible}
+        backgroundPlacementMockOverlay={backgroundPlacementMockOverlay}
+        {...backgroundPlacementMockGestureProps}
+      />
+
+      <ScreenModeBackgroundTilePickerDialog
+        activePaletteIndex={backgroundMockUi.activePaletteIndex}
+        open={backgroundMockUi.isTilePickerOpen}
+        onClose={backgroundMockUi.closeTilePicker}
+        onPaletteSelect={backgroundMockUi.handleBackgroundPaletteSelect}
+        onTileSelect={backgroundMockUi.handleBackgroundTileSelect}
       />
 
       {scanReport.ok === false ? (

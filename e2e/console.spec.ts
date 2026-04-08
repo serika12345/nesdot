@@ -100,6 +100,9 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(
     page.locator('[role="menuitem"]').filter({ hasText: "画面配置" }).first(),
   ).toBeVisible();
+  await expect(
+    page.locator('[role="menuitem"]').filter({ hasText: "BG編集" }).first(),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
 
   await menuBar

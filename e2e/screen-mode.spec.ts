@@ -297,6 +297,65 @@ test("screen mode keeps sprite and character library sections separated", async 
   );
 });
 
+test("screen mode shows BG tile placement mock flow", async ({ page }) => {
+  await gotoApp(page);
+  await openMode(page, "画面配置");
+
+  await expect(page.getByText("編集対象", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/既存のスプライト配置ジェスチャー/u)).toHaveCount(
+    0,
+  );
+  await expect(page.getByText(/大型ダイアログで BG タイルを選び/u)).toHaveCount(
+    0,
+  );
+  await expect(page.getByText(/BG 属性モックでは/u)).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "BGタイル", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "BG属性", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("未選択", { exact: true })).toHaveCount(0);
+
+  await expect(
+    page.getByRole("button", { name: "BGタイル追加", exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
+
+  const pickerDialog = page.getByRole("dialog", {
+    name: "BG編集",
+  });
+
+  await expect(pickerDialog).toBeVisible();
+  await expect(
+    pickerDialog.getByRole("button", { name: "BGタイル", exact: true }),
+  ).toBeVisible();
+  await expect(
+    pickerDialog.getByRole("button", { name: "BG属性", exact: true }),
+  ).toBeVisible();
+  await pickerDialog
+    .getByRole("button", { name: "BGタイルプレビュー 5", exact: true })
+    .click();
+  await expect(pickerDialog).toHaveCount(0);
+
+  const placementOverlay = page.getByRole("img", {
+    name: "BG配置プレビュー",
+    exact: true,
+  });
+
+  await expect(placementOverlay).toBeVisible();
+
+  await page.getByLabel("スクリーン配置ステージ", { exact: true }).click({
+    position: { x: 84, y: 60 },
+  });
+
+  await expect(placementOverlay).toHaveCount(0);
+  await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("未選択", { exact: true })).toHaveCount(0);
+});
+
 test("screen mode supports canvas zooming and panning", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "画面配置");
@@ -362,6 +421,10 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     name: "スクリーンライブラリスプライト 0",
     exact: true,
   });
+  const bgAddButton = page.getByRole("button", {
+    name: "BGタイル追加",
+    exact: true,
+  });
   const outlineToggle = page.getByRole("button", {
     name: "スプライト外枠表示切り替え",
     exact: true,
@@ -373,14 +436,18 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
+  await expect(bgAddButton).toBeVisible();
   await expect(outlineToggle).toBeVisible();
   await expect(indexToggle).toBeVisible();
 
-  const [outlineToggleRect, indexToggleRect] = await Promise.all([
-    getLocatorRect(outlineToggle),
-    getLocatorRect(indexToggle),
-  ]);
+  const [bgAddButtonRect, outlineToggleRect, indexToggleRect] =
+    await Promise.all([
+      getLocatorRect(bgAddButton),
+      getLocatorRect(outlineToggle),
+      getLocatorRect(indexToggle),
+    ]);
 
+  expect(bgAddButtonRect.clientX).toBeLessThan(outlineToggleRect.clientX);
   expect(outlineToggleRect.clientX).toBeLessThan(indexToggleRect.clientX);
 
   await dragLibraryItemToStage(spritePreview, stage, 19, { x: 120, y: 104 });

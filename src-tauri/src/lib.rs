@@ -13,6 +13,7 @@ const MENU_ID_EDIT_UNDO: &str = "edit-undo";
 const MENU_ID_EDIT_REDO: &str = "edit-redo";
 const MENU_ID_MODE_SPRITE: &str = "mode-sprite";
 const MENU_ID_MODE_CHARACTER: &str = "mode-character";
+const MENU_ID_MODE_BG: &str = "mode-bg";
 const MENU_ID_MODE_SCREEN: &str = "mode-screen";
 
 const MENU_EVENT_SHARE_EXPORT_CHR: &str = "file-menu://share-export-chr";
@@ -26,6 +27,7 @@ const MENU_EVENT_EDIT_UNDO: &str = "edit-menu://undo";
 const MENU_EVENT_EDIT_REDO: &str = "edit-menu://redo";
 const MENU_EVENT_MODE_SPRITE: &str = "mode-menu://switch-sprite";
 const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
+const MENU_EVENT_MODE_BG: &str = "mode-menu://switch-bg";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
 
 #[cfg(target_os = "macos")]
@@ -83,6 +85,7 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         true,
         None::<&str>,
     )?;
+    let mode_bg = MenuItem::with_id(app, MENU_ID_MODE_BG, "BG編集", true, None::<&str>)?;
     let mode_screen =
         MenuItem::with_id(app, MENU_ID_MODE_SCREEN, "画面配置", true, None::<&str>)?;
 
@@ -99,8 +102,12 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         ],
     )?;
 
-    let mode_submenu =
-        Submenu::with_items(app, "作業モード", true, &[&mode_sprite, &mode_character, &mode_screen])?;
+    let mode_submenu = Submenu::with_items(
+        app,
+        "作業モード",
+        true,
+        &[&mode_sprite, &mode_character, &mode_bg, &mode_screen],
+    )?;
     let edit_submenu = Submenu::with_items(app, "編集", true, &[&edit_undo, &edit_redo])?;
     let file_submenu = Submenu::with_items(app, "ファイル", true, &[&share_submenu, &restore_import])?;
     let menu = Menu::with_items(app, &[&app_submenu, &mode_submenu, &edit_submenu, &file_submenu])?;
@@ -149,6 +156,7 @@ pub fn run() {
             MENU_ID_EDIT_REDO => emit_file_menu_event(app_handle, MENU_EVENT_EDIT_REDO),
             MENU_ID_MODE_SPRITE => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SPRITE),
             MENU_ID_MODE_CHARACTER => emit_file_menu_event(app_handle, MENU_EVENT_MODE_CHARACTER),
+            MENU_ID_MODE_BG => emit_file_menu_event(app_handle, MENU_EVENT_MODE_BG),
             MENU_ID_MODE_SCREEN => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SCREEN),
             _ => {}
         })

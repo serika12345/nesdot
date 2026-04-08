@@ -7,7 +7,7 @@ export const gotoApp = async (page: Page): Promise<void> => {
 
 export const openMode = async (
   page: Page,
-  modeName: "スプライト編集" | "画面配置" | "キャラクター編集",
+  modeName: "スプライト編集" | "画面配置" | "キャラクター編集" | "BG編集",
 ): Promise<void> => {
   const appMenuBar = page.getByRole("toolbar", {
     name: "ファイル操作メニューバー",

@@ -21,16 +21,20 @@ import {
   ScrollArea,
   WorkspaceGrid,
 } from "./App.styles";
+import { BgMode } from "./components/bgMode/core/BgMode";
 import { CharacterMode } from "./components/characterMode/core/CharacterMode";
 import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
-import { FileMenuBar, type WorkMode } from "./components/common/menu/FileMenuBar";
+import {
+  FileMenuBar,
+  type WorkMode,
+} from "./components/common/menu/FileMenuBar";
+import { PalettePicker } from "./components/common/pickers/PalettePicker";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
 } from "./components/common/state/fileMenuState";
-import { PalettePicker } from "./components/common/pickers/PalettePicker";
 import { ScreenMode } from "./components/screenMode/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
 import { getAppGlobalStyles } from "./theme";
@@ -72,6 +76,10 @@ const NATIVE_MODE_EVENT_BINDINGS: ReadonlyArray<{
   {
     eventName: "mode-menu://switch-character",
     mode: "character",
+  },
+  {
+    eventName: "mode-menu://switch-bg",
+    mode: "bg",
   },
   {
     eventName: "mode-menu://switch-screen",
@@ -381,6 +389,9 @@ export const App: React.FC = () => {
   const mainPanel = (() => {
     if (editMode === "sprite") {
       return <SpriteMode onFileMenuStateChange={handleFileMenuStateChange} />;
+    }
+    if (editMode === "bg") {
+      return <BgMode onFileMenuStateChange={handleFileMenuStateChange} />;
     }
     if (editMode === "character") {
       return (

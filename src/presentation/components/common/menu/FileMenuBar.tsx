@@ -15,7 +15,7 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { type FileMenuState } from "../state/fileMenuState";
 
-export type WorkMode = "screen" | "sprite" | "character";
+export type WorkMode = "screen" | "sprite" | "character" | "bg";
 
 interface FileMenuBarProps {
   fileMenuState: FileMenuState;
@@ -36,6 +36,10 @@ const WORK_MODE_ITEMS: ReadonlyArray<{
   {
     value: "character",
     label: "キャラクター編集",
+  },
+  {
+    value: "bg",
+    label: "BG編集",
   },
   {
     value: "screen",

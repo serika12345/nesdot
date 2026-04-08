@@ -360,6 +360,8 @@ interface ScreenModeGestureWorkspaceProps {
   screenMode: ScreenModeState;
   isSpriteOutlineVisible: boolean;
   isSpriteIndexVisible: boolean;
+  backgroundPlacementMockOverlay?: React.ReactNode;
+  onBackgroundPlacementMockClick?: () => void;
 }
 
 /**
@@ -368,7 +370,13 @@ interface ScreenModeGestureWorkspaceProps {
  */
 export const ScreenModeGestureWorkspace: React.FC<
   ScreenModeGestureWorkspaceProps
-> = ({ screenMode, isSpriteOutlineVisible, isSpriteIndexVisible }) => {
+> = ({
+  screenMode,
+  isSpriteOutlineVisible,
+  isSpriteIndexVisible,
+  backgroundPlacementMockOverlay,
+  onBackgroundPlacementMockClick,
+}) => {
   const spriteLibraryContentId = React.useId();
   const characterLibraryContentId = React.useId();
   const [isSpriteLibraryOpen, setIsSpriteLibraryOpen] = React.useState(true);
@@ -678,6 +686,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                 onPointerMove={handleStagePointerMove}
                 onPointerUp={handleStagePointerEnd}
                 onPointerCancel={handleStagePointerEnd}
+                onClick={onBackgroundPlacementMockClick}
                 data-stage-sprite-count={screen.sprites.length}
                 data-selected-sprite-count={gestureSelectedSpriteCount}
                 data-stage-sprite-layout={gestureStageSpriteLayout}
@@ -723,6 +732,8 @@ export const ScreenModeGestureWorkspace: React.FC<
                     ),
                   )}
                 </StageInteractionLayer>
+
+                {backgroundPlacementMockOverlay ?? <></>}
               </StageSurface>
             </PreviewCanvasWrap>
           </PreviewViewport>
