@@ -205,6 +205,14 @@ nix develop -c zsh -lc 'pnpm format'
 nix develop -c zsh -lc 'pnpm format:check'
 ```
 
+### Security Verification
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:security'
+```
+
+この検証では、依存サプライチェーン設定、CI / release workflow の `--frozen-lockfile`、Tauri updater 設定、アプリ内の JSON 復元境界を機械的に確認します。
+
 インデント、改行コード、末尾改行、末尾空白などのエディタ既定値は `.editorconfig` で統一しています。
 行幅は `.editorconfig` の `max_line_length` を source of truth にし、コード整形そのものは引き続き Prettier を基準にします。
 VS Code の保存時フォーマットは workspace の Prettier と Rust formatter を使うように設定しています。
@@ -257,6 +265,12 @@ nix develop -c zsh -lc 'pnpm e2e:install'
 nix develop -c zsh -lc 'pnpm verify'
 ```
 
+依存関係、workflow、updater 設定、JSON import / restore 境界を触った場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:security'
+```
+
 UI 変更:
 
 ```sh
@@ -275,7 +289,7 @@ nix develop -c zsh -lc 'pnpm verify:full'
 nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
-VS Code では `Terminal: Run Task` から `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
+VS Code では `Terminal: Run Task` から `Verify Security`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
 `Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
 
 ## 自動リリース

@@ -17,7 +17,7 @@ describe("prettier workflow", () => {
     expect(packageJson).toContain('"format": "prettier --write ."');
     expect(packageJson).toContain('"format:check": "prettier --check ."');
     expect(packageJson).toContain(
-      '"verify": "pnpm format:check && pnpm lint && pnpm typecheck:safety && pnpm test"',
+      '"verify": "pnpm format:check && pnpm lint && pnpm typecheck:safety && pnpm verify:security && pnpm test"',
     );
   });
 

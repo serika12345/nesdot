@@ -62,6 +62,18 @@
       }
     },
     {
+      "label": "Verify Security",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:security"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
       "label": "Verify",
       "type": "shell",
       "command": "nix",

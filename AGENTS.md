@@ -24,7 +24,7 @@ For every task, follow this sequence:
 2. Identify the smallest safe change.
 3. Add or update tests before changing implementation when the behavior is observable and testable.
 4. Implement the code.
-5. Run the required verification commands for the change scope, including `pnpm format:check` and `pnpm verify:rust` when Rust-native files or Rust-specific tooling are touched.
+5. Run the required verification commands for the change scope, including `pnpm format:check`, `pnpm verify:security`, and `pnpm verify:rust` when Rust-native files or Rust-specific tooling are touched.
 6. Do not finish while required commands are failing.
 
 ## 4. Verification Matrix
@@ -36,6 +36,7 @@ Run the minimum required checks below.
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
+- `pnpm verify:security`
 - `pnpm test`
 
 ### 4.2 UI code change
@@ -47,6 +48,7 @@ Run:
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
+- `pnpm verify:security`
 - `pnpm test`
 - `pnpm test:e2e:console`
 
@@ -61,6 +63,7 @@ For changes to lint config, tsconfig, vite config, playwright config, vitest con
 - `pnpm format:check`
 - `pnpm lint`
 - `pnpm typecheck:safety`
+- `pnpm verify:security`
 - `pnpm test`
 - `pnpm test:e2e:console`
 

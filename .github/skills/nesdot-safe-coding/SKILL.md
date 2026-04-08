@@ -44,7 +44,7 @@ Deliver a minimal, correct change that follows repository constraints and passes
 - Avoid mutating arrays and parameter mutation.
 - Validate external data at boundaries with zod.
 
-7. Run the required verification suite for the change scope, including `pnpm format:check` and `pnpm verify:rust` whenever src-tauri or Rust-specific workflows/scripts are touched.
+7. Run the required verification suite for the change scope, including `pnpm format:check`, `pnpm verify:security`, and `pnpm verify:rust` whenever src-tauri or Rust-specific workflows/scripts are touched.
 8. If checks fail, fix root cause and rerun until green.
 9. Report exactly what changed, commands run, pass/fail status, and residual risks.
 
@@ -72,6 +72,7 @@ Base repository checks:
 - pnpm format:check
 - pnpm lint
 - pnpm typecheck:safety
+- pnpm verify:security
 - pnpm test
 
 Additional checks by scope:
