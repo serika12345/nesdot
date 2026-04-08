@@ -160,7 +160,8 @@ nix develop -c zsh -lc 'pnpm format:check'
 ```
 
 インデント、改行コード、末尾改行、末尾空白などのエディタ既定値は `.editorconfig` で統一しています。
-コード整形そのものは引き続き Prettier を基準にします。
+行幅は `.editorconfig` の `max_line_length` を source of truth にし、コード整形そのものは引き続き Prettier を基準にします。
+VS Code の保存時フォーマットは workspace の Prettier と Rust formatter を使うように設定しています。
 
 ### Rust Native Verification
 

@@ -19,10 +19,29 @@ describe("editorconfig workflow", () => {
     expect(editorConfig).toContain("trim_trailing_whitespace = true");
     expect(editorConfig).toContain("indent_style = space");
     expect(editorConfig).toContain("indent_size = 2");
+    expect(editorConfig).toContain("max_line_length = 80");
     expect(editorConfig).toContain("[*.md]");
     expect(editorConfig).toContain("trim_trailing_whitespace = false");
     expect(editorConfig).toContain("[*.rs]");
     expect(editorConfig).toContain("indent_size = 4");
+  });
+
+  test("configures VS Code save formatting to use workspace formatters", () => {
+    const settingsJson = readTextFile("../../.vscode/settings.json");
+
+    expect(settingsJson).toContain(
+      '"prettier.prettierPath": "./node_modules/prettier"',
+    );
+    expect(settingsJson).toContain('"prettier.useEditorConfig": true');
+    expect(settingsJson).toContain('"[javascript]": {');
+    expect(settingsJson).toContain('"[typescript]": {');
+    expect(settingsJson).toContain('"[typescriptreact]": {');
+    expect(settingsJson).toContain('"[json]": {');
+    expect(settingsJson).toContain('"[jsonc]": {');
+    expect(settingsJson).toContain('"[markdown]": {');
+    expect(settingsJson).toContain('"[yaml]": {');
+    expect(settingsJson).toContain('"[html]": {');
+    expect(settingsJson).toContain('"[rust]": {');
   });
 
   test("recommends editorconfig support in VS Code", () => {

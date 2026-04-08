@@ -21,6 +21,13 @@ describe("prettier workflow", () => {
     );
   });
 
+  test("delegates shared line width to editorconfig", () => {
+    const prettierConfig = readTextFile("../../.prettierrc.json");
+
+    expect(prettierConfig).not.toContain('"printWidth"');
+    expect(prettierConfig).toContain('"trailingComma": "all"');
+  });
+
   test("runs verify in CI", () => {
     const ciWorkflow = readTextFile("../../.github/workflows/ci.yml");
 
