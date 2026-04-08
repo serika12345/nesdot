@@ -1,7 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { gotoApp, openMode } from "./support/app";
+import {
+  clickLogicalCanvasPixel,
+  formatCanvasPixelColor,
+  readLogicalCanvasPixel,
+} from "./support/canvas";
 
-test("bg mode shows the mock editing shell", async ({ page }) => {
+test("bg mode edits the selected background tile", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "BG編集");
 
@@ -14,14 +19,36 @@ test("bg mode shows the mock editing shell", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "#000", exact: true }),
   ).toBeVisible();
+  const bgTile255Button = page.getByRole("button", {
+    name: "#255",
+    exact: true,
+  });
+  await bgTile255Button.scrollIntoViewIfNeeded();
+  await expect(bgTile255Button).toBeVisible();
 
   const bgTileFiveButton = page.getByRole("button", {
     name: "#005",
     exact: true,
   });
+  const bgCanvas = page.getByLabel("BGタイル編集キャンバス", { exact: true });
 
   await bgTileFiveButton.click();
   await expect(bgTileFiveButton).toHaveAttribute("aria-pressed", "true");
+  await expect(bgCanvas).toBeVisible();
+
+  const initialPixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
+
+  await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
+
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .not.toBe(initialPixel);
 
   await expect(
     page.getByRole("button", { name: "BGツールを開く", exact: true }),
@@ -40,6 +67,17 @@ test("bg mode shows the mock editing shell", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "消しゴムツール", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
+
+  await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
+
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .toBe(initialPixel);
+
   await expect(
     page.getByRole("button", { name: "BGツールを閉じる", exact: true }),
   ).toBeVisible();

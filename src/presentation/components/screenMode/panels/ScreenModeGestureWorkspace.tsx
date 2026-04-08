@@ -360,10 +360,15 @@ interface ScreenModeGestureWorkspaceProps {
   screenMode: ScreenModeState;
   isSpriteOutlineVisible: boolean;
   isSpriteIndexVisible: boolean;
-  backgroundPlacementMock?: {
+  backgroundEditing?: {
     overlay: React.ReactNode;
     onClick: () => void;
-    onPointerMove: (position: { x: number; y: number }) => void;
+    onPointerDown: (position: { x: number; y: number }, button: number) => void;
+    onPointerMove: (
+      position: { x: number; y: number },
+      buttons: number,
+    ) => void;
+    onPointerUp: () => void;
   };
 }
 
@@ -377,7 +382,7 @@ export const ScreenModeGestureWorkspace: React.FC<
   screenMode,
   isSpriteOutlineVisible,
   isSpriteIndexVisible,
-  backgroundPlacementMock,
+  backgroundEditing,
 }) => {
   const spriteLibraryContentId = React.useId();
   const characterLibraryContentId = React.useId();
@@ -429,39 +434,97 @@ export const ScreenModeGestureWorkspace: React.FC<
     O.map((menu) => resolveMenuPosition(menu.clientX, menu.clientY)),
   );
 
-  const resolveBackgroundPlacementMockPosition = React.useCallback(
-    (event: React.PointerEvent<HTMLDivElement>): { x: number; y: number } => {
+  const resolveBackgroundStagePosition = React.useCallback(
+    (
+      event: React.PointerEvent<HTMLDivElement>,
+    ): O.Option<{ x: number; y: number }> => {
       const rect = event.currentTarget.getBoundingClientRect();
       const relativeX = event.clientX - rect.left;
       const relativeY = event.clientY - rect.top;
+      const isWithinStage =
+        relativeX >= 0 &&
+        relativeY >= 0 &&
+        relativeX < rect.width &&
+        relativeY < rect.height;
+
+      if (isWithinStage === false) {
+        return O.none;
+      }
+
       const stageX = Math.floor(relativeX / screenZoomLevel);
       const stageY = Math.floor(relativeY / screenZoomLevel);
 
-      return {
+      return O.some({
         x: Math.min(Math.floor(stageX / 8) * 8, screen.width - 8),
         y: Math.min(Math.floor(stageY / 8) * 8, screen.height - 8),
-      };
+      });
     },
     [screen.height, screen.width, screenZoomLevel],
   );
 
-  const handleStagePointerMoveWithBackgroundPlacementMock = React.useCallback(
+  const handleStagePointerDownWithBackgroundEditing = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      handleStagePointerMove(event);
-
-      if (typeof backgroundPlacementMock === "undefined") {
+      if (typeof backgroundEditing === "undefined") {
+        handleStagePointerDown(event);
         return;
       }
 
-      backgroundPlacementMock.onPointerMove(
-        resolveBackgroundPlacementMockPosition(event),
+      if (event.button === 1) {
+        return;
+      }
+
+      event.currentTarget.focus();
+      event.preventDefault();
+
+      pipe(
+        resolveBackgroundStagePosition(event),
+        O.map((position) => {
+          backgroundEditing.onPointerDown(position, event.button);
+        }),
       );
     },
-    [
-      backgroundPlacementMock,
-      handleStagePointerMove,
-      resolveBackgroundPlacementMockPosition,
-    ],
+    [backgroundEditing, handleStagePointerDown, resolveBackgroundStagePosition],
+  );
+
+  const handleStagePointerMoveWithBackgroundEditing = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (typeof backgroundEditing === "undefined") {
+        handleStagePointerMove(event);
+        return;
+      }
+
+      pipe(
+        resolveBackgroundStagePosition(event),
+        O.map((position) => {
+          backgroundEditing.onPointerMove(position, event.buttons);
+        }),
+      );
+    },
+    [backgroundEditing, handleStagePointerMove, resolveBackgroundStagePosition],
+  );
+
+  const handleStagePointerEndWithBackgroundEditing = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (typeof backgroundEditing === "undefined") {
+        handleStagePointerEnd(event);
+        return;
+      }
+
+      backgroundEditing.onPointerUp();
+    },
+    [backgroundEditing, handleStagePointerEnd],
+  );
+
+  const handleStageContextMenuWithBackgroundEditing = React.useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (typeof backgroundEditing === "undefined") {
+        handleStageContextMenu(event);
+        return;
+      }
+
+      event.preventDefault();
+    },
+    [backgroundEditing, handleStageContextMenu],
   );
 
   const floatingPreview = pipe(
@@ -717,15 +780,13 @@ export const ScreenModeGestureWorkspace: React.FC<
                 stageHeight={stageHeight}
                 draggingState={isStageDragging}
                 tabIndex={0}
-                onContextMenu={handleStageContextMenu}
+                onContextMenu={handleStageContextMenuWithBackgroundEditing}
                 onKeyDown={handleStageKeyDown}
-                onPointerDown={handleStagePointerDown}
-                onPointerMove={
-                  handleStagePointerMoveWithBackgroundPlacementMock
-                }
-                onPointerUp={handleStagePointerEnd}
-                onPointerCancel={handleStagePointerEnd}
-                onClick={backgroundPlacementMock?.onClick}
+                onPointerDown={handleStagePointerDownWithBackgroundEditing}
+                onPointerMove={handleStagePointerMoveWithBackgroundEditing}
+                onPointerUp={handleStagePointerEndWithBackgroundEditing}
+                onPointerCancel={handleStagePointerEndWithBackgroundEditing}
+                onClick={backgroundEditing?.onClick}
                 data-stage-sprite-count={screen.sprites.length}
                 data-selected-sprite-count={gestureSelectedSpriteCount}
                 data-stage-sprite-layout={gestureStageSpriteLayout}
@@ -772,7 +833,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                   )}
                 </StageInteractionLayer>
 
-                {backgroundPlacementMock?.overlay ?? <></>}
+                {backgroundEditing?.overlay ?? <></>}
               </StageSurface>
             </PreviewCanvasWrap>
           </PreviewViewport>

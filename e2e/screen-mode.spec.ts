@@ -1,6 +1,13 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { gotoApp, openMode } from "./support/app";
 import {
+  clickLogicalCanvasPixel,
+  formatCanvasPixelColor,
+  readLogicalCanvasPixel,
+} from "./support/canvas";
+import {
+  clickLocatorWithMouseAtOffset,
+  dispatchPointerClickAtOffset,
   getCanvasSize,
   getLocatorPoint,
   getLocatorRect,
@@ -297,8 +304,32 @@ test("screen mode keeps sprite and character library sections separated", async 
   );
 });
 
-test("screen mode shows BG tile placement mock flow", async ({ page }) => {
+test("screen mode shows BG tile placement flow", async ({ page }) => {
   await gotoApp(page);
+  await openMode(page, "BG編集");
+
+  await page.getByRole("button", { name: "#005", exact: true }).click();
+  const bgCanvas = page.getByLabel("BGタイル編集キャンバス", { exact: true });
+  const beforeBgTilePixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
+  await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .not.toBe(beforeBgTilePixel);
+
+  await page
+    .getByRole("button", { name: "パレットを開く", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "背景パレット 1 スロット 1", exact: true })
+    .click();
+  await page.getByRole("button", { name: "NES色 #02", exact: true }).click();
+
   await openMode(page, "画面配置");
 
   await expect(page.getByText("編集対象", { exact: true })).toHaveCount(0);
@@ -335,6 +366,12 @@ test("screen mode shows BG tile placement mock flow", async ({ page }) => {
   await expect(
     pickerDialog.getByRole("button", { name: "BG属性", exact: true }),
   ).toBeVisible();
+  const bgTile255Preview = pickerDialog.getByRole("button", {
+    name: "BGタイルプレビュー 255",
+    exact: true,
+  });
+  await bgTile255Preview.scrollIntoViewIfNeeded();
+  await expect(bgTile255Preview).toBeVisible();
   await pickerDialog
     .getByRole("button", { name: "BGタイルプレビュー 5", exact: true })
     .click();
@@ -345,6 +382,12 @@ test("screen mode shows BG tile placement mock flow", async ({ page }) => {
     exact: true,
   });
   const stage = page.getByLabel("スクリーン配置ステージ", { exact: true });
+  const screenCanvas = page.getByLabel("画面プレビューキャンバス", {
+    exact: true,
+  });
+  const beforeRenderSignature = await screenCanvas.getAttribute(
+    "data-render-signature",
+  );
 
   await expect(placementOverlay).toBeVisible();
   await expect
@@ -387,7 +430,48 @@ test("screen mode shows BG tile placement mock flow", async ({ page }) => {
     })
     .toEqual({ x: 112, y: 80 });
 
-  await stage.click({ position: { x: 84, y: 60 } });
+  await stage.hover({ position: { x: 84, y: 60 } });
+
+  await expect
+    .poll(async () => {
+      const [stageRect, overlayRect] = await Promise.all([
+        getLocatorRect(stage),
+        getLocatorRect(placementOverlay),
+      ]);
+
+      return {
+        x: Math.round(overlayRect.clientX - stageRect.clientX),
+        y: Math.round(overlayRect.clientY - stageRect.clientY),
+      };
+    })
+    .toEqual({ x: 80, y: 48 });
+
+  await clickLocatorWithMouseAtOffset(page, stage, { x: 84, y: 60 });
+
+  await expect(placementOverlay).toHaveCount(0);
+  await expect(screenCanvas).not.toHaveAttribute(
+    "data-render-signature",
+    beforeRenderSignature ?? "",
+  );
+
+  const afterTilePlacementSignature = await screenCanvas.getAttribute(
+    "data-render-signature",
+  );
+
+  await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
+  await pickerDialog
+    .getByRole("button", { name: "BG属性", exact: true })
+    .click();
+  await pickerDialog
+    .getByRole("button", { name: "BG属性パレット 1", exact: true })
+    .click();
+
+  await dispatchPointerClickAtOffset(stage, 403, { x: 84, y: 60 });
+
+  await expect(screenCanvas).not.toHaveAttribute(
+    "data-render-signature",
+    afterTilePlacementSignature ?? "",
+  );
 
   await expect(placementOverlay).toHaveCount(0);
   await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);

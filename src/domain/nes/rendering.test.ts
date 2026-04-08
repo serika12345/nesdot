@@ -13,6 +13,7 @@ import {
 } from "../project/projectV2";
 import {
   createDefaultNesProjectState,
+  NES_EMPTY_BACKGROUND_TILE_INDEX,
   NesBackgroundPalettes,
   NesSpritePalettes,
 } from "./nesProject";
@@ -402,6 +403,37 @@ describe("renderScreenToHexArray", () => {
 
     expectRenderedHex(rendered, 0, 0, 7);
     expectRenderedHex(rendered, 0, 1, 45);
+  });
+
+  it("treats the empty background tile sentinel as unplaced even if tile 255 has pixels", () => {
+    const nesBase = cloneNesState(createDefaultNesProjectState());
+    const lastTileChrStart = 255 * 16;
+    const nes = {
+      ...nesBase,
+      universalBackgroundColor: 45,
+      backgroundPalettes: updateBackgroundPalettes(
+        nesBase.backgroundPalettes,
+        0,
+        [45, 5, 6, 7],
+      ),
+      nameTable: {
+        ...nesBase.nameTable,
+        tileIndices: nesBase.nameTable.tileIndices.map(
+          () => NES_EMPTY_BACKGROUND_TILE_INDEX,
+        ),
+      },
+      chrBytes: nesBase.chrBytes.map((value, index) => {
+        if (index === lastTileChrStart || index === lastTileChrStart + 8) {
+          return 0b10000000;
+        }
+
+        return value;
+      }),
+    };
+
+    const rendered = renderScreenToHexArray(createScreen([]), nes);
+
+    expectRenderedHex(rendered, 0, 0, 45);
   });
 
   it("renders background from the normalized v2 project state through NES projection", () => {

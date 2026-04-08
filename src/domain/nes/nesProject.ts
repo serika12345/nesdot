@@ -12,6 +12,7 @@ export const NES_ATTRIBUTE_TABLE_BYTE_COUNT =
   NES_ATTRIBUTE_TABLE_WIDTH_BYTES * NES_ATTRIBUTE_TABLE_HEIGHT_BYTES;
 
 export const NES_OAM_ENTRY_COUNT = 64;
+export const NES_EMPTY_BACKGROUND_TILE_INDEX = -1;
 
 export type NesPaletteIndex = 0 | 1 | 2 | 3;
 export type NesColorIndex = number;
@@ -76,13 +77,16 @@ const isPaletteIndex = (value: number): value is NesPaletteIndex =>
   value === 0 || value === 1 || value === 2 || value === 3;
 
 /**
- * 0 埋めされた空のネームテーブルを生成します。
- * 背景タイル未配置の初期状態を明示し、プロジェクト初期化やリセットで同じ基準を使う意図があります。
+ * 未配置セルを専用 sentinel で埋めたネームテーブルを生成します。
+ * BG タイル 0..255 をすべて編集可能に保ちつつ、未配置セルが実タイルを参照しないようにします。
  */
 export const createEmptyNameTable = (): NesNameTable => ({
   widthTiles: 32,
   heightTiles: 30,
-  tileIndices: Array.from({ length: NES_NAME_TABLE_TILE_COUNT }, () => 0),
+  tileIndices: Array.from(
+    { length: NES_NAME_TABLE_TILE_COUNT },
+    () => NES_EMPTY_BACKGROUND_TILE_INDEX,
+  ),
 });
 
 /**

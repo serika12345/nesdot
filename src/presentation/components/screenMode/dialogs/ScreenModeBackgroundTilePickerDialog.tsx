@@ -8,8 +8,16 @@ import {
   Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import * as E from "fp-ts/Either";
 import React from "react";
+import { useProjectState } from "../../../../application/state/projectStore";
+import { decodeBackgroundTileAtIndex } from "../../../../domain/nes/backgroundEditing";
+import {
+  PROJECT_BACKGROUND_TILE_COUNT,
+  createEmptyBackgroundTile,
+} from "../../../../domain/project/projectV2";
 import { ToolButton } from "../../../App.styles";
+import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
 
 type BgPickerMode = "bgTile" | "bgPalette";
 type BgPaletteIndex = 0 | 1 | 2 | 3;
@@ -22,7 +30,6 @@ interface ScreenModeBackgroundTilePickerDialogProps {
   onTileSelect: (tileIndex: number) => void;
 }
 
-const MOCK_BG_TILE_PREVIEW_COUNT = 16;
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 
 const PreviewGrid = styled("div")({
@@ -48,15 +55,6 @@ const PreviewButtonLayout = styled(Stack)({
   gap: "0.625rem",
 });
 
-const PreviewSwatch = styled("span")({
-  width: "100%",
-  aspectRatio: "1 / 1",
-  borderRadius: "0.875rem",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  background:
-    "linear-gradient(135deg, rgba(20, 184, 166, 0.24) 0%, rgba(15, 23, 42, 0.08) 100%), repeating-linear-gradient(0deg, rgba(15, 23, 42, 0.08) 0, rgba(15, 23, 42, 0.08) 0.375rem, rgba(255, 255, 255, 0.16) 0.375rem, rgba(255, 255, 255, 0.16) 0.75rem), repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.08) 0, rgba(15, 23, 42, 0.08) 0.375rem, rgba(255, 255, 255, 0.16) 0.375rem, rgba(255, 255, 255, 0.16) 0.75rem)",
-});
-
 const DialogToolbar = styled(Stack)({
   flexDirection: "row",
   flexWrap: "wrap",
@@ -65,13 +63,24 @@ const DialogToolbar = styled(Stack)({
 });
 
 /**
- * BG タイル配置導線の大型 picker dialog を描画します。
- * shell 段階では mock preview の選択だけを扱い、実際の project state 更新は行いません。
+ * BG タイル配置導線の picker dialog を描画します。
+ * 既存 UI を増やさず、実プロジェクト状態の BG タイル preview を選択に使います。
  */
 export const ScreenModeBackgroundTilePickerDialog: React.FC<
   ScreenModeBackgroundTilePickerDialogProps
 > = ({ activePaletteIndex, open, onClose, onPaletteSelect, onTileSelect }) => {
   const [pickerMode, setPickerMode] = React.useState<BgPickerMode>("bgTile");
+  const nes = useProjectState((state) => state.nes);
+
+  const visibleBackgroundTiles = React.useMemo(
+    () =>
+      Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) => {
+        const tile = decodeBackgroundTileAtIndex(nes.chrBytes, tileIndex);
+
+        return E.isRight(tile) ? tile.right : createEmptyBackgroundTile();
+      }),
+    [nes.chrBytes],
+  );
 
   React.useEffect(() => {
     if (open === true) {
@@ -111,24 +120,26 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
 
           {pickerMode === "bgTile" ? (
             <PreviewGrid>
-              {Array.from(
-                { length: MOCK_BG_TILE_PREVIEW_COUNT },
-                (_, tileIndex) => (
-                  <PreviewButton
-                    key={`screen-mode-bg-dialog-tile-${tileIndex}`}
-                    type="button"
-                    aria-label={`BGタイルプレビュー ${tileIndex}`}
-                    onClick={() => {
-                      onTileSelect(tileIndex);
-                    }}
-                  >
-                    <PreviewButtonLayout>
-                      <PreviewSwatch aria-hidden="true" />
-                      <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
-                    </PreviewButtonLayout>
-                  </PreviewButton>
-                ),
-              )}
+              {visibleBackgroundTiles.map((tile, tileIndex) => (
+                <PreviewButton
+                  key={`screen-mode-bg-dialog-tile-${tileIndex}`}
+                  type="button"
+                  aria-label={`BGタイルプレビュー ${tileIndex}`}
+                  onClick={() => {
+                    onTileSelect(tileIndex);
+                  }}
+                >
+                  <PreviewButtonLayout>
+                    <BackgroundTilePreview
+                      scale={8}
+                      tile={tile}
+                      palette={nes.backgroundPalettes[activePaletteIndex]}
+                      universalBackgroundColor={nes.universalBackgroundColor}
+                    />
+                    <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
+                  </PreviewButtonLayout>
+                </PreviewButton>
+              ))}
             </PreviewGrid>
           ) : (
             <DialogToolbar>

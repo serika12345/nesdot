@@ -1,4 +1,4 @@
-import { type Locator } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 
 export interface LocatorPoint {
   clientX: number;
@@ -27,9 +27,7 @@ export const getLocatorPoint = async (
     { x, y },
   );
 
-export const getLocatorRect = async (
-  locator: Locator,
-): Promise<LocatorRect> =>
+export const getLocatorRect = async (locator: Locator): Promise<LocatorRect> =>
   locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
 
@@ -103,4 +101,52 @@ export const panViewportWithMiddleMouse = async (
     clientX: endPoint.clientX,
     clientY: endPoint.clientY,
   });
+};
+
+export const dispatchPointerClickAtOffset = async (
+  locator: Locator,
+  pointerId: number,
+  offset: { x: number; y: number },
+): Promise<void> => {
+  const point = await getLocatorPoint(locator, offset.x, offset.y);
+
+  await locator.dispatchEvent("pointermove", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: -1,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+  await locator.dispatchEvent("pointerdown", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+  await locator.dispatchEvent("pointerup", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
+};
+
+export const clickLocatorWithMouseAtOffset = async (
+  page: Page,
+  locator: Locator,
+  offset: { x: number; y: number },
+): Promise<void> => {
+  const point = await getLocatorPoint(locator, offset.x, offset.y);
+
+  await page.mouse.move(point.clientX, point.clientY);
+  await page.mouse.down();
+  await page.mouse.up();
 };

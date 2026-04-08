@@ -17,7 +17,7 @@ import {
   type FileMenuState,
 } from "../../common/state/fileMenuState";
 import { ScreenModeBackgroundTilePickerDialog } from "../dialogs/ScreenModeBackgroundTilePickerDialog";
-import { useScreenModeBackgroundMockUi } from "../hooks/useScreenModeBackgroundMockUi";
+import { useScreenModeBackgroundEditingState } from "../hooks/useScreenModeBackgroundEditingState";
 import type { ScreenModeState } from "../hooks/useScreenModeState";
 import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
@@ -48,7 +48,7 @@ export const ScreenModeWorkspacePanel: React.FC<
   const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
     React.useState(true);
   const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
-  const backgroundMockUi = useScreenModeBackgroundMockUi();
+  const backgroundEditingState = useScreenModeBackgroundEditingState();
 
   const {
     projectActions,
@@ -93,25 +93,29 @@ export const ScreenModeWorkspacePanel: React.FC<
   );
 
   const backgroundPlacementMockOverlay = pipe(
-    backgroundMockUi.grabbedTileIndex,
+    backgroundEditingState.cursorOverlay,
     O.match(
       () => <></>,
-      () => (
+      (overlayState) => (
         <ScreenModeBackgroundPlacementMockOverlay
-          placementX={backgroundMockUi.placementPreviewPosition.x}
-          placementY={backgroundMockUi.placementPreviewPosition.y}
+          placementHeight={overlayState.height}
+          placementWidth={overlayState.width}
+          placementX={overlayState.x}
+          placementY={overlayState.y}
           screenZoomLevel={screenZoomLevel}
         />
       ),
     ),
   );
-  const backgroundPlacementMockProps =
-    backgroundMockUi.editingTarget === "bgTile"
+  const backgroundEditingProps =
+    backgroundEditingState.editingTarget !== "sprite"
       ? {
-          backgroundPlacementMock: {
+          backgroundEditing: {
             overlay: backgroundPlacementMockOverlay,
-            onClick: backgroundMockUi.handleMockStagePlacement,
-            onPointerMove: backgroundMockUi.handlePlacementPreviewMove,
+            onClick: backgroundEditingState.handleStageClick,
+            onPointerDown: backgroundEditingState.handleStagePointerDown,
+            onPointerMove: backgroundEditingState.handleStagePointerMove,
+            onPointerUp: backgroundEditingState.handleStagePointerUp,
           },
         }
       : {};
@@ -151,7 +155,7 @@ export const ScreenModeWorkspacePanel: React.FC<
           <ToolButton
             type="button"
             aria-label="BGタイル追加"
-            onClick={backgroundMockUi.openTilePicker}
+            onClick={backgroundEditingState.openTilePicker}
           >
             BGタイル追加
           </ToolButton>
@@ -182,15 +186,15 @@ export const ScreenModeWorkspacePanel: React.FC<
         screenMode={screenMode}
         isSpriteOutlineVisible={isSpriteOutlineVisible}
         isSpriteIndexVisible={isSpriteIndexVisible}
-        {...backgroundPlacementMockProps}
+        {...backgroundEditingProps}
       />
 
       <ScreenModeBackgroundTilePickerDialog
-        activePaletteIndex={backgroundMockUi.activePaletteIndex}
-        open={backgroundMockUi.isTilePickerOpen}
-        onClose={backgroundMockUi.closeTilePicker}
-        onPaletteSelect={backgroundMockUi.handleBackgroundPaletteSelect}
-        onTileSelect={backgroundMockUi.handleBackgroundTileSelect}
+        activePaletteIndex={backgroundEditingState.activePaletteIndex}
+        open={backgroundEditingState.isTilePickerOpen}
+        onClose={backgroundEditingState.closeTilePicker}
+        onPaletteSelect={backgroundEditingState.handleBackgroundPaletteSelect}
+        onTileSelect={backgroundEditingState.handleBackgroundTileSelect}
       />
 
       {scanReport.ok === false ? (

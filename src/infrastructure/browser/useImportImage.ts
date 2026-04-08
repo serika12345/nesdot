@@ -11,6 +11,7 @@ import type {
   NesProjectState,
   NesSubPalette,
 } from "../../domain/nes/nesProject";
+import { NES_EMPTY_BACKGROUND_TILE_INDEX } from "../../domain/nes/nesProject";
 import type {
   ProjectState,
   SpriteInScreen,
@@ -79,7 +80,9 @@ const PatternTableSelectSchema = z.union([z.literal(0), z.literal(1)]);
 const NesNameTableSchema = z.object({
   widthTiles: z.literal(32),
   heightTiles: z.literal(30),
-  tileIndices: z.array(z.number().int().min(0)).length(960),
+  tileIndices: z
+    .array(z.number().int().min(NES_EMPTY_BACKGROUND_TILE_INDEX).max(255))
+    .length(960),
 });
 
 const NesAttributeTableSchema = z.object({
@@ -122,34 +125,38 @@ const NesProjectStateSchema = z.object({
   ppuControl: PpuControlStateSchema,
 });
 
-const ProjectStateSchema = z.object({
-  spriteSize: z.union([z.literal(8), z.literal(16)]),
-  screen: ScreenSchema,
-  sprites: z.array(SpriteTileSchema).length(64),
-  nes: NesProjectStateSchema,
-  _hydrated: z.boolean().optional(),
-}).superRefine((value, ctx) => {
-  if (value.nes.ppuControl.spriteSize !== value.spriteSize) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "ProjectState spriteSize must match NES ppuControl spriteSize",
-    });
-  }
+const ProjectStateSchema = z
+  .object({
+    spriteSize: z.union([z.literal(8), z.literal(16)]),
+    screen: ScreenSchema,
+    sprites: z.array(SpriteTileSchema).length(64),
+    nes: NesProjectStateSchema,
+    _hydrated: z.boolean().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.nes.ppuControl.spriteSize !== value.spriteSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "ProjectState spriteSize must match NES ppuControl spriteSize",
+      });
+    }
 
-  if (value.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "ProjectState sprites must match project spriteSize",
-    });
-  }
+    if (value.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "ProjectState sprites must match project spriteSize",
+      });
+    }
 
-  if (value.screen.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Screen sprites must match project spriteSize",
-    });
-  }
-});
+    if (
+      value.screen.sprites.some((sprite) => sprite.height !== value.spriteSize)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Screen sprites must match project spriteSize",
+      });
+    }
+  });
 
 const CharacterSpriteSchema = z.object({
   spriteIndex: z.number().int().min(0).max(63),

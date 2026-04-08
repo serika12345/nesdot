@@ -1,4 +1,5 @@
 import {
+  NES_EMPTY_BACKGROUND_TILE_INDEX,
   createDefaultNesProjectState,
   type NesBackgroundPalettes,
   type NesColorIndex,
@@ -91,7 +92,7 @@ export const createEmptyScreenBackground = (): ScreenBackground => ({
   heightTiles: 30,
   tileIndices: Array.from(
     { length: SCREEN_BACKGROUND_TILE_INDEX_COUNT },
-    () => 0,
+    () => NES_EMPTY_BACKGROUND_TILE_INDEX,
   ),
   paletteIndices: Array.from(
     { length: SCREEN_BACKGROUND_PALETTE_INDEX_COUNT },

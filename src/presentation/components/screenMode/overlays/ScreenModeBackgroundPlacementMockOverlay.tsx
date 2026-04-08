@@ -2,12 +2,12 @@ import { styled } from "@mui/material/styles";
 import React from "react";
 
 interface ScreenModeBackgroundPlacementMockOverlayProps {
+  placementHeight: number;
+  placementWidth: number;
   placementX: number;
   placementY: number;
   screenZoomLevel: number;
 }
-
-const MOCK_STAGE_TILE_SIZE = 8;
 
 const shouldForwardOverlayProp = (prop: PropertyKey): boolean =>
   prop !== "overlayHeight" &&
@@ -39,16 +39,22 @@ const OverlayRoot = styled("div", {
 }));
 
 /**
- * BG タイル掴み状態の stage overlay モックを描画します。
- * 8x8 スナップ位置の見た目だけを提供し、実配置処理は screen mode 側の local state に委ねます。
+ * screen mode の BG 編集カーソルを stage 上へ重ね描画します。
+ * BG タイル配置では 8x8、BG 属性配置では 16x16 のスナップ領域を表示します。
  */
 export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
   ScreenModeBackgroundPlacementMockOverlayProps
-> = ({ placementX, placementY, screenZoomLevel }) => {
+> = ({
+  placementHeight,
+  placementWidth,
+  placementX,
+  placementY,
+  screenZoomLevel,
+}) => {
   const overlayLeft = placementX * screenZoomLevel;
   const overlayTop = placementY * screenZoomLevel;
-  const overlayWidth = MOCK_STAGE_TILE_SIZE * screenZoomLevel;
-  const overlayHeight = MOCK_STAGE_TILE_SIZE * screenZoomLevel;
+  const overlayWidth = placementWidth * screenZoomLevel;
+  const overlayHeight = placementHeight * screenZoomLevel;
 
   return (
     <OverlayRoot

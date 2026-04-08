@@ -5,6 +5,7 @@ import type { Screen, SpritePriority, SpriteTile } from "../project/project";
 import type { ProjectStateV2 } from "../project/projectV2";
 import {
   getNameTableLinearIndex,
+  NES_EMPTY_BACKGROUND_TILE_INDEX,
   NesProjectState,
   NesSpritePalettes,
   resolveBackgroundPaletteIndex,
@@ -36,6 +37,13 @@ const DEFAULT_BACKGROUND_PIXEL: BackgroundPixel = {
   hex: getHexAt(0),
   opaque: false,
 };
+
+const createTransparentBackgroundPixel = (
+  universalBackgroundColor: number,
+): BackgroundPixel => ({
+  hex: getHexAt(universalBackgroundColor),
+  opaque: false,
+});
 
 /**
  * スプライトタイルを表示用の 16 進カラー配列へ変換します。
@@ -135,6 +143,11 @@ const resolveBackgroundPixelAt = (
   }
 
   const tileIndex = nesState.nameTable.tileIndices[nameTableIndex.right] ?? 0;
+
+  if (tileIndex === NES_EMPTY_BACKGROUND_TILE_INDEX) {
+    return createTransparentBackgroundPixel(nesState.universalBackgroundColor);
+  }
+
   const paletteIndexEither = resolveBackgroundPaletteIndex(
     nesState.attributeTable,
     tileX,

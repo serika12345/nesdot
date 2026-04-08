@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NES_EMPTY_BACKGROUND_TILE_INDEX } from "../nes/nesProject";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   PROJECT_SPRITE_TILE_COUNT,
@@ -18,6 +19,11 @@ describe("projectV2", () => {
     expect(state.screen.background.tileIndices).toHaveLength(
       SCREEN_BACKGROUND_TILE_INDEX_COUNT,
     );
+    expect(
+      state.screen.background.tileIndices.every(
+        (tileIndex) => tileIndex === NES_EMPTY_BACKGROUND_TILE_INDEX,
+      ),
+    ).toBe(true);
     expect(state.screen.background.paletteIndices).toHaveLength(
       SCREEN_BACKGROUND_PALETTE_INDEX_COUNT,
     );

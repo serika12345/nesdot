@@ -20,7 +20,10 @@ import {
   NesPaletteIndex,
   NesSubPalette,
 } from "../../../../domain/nes/nesProject";
-import { NES_PALETTE_HEX, nesIndexToCssHex } from "../../../../domain/nes/palette";
+import {
+  NES_PALETTE_HEX,
+  nesIndexToCssHex,
+} from "../../../../domain/nes/palette";
 
 const disclosureChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
@@ -198,6 +201,7 @@ export const PalettePicker: React.FC = () => {
                       <Button
                         key={j}
                         type="button"
+                        aria-label={`背景パレット ${i} スロット ${j}`}
                         variant={
                           isActivePalette && activeSlot === j
                             ? "contained"
@@ -255,6 +259,10 @@ export const PalettePicker: React.FC = () => {
                 <Button
                   key={idx}
                   type="button"
+                  aria-label={`NES色 #${idx
+                    .toString(16)
+                    .padStart(2, "0")
+                    .toUpperCase()}`}
                   title={`#${idx.toString(16).padStart(2, "0").toUpperCase()}`}
                   onClick={() => setSlot(activeSlot, idx)}
                   variant={idx === activeColorIndex ? "contained" : "outlined"}

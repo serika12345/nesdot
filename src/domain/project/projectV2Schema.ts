@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NES_EMPTY_BACKGROUND_TILE_INDEX } from "../nes/nesProject";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   PROJECT_FORMAT_VERSION,
@@ -57,6 +58,12 @@ const BackgroundTileSchema = z.object({
   pixels: z.array(PixelRowSchema).length(8),
 });
 
+const BackgroundTileIndexSchema = z
+  .number()
+  .int()
+  .min(NES_EMPTY_BACKGROUND_TILE_INDEX)
+  .max(PROJECT_BACKGROUND_TILE_COUNT - 1);
+
 const Palette4ColorsSchema = z.tuple([
   NesColorIndexSchema,
   NesColorIndexSchema,
@@ -79,7 +86,7 @@ export const ProjectStateV2Schema = z
         widthTiles: z.literal(32),
         heightTiles: z.literal(30),
         tileIndices: z
-          .array(z.number().int().min(0))
+          .array(BackgroundTileIndexSchema)
           .length(SCREEN_BACKGROUND_TILE_INDEX_COUNT),
         paletteIndices: z
           .array(PaletteIndexSchema)

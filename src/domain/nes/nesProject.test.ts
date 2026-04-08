@@ -6,6 +6,7 @@ import {
   getAttributeByteIndex,
   getNameTableLinearIndex,
   NES_ATTRIBUTE_TABLE_BYTE_COUNT,
+  NES_EMPTY_BACKGROUND_TILE_INDEX,
   NES_NAME_TABLE_TILE_COUNT,
   NES_OAM_ENTRY_COUNT,
   resolveBackgroundPaletteIndex,
@@ -16,6 +17,11 @@ describe("nesProjectState", () => {
     const state = createDefaultNesProjectState();
 
     expect(state.nameTable.tileIndices).toHaveLength(NES_NAME_TABLE_TILE_COUNT);
+    expect(
+      state.nameTable.tileIndices.every(
+        (tileIndex) => tileIndex === NES_EMPTY_BACKGROUND_TILE_INDEX,
+      ),
+    ).toBe(true);
     expect(state.attributeTable.bytes).toHaveLength(
       NES_ATTRIBUTE_TABLE_BYTE_COUNT,
     );
