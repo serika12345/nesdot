@@ -74,6 +74,18 @@
       }
     },
     {
+      "label": "Verify CVE",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:cve"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
       "label": "Verify",
       "type": "shell",
       "command": "nix",

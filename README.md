@@ -213,6 +213,14 @@ nix develop -c zsh -lc 'pnpm verify:security'
 
 この検証では、依存サプライチェーン設定、CI / release workflow の `--frozen-lockfile`、Tauri updater 設定、アプリ内の JSON 復元境界を機械的に確認します。
 
+### CVE Audit
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:cve'
+```
+
+この監査では `pnpm audit` と `cargo audit` を実行し、既知 advisory は `scripts/cve-audit-baseline.json` を baseline として管理します。baseline にない新規 advisory が出た場合だけ失敗します。
+
 インデント、改行コード、末尾改行、末尾空白などのエディタ既定値は `.editorconfig` で統一しています。
 行幅は `.editorconfig` の `max_line_length` を source of truth にし、コード整形そのものは引き続き Prettier を基準にします。
 VS Code の保存時フォーマットは workspace の Prettier と Rust formatter を使うように設定しています。
@@ -271,6 +279,12 @@ nix develop -c zsh -lc 'pnpm verify'
 nix develop -c zsh -lc 'pnpm verify:security'
 ```
 
+依存関係や toolchain の CVE 状況を確認したい場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:cve'
+```
+
 UI 変更:
 
 ```sh
@@ -289,7 +303,9 @@ nix develop -c zsh -lc 'pnpm verify:full'
 nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
-VS Code では `Terminal: Run Task` から `Verify Security`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
+CI では通常の verify job に加えて `pnpm verify:cve` を走らせ、新しい advisory を pull request / push の段階で検出します。
+
+VS Code では `Terminal: Run Task` から `Verify Security`, `Verify CVE`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
 `Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
 
 ## 自動リリース

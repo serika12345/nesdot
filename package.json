@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:security": "node scripts/verify-security.mjs",
+    "verify:cve": "node scripts/verify-cves.mjs",
     "rust:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
     "rust:fmt:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
     "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
@@ -44,17 +45,23 @@
     "name": "paseri3739",
     "email": "tael43@icloud.com"
   },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@^5.0.0": "5.0.5",
+      "yaml@^1.10.0": "1.10.3"
+    }
+  },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.58.2",
     "@tauri-apps/cli": "^2",
     "@types/node": "^25.5.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "@vitejs/plugin-react": "^4.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9.39.4",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-functional": "^9.0.4",
@@ -62,7 +69,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.8.1",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4",
+    "vite": "^7.3.2",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.1.1"
   },

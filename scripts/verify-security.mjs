@@ -27,6 +27,37 @@ const requireTextFragments = (relativePath, text, fragments) => {
   });
 };
 
+const normalizeDirectiveSources = (value) => {
+  if (Array.isArray(value)) {
+    return value.filter((source) => typeof source === "string");
+  }
+
+  return typeof value === "string"
+    ? value.split(/\s+/u).filter((source) => source.length > 0)
+    : [];
+};
+
+const requireDirectiveSources = (
+  relativePath,
+  directives,
+  directiveName,
+  requiredSources,
+) => {
+  const availableSources = normalizeDirectiveSources(
+    directives?.[directiveName],
+  );
+
+  if (availableSources.length === 0) {
+    return [`${relativePath} must define ${directiveName} in the CSP.`];
+  }
+
+  return requiredSources.flatMap((requiredSource) => {
+    return availableSources.includes(requiredSource)
+      ? []
+      : [`${relativePath} ${directiveName} must include ${requiredSource}.`];
+  });
+};
+
 const listFiles = (relativeDirectoryPath) => {
   return readdirSync(resolve(repoRoot, relativeDirectoryPath), {
     withFileTypes: true,
@@ -117,6 +148,148 @@ const checkUpdaterConfiguration = () => {
   );
 };
 
+const checkTauriSecurityConfiguration = () => {
+  const relativePath = "src-tauri/tauri.conf.json";
+  const tauriConfig = parseJsonFile(relativePath);
+  const security = tauriConfig.app?.security;
+
+  if (typeof security !== "object" || security === null) {
+    return [`${relativePath} must configure app.security.`];
+  }
+
+  const headerFailures =
+    security.headers?.["X-Content-Type-Options"] === "nosniff"
+      ? []
+      : [`${relativePath} must set X-Content-Type-Options to nosniff.`];
+  const prototypeFailures =
+    security.freezePrototype === true
+      ? []
+      : [`${relativePath} must enable app.security.freezePrototype.`];
+  const cspFailures =
+    typeof security.csp === "object" && security.csp !== null
+      ? []
+      : [`${relativePath} must define app.security.csp.`];
+  const devCspFailures =
+    typeof security.devCsp === "object" && security.devCsp !== null
+      ? []
+      : [`${relativePath} must define app.security.devCsp.`];
+
+  if (cspFailures.length > 0 || devCspFailures.length > 0) {
+    return headerFailures.concat(
+      prototypeFailures,
+      cspFailures,
+      devCspFailures,
+    );
+  }
+
+  return headerFailures
+    .concat(prototypeFailures)
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "default-src", [
+        "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "script-src", [
+        "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "style-src", [
+        "'self'",
+        "'unsafe-inline'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "img-src", [
+        "'self'",
+        "blob:",
+        "data:",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "connect-src", [
+        "'self'",
+        "ipc:",
+        "http://ipc.localhost",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "object-src", [
+        "'none'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.devCsp, "connect-src", [
+        "'self'",
+        "ipc:",
+        "http://ipc.localhost",
+        "http://localhost:1420",
+        "http://127.0.0.1:1420",
+        "http://[::1]:1420",
+        "ws://localhost:1421",
+        "ws://127.0.0.1:1421",
+        "ws://[::1]:1421",
+      ]),
+    );
+};
+
+const checkDangerousApiLinting = () => {
+  const relativePath = "eslint.config.js";
+  const eslintConfig = readTextFile(relativePath);
+
+  return requireTextFragments(relativePath, eslintConfig, [
+    '"no-eval": "error"',
+    '"no-implied-eval": "error"',
+    '"no-new-func": "error"',
+    '"no-script-url": "error"',
+    "dangerouslySetInnerHTML",
+    "insertAdjacentHTML",
+    "innerHTML",
+    "outerHTML",
+    "document",
+  ]);
+};
+
+const checkCveAuditIntegration = () => {
+  const packageJsonPath = "package.json";
+  const ciWorkflowPath = ".github/workflows/ci.yml";
+  const flakePath = "flake.nix";
+  const cveScriptPath = "scripts/verify-cves.mjs";
+  const cveBaselinePath = "scripts/cve-audit-baseline.json";
+  const packageJson = readTextFile(packageJsonPath);
+  const ciWorkflow = readTextFile(ciWorkflowPath);
+  const flakeNix = readTextFile(flakePath);
+  const cveScript = readTextFile(cveScriptPath);
+  const cveBaseline = parseJsonFile(cveBaselinePath);
+  const baselineIds = cveBaseline.pnpm?.githubAdvisoryIds;
+
+  const baselineFailures =
+    Array.isArray(baselineIds) && baselineIds.length > 0
+      ? []
+      : [`${cveBaselinePath} must define at least one tracked pnpm advisory.`];
+
+  return baselineFailures
+    .concat(
+      requireTextFragments(packageJsonPath, packageJson, [
+        '"verify:cve": "node scripts/verify-cves.mjs"',
+      ]),
+    )
+    .concat(
+      requireTextFragments(ciWorkflowPath, ciWorkflow, ["pnpm verify:cve"]),
+    )
+    .concat(requireTextFragments(flakePath, flakeNix, ["cargo-audit"]))
+    .concat(
+      requireTextFragments(cveScriptPath, cveScript, [
+        "pnpm audit",
+        "--json",
+        "--audit-level=moderate",
+        "cargo",
+        "audit",
+      ]),
+    );
+};
+
 const checkApplicationJsonBoundaries = () => {
   const sourceFiles = listFiles("src").filter((relativePath) => {
     return relativePath.endsWith(".ts") || relativePath.endsWith(".tsx");
@@ -161,7 +334,10 @@ const checkApplicationJsonBoundaries = () => {
 const failures = checkSupplyChainPolicy().concat(
   checkFrozenLockfileInstalls(),
   checkUpdaterConfiguration(),
+  checkTauriSecurityConfiguration(),
+  checkDangerousApiLinting(),
   checkApplicationJsonBoundaries(),
+  checkCveAuditIntegration(),
 );
 
 if (failures.length > 0) {

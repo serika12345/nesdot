@@ -143,6 +143,7 @@
               nodejs_24
               pnpm
               cargo
+              cargo-audit
               rustc
               rustfmt
               clippy

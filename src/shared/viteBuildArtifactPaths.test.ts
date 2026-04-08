@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
+const buildTestTimeoutMs = 15_000;
 
 type BuildArtifacts = Readonly<{
   indexHtml: string;
@@ -47,37 +48,45 @@ const buildArtifacts = (
 };
 
 describe("vite build artifact paths", () => {
-  test("stays rooted at slash when GitHub Actions metadata is present without an explicit base", () => {
-    const artifacts = buildArtifacts({
-      GITHUB_ACTIONS: "true",
-      GITHUB_REPOSITORY: "paseri3739/nesdot",
-    });
+  test(
+    "stays rooted at slash when GitHub Actions metadata is present without an explicit base",
+    () => {
+      const artifacts = buildArtifacts({
+        GITHUB_ACTIONS: "true",
+        GITHUB_REPOSITORY: "paseri3739/nesdot",
+      });
 
-    expect(artifacts.indexHtml).toContain('href="/manifest.webmanifest"');
-    expect(artifacts.indexHtml).toContain('href="/favicon.svg"');
-    expect(artifacts.indexHtml).toMatch(/src="\/assets\/index-[^"]+\.js"/u);
-    expect(artifacts.indexHtml).toContain('src="/registerSW.js"');
-    expect(artifacts.indexHtml).not.toContain("/nesdot/");
-    expect(artifacts.manifest).toContain('"start_url":"/"');
-    expect(artifacts.manifest).toContain('"scope":"/"');
-  });
+      expect(artifacts.indexHtml).toContain('href="/manifest.webmanifest"');
+      expect(artifacts.indexHtml).toContain('href="/favicon.svg"');
+      expect(artifacts.indexHtml).toMatch(/src="\/assets\/index-[^"]+\.js"/u);
+      expect(artifacts.indexHtml).toContain('src="/registerSW.js"');
+      expect(artifacts.indexHtml).not.toContain("/nesdot/");
+      expect(artifacts.manifest).toContain('"start_url":"/"');
+      expect(artifacts.manifest).toContain('"scope":"/"');
+    },
+    buildTestTimeoutMs,
+  );
 
-  test("rewrites built asset paths only when the pages base path is explicitly configured", () => {
-    const artifacts = buildArtifacts({
-      VITE_BASE_PATH: "/nesdot/",
-      GITHUB_ACTIONS: "true",
-      GITHUB_REPOSITORY: "paseri3739/nesdot",
-    });
+  test(
+    "rewrites built asset paths only when the pages base path is explicitly configured",
+    () => {
+      const artifacts = buildArtifacts({
+        VITE_BASE_PATH: "/nesdot/",
+        GITHUB_ACTIONS: "true",
+        GITHUB_REPOSITORY: "paseri3739/nesdot",
+      });
 
-    expect(artifacts.indexHtml).toContain(
-      'href="/nesdot/manifest.webmanifest"',
-    );
-    expect(artifacts.indexHtml).toContain('href="/nesdot/favicon.svg"');
-    expect(artifacts.indexHtml).toMatch(
-      /src="\/nesdot\/assets\/index-[^"]+\.js"/u,
-    );
-    expect(artifacts.indexHtml).toContain('src="/nesdot/registerSW.js"');
-    expect(artifacts.manifest).toContain('"start_url":"/nesdot/"');
-    expect(artifacts.manifest).toContain('"scope":"/nesdot/"');
-  });
+      expect(artifacts.indexHtml).toContain(
+        'href="/nesdot/manifest.webmanifest"',
+      );
+      expect(artifacts.indexHtml).toContain('href="/nesdot/favicon.svg"');
+      expect(artifacts.indexHtml).toMatch(
+        /src="\/nesdot\/assets\/index-[^"]+\.js"/u,
+      );
+      expect(artifacts.indexHtml).toContain('src="/nesdot/registerSW.js"');
+      expect(artifacts.manifest).toContain('"start_url":"/nesdot/"');
+      expect(artifacts.manifest).toContain('"scope":"/nesdot/"');
+    },
+    buildTestTimeoutMs,
+  );
 });
