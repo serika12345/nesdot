@@ -14,12 +14,25 @@ type BuildArtifacts = Readonly<{
   manifest: string;
 }>;
 
+const withoutInheritedBasePath = (
+  environment: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv => {
+  return Object.fromEntries(
+    Object.entries(environment).filter(([key]) => key !== "VITE_BASE_PATH"),
+  );
+};
+
 const buildArtifacts = (
   environmentOverrides: Readonly<Record<string, string>>,
+  inheritedEnvironment: NodeJS.ProcessEnv = process.env,
 ): BuildArtifacts => {
   const outputDirectory = mkdtempSync(
     path.join(tmpdir(), "nesdot-vite-build-artifacts-"),
   );
+  const buildEnvironment = {
+    ...withoutInheritedBasePath(inheritedEnvironment),
+    ...environmentOverrides,
+  };
 
   try {
     execFileSync(
@@ -27,10 +40,7 @@ const buildArtifacts = (
       ["exec", "vite", "build", "--outDir", outputDirectory, "--emptyOutDir"],
       {
         cwd: projectRoot,
-        env: {
-          ...process.env,
-          ...environmentOverrides,
-        },
+        env: buildEnvironment,
         stdio: "pipe",
       },
     );
@@ -49,12 +59,18 @@ const buildArtifacts = (
 
 describe("vite build artifact paths", () => {
   test(
-    "stays rooted at slash when GitHub Actions metadata is present without an explicit base",
+    "ignores inherited VITE_BASE_PATH when GitHub Actions metadata is present without an explicit base",
     () => {
-      const artifacts = buildArtifacts({
-        GITHUB_ACTIONS: "true",
-        GITHUB_REPOSITORY: "paseri3739/nesdot",
-      });
+      const artifacts = buildArtifacts(
+        {
+          GITHUB_ACTIONS: "true",
+          GITHUB_REPOSITORY: "paseri3739/nesdot",
+        },
+        {
+          ...process.env,
+          VITE_BASE_PATH: "/nesdot/",
+        },
+      );
 
       expect(artifacts.indexHtml).toContain('href="/manifest.webmanifest"');
       expect(artifacts.indexHtml).toContain('href="/favicon.svg"');
