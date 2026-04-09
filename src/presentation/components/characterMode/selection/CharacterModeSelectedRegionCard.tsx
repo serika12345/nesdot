@@ -18,17 +18,17 @@ import {
   FieldLabel,
   ToolButton,
 } from "../../../App.styles";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
 } from "../core/CharacterModeStateProvider";
-import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import {
   getIssueLabel,
   getRegionStatusLabel,
 } from "../decomposition/decompositionRegionRules";
-import { INSPECTOR_PREVIEW_SCALE } from "../hooks/useCharacterModeState";
+import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
+import { INSPECTOR_PREVIEW_SCALE } from "../hooks/characterModeConstants";
+import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 
 const RegionPreviewSurfaceRoot = styled("div")({
   borderRadius: "1.125rem",

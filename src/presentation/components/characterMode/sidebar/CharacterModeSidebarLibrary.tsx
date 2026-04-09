@@ -11,10 +11,10 @@ import {
   PanelHeaderRow,
   ScrollArea,
 } from "../../../App.styles";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { useCharacterModeSpriteLibrary } from "../core/CharacterModeStateProvider";
+import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
+import { LIBRARY_PREVIEW_SCALE } from "../hooks/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
-import { LIBRARY_PREVIEW_SCALE } from "../hooks/useCharacterModeState";
 
 const LibraryScrollArea = styled(ScrollArea)({
   scrollbarGutter: "stable",

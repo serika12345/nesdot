@@ -3,18 +3,18 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { createPortal } from "react-dom";
 import {
-  PortalOverlay,
-  PositionedActionMenu,
-  PositionedActionMenuButton,
-} from "../primitives/CharacterModePrimitives";
-import {
   useCharacterModeSpriteMenuActions,
   useCharacterModeSpriteMenuState,
 } from "../core/CharacterModeStateProvider";
 import {
   STAGE_CONTEXT_MENU_HEIGHT,
   STAGE_CONTEXT_MENU_WIDTH,
-} from "../hooks/useCharacterModeState";
+} from "../hooks/characterModeConstants";
+import {
+  PortalOverlay,
+  PositionedActionMenu,
+  PositionedActionMenuButton,
+} from "../primitives/CharacterModePrimitives";
 
 /**
  * 合成ステージ上のスプライト用コンテキストメニューです。

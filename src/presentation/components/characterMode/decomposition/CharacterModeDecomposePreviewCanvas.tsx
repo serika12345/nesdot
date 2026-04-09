@@ -8,7 +8,17 @@ import {
   PanelHeaderRow,
   ToolButton,
 } from "../../../App.styles";
-import { CharacterModeDecompositionToolOverlay } from "./CharacterModeDecompositionToolOverlay";
+import {
+  useCharacterModeDecompositionCanvas,
+  useCharacterModeDecompositionRegions,
+  useCharacterModeDecompositionTool,
+  useCharacterModeStageDisplay,
+  useCharacterModeStageSize,
+  useCharacterModeStageViewport,
+  useCharacterModeStageZoom,
+  useCharacterModeViewportPan,
+} from "../core/CharacterModeStateProvider";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../hooks/characterModeConstants";
 import {
   CharacterStageViewport,
   DecompositionCanvasElement,
@@ -20,18 +30,8 @@ import {
   StageSurface,
   ViewportCenterWrap,
 } from "../primitives/CharacterModePrimitives";
-import {
-  useCharacterModeDecompositionCanvas,
-  useCharacterModeDecompositionRegions,
-  useCharacterModeDecompositionTool,
-  useCharacterModeStageDisplay,
-  useCharacterModeStageSize,
-  useCharacterModeStageViewport,
-  useCharacterModeStageZoom,
-  useCharacterModeViewportPan,
-} from "../core/CharacterModeStateProvider";
+import { CharacterModeDecompositionToolOverlay } from "./CharacterModeDecompositionToolOverlay";
 import { getRegionStatusLabel } from "./decompositionRegionRules";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../hooks/useCharacterModeState";
 
 /**
  * 分解モードのプレビューキャンバス全体を描画します。

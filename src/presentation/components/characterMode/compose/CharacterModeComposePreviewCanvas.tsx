@@ -9,6 +9,17 @@ import {
   ToolButton,
 } from "../../../App.styles";
 import {
+  useCharacterModeComposeCanvas,
+  useCharacterModeLibraryDragPreview,
+  useCharacterModeStageDisplay,
+  useCharacterModeStageSize,
+  useCharacterModeStageViewport,
+  useCharacterModeStageZoom,
+  useCharacterModeViewportPan,
+} from "../core/CharacterModeStateProvider";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../hooks/characterModeConstants";
+import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
+import {
   CharacterStageViewport,
   ComposeCanvasMount,
   PreviewControlsRow,
@@ -19,17 +30,6 @@ import {
   StageSurface,
   ViewportCenterWrap,
 } from "../primitives/CharacterModePrimitives";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../hooks/useCharacterModeState";
-import {
-  useCharacterModeComposeCanvas,
-  useCharacterModeLibraryDragPreview,
-  useCharacterModeStageDisplay,
-  useCharacterModeStageSize,
-  useCharacterModeStageViewport,
-  useCharacterModeStageZoom,
-  useCharacterModeViewportPan,
-} from "../core/CharacterModeStateProvider";
-import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 
 /**
  * 合成モードのプレビューキャンバス全体を描画します。

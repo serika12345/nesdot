@@ -1,11 +1,17 @@
-import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import React from "react";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../hooks/characterModeConstants";
 import {
-  CHARACTER_MODE_STAGE_LIMITS,
+  type CharacterModeComposeSection,
+  type CharacterModeDecompositionSection,
+  type CharacterModeLibrarySection,
+  type CharacterModeProjectSection,
+  type CharacterModeStageSection,
   type CharacterModeState,
-  useCharacterModeInternalState,
-} from "../hooks/useCharacterModeState";
+  type CharacterModeWorkspaceSection,
+} from "../hooks/characterModeStateTypes";
+import { useCharacterModeInternalState } from "../hooks/useCharacterModeState";
 
 const noop = (): void => {};
 const noopBoolean = (): boolean => false;
@@ -92,7 +98,7 @@ export const CharacterModeStateProvider: React.FC<
 };
 
 type CharacterModeProjectActionsSlice = Pick<
-  CharacterModeState,
+  CharacterModeProjectSection,
   "projectActions"
 >;
 
@@ -104,17 +110,12 @@ export const useCharacterModeProjectActions =
   (): CharacterModeProjectActionsSlice =>
     useCharacterModeSlice(
       (state) => ({
-        projectActions: state.projectActions,
+        projectActions: state.project.projectActions,
       }),
       defaultCharacterModeProjectActions,
     );
 
-type CharacterModeWorkspaceEventsSlice = Pick<
-  CharacterModeState,
-  | "handleWorkspacePointerDownCapture"
-  | "handleWorkspacePointerEnd"
-  | "handleWorkspacePointerMove"
->;
+type CharacterModeWorkspaceEventsSlice = CharacterModeWorkspaceSection;
 
 const defaultCharacterModeWorkspaceEvents: CharacterModeWorkspaceEventsSlice = {
   handleWorkspacePointerDownCapture: noopPointerDiv,
@@ -125,16 +126,13 @@ const defaultCharacterModeWorkspaceEvents: CharacterModeWorkspaceEventsSlice = {
 export const useCharacterModeWorkspaceEvents =
   (): CharacterModeWorkspaceEventsSlice =>
     useCharacterModeSlice(
-      (state) => ({
-        handleWorkspacePointerDownCapture:
-          state.handleWorkspacePointerDownCapture,
-        handleWorkspacePointerEnd: state.handleWorkspacePointerEnd,
-        handleWorkspacePointerMove: state.handleWorkspacePointerMove,
-      }),
+      (state) => state.workspace,
       defaultCharacterModeWorkspaceEvents,
     );
 
-type CharacterModeEditorModeValueSlice = Pick<CharacterModeState, "editorMode">;
+type CharacterModeEditorModeValueSlice = Readonly<{
+  editorMode: CharacterModeProjectSection["editorMode"]["value"];
+}>;
 
 const defaultCharacterModeEditorModeValue: CharacterModeEditorModeValueSlice = {
   editorMode: "compose",
@@ -144,15 +142,16 @@ export const useCharacterModeEditorModeValue =
   (): CharacterModeEditorModeValueSlice =>
     useCharacterModeSlice(
       (state) => ({
-        editorMode: state.editorMode,
+        editorMode: state.project.editorMode.value,
       }),
       defaultCharacterModeEditorModeValue,
     );
 
-type CharacterModeSpriteMenuStateSlice = Pick<
-  CharacterModeState,
-  "closeSpriteContextMenu" | "handleComposeContextMenu" | "spriteContextMenu"
->;
+type CharacterModeSpriteMenuStateSlice = Readonly<{
+  closeSpriteContextMenu: CharacterModeComposeSection["spriteMenu"]["closeSpriteContextMenu"];
+  handleComposeContextMenu: CharacterModeComposeSection["handleComposeContextMenu"];
+  spriteContextMenu: CharacterModeComposeSection["spriteMenu"]["spriteContextMenu"];
+}>;
 
 const defaultCharacterModeSpriteMenuState: CharacterModeSpriteMenuStateSlice = {
   closeSpriteContextMenu: noop,
@@ -164,19 +163,18 @@ export const useCharacterModeSpriteMenuState =
   (): CharacterModeSpriteMenuStateSlice =>
     useCharacterModeSlice(
       (state) => ({
-        closeSpriteContextMenu: state.closeSpriteContextMenu,
-        handleComposeContextMenu: state.handleComposeContextMenu,
-        spriteContextMenu: state.spriteContextMenu,
+        closeSpriteContextMenu: state.compose.spriteMenu.closeSpriteContextMenu,
+        handleComposeContextMenu: state.compose.handleComposeContextMenu,
+        spriteContextMenu: state.compose.spriteMenu.spriteContextMenu,
       }),
       defaultCharacterModeSpriteMenuState,
     );
 
-type CharacterModeSpriteMenuActionsSlice = Pick<
-  CharacterModeState,
-  | "focusStageElement"
-  | "handleDeleteContextMenuSprite"
-  | "handleShiftContextMenuSpriteLayer"
->;
+type CharacterModeSpriteMenuActionsSlice = Readonly<{
+  focusStageElement: CharacterModeStageSection["focusStageElement"];
+  handleDeleteContextMenuSprite: CharacterModeComposeSection["spriteMenu"]["handleDeleteContextMenuSprite"];
+  handleShiftContextMenuSpriteLayer: CharacterModeComposeSection["spriteMenu"]["handleShiftContextMenuSpriteLayer"];
+}>;
 
 const defaultCharacterModeSpriteMenuActions: CharacterModeSpriteMenuActionsSlice =
   {
@@ -195,18 +193,20 @@ export const useCharacterModeSpriteMenuActions =
   (): CharacterModeSpriteMenuActionsSlice =>
     useCharacterModeSlice(
       (state) => ({
-        focusStageElement: state.focusStageElement,
-        handleDeleteContextMenuSprite: state.handleDeleteContextMenuSprite,
+        focusStageElement: state.stage.focusStageElement,
+        handleDeleteContextMenuSprite:
+          state.compose.spriteMenu.handleDeleteContextMenuSprite,
         handleShiftContextMenuSpriteLayer:
-          state.handleShiftContextMenuSpriteLayer,
+          state.compose.spriteMenu.handleShiftContextMenuSpriteLayer,
       }),
       defaultCharacterModeSpriteMenuActions,
     );
 
-type CharacterModeSetDraftSlice = Pick<
-  CharacterModeState,
-  "handleCreateSet" | "handleNewNameChange" | "newName"
->;
+type CharacterModeSetDraftSlice = Readonly<{
+  handleCreateSet: CharacterModeProjectSection["setDraft"]["handleCreateSet"];
+  handleNewNameChange: CharacterModeProjectSection["setDraft"]["handleNewNameChange"];
+  newName: CharacterModeProjectSection["setDraft"]["newName"];
+}>;
 
 const defaultCharacterModeSetDraft: CharacterModeSetDraftSlice = {
   handleCreateSet: noop,
@@ -217,20 +217,19 @@ const defaultCharacterModeSetDraft: CharacterModeSetDraftSlice = {
 export const useCharacterModeSetDraft = (): CharacterModeSetDraftSlice =>
   useCharacterModeSlice(
     (state) => ({
-      handleCreateSet: state.handleCreateSet,
-      handleNewNameChange: state.handleNewNameChange,
-      newName: state.newName,
+      handleCreateSet: state.project.setDraft.handleCreateSet,
+      handleNewNameChange: state.project.setDraft.handleNewNameChange,
+      newName: state.project.setDraft.newName,
     }),
     defaultCharacterModeSetDraft,
   );
 
-type CharacterModeSetSelectionSlice = Pick<
-  CharacterModeState,
-  | "characterSets"
-  | "handleDeleteSet"
-  | "handleSelectSet"
-  | "selectedCharacterId"
->;
+type CharacterModeSetSelectionSlice = Readonly<{
+  characterSets: CharacterModeProjectSection["characterSets"];
+  handleDeleteSet: CharacterModeProjectSection["setSelection"]["handleDeleteSet"];
+  handleSelectSet: CharacterModeProjectSection["setSelection"]["handleSelectSet"];
+  selectedCharacterId: CharacterModeProjectSection["selectedCharacterId"];
+}>;
 
 const defaultCharacterModeSetSelection: CharacterModeSetSelectionSlice = {
   characterSets: [],
@@ -243,18 +242,19 @@ export const useCharacterModeSetSelection =
   (): CharacterModeSetSelectionSlice =>
     useCharacterModeSlice(
       (state) => ({
-        characterSets: state.characterSets,
-        handleDeleteSet: state.handleDeleteSet,
-        handleSelectSet: state.handleSelectSet,
-        selectedCharacterId: state.selectedCharacterId,
+        characterSets: state.project.characterSets,
+        handleDeleteSet: state.project.setSelection.handleDeleteSet,
+        handleSelectSet: state.project.setSelection.handleSelectSet,
+        selectedCharacterId: state.project.selectedCharacterId,
       }),
       defaultCharacterModeSetSelection,
     );
 
-type CharacterModeSetNameSlice = Pick<
-  CharacterModeState,
-  "activeSet" | "activeSetName" | "handleSetNameChange"
->;
+type CharacterModeSetNameSlice = Readonly<{
+  activeSet: CharacterModeProjectSection["activeSet"];
+  activeSetName: CharacterModeProjectSection["activeSetName"];
+  handleSetNameChange: CharacterModeProjectSection["setNaming"]["handleSetNameChange"];
+}>;
 
 const defaultCharacterModeSetName: CharacterModeSetNameSlice = {
   activeSet: O.none,
@@ -265,17 +265,17 @@ const defaultCharacterModeSetName: CharacterModeSetNameSlice = {
 export const useCharacterModeSetName = (): CharacterModeSetNameSlice =>
   useCharacterModeSlice(
     (state) => ({
-      activeSet: state.activeSet,
-      activeSetName: state.activeSetName,
-      handleSetNameChange: state.handleSetNameChange,
+      activeSet: state.project.activeSet,
+      activeSetName: state.project.activeSetName,
+      handleSetNameChange: state.project.setNaming.handleSetNameChange,
     }),
     defaultCharacterModeSetName,
   );
 
-type CharacterModeEditorModeSettingSlice = Pick<
-  CharacterModeState,
-  "editorMode" | "handleEditorModeChange"
->;
+type CharacterModeEditorModeSettingSlice = Readonly<{
+  editorMode: CharacterModeProjectSection["editorMode"]["value"];
+  handleEditorModeChange: CharacterModeProjectSection["editorMode"]["handleChange"];
+}>;
 
 const defaultCharacterModeEditorModeSetting: CharacterModeEditorModeSettingSlice =
   {
@@ -287,18 +287,17 @@ export const useCharacterModeEditorModeSetting =
   (): CharacterModeEditorModeSettingSlice =>
     useCharacterModeSlice(
       (state) => ({
-        editorMode: state.editorMode,
-        handleEditorModeChange: state.handleEditorModeChange,
+        editorMode: state.project.editorMode.value,
+        handleEditorModeChange: state.project.editorMode.handleChange,
       }),
       defaultCharacterModeEditorModeSetting,
     );
 
-type CharacterModeSpriteSizeSlice = Pick<
-  CharacterModeState,
-  | "handleProjectSpriteSizeChange"
-  | "projectSpriteSize"
-  | "projectSpriteSizeLocked"
->;
+type CharacterModeSpriteSizeSlice = Readonly<{
+  handleProjectSpriteSizeChange: CharacterModeProjectSection["spriteSize"]["handleProjectSpriteSizeChange"];
+  projectSpriteSize: CharacterModeProjectSection["spriteSize"]["projectSpriteSize"];
+  projectSpriteSizeLocked: CharacterModeProjectSection["spriteSize"]["projectSpriteSizeLocked"];
+}>;
 
 const defaultCharacterModeSpriteSize: CharacterModeSpriteSizeSlice = {
   handleProjectSpriteSizeChange: noopSpriteSize,
@@ -309,18 +308,19 @@ const defaultCharacterModeSpriteSize: CharacterModeSpriteSizeSlice = {
 export const useCharacterModeSpriteSize = (): CharacterModeSpriteSizeSlice =>
   useCharacterModeSlice(
     (state) => ({
-      handleProjectSpriteSizeChange: state.handleProjectSpriteSizeChange,
-      projectSpriteSize: state.projectSpriteSize,
-      projectSpriteSizeLocked: state.projectSpriteSizeLocked,
+      handleProjectSpriteSizeChange:
+        state.project.spriteSize.handleProjectSpriteSizeChange,
+      projectSpriteSize: state.project.spriteSize.projectSpriteSize,
+      projectSpriteSizeLocked: state.project.spriteSize.projectSpriteSizeLocked,
     }),
     defaultCharacterModeSpriteSize,
   );
 
 type CharacterModeSpriteLibrarySlice = Readonly<{
-  handleLibraryPointerDown: CharacterModeState["handleLibraryPointerDown"];
   draggingSpriteIndex: number;
+  handleLibraryPointerDown: CharacterModeLibrarySection["handleLibraryPointerDown"];
   isLibraryDraggable: boolean;
-  sprites: CharacterModeState["sprites"];
+  sprites: CharacterModeLibrarySection["sprites"];
 }>;
 
 const defaultCharacterModeSpriteLibrary: CharacterModeSpriteLibrarySlice = {
@@ -335,27 +335,25 @@ export const useCharacterModeSpriteLibrary =
     useCharacterModeSlice(
       (state) => ({
         draggingSpriteIndex: pipe(
-          state.libraryDragState,
+          state.library.libraryDragState,
           O.match(
             () => -1,
             (dragState) => dragState.spriteIndex,
           ),
         ),
-        handleLibraryPointerDown: state.handleLibraryPointerDown,
-        isLibraryDraggable:
-          state.editorMode === "compose" && O.isSome(state.activeSet),
-        sprites: state.sprites,
+        handleLibraryPointerDown: state.library.handleLibraryPointerDown,
+        isLibraryDraggable: state.library.isLibraryDraggable,
+        sprites: state.library.sprites,
       }),
       defaultCharacterModeSpriteLibrary,
     );
 
-type CharacterModeStageDisplaySlice = Pick<
-  CharacterModeState,
-  | "activeSetName"
-  | "activeSetSpriteCount"
-  | "isStageDropActive"
-  | "selectedSpriteStageMetadata"
->;
+type CharacterModeStageDisplaySlice = Readonly<{
+  activeSetName: CharacterModeStageSection["activeSetName"];
+  activeSetSpriteCount: CharacterModeStageSection["activeSetSpriteCount"];
+  isStageDropActive: CharacterModeStageSection["isStageDropActive"];
+  selectedSpriteStageMetadata: CharacterModeStageSection["selectedSpriteStageMetadata"];
+}>;
 
 const defaultCharacterModeStageDisplay: CharacterModeStageDisplaySlice = {
   activeSetName: "",
@@ -373,22 +371,21 @@ export const useCharacterModeStageDisplay =
   (): CharacterModeStageDisplaySlice =>
     useCharacterModeSlice(
       (state) => ({
-        activeSetName: state.activeSetName,
-        activeSetSpriteCount: state.activeSetSpriteCount,
-        isStageDropActive: state.isStageDropActive,
-        selectedSpriteStageMetadata: state.selectedSpriteStageMetadata,
+        activeSetName: state.stage.activeSetName,
+        activeSetSpriteCount: state.stage.activeSetSpriteCount,
+        isStageDropActive: state.stage.isStageDropActive,
+        selectedSpriteStageMetadata: state.stage.selectedSpriteStageMetadata,
       }),
       defaultCharacterModeStageDisplay,
     );
 
-type CharacterModeStageSizeSlice = Pick<
-  CharacterModeState,
-  | "handleStageHeightChange"
-  | "handleStageWidthChange"
-  | "stageHeight"
-  | "stageScale"
-  | "stageWidth"
->;
+type CharacterModeStageSizeSlice = Readonly<{
+  handleStageHeightChange: CharacterModeStageSection["handleStageHeightChange"];
+  handleStageWidthChange: CharacterModeStageSection["handleStageWidthChange"];
+  stageHeight: CharacterModeStageSection["stageHeight"];
+  stageScale: CharacterModeStageSection["stageScale"];
+  stageWidth: CharacterModeStageSection["stageWidth"];
+}>;
 
 const defaultCharacterModeStageSize: CharacterModeStageSizeSlice = {
   handleStageHeightChange: noopString,
@@ -401,19 +398,20 @@ const defaultCharacterModeStageSize: CharacterModeStageSizeSlice = {
 export const useCharacterModeStageSize = (): CharacterModeStageSizeSlice =>
   useCharacterModeSlice(
     (state) => ({
-      handleStageHeightChange: state.handleStageHeightChange,
-      handleStageWidthChange: state.handleStageWidthChange,
-      stageHeight: state.stageHeight,
-      stageScale: state.stageScale,
-      stageWidth: state.stageWidth,
+      handleStageHeightChange: state.stage.handleStageHeightChange,
+      handleStageWidthChange: state.stage.handleStageWidthChange,
+      stageHeight: state.stage.stageHeight,
+      stageScale: state.stage.stageScale,
+      stageWidth: state.stage.stageWidth,
     }),
     defaultCharacterModeStageSize,
   );
 
-type CharacterModeStageZoomSlice = Pick<
-  CharacterModeState,
-  "handleZoomIn" | "handleZoomOut" | "stageZoomLevel"
->;
+type CharacterModeStageZoomSlice = Readonly<{
+  handleZoomIn: CharacterModeStageSection["handleZoomIn"];
+  handleZoomOut: CharacterModeStageSection["handleZoomOut"];
+  stageZoomLevel: CharacterModeStageSection["stageZoomLevel"];
+}>;
 
 const defaultCharacterModeStageZoom: CharacterModeStageZoomSlice = {
   handleZoomIn: noop,
@@ -424,21 +422,20 @@ const defaultCharacterModeStageZoom: CharacterModeStageZoomSlice = {
 export const useCharacterModeStageZoom = (): CharacterModeStageZoomSlice =>
   useCharacterModeSlice(
     (state) => ({
-      handleZoomIn: state.handleZoomIn,
-      handleZoomOut: state.handleZoomOut,
-      stageZoomLevel: state.stageZoomLevel,
+      handleZoomIn: state.stage.handleZoomIn,
+      handleZoomOut: state.stage.handleZoomOut,
+      stageZoomLevel: state.stage.stageZoomLevel,
     }),
     defaultCharacterModeStageZoom,
   );
 
-type CharacterModeStageViewportSlice = Pick<
-  CharacterModeState,
-  | "handleViewportPointerDown"
-  | "handleViewportPointerEnd"
-  | "handleViewportPointerMove"
-  | "handleViewportRef"
-  | "handleViewportWheel"
->;
+type CharacterModeStageViewportSlice = Readonly<{
+  handleViewportPointerDown: CharacterModeStageSection["handleViewportPointerDown"];
+  handleViewportPointerEnd: CharacterModeStageSection["handleViewportPointerEnd"];
+  handleViewportPointerMove: CharacterModeStageSection["handleViewportPointerMove"];
+  handleViewportRef: CharacterModeStageSection["handleViewportRef"];
+  handleViewportWheel: CharacterModeStageSection["handleViewportWheel"];
+}>;
 
 const defaultCharacterModeStageViewport: CharacterModeStageViewportSlice = {
   handleViewportPointerDown: noopPointerDiv,
@@ -452,19 +449,18 @@ export const useCharacterModeStageViewport =
   (): CharacterModeStageViewportSlice =>
     useCharacterModeSlice(
       (state) => ({
-        handleViewportPointerDown: state.handleViewportPointerDown,
-        handleViewportPointerEnd: state.handleViewportPointerEnd,
-        handleViewportPointerMove: state.handleViewportPointerMove,
-        handleViewportRef: state.handleViewportRef,
-        handleViewportWheel: state.handleViewportWheel,
+        handleViewportPointerDown: state.stage.handleViewportPointerDown,
+        handleViewportPointerEnd: state.stage.handleViewportPointerEnd,
+        handleViewportPointerMove: state.stage.handleViewportPointerMove,
+        handleViewportRef: state.stage.handleViewportRef,
+        handleViewportWheel: state.stage.handleViewportWheel,
       }),
       defaultCharacterModeStageViewport,
     );
 
-type CharacterModeViewportPanSlice = Pick<
-  CharacterModeState,
-  "viewportPanState"
->;
+type CharacterModeViewportPanSlice = Readonly<{
+  viewportPanState: CharacterModeStageSection["viewportPanState"];
+}>;
 
 const defaultCharacterModeViewportPan: CharacterModeViewportPanSlice = {
   viewportPanState: O.none,
@@ -473,19 +469,18 @@ const defaultCharacterModeViewportPan: CharacterModeViewportPanSlice = {
 export const useCharacterModeViewportPan = (): CharacterModeViewportPanSlice =>
   useCharacterModeSlice(
     (state) => ({
-      viewportPanState: state.viewportPanState,
+      viewportPanState: state.stage.viewportPanState,
     }),
     defaultCharacterModeViewportPan,
   );
 
-type CharacterModeComposeCanvasSlice = Pick<
-  CharacterModeState,
-  | "getSpriteTile"
-  | "handleComposeCanvasRef"
-  | "handleComposeContextMenu"
-  | "handleStageKeyDown"
-  | "handleStageRef"
->;
+type CharacterModeComposeCanvasSlice = Readonly<{
+  getSpriteTile: CharacterModeLibrarySection["getSpriteTile"];
+  handleComposeCanvasRef: CharacterModeComposeSection["handleComposeCanvasRef"];
+  handleComposeContextMenu: CharacterModeComposeSection["handleComposeContextMenu"];
+  handleStageKeyDown: CharacterModeComposeSection["handleStageKeyDown"];
+  handleStageRef: CharacterModeStageSection["handleStageRef"];
+}>;
 
 const defaultCharacterModeComposeCanvas: CharacterModeComposeCanvasSlice = {
   getSpriteTile: (spriteIndex: number) => {
@@ -502,19 +497,20 @@ export const useCharacterModeComposeCanvas =
   (): CharacterModeComposeCanvasSlice =>
     useCharacterModeSlice(
       (state) => ({
-        getSpriteTile: state.getSpriteTile,
-        handleComposeCanvasRef: state.handleComposeCanvasRef,
-        handleComposeContextMenu: state.handleComposeContextMenu,
-        handleStageKeyDown: state.handleStageKeyDown,
-        handleStageRef: state.handleStageRef,
+        getSpriteTile: state.library.getSpriteTile,
+        handleComposeCanvasRef: state.compose.handleComposeCanvasRef,
+        handleComposeContextMenu: state.compose.handleComposeContextMenu,
+        handleStageKeyDown: state.compose.handleStageKeyDown,
+        handleStageRef: state.stage.handleStageRef,
       }),
       defaultCharacterModeComposeCanvas,
     );
 
-type CharacterModeLibraryDragPreviewSlice = Pick<
-  CharacterModeState,
-  "getSpriteTile" | "libraryDragState" | "stageScale"
->;
+type CharacterModeLibraryDragPreviewSlice = Readonly<{
+  getSpriteTile: CharacterModeLibrarySection["getSpriteTile"];
+  libraryDragState: CharacterModeLibrarySection["libraryDragState"];
+  stageScale: CharacterModeStageSection["stageScale"];
+}>;
 
 const defaultCharacterModeLibraryDragPreview: CharacterModeLibraryDragPreviewSlice =
   {
@@ -530,17 +526,18 @@ export const useCharacterModeLibraryDragPreview =
   (): CharacterModeLibraryDragPreviewSlice =>
     useCharacterModeSlice(
       (state) => ({
-        getSpriteTile: state.getSpriteTile,
-        libraryDragState: state.libraryDragState,
-        stageScale: state.stageScale,
+        getSpriteTile: state.library.getSpriteTile,
+        libraryDragState: state.library.libraryDragState,
+        stageScale: state.stage.stageScale,
       }),
       defaultCharacterModeLibraryDragPreview,
     );
 
-type CharacterModeDecompositionToolSlice = Pick<
-  CharacterModeState,
-  "decompositionTool" | "handleDecompositionToolChange" | "projectSpriteSize"
->;
+type CharacterModeDecompositionToolSlice = Readonly<{
+  decompositionTool: CharacterModeDecompositionSection["tool"]["decompositionTool"];
+  handleDecompositionToolChange: CharacterModeDecompositionSection["tool"]["handleDecompositionToolChange"];
+  projectSpriteSize: CharacterModeDecompositionSection["tool"]["projectSpriteSize"];
+}>;
 
 const defaultCharacterModeDecompositionTool: CharacterModeDecompositionToolSlice =
   {
@@ -553,21 +550,21 @@ export const useCharacterModeDecompositionTool =
   (): CharacterModeDecompositionToolSlice =>
     useCharacterModeSlice(
       (state) => ({
-        decompositionTool: state.decompositionTool,
-        handleDecompositionToolChange: state.handleDecompositionToolChange,
-        projectSpriteSize: state.projectSpriteSize,
+        decompositionTool: state.decomposition.tool.decompositionTool,
+        handleDecompositionToolChange:
+          state.decomposition.tool.handleDecompositionToolChange,
+        projectSpriteSize: state.decomposition.tool.projectSpriteSize,
       }),
       defaultCharacterModeDecompositionTool,
     );
 
-type CharacterModeDecompositionPaletteSlice = Pick<
-  CharacterModeState,
-  | "decompositionColorIndex"
-  | "decompositionPaletteIndex"
-  | "handleDecompositionColorSlotSelect"
-  | "handleDecompositionPaletteSelect"
-  | "spritePalettes"
->;
+type CharacterModeDecompositionPaletteSlice = Readonly<{
+  decompositionColorIndex: CharacterModeDecompositionSection["palette"]["decompositionColorIndex"];
+  decompositionPaletteIndex: CharacterModeDecompositionSection["palette"]["decompositionPaletteIndex"];
+  handleDecompositionColorSlotSelect: CharacterModeDecompositionSection["palette"]["handleDecompositionColorSlotSelect"];
+  handleDecompositionPaletteSelect: CharacterModeDecompositionSection["palette"]["handleDecompositionPaletteSelect"];
+  spritePalettes: CharacterModeDecompositionSection["palette"]["spritePalettes"];
+}>;
 
 const defaultCharacterModeDecompositionPalette: CharacterModeDecompositionPaletteSlice =
   {
@@ -591,24 +588,25 @@ export const useCharacterModeDecompositionPalette =
   (): CharacterModeDecompositionPaletteSlice =>
     useCharacterModeSlice(
       (state) => ({
-        decompositionColorIndex: state.decompositionColorIndex,
-        decompositionPaletteIndex: state.decompositionPaletteIndex,
+        decompositionColorIndex:
+          state.decomposition.palette.decompositionColorIndex,
+        decompositionPaletteIndex:
+          state.decomposition.palette.decompositionPaletteIndex,
         handleDecompositionColorSlotSelect:
-          state.handleDecompositionColorSlotSelect,
+          state.decomposition.palette.handleDecompositionColorSlotSelect,
         handleDecompositionPaletteSelect:
-          state.handleDecompositionPaletteSelect,
-        spritePalettes: state.spritePalettes,
+          state.decomposition.palette.handleDecompositionPaletteSelect,
+        spritePalettes: state.decomposition.palette.spritePalettes,
       }),
       defaultCharacterModeDecompositionPalette,
     );
 
-type CharacterModeDecompositionCanvasSlice = Pick<
-  CharacterModeState,
-  | "decompositionCanvasCursor"
-  | "handleDecompositionCanvasPointerDown"
-  | "handleDecompositionCanvasRef"
-  | "handleStageRef"
->;
+type CharacterModeDecompositionCanvasSlice = Readonly<{
+  decompositionCanvasCursor: CharacterModeDecompositionSection["canvas"]["decompositionCanvasCursor"];
+  handleDecompositionCanvasPointerDown: CharacterModeDecompositionSection["canvas"]["handleDecompositionCanvasPointerDown"];
+  handleDecompositionCanvasRef: CharacterModeDecompositionSection["canvas"]["handleDecompositionCanvasRef"];
+  handleStageRef: CharacterModeStageSection["handleStageRef"];
+}>;
 
 const defaultCharacterModeDecompositionCanvas: CharacterModeDecompositionCanvasSlice =
   {
@@ -626,24 +624,25 @@ export const useCharacterModeDecompositionCanvas =
   (): CharacterModeDecompositionCanvasSlice =>
     useCharacterModeSlice(
       (state) => ({
-        decompositionCanvasCursor: state.decompositionCanvasCursor,
+        decompositionCanvasCursor:
+          state.decomposition.canvas.decompositionCanvasCursor,
         handleDecompositionCanvasPointerDown:
-          state.handleDecompositionCanvasPointerDown,
-        handleDecompositionCanvasRef: state.handleDecompositionCanvasRef,
-        handleStageRef: state.handleStageRef,
+          state.decomposition.canvas.handleDecompositionCanvasPointerDown,
+        handleDecompositionCanvasRef:
+          state.decomposition.canvas.handleDecompositionCanvasRef,
+        handleStageRef: state.stage.handleStageRef,
       }),
       defaultCharacterModeDecompositionCanvas,
     );
 
-type CharacterModeDecompositionRegionsSlice = Pick<
-  CharacterModeState,
-  | "decompositionAnalysis"
-  | "decompositionRegions"
-  | "handleDecompositionRegionContextMenu"
-  | "handleDecompositionRegionPointerDown"
-  | "handleSelectRegion"
-  | "selectedRegionId"
->;
+type CharacterModeDecompositionRegionsSlice = Readonly<{
+  decompositionAnalysis: CharacterModeDecompositionSection["regions"]["decompositionAnalysis"];
+  decompositionRegions: CharacterModeDecompositionSection["regions"]["decompositionRegions"];
+  handleDecompositionRegionContextMenu: CharacterModeDecompositionSection["regions"]["handleDecompositionRegionContextMenu"];
+  handleDecompositionRegionPointerDown: CharacterModeDecompositionSection["regions"]["handleDecompositionRegionPointerDown"];
+  handleSelectRegion: CharacterModeDecompositionSection["regions"]["handleSelectRegion"];
+  selectedRegionId: CharacterModeDecompositionSection["regions"]["selectedRegionId"];
+}>;
 
 const defaultCharacterModeDecompositionRegions: CharacterModeDecompositionRegionsSlice =
   {
@@ -666,22 +665,23 @@ export const useCharacterModeDecompositionRegions =
   (): CharacterModeDecompositionRegionsSlice =>
     useCharacterModeSlice(
       (state) => ({
-        decompositionAnalysis: state.decompositionAnalysis,
-        decompositionRegions: state.decompositionRegions,
+        decompositionAnalysis:
+          state.decomposition.regions.decompositionAnalysis,
+        decompositionRegions: state.decomposition.regions.decompositionRegions,
         handleDecompositionRegionContextMenu:
-          state.handleDecompositionRegionContextMenu,
+          state.decomposition.regions.handleDecompositionRegionContextMenu,
         handleDecompositionRegionPointerDown:
-          state.handleDecompositionRegionPointerDown,
-        handleSelectRegion: state.handleSelectRegion,
-        selectedRegionId: state.selectedRegionId,
+          state.decomposition.regions.handleDecompositionRegionPointerDown,
+        handleSelectRegion: state.decomposition.regions.handleSelectRegion,
+        selectedRegionId: state.decomposition.regions.selectedRegionId,
       }),
       defaultCharacterModeDecompositionRegions,
     );
 
-type CharacterModeDecompositionRegionMenuStateSlice = Pick<
-  CharacterModeState,
-  "closeDecompositionRegionContextMenu" | "decompositionRegionContextMenu"
->;
+type CharacterModeDecompositionRegionMenuStateSlice = Readonly<{
+  closeDecompositionRegionContextMenu: CharacterModeDecompositionSection["regionMenu"]["closeDecompositionRegionContextMenu"];
+  decompositionRegionContextMenu: CharacterModeDecompositionSection["regionMenu"]["decompositionRegionContextMenu"];
+}>;
 
 const defaultCharacterModeDecompositionRegionMenuState: CharacterModeDecompositionRegionMenuStateSlice =
   {
@@ -694,16 +694,17 @@ export const useCharacterModeDecompositionRegionMenuState =
     useCharacterModeSlice(
       (state) => ({
         closeDecompositionRegionContextMenu:
-          state.closeDecompositionRegionContextMenu,
-        decompositionRegionContextMenu: state.decompositionRegionContextMenu,
+          state.decomposition.regionMenu.closeDecompositionRegionContextMenu,
+        decompositionRegionContextMenu:
+          state.decomposition.regionMenu.decompositionRegionContextMenu,
       }),
       defaultCharacterModeDecompositionRegionMenuState,
     );
 
-type CharacterModeDecompositionRegionMenuActionsSlice = Pick<
-  CharacterModeState,
-  "focusStageElement" | "handleDeleteContextMenuRegion"
->;
+type CharacterModeDecompositionRegionMenuActionsSlice = Readonly<{
+  focusStageElement: CharacterModeStageSection["focusStageElement"];
+  handleDeleteContextMenuRegion: CharacterModeDecompositionSection["regionMenu"]["handleDeleteContextMenuRegion"];
+}>;
 
 const defaultCharacterModeDecompositionRegionMenuActions: CharacterModeDecompositionRegionMenuActionsSlice =
   {
@@ -715,20 +716,20 @@ export const useCharacterModeDecompositionRegionMenuActions =
   (): CharacterModeDecompositionRegionMenuActionsSlice =>
     useCharacterModeSlice(
       (state) => ({
-        focusStageElement: state.focusStageElement,
-        handleDeleteContextMenuRegion: state.handleDeleteContextMenuRegion,
+        focusStageElement: state.stage.focusStageElement,
+        handleDeleteContextMenuRegion:
+          state.decomposition.regionMenu.handleDeleteContextMenuRegion,
       }),
       defaultCharacterModeDecompositionRegionMenuActions,
     );
 
-type CharacterModeDecompositionOverviewSlice = Pick<
-  CharacterModeState,
-  | "activeSet"
-  | "decompositionAnalysis"
-  | "decompositionInvalidRegionCount"
-  | "decompositionValidRegionCount"
-  | "handleApplyDecomposition"
->;
+type CharacterModeDecompositionOverviewSlice = Readonly<{
+  activeSet: CharacterModeProjectSection["activeSet"];
+  decompositionAnalysis: CharacterModeDecompositionSection["regions"]["decompositionAnalysis"];
+  decompositionInvalidRegionCount: CharacterModeDecompositionSection["regions"]["decompositionInvalidRegionCount"];
+  decompositionValidRegionCount: CharacterModeDecompositionSection["regions"]["decompositionValidRegionCount"];
+  handleApplyDecomposition: CharacterModeDecompositionSection["regions"]["handleApplyDecomposition"];
+}>;
 
 const defaultCharacterModeDecompositionOverview: CharacterModeDecompositionOverviewSlice =
   {
@@ -750,19 +751,24 @@ export const useCharacterModeDecompositionOverview =
   (): CharacterModeDecompositionOverviewSlice =>
     useCharacterModeSlice(
       (state) => ({
-        activeSet: state.activeSet,
-        decompositionAnalysis: state.decompositionAnalysis,
-        decompositionInvalidRegionCount: state.decompositionInvalidRegionCount,
-        decompositionValidRegionCount: state.decompositionValidRegionCount,
-        handleApplyDecomposition: state.handleApplyDecomposition,
+        activeSet: state.project.activeSet,
+        decompositionAnalysis:
+          state.decomposition.regions.decompositionAnalysis,
+        decompositionInvalidRegionCount:
+          state.decomposition.regions.decompositionInvalidRegionCount,
+        decompositionValidRegionCount:
+          state.decomposition.regions.decompositionValidRegionCount,
+        handleApplyDecomposition:
+          state.decomposition.regions.handleApplyDecomposition,
       }),
       defaultCharacterModeDecompositionOverview,
     );
 
-type CharacterModeSelectedRegionSlice = Pick<
-  CharacterModeState,
-  "handleRemoveSelectedRegion" | "selectedRegionAnalysis" | "selectedRegionId"
->;
+type CharacterModeSelectedRegionSlice = Readonly<{
+  handleRemoveSelectedRegion: CharacterModeDecompositionSection["regions"]["handleRemoveSelectedRegion"];
+  selectedRegionAnalysis: CharacterModeDecompositionSection["regions"]["selectedRegionAnalysis"];
+  selectedRegionId: CharacterModeDecompositionSection["regions"]["selectedRegionId"];
+}>;
 
 const defaultCharacterModeSelectedRegion: CharacterModeSelectedRegionSlice = {
   handleRemoveSelectedRegion: noop,
@@ -774,9 +780,11 @@ export const useCharacterModeSelectedRegion =
   (): CharacterModeSelectedRegionSlice =>
     useCharacterModeSlice(
       (state) => ({
-        handleRemoveSelectedRegion: state.handleRemoveSelectedRegion,
-        selectedRegionAnalysis: state.selectedRegionAnalysis,
-        selectedRegionId: state.selectedRegionId,
+        handleRemoveSelectedRegion:
+          state.decomposition.regions.handleRemoveSelectedRegion,
+        selectedRegionAnalysis:
+          state.decomposition.regions.selectedRegionAnalysis,
+        selectedRegionId: state.decomposition.regions.selectedRegionId,
       }),
       defaultCharacterModeSelectedRegion,
     );

@@ -9,17 +9,17 @@ import {
   ToolButton,
 } from "../../../App.styles";
 import {
+  useCharacterModeDecompositionPalette,
+  useCharacterModeDecompositionTool,
+} from "../core/CharacterModeStateProvider";
+import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
+import { DECOMPOSITION_COLOR_SLOTS } from "../hooks/characterModeConstants";
+import {
   DecompositionToolGrid,
   PaletteControlContainer,
   PaletteControlRow,
   PaletteSlotGrid,
 } from "../primitives/CharacterModePrimitives";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
-import { DECOMPOSITION_COLOR_SLOTS } from "../hooks/useCharacterModeState";
-import {
-  useCharacterModeDecompositionPalette,
-  useCharacterModeDecompositionTool,
-} from "../core/CharacterModeStateProvider";
 
 const PaletteSlotButton = styled(ButtonBase, {
   shouldForwardProp: (prop) => prop !== "selectedState" && prop !== "colorHex",

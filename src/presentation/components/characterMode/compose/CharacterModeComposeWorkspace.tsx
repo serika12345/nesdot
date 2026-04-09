@@ -2,15 +2,15 @@ import { Stack } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { useCharacterModeLibraryDragPreview } from "../core/CharacterModeStateProvider";
+import { LIBRARY_PREVIEW_SCALE } from "../hooks/characterModeConstants";
+import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import {
   CharacterComposeWorkspaceGrid,
   FloatingLibraryPreview,
 } from "../primitives/CharacterModePrimitives";
-import { CharacterModeComposePreviewCanvas } from "./CharacterModeComposePreviewCanvas";
 import { CharacterModeSidebar } from "../sidebar/CharacterModeSidebar";
-import { LIBRARY_PREVIEW_SCALE } from "../hooks/useCharacterModeState";
-import { useCharacterModeLibraryDragPreview } from "../core/CharacterModeStateProvider";
-import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
+import { CharacterModeComposePreviewCanvas } from "./CharacterModeComposePreviewCanvas";
 
 /**
  * キャラクター合成モードのワークスペースを描画します。

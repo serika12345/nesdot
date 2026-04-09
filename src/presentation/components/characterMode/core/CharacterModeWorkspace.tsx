@@ -6,6 +6,8 @@ import React from "react";
 import { CharacterModeComposePreviewCanvas } from "../compose/CharacterModeComposePreviewCanvas";
 import { CharacterModeDecomposePreviewCanvas } from "../decomposition/CharacterModeDecomposePreviewCanvas";
 import { CharacterModeDecompositionInspector } from "../decomposition/CharacterModeDecompositionInspector";
+import { LIBRARY_PREVIEW_SCALE } from "../hooks/characterModeConstants";
+import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import {
   CharacterComposeWorkspaceGrid,
   FloatingLibraryPreview,
@@ -16,8 +18,6 @@ import {
   useCharacterModeLibraryDragPreview,
   useCharacterModeSetSelection,
 } from "./CharacterModeStateProvider";
-import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
-import { LIBRARY_PREVIEW_SCALE } from "../hooks/useCharacterModeState";
 
 const shouldForwardLockedStateProp = (prop: PropertyKey): boolean =>
   prop !== "lockedState";

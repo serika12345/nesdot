@@ -3,18 +3,18 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { createPortal } from "react-dom";
 import {
-  PortalOverlay,
-  PositionedActionMenu,
-  PositionedActionMenuButton,
-} from "../primitives/CharacterModePrimitives";
-import {
   useCharacterModeDecompositionRegionMenuActions,
   useCharacterModeDecompositionRegionMenuState,
 } from "../core/CharacterModeStateProvider";
 import {
   DECOMPOSITION_REGION_CONTEXT_MENU_HEIGHT,
   DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH,
-} from "../hooks/useCharacterModeState";
+} from "../hooks/characterModeConstants";
+import {
+  PortalOverlay,
+  PositionedActionMenu,
+  PositionedActionMenuButton,
+} from "../primitives/CharacterModePrimitives";
 
 /**
  * 分解ステージ上の切り取り領域用コンテキストメニューです。
