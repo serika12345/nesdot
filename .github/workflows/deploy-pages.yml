@@ -34,9 +34,16 @@ jobs:
           nix develop -c bash -lc
           'pnpm install --frozen-lockfile && pnpm e2e:install && pnpm verify:full && pnpm build'
 
-      - uses: actions/upload-pages-artifact@v4
+      - name: Package pages artifact
+        run: >-
+          tar --directory dist --create --file - . | gzip --stdout > github-pages.tar.gz
+
+      - uses: actions/upload-artifact@v7
         with:
-          path: ./dist
+          name: github-pages
+          path: github-pages.tar.gz
+          if-no-files-found: error
+          compression-level: 0
 
   deploy:
     environment:
