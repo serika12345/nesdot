@@ -29,6 +29,8 @@
     "test:watch": "vitest",
     "e2e:install": "playwright install chromium",
     "doctor:wsl": "node scripts/doctor-wsl.mjs",
+    "nix:check-pnpm-deps-hash": "node scripts/sync-flake-pnpm-deps-hash.mjs --check",
+    "nix:sync-pnpm-deps-hash": "node scripts/sync-flake-pnpm-deps-hash.mjs",
     "test:e2e": "playwright test",
     "test:e2e:console": "playwright test e2e/console.spec.ts --project=chromium",
     "test:e2e:headed": "playwright test e2e/console.spec.ts --project=chromium --headed",

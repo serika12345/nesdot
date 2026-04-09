@@ -15,6 +15,7 @@ const MENU_ID_MODE_SPRITE: &str = "mode-sprite";
 const MENU_ID_MODE_CHARACTER: &str = "mode-character";
 const MENU_ID_MODE_BG: &str = "mode-bg";
 const MENU_ID_MODE_SCREEN: &str = "mode-screen";
+const MENU_ID_HELP_CHECK_FOR_UPDATES: &str = "help-check-for-updates";
 
 const MENU_EVENT_SHARE_EXPORT_CHR: &str = "file-menu://share-export-chr";
 const MENU_EVENT_SHARE_EXPORT_PNG: &str = "file-menu://share-export-png";
@@ -28,6 +29,7 @@ const MENU_EVENT_MODE_SPRITE: &str = "mode-menu://switch-sprite";
 const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
 const MENU_EVENT_MODE_BG: &str = "mode-menu://switch-bg";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
+const MENU_EVENT_HELP_CHECK_FOR_UPDATES: &str = "help-menu://check-for-updates";
 
 #[cfg(target_os = "macos")]
 fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
@@ -106,6 +108,13 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
     )?;
     let mode_bg = MenuItem::with_id(app, MENU_ID_MODE_BG, "BG編集", true, None::<&str>)?;
     let mode_screen = MenuItem::with_id(app, MENU_ID_MODE_SCREEN, "画面配置", true, None::<&str>)?;
+    let help_check_for_updates = MenuItem::with_id(
+        app,
+        MENU_ID_HELP_CHECK_FOR_UPDATES,
+        "更新を確認",
+        true,
+        None::<&str>,
+    )?;
     let share_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![
         &share_export_chr,
         &share_export_png,
@@ -122,9 +131,16 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
     let mode_submenu = Submenu::with_items(app, "作業モード", true, mode_items.as_slice())?;
     let edit_submenu = Submenu::with_items(app, "編集", true, edit_items.as_slice())?;
     let file_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&share_submenu, &restore_import];
+    let help_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&help_check_for_updates];
     let file_submenu = Submenu::with_items(app, "ファイル", true, file_items.as_slice())?;
-    let menu_items: Vec<&(dyn IsMenuItem<R> + 'static)> =
-        vec![&app_submenu, &mode_submenu, &edit_submenu, &file_submenu];
+    let help_submenu = Submenu::with_items(app, "ヘルプ", true, help_items.as_slice())?;
+    let menu_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![
+        &app_submenu,
+        &mode_submenu,
+        &edit_submenu,
+        &file_submenu,
+        &help_submenu,
+    ];
     let menu = Menu::with_items(app, menu_items.as_slice())?;
     app.set_menu(menu)?;
 
@@ -174,6 +190,9 @@ pub fn run() {
             MENU_ID_MODE_CHARACTER => emit_file_menu_event(app_handle, MENU_EVENT_MODE_CHARACTER),
             MENU_ID_MODE_BG => emit_file_menu_event(app_handle, MENU_EVENT_MODE_BG),
             MENU_ID_MODE_SCREEN => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SCREEN),
+            MENU_ID_HELP_CHECK_FOR_UPDATES => {
+                emit_file_menu_event(app_handle, MENU_EVENT_HELP_CHECK_FOR_UPDATES)
+            }
             _ => {}
         })
         .run(app_context)

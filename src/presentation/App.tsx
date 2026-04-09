@@ -92,6 +92,7 @@ const NATIVE_MODE_EVENT_BINDINGS: ReadonlyArray<{
 const NATIVE_RESTORE_EVENT_NAME = "file-menu://restore-import";
 const NATIVE_UNDO_EVENT_NAME = "edit-menu://undo";
 const NATIVE_REDO_EVENT_NAME = "edit-menu://redo";
+const NATIVE_UPDATE_CHECK_EVENT_NAME = "help-menu://check-for-updates";
 
 const isEditableTarget = (target: EventTarget): boolean => {
   if (target instanceof HTMLInputElement) {
@@ -243,6 +244,7 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
 export const App: React.FC = () => {
   const desktopAutoUpdate = useDesktopAutoUpdate();
   const pwaUpdate = usePwaUpdate();
+  const handleDesktopAutoUpdateCheck = desktopAutoUpdate.onCheckNow;
 
   const [editMode, setEditMode] = useState<WorkMode>("sprite");
   const [fileMenuState, setFileMenuState] =
@@ -353,12 +355,20 @@ export const App: React.FC = () => {
           },
         );
 
+        const updateCheckUnlistenCallback = await eventModule.listen(
+          NATIVE_UPDATE_CHECK_EVENT_NAME,
+          () => {
+            handleDesktopAutoUpdateCheck();
+          },
+        );
+
         return [
           ...shareUnlistenCallbacks,
           ...modeUnlistenCallbacks,
           restoreUnlistenCallback,
           undoUnlistenCallback,
           redoUnlistenCallback,
+          updateCheckUnlistenCallback,
         ];
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
@@ -376,7 +386,13 @@ export const App: React.FC = () => {
         });
       });
     };
-  }, [fileMenuState, handleRedoSelect, handleUndoSelect, isNativeMacMenu]);
+  }, [
+    fileMenuState,
+    handleDesktopAutoUpdateCheck,
+    handleRedoSelect,
+    handleUndoSelect,
+    isNativeMacMenu,
+  ]);
 
   const handleFileMenuStateChange = useCallback(
     (nextFileMenuState: FileMenuState): void => {

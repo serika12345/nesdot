@@ -95,6 +95,24 @@ describe("useDesktopAutoUpdate progress tracking", () => {
     });
   });
 
+  test("builds check failure information with a retry hint", () => {
+    expect(
+      createFailedDialogState({
+        detail: "connection refused",
+        operation: "check",
+        version: O.none,
+      }),
+    ).toEqual({
+      kind: "failed",
+      detail: "connection refused",
+      message: "更新確認で問題が発生しました。",
+      operationLabel: "更新確認",
+      recoveryHint:
+        "ネットワーク接続と更新チェック先を確認してから、もう一度更新確認を実行してください。",
+      versionLabel: "不明",
+    });
+  });
+
   test("builds restart failure information with a manual relaunch hint", () => {
     expect(
       createFailedDialogState({

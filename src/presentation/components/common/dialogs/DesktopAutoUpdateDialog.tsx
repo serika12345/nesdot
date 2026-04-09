@@ -68,6 +68,10 @@ const ProgressMetaText = styled("span")(({ theme }) => ({
 }));
 
 const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
+  if (state.kind === "checking") {
+    return "更新を確認中";
+  }
+
   if (state.kind === "available") {
     return "新しい更新を利用できます";
   }
@@ -80,6 +84,10 @@ const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
     return "アップデートの準備が完了しました";
   }
 
+  if (state.kind === "up-to-date") {
+    return "最新の状態です";
+  }
+
   if (state.kind === "failed") {
     return "アップデートに失敗しました";
   }
@@ -90,6 +98,10 @@ const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
 const resolveDialogDescription = (
   state: DesktopAutoUpdateDialogState,
 ): string => {
+  if (state.kind === "checking") {
+    return "更新サーバーへ問い合わせています。しばらくお待ちください。";
+  }
+
   if (state.kind === "available") {
     return `バージョン ${state.version} を利用できます。今すぐダウンロードして更新しますか？`;
   }
@@ -100,6 +112,10 @@ const resolveDialogDescription = (
 
   if (state.kind === "ready") {
     return `バージョン ${state.version} の適用準備が完了しました。今すぐ再起動すると更新版で起動します。`;
+  }
+
+  if (state.kind === "up-to-date") {
+    return "利用可能な更新は見つかりませんでした。";
   }
 
   if (state.kind === "failed") {
@@ -140,7 +156,7 @@ export const DesktopAutoUpdateDialog: React.FC<
     <Dialog
       open={isOpen}
       onClose={(_event, reason) => {
-        if (state.kind === "downloading") {
+        if (state.kind === "checking" || state.kind === "downloading") {
           if (reason === "backdropClick" || reason === "escapeKeyDown") {
             return;
           }
@@ -148,7 +164,9 @@ export const DesktopAutoUpdateDialog: React.FC<
 
         onDialogClose();
       }}
-      disableEscapeKeyDown={state.kind === "downloading"}
+      disableEscapeKeyDown={
+        state.kind === "checking" || state.kind === "downloading"
+      }
       aria-labelledby="desktop-auto-update-title"
     >
       <DialogTitle id="desktop-auto-update-title">
@@ -157,6 +175,14 @@ export const DesktopAutoUpdateDialog: React.FC<
       <DialogContent>
         <DialogBody>
           <DescriptionText>{resolveDialogDescription(state)}</DescriptionText>
+
+          {state.kind === "checking" ? (
+            <DownloadProgressSection>
+              <LinearProgress />
+            </DownloadProgressSection>
+          ) : (
+            <></>
+          )}
 
           {state.kind === "downloading" ? (
             <DownloadProgressSection>
@@ -186,6 +212,14 @@ export const DesktopAutoUpdateDialog: React.FC<
         </DialogBody>
       </DialogContent>
       <DialogActions>
+        {state.kind === "checking" ? (
+          <Button variant="contained" disabled>
+            確認中...
+          </Button>
+        ) : (
+          <></>
+        )}
+
         {state.kind === "available" ? (
           <>
             <Button onClick={onDialogClose}>あとで</Button>
@@ -204,6 +238,14 @@ export const DesktopAutoUpdateDialog: React.FC<
               今すぐ再起動
             </Button>
           </>
+        ) : (
+          <></>
+        )}
+
+        {state.kind === "up-to-date" ? (
+          <Button variant="contained" onClick={onDialogClose}>
+            閉じる
+          </Button>
         ) : (
           <></>
         )}

@@ -21,6 +21,9 @@ describe("release workflow verification", () => {
       "../../.github/workflows/release-tauri-desktop.yml",
     );
 
+    expect(workflow).toContain("verify-pnpm-deps-hash:");
+    expect(workflow).toContain("pnpm nix:check-pnpm-deps-hash");
+    expect(workflow).toContain("needs: verify-pnpm-deps-hash");
     expect(workflow).toContain("pnpm verify:full");
     expect(workflow).toContain("pnpm verify:rust");
   });

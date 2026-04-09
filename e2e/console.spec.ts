@@ -161,6 +161,7 @@ test("shows global app menu controls", async ({ page }) => {
   await page.keyboard.press("Escape");
 
   await getMenuTrigger(page, "ヘルプ").click();
+  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
   await getVisibleMenuItem(page, "About").click();
   const aboutDialog = page.getByRole("dialog", { name: "About" });
   await expect(aboutDialog).toBeVisible();

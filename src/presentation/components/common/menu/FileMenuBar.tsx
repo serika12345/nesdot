@@ -13,6 +13,7 @@ import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { requestDesktopAutoUpdateCheck } from "../../../../infrastructure/browser/useDesktopAutoUpdate";
 import { type FileMenuState } from "../state/fileMenuState";
 
 export type WorkMode = "screen" | "sprite" | "character" | "bg";
@@ -227,6 +228,13 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const aboutDialogTitleId = React.useId();
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
+  const canCheckForUpdates = React.useMemo(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return Reflect.has(window, "__TAURI_INTERNALS__");
+  }, []);
   const hasShareActions = fileMenuState.shareActions.length > 0;
   const hasRestoreAction = O.isSome(fileMenuState.restoreAction);
   const shortcutLabels = React.useMemo(
@@ -263,6 +271,10 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
 
   const handleAboutClose = (): void => {
     setIsAboutOpen(false);
+  };
+
+  const handleUpdateCheckSelect = (): void => {
+    requestDesktopAutoUpdateCheck();
   };
 
   return (
@@ -390,6 +402,12 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
                 sideOffset={6}
                 aria-label="ヘルプメニュー"
               >
+                <FileMenuItem
+                  disabled={canCheckForUpdates === false}
+                  onSelect={handleUpdateCheckSelect}
+                >
+                  更新を確認
+                </FileMenuItem>
                 <FileMenuItem onSelect={handleAboutSelect}>About</FileMenuItem>
               </FileMenuContent>
             </Menubar.Portal>
@@ -411,6 +429,12 @@ export const FileMenuBar: React.FC<FileMenuBarProps> = ({
           </AboutContentLayout>
         </DialogContent>
         <DialogActions>
+          <Button
+            disabled={canCheckForUpdates === false}
+            onClick={handleUpdateCheckSelect}
+          >
+            更新を確認
+          </Button>
           <Button onClick={handleAboutClose} autoFocus>
             閉じる
           </Button>

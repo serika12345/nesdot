@@ -177,6 +177,22 @@ nix build .#web
 
 - `./result/dist`
 
+`pnpm-lock.yaml` を更新したあとに `flake.nix` の `fetchPnpmDeps` hash がずれていないか、まず軽く確認する場合は次を使います。
+
+```sh
+nix develop -c zsh -lc 'pnpm nix:check-pnpm-deps-hash'
+```
+
+この確認は `nix build .#pnpmDeps --no-link` だけを実行し、hash がずれていれば non-zero で失敗します。CI でもこの軽量チェックを先に実行します。
+
+hash がずれていた場合は、次で追従できます。
+
+```sh
+nix develop -c zsh -lc 'pnpm nix:sync-pnpm-deps-hash'
+```
+
+この script は `nix build .#pnpmDeps --no-link` を実行し、固定ハッシュ mismatch の `got:` 値を使って `flake.nix` を更新し、最後にもう一度 build して確認します。
+
 明示的にデスクトップビルドを指定する場合:
 
 ```sh
@@ -345,9 +361,16 @@ nix develop -c zsh -lc 'pnpm release:auto -- --version=0.2.0'
 
 このプロジェクトは Tauri Updater に対応しています。
 デスクトップ起動時に更新を確認し、更新が見つかった場合はダウンロードと再起動を案内します。
+必要に応じて `ヘルプ > 更新を確認` から手動で再チェックできます。
 
 - 更新チェック先: `https://github.com/paseri3739/nesdot/releases/latest/download/latest.json`
 - 署名検証: `src-tauri/tauri.conf.json` の updater `pubkey`
+
+### 手元での確認
+
+- Tauri アプリとして起動した状態で `ヘルプ > 更新を確認` を選ぶと、その場で更新確認を再実行できます。
+- 更新がない場合も「最新の状態です」ダイアログが出るため、確認処理自体が動いたことを手元で確認できます。
+- 開発時は `nix develop -c zsh -lc 'pnpm start'` で Tauri dev を起動して試してください。
 
 ### 初回セットアップ (リリース署名キー)
 

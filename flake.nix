@@ -64,7 +64,7 @@
           inherit version;
           src = self;
           fetcherVersion = 3;
-          hash = "sha256-LT+eJ2efEHo6+1EbZmrXAIKBCPi/+gAqTOqCl9UnN5M=";
+          hash = "sha256-vtZmuAVPsbN+MBMTwbutzueseiseV7mhDADOqPWJHD8=";
         };
 
         webPackage = pkgs.stdenv.mkDerivation {
@@ -134,6 +134,7 @@
         packages = {
           default = desktopPackage;
           desktop = desktopPackage;
+          pnpmDeps = pnpmDeps;
           web = webPackage;
         };
 

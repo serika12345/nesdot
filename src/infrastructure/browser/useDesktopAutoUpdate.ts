@@ -17,6 +17,7 @@ export interface DownloadProgressTracker {
 }
 
 export type DesktopAutoUpdateFailureOperation =
+  | "check"
   | "start"
   | "download-install"
   | "restart";
@@ -24,6 +25,9 @@ export type DesktopAutoUpdateFailureOperation =
 export type DesktopAutoUpdateDialogState =
   | {
       readonly kind: "hidden";
+    }
+  | {
+      readonly kind: "checking";
     }
   | {
       readonly kind: "available";
@@ -38,6 +42,9 @@ export type DesktopAutoUpdateDialogState =
       readonly version: string;
     }
   | {
+      readonly kind: "up-to-date";
+    }
+  | {
       readonly kind: "failed";
       readonly message: string;
       readonly detail: string;
@@ -49,6 +56,7 @@ export type DesktopAutoUpdateDialogState =
 export interface DesktopAutoUpdateController {
   readonly dialogState: DesktopAutoUpdateDialogState;
   readonly progressPercent: O.Option<number>;
+  readonly onCheckNow: () => void;
   readonly onDialogClose: () => void;
   readonly onUpdateNow: () => void;
   readonly onRestartNow: () => void;
@@ -77,9 +85,23 @@ const DIALOG_PREVIEW_VERSION_QUERY_KEY = "__debug-update-dialog-version";
 const DIALOG_PREVIEW_PROGRESS_QUERY_KEY = "__debug-update-dialog-progress";
 const DIALOG_PREVIEW_ERROR_QUERY_KEY = "__debug-update-dialog-error";
 const DIALOG_PREVIEW_OPERATION_QUERY_KEY = "__debug-update-dialog-operation";
+const DESKTOP_AUTO_UPDATE_CHECK_REQUEST_EVENT_NAME =
+  "desktop-auto-update://check-request";
 const APPLY_UPDATE_UNAVAILABLE_MESSAGE =
   "更新を開始できませんでした。アプリを再起動してもう一度お試しください。";
+const DESKTOP_UPDATE_CHECK_UNAVAILABLE_MESSAGE =
+  "デスクトップ実行時のみ更新確認を利用できます。Tauri アプリとして起動してからお試しください。";
 const UNKNOWN_VERSION_LABEL = "不明";
+
+export const requestDesktopAutoUpdateCheck = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(DESKTOP_AUTO_UPDATE_CHECK_REQUEST_EVENT_NAME),
+  );
+};
 
 const createHiddenDialogState = (): DesktopAutoUpdateDialogState => {
   return {
@@ -202,6 +224,15 @@ const resolveDialogPreviewState =
       });
     }
 
+    if (previewState.value === "checking") {
+      return O.some({
+        dialogState: {
+          kind: "checking",
+        },
+        downloadProgressTracker: createInitialDownloadProgressTracker(),
+      });
+    }
+
     if (previewState.value === "available") {
       return O.some({
         dialogState: {
@@ -217,6 +248,15 @@ const resolveDialogPreviewState =
         dialogState: {
           kind: "ready",
           version: resolvePreviewVersion(queryParams),
+        },
+        downloadProgressTracker: createInitialDownloadProgressTracker(),
+      });
+    }
+
+    if (previewState.value === "up-to-date") {
+      return O.some({
+        dialogState: {
+          kind: "up-to-date",
         },
         downloadProgressTracker: createInitialDownloadProgressTracker(),
       });
@@ -293,6 +333,10 @@ export const resolveDownloadProgressPercent = (
 const resolveFailureOperationLabel = (
   operation: DesktopAutoUpdateFailureOperation,
 ): string => {
+  if (operation === "check") {
+    return "更新確認";
+  }
+
   if (operation === "start") {
     return "更新開始";
   }
@@ -307,6 +351,10 @@ const resolveFailureOperationLabel = (
 const resolveFailureMessage = (
   operation: DesktopAutoUpdateFailureOperation,
 ): string => {
+  if (operation === "check") {
+    return "更新確認で問題が発生しました。";
+  }
+
   if (operation === "start") {
     return "更新を開始できませんでした。";
   }
@@ -321,6 +369,10 @@ const resolveFailureMessage = (
 const resolveFailureRecoveryHint = (
   operation: DesktopAutoUpdateFailureOperation,
 ): string => {
+  if (operation === "check") {
+    return "ネットワーク接続と更新チェック先を確認してから、もう一度更新確認を実行してください。";
+  }
+
   if (operation === "start") {
     return "更新ダイアログを閉じてもう一度更新を確認してください。改善しない場合はアプリを再起動してください。";
   }
@@ -346,6 +398,7 @@ const resolvePreviewFailureOperation = (
     resolveNonEmptyQueryValue(queryParams, DIALOG_PREVIEW_OPERATION_QUERY_KEY),
     O.filter(
       (value): value is DesktopAutoUpdateFailureOperation =>
+        value === "check" ||
         value === "start" ||
         value === "download-install" ||
         value === "restart",
@@ -388,6 +441,80 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
   const onDialogClose = useCallback((): void => {
     setDialogState(createHiddenDialogState());
   }, []);
+
+  const runCheck = useCallback((showNoUpdateDialog: boolean): void => {
+    const run = async (): Promise<void> => {
+      if (showNoUpdateDialog === true) {
+        setDialogState({
+          kind: "checking",
+        });
+      }
+
+      setDownloadProgressTracker(createInitialDownloadProgressTracker());
+      updateRef.current = O.none;
+
+      if (hasTauriRuntime() !== true) {
+        if (showNoUpdateDialog === true) {
+          setDialogState(
+            createFailedDialogState({
+              detail: DESKTOP_UPDATE_CHECK_UNAVAILABLE_MESSAGE,
+              operation: "check",
+              version: O.none,
+            }),
+          );
+        }
+
+        return;
+      }
+
+      try {
+        const updaterModule = await import("@tauri-apps/plugin-updater");
+        const update = await updaterModule.check();
+
+        pipe(
+          O.fromNullable(update),
+          O.match(
+            () => {
+              if (showNoUpdateDialog === true) {
+                setDialogState({
+                  kind: "up-to-date",
+                });
+              }
+            },
+            (availableUpdate) => {
+              updateRef.current = O.some(availableUpdate);
+              setDialogState({
+                kind: "available",
+                version: availableUpdate.version,
+              });
+            },
+          ),
+        );
+      } catch (error: unknown) {
+        const message = resolveErrorMessage(error);
+
+        if (showNoUpdateDialog === true) {
+          console.error(`[updater] failed to check for updates: ${message}`);
+          setDialogState(
+            createFailedDialogState({
+              detail: message,
+              operation: "check",
+              version: O.none,
+            }),
+          );
+          return;
+        }
+
+        console.info(`[updater] auto-update check skipped: ${message}`);
+      }
+    };
+
+    void run();
+  }, []);
+
+  const onCheckNow = useCallback((): void => {
+    runCheck(true);
+  }, [runCheck]);
 
   const onUpdateNow = useCallback((): void => {
     pipe(
@@ -483,29 +610,6 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
 
           return;
         }
-
-        if (hasTauriRuntime() !== true) {
-          return;
-        }
-
-        const updaterModule = await import("@tauri-apps/plugin-updater");
-        const update = await updaterModule.check();
-
-        pipe(
-          O.fromNullable(update),
-          O.match(
-            () => {
-              return;
-            },
-            (availableUpdate) => {
-              updateRef.current = O.some(availableUpdate);
-              setDialogState({
-                kind: "available",
-                version: availableUpdate.version,
-              });
-            },
-          ),
-        );
       } catch (error: unknown) {
         console.info(
           `[updater] auto-update check skipped: ${resolveErrorMessage(error)}`,
@@ -515,10 +619,38 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
 
     void run();
 
+    if (import.meta.env.DEV !== true) {
+      runCheck(false);
+    }
+
     return () => {
       updateRef.current = O.none;
     };
-  }, []);
+  }, [runCheck]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {
+        return;
+      };
+    }
+
+    const handleCheckRequest = (): void => {
+      onCheckNow();
+    };
+
+    window.addEventListener(
+      DESKTOP_AUTO_UPDATE_CHECK_REQUEST_EVENT_NAME,
+      handleCheckRequest,
+    );
+
+    return () => {
+      window.removeEventListener(
+        DESKTOP_AUTO_UPDATE_CHECK_REQUEST_EVENT_NAME,
+        handleCheckRequest,
+      );
+    };
+  }, [onCheckNow]);
 
   const progressPercent = useMemo((): O.Option<number> => {
     if (dialogState.kind !== "downloading") {
@@ -531,6 +663,7 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
   return {
     dialogState,
     progressPercent,
+    onCheckNow,
     onDialogClose,
     onUpdateNow,
     onRestartNow,

@@ -3,6 +3,18 @@ import { expect, test } from "@playwright/test";
 test("shows desktop auto-update dialog flow in preview mode", async ({
   page,
 }) => {
+  await page.goto("/?__debug-update-dialog-state=checking");
+
+  const checkingDialog = page.getByRole("dialog", {
+    name: "更新を確認中",
+  });
+  await expect(checkingDialog).toBeVisible();
+  await expect(
+    checkingDialog.getByRole("button", {
+      name: "確認中...",
+    }),
+  ).toBeDisabled();
+
   await page.goto(
     "/?__debug-update-dialog-state=available&__debug-update-dialog-version=0.1.7",
   );
@@ -56,6 +68,21 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
     }),
   ).toBeVisible();
 
+  await page.goto("/?__debug-update-dialog-state=up-to-date");
+
+  const upToDateDialog = page.getByRole("dialog", {
+    name: "最新の状態です",
+  });
+  await expect(upToDateDialog).toBeVisible();
+  await expect(
+    upToDateDialog.getByText("利用可能な更新は見つかりませんでした。"),
+  ).toBeVisible();
+  await expect(
+    upToDateDialog.getByRole("button", {
+      name: "閉じる",
+    }),
+  ).toBeVisible();
+
   await page.goto(
     "/?__debug-update-dialog-state=failed&__debug-update-dialog-version=0.1.7&__debug-update-dialog-operation=download-install&__debug-update-dialog-error=%E7%BD%B2%E5%90%8D%E6%A4%9C%E8%A8%BC%E3%81%AB%E5%A4%B1%E6%95%97%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F",
   );
@@ -94,6 +121,16 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
 test("desktop auto-update dialog respects per-state dismissal rules", async ({
   page,
 }) => {
+  await page.goto("/?__debug-update-dialog-state=checking");
+
+  const checkingDialog = page.getByRole("dialog", {
+    name: "更新を確認中",
+  });
+
+  await expect(checkingDialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(checkingDialog).toBeVisible();
+
   await page.goto(
     "/?__debug-update-dialog-state=available&__debug-update-dialog-version=0.1.7",
   );
@@ -129,6 +166,16 @@ test("desktop auto-update dialog respects per-state dismissal rules", async ({
   await expect(readyDialog).toBeVisible();
   await readyDialog.getByRole("button", { name: "あとで" }).click();
   await expect(readyDialog).toBeHidden();
+
+  await page.goto("/?__debug-update-dialog-state=up-to-date");
+
+  const upToDateDialog = page.getByRole("dialog", {
+    name: "最新の状態です",
+  });
+
+  await expect(upToDateDialog).toBeVisible();
+  await upToDateDialog.getByRole("button", { name: "閉じる" }).click();
+  await expect(upToDateDialog).toBeHidden();
 });
 
 test("shows pwa update dialog flow in preview mode", async ({ page }) => {

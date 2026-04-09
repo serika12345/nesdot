@@ -9,7 +9,18 @@ on:
       - feature/**
 
 jobs:
+  verify-pnpm-deps-hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Verify fetchPnpmDeps hash
+        run: nix develop -c bash -lc 'pnpm nix:check-pnpm-deps-hash'
+
   verify:
+    needs: verify-pnpm-deps-hash
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -26,6 +37,7 @@ jobs:
         run: nix develop -c bash -lc 'pnpm e2e:install && pnpm verify:ui'
 
   audit-cves:
+    needs: verify-pnpm-deps-hash
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
