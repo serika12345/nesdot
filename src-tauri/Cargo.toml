@@ -1,6 +1,6 @@
 [package]
 name = "nesdot"
-version = "0.2.0"
+version = "0.2.1"
 description = "NESDOT desktop app powered by Tauri"
 authors = ["paseri3739 <tael43@icloud.com>"]
 edition = "2021"
