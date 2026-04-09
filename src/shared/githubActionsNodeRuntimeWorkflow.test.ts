@@ -23,7 +23,10 @@ describe("GitHub Actions JavaScript runtime", () => {
     expect(workflow).toContain("actions/configure-pages@v6");
     expect(workflow).toContain("actions/upload-artifact@v7");
     expect(workflow).toContain("name: github-pages");
+    expect(workflow).toContain("$RUNNER_TEMP/artifact.tar");
+    expect(workflow).toContain("--hard-dereference");
     expect(workflow).toContain("actions/deploy-pages@v5");
+    expect(workflow).not.toContain("github-pages.tar.gz");
     expect(workflow).not.toContain("actions/upload-pages-artifact");
     expect(workflow).not.toContain("FORCE_JAVASCRIPT_ACTIONS_TO_NODE24");
   });
