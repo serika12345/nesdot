@@ -4,6 +4,25 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
   page,
 }) => {
   await page.goto(
+    "/?__debug-update-dialog-state=available&__debug-update-dialog-version=0.1.7",
+  );
+
+  const availableDialog = page.getByRole("dialog", {
+    name: "新しい更新を利用できます",
+  });
+  await expect(availableDialog).toBeVisible();
+  await expect(
+    availableDialog.getByRole("button", {
+      name: "今すぐ更新",
+    }),
+  ).toBeVisible();
+  await expect(
+    availableDialog.getByRole("button", {
+      name: "あとで",
+    }),
+  ).toBeVisible();
+
+  await page.goto(
     "/?__debug-update-dialog-state=downloading&__debug-update-dialog-version=0.1.7&__debug-update-dialog-progress=42",
   );
 
@@ -38,14 +57,32 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
   ).toBeVisible();
 
   await page.goto(
-    "/?__debug-update-dialog-state=failed&__debug-update-dialog-error=%E7%BD%B2%E5%90%8D%E6%A4%9C%E8%A8%BC%E3%81%AB%E5%A4%B1%E6%95%97%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F",
+    "/?__debug-update-dialog-state=failed&__debug-update-dialog-version=0.1.7&__debug-update-dialog-operation=download-install&__debug-update-dialog-error=%E7%BD%B2%E5%90%8D%E6%A4%9C%E8%A8%BC%E3%81%AB%E5%A4%B1%E6%95%97%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F",
   );
 
   const failedDialog = page.getByRole("dialog", {
     name: "アップデートに失敗しました",
   });
   await expect(failedDialog).toBeVisible();
+  await expect(
+    failedDialog.getByText(
+      "ダウンロードまたはインストール処理で問題が発生しました。",
+    ),
+  ).toBeVisible();
+  await expect(failedDialog.getByText("対象バージョン")).toBeVisible();
+  await expect(failedDialog.getByText("0.1.7")).toBeVisible();
+  await expect(failedDialog.getByText("処理段階")).toBeVisible();
+  await expect(
+    failedDialog.getByText("ダウンロード / インストール"),
+  ).toBeVisible();
+  await expect(failedDialog.getByText("技術詳細")).toBeVisible();
   await expect(failedDialog.getByText("署名検証に失敗しました")).toBeVisible();
+  await expect(failedDialog.getByText("対処")).toBeVisible();
+  await expect(
+    failedDialog.getByText(
+      "ネットワーク接続、配布ファイル、署名を確認してから再度お試しください。",
+    ),
+  ).toBeVisible();
   await failedDialog
     .getByRole("button", {
       name: "閉じる",
@@ -57,6 +94,18 @@ test("shows desktop auto-update dialog flow in preview mode", async ({
 test("desktop auto-update dialog respects per-state dismissal rules", async ({
   page,
 }) => {
+  await page.goto(
+    "/?__debug-update-dialog-state=available&__debug-update-dialog-version=0.1.7",
+  );
+
+  const availableDialog = page.getByRole("dialog", {
+    name: "新しい更新を利用できます",
+  });
+
+  await expect(availableDialog).toBeVisible();
+  await availableDialog.getByRole("button", { name: "あとで" }).click();
+  await expect(availableDialog).toBeHidden();
+
   await page.goto(
     "/?__debug-update-dialog-state=downloading&__debug-update-dialog-version=0.1.7&__debug-update-dialog-progress=42",
   );

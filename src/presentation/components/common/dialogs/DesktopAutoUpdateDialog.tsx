@@ -16,6 +16,7 @@ interface DesktopAutoUpdateDialogProps {
   readonly state: DesktopAutoUpdateDialogState;
   readonly progressPercent: O.Option<number>;
   readonly onDialogClose: () => void;
+  readonly onUpdateNow: () => void;
   readonly onRestartNow: () => void;
 }
 
@@ -31,11 +32,28 @@ const DescriptionText = styled("p")(({ theme }) => ({
   lineHeight: theme.typography.body2.lineHeight,
 }));
 
-const ErrorMessageText = styled("p")(({ theme }) => ({
+const FailureDetailsGrid = styled("dl")(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "max-content minmax(0, 1fr)",
+  gap: theme.spacing(0.5, 1.5),
   margin: 0,
-  color: theme.palette.error.main,
+}));
+
+const FailureDetailLabel = styled("dt")(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: theme.typography.caption.fontSize,
+  fontWeight: theme.typography.fontWeightMedium,
+  lineHeight: theme.typography.caption.lineHeight,
+  margin: 0,
+}));
+
+const FailureDetailValue = styled("dd")(({ theme }) => ({
+  color: theme.palette.text.primary,
   fontSize: theme.typography.body2.fontSize,
   lineHeight: theme.typography.body2.lineHeight,
+  margin: 0,
+  overflowWrap: "anywhere",
+  whiteSpace: "pre-wrap",
 }));
 
 const DownloadProgressSection = styled("div")(({ theme }) => ({
@@ -50,6 +68,10 @@ const ProgressMetaText = styled("span")(({ theme }) => ({
 }));
 
 const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
+  if (state.kind === "available") {
+    return "新しい更新を利用できます";
+  }
+
   if (state.kind === "downloading") {
     return "アップデートをダウンロード中";
   }
@@ -68,6 +90,10 @@ const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
 const resolveDialogDescription = (
   state: DesktopAutoUpdateDialogState,
 ): string => {
+  if (state.kind === "available") {
+    return `バージョン ${state.version} を利用できます。今すぐダウンロードして更新しますか？`;
+  }
+
   if (state.kind === "downloading") {
     return `バージョン ${state.version} をダウンロードしています。`;
   }
@@ -77,7 +103,7 @@ const resolveDialogDescription = (
   }
 
   if (state.kind === "failed") {
-    return "ダウンロードまたはインストール処理で問題が発生しました。";
+    return state.message;
   }
 
   return "";
@@ -107,7 +133,7 @@ const renderProgressBar = (
 
 export const DesktopAutoUpdateDialog: React.FC<
   DesktopAutoUpdateDialogProps
-> = ({ state, progressPercent, onDialogClose, onRestartNow }) => {
+> = ({ state, progressPercent, onDialogClose, onRestartNow, onUpdateNow }) => {
   const isOpen = state.kind !== "hidden";
 
   return (
@@ -144,13 +170,33 @@ export const DesktopAutoUpdateDialog: React.FC<
           )}
 
           {state.kind === "failed" ? (
-            <ErrorMessageText>{state.message}</ErrorMessageText>
+            <FailureDetailsGrid>
+              <FailureDetailLabel>対象バージョン</FailureDetailLabel>
+              <FailureDetailValue>{state.versionLabel}</FailureDetailValue>
+              <FailureDetailLabel>処理段階</FailureDetailLabel>
+              <FailureDetailValue>{state.operationLabel}</FailureDetailValue>
+              <FailureDetailLabel>技術詳細</FailureDetailLabel>
+              <FailureDetailValue>{state.detail}</FailureDetailValue>
+              <FailureDetailLabel>対処</FailureDetailLabel>
+              <FailureDetailValue>{state.recoveryHint}</FailureDetailValue>
+            </FailureDetailsGrid>
           ) : (
             <></>
           )}
         </DialogBody>
       </DialogContent>
       <DialogActions>
+        {state.kind === "available" ? (
+          <>
+            <Button onClick={onDialogClose}>あとで</Button>
+            <Button variant="contained" onClick={onUpdateNow}>
+              今すぐ更新
+            </Button>
+          </>
+        ) : (
+          <></>
+        )}
+
         {state.kind === "ready" ? (
           <>
             <Button onClick={onDialogClose}>あとで</Button>

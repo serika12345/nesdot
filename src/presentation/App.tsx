@@ -411,6 +411,7 @@ export const App: React.FC = () => {
         state={desktopAutoUpdate.dialogState}
         progressPercent={desktopAutoUpdate.progressPercent}
         onDialogClose={desktopAutoUpdate.onDialogClose}
+        onUpdateNow={desktopAutoUpdate.onUpdateNow}
         onRestartNow={desktopAutoUpdate.onRestartNow}
       />
       <PwaUpdateDialog

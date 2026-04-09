@@ -1,7 +1,7 @@
 import type { DownloadEvent } from "@tauri-apps/plugin-updater";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const hasTauriRuntime = (): boolean => {
   if (typeof window === "undefined") {
@@ -16,9 +16,18 @@ export interface DownloadProgressTracker {
   readonly totalBytes: O.Option<number>;
 }
 
+export type DesktopAutoUpdateFailureOperation =
+  | "start"
+  | "download-install"
+  | "restart";
+
 export type DesktopAutoUpdateDialogState =
   | {
       readonly kind: "hidden";
+    }
+  | {
+      readonly kind: "available";
+      readonly version: string;
     }
   | {
       readonly kind: "downloading";
@@ -31,13 +40,25 @@ export type DesktopAutoUpdateDialogState =
   | {
       readonly kind: "failed";
       readonly message: string;
+      readonly detail: string;
+      readonly operationLabel: string;
+      readonly recoveryHint: string;
+      readonly versionLabel: string;
     };
 
 export interface DesktopAutoUpdateController {
   readonly dialogState: DesktopAutoUpdateDialogState;
   readonly progressPercent: O.Option<number>;
   readonly onDialogClose: () => void;
+  readonly onUpdateNow: () => void;
   readonly onRestartNow: () => void;
+}
+
+interface DownloadableDesktopUpdate {
+  readonly version: string;
+  readonly downloadAndInstall: (
+    onEvent?: (event: DownloadEvent) => void,
+  ) => Promise<void>;
 }
 
 interface DesktopAutoUpdateDialogPreviewState {
@@ -45,10 +66,20 @@ interface DesktopAutoUpdateDialogPreviewState {
   readonly downloadProgressTracker: DownloadProgressTracker;
 }
 
+interface CreateFailedDialogStateInput {
+  readonly detail: string;
+  readonly operation: DesktopAutoUpdateFailureOperation;
+  readonly version: O.Option<string>;
+}
+
 const DIALOG_PREVIEW_STATE_QUERY_KEY = "__debug-update-dialog-state";
 const DIALOG_PREVIEW_VERSION_QUERY_KEY = "__debug-update-dialog-version";
 const DIALOG_PREVIEW_PROGRESS_QUERY_KEY = "__debug-update-dialog-progress";
 const DIALOG_PREVIEW_ERROR_QUERY_KEY = "__debug-update-dialog-error";
+const DIALOG_PREVIEW_OPERATION_QUERY_KEY = "__debug-update-dialog-operation";
+const APPLY_UPDATE_UNAVAILABLE_MESSAGE =
+  "更新を開始できませんでした。アプリを再起動してもう一度お試しください。";
+const UNKNOWN_VERSION_LABEL = "不明";
 
 const createHiddenDialogState = (): DesktopAutoUpdateDialogState => {
   return {
@@ -106,8 +137,17 @@ const resolveNonEmptyQueryValue = (
 
 const resolvePreviewVersion = (queryParams: URLSearchParams): string => {
   return pipe(
-    resolveNonEmptyQueryValue(queryParams, DIALOG_PREVIEW_VERSION_QUERY_KEY),
+    resolvePreviewVersionOption(queryParams),
     O.getOrElse(() => "0.0.0"),
+  );
+};
+
+const resolvePreviewVersionOption = (
+  queryParams: URLSearchParams,
+): O.Option<string> => {
+  return resolveNonEmptyQueryValue(
+    queryParams,
+    DIALOG_PREVIEW_VERSION_QUERY_KEY,
   );
 };
 
@@ -162,6 +202,16 @@ const resolveDialogPreviewState =
       });
     }
 
+    if (previewState.value === "available") {
+      return O.some({
+        dialogState: {
+          kind: "available",
+          version: resolvePreviewVersion(queryParams),
+        },
+        downloadProgressTracker: createInitialDownloadProgressTracker(),
+      });
+    }
+
     if (previewState.value === "ready") {
       return O.some({
         dialogState: {
@@ -174,16 +224,17 @@ const resolveDialogPreviewState =
 
     if (previewState.value === "failed") {
       return O.some({
-        dialogState: {
-          kind: "failed",
-          message: pipe(
+        dialogState: createFailedDialogState({
+          detail: pipe(
             resolveNonEmptyQueryValue(
               queryParams,
               DIALOG_PREVIEW_ERROR_QUERY_KEY,
             ),
             O.getOrElse(() => "更新処理に失敗しました。"),
           ),
-        },
+          operation: resolvePreviewFailureOperation(queryParams),
+          version: resolvePreviewVersionOption(queryParams),
+        }),
         downloadProgressTracker: createInitialDownloadProgressTracker(),
       });
     }
@@ -239,26 +290,68 @@ export const resolveDownloadProgressPercent = (
   );
 };
 
-const resolveUpdateNotes = (updateBody: unknown): string => {
-  if (typeof updateBody !== "string") {
-    return "";
+const resolveFailureOperationLabel = (
+  operation: DesktopAutoUpdateFailureOperation,
+): string => {
+  if (operation === "start") {
+    return "更新開始";
   }
 
-  const trimmedNotes = updateBody.trim();
-
-  if (trimmedNotes.length === 0) {
-    return "";
+  if (operation === "restart") {
+    return "再起動";
   }
 
-  return `\n\nリリースノート:\n${trimmedNotes}`;
+  return "ダウンロード / インストール";
 };
 
-const buildUpdatePromptMessage = (
-  version: string,
-  updateBody: unknown,
+const resolveFailureMessage = (
+  operation: DesktopAutoUpdateFailureOperation,
 ): string => {
-  const notes = resolveUpdateNotes(updateBody);
-  return `新しいバージョン ${version} が利用できます。今すぐ更新を適用しますか？${notes}`;
+  if (operation === "start") {
+    return "更新を開始できませんでした。";
+  }
+
+  if (operation === "restart") {
+    return "再起動処理で問題が発生しました。";
+  }
+
+  return "ダウンロードまたはインストール処理で問題が発生しました。";
+};
+
+const resolveFailureRecoveryHint = (
+  operation: DesktopAutoUpdateFailureOperation,
+): string => {
+  if (operation === "start") {
+    return "更新ダイアログを閉じてもう一度更新を確認してください。改善しない場合はアプリを再起動してください。";
+  }
+
+  if (operation === "restart") {
+    return "更新は適用済みの可能性があります。アプリを手動で終了して再起動してください。";
+  }
+
+  return "ネットワーク接続、配布ファイル、署名を確認してから再度お試しください。";
+};
+
+const resolveVersionLabel = (version: O.Option<string>): string => {
+  return pipe(
+    version,
+    O.getOrElse(() => UNKNOWN_VERSION_LABEL),
+  );
+};
+
+const resolvePreviewFailureOperation = (
+  queryParams: URLSearchParams,
+): DesktopAutoUpdateFailureOperation => {
+  return pipe(
+    resolveNonEmptyQueryValue(queryParams, DIALOG_PREVIEW_OPERATION_QUERY_KEY),
+    O.filter(
+      (value): value is DesktopAutoUpdateFailureOperation =>
+        value === "start" ||
+        value === "download-install" ||
+        value === "restart",
+    ),
+    O.getOrElse<DesktopAutoUpdateFailureOperation>(() => "download-install"),
+  );
 };
 
 const resolveErrorMessage = (error: unknown): string => {
@@ -268,16 +361,88 @@ const resolveErrorMessage = (error: unknown): string => {
 
   return "unknown error";
 };
+
+export const createFailedDialogState = ({
+  detail,
+  operation,
+  version,
+}: CreateFailedDialogStateInput): DesktopAutoUpdateDialogState => {
+  return {
+    kind: "failed",
+    detail,
+    message: resolveFailureMessage(operation),
+    operationLabel: resolveFailureOperationLabel(operation),
+    recoveryHint: resolveFailureRecoveryHint(operation),
+    versionLabel: resolveVersionLabel(version),
+  };
+};
+
 export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
   const [dialogState, setDialogState] = useState<DesktopAutoUpdateDialogState>(
     createHiddenDialogState(),
   );
   const [downloadProgressTracker, setDownloadProgressTracker] =
     useState<DownloadProgressTracker>(createInitialDownloadProgressTracker());
+  const updateRef = useRef<O.Option<DownloadableDesktopUpdate>>(O.none);
 
   const onDialogClose = useCallback((): void => {
     setDialogState(createHiddenDialogState());
   }, []);
+
+  const onUpdateNow = useCallback((): void => {
+    pipe(
+      updateRef.current,
+      O.match(
+        () => {
+          setDialogState(
+            createFailedDialogState({
+              detail: APPLY_UPDATE_UNAVAILABLE_MESSAGE,
+              operation: "start",
+              version:
+                dialogState.kind === "available"
+                  ? O.some(dialogState.version)
+                  : O.none,
+            }),
+          );
+        },
+        (update) => {
+          setDownloadProgressTracker(createInitialDownloadProgressTracker());
+          setDialogState({
+            kind: "downloading",
+            version: update.version,
+          });
+
+          const run = async (): Promise<void> => {
+            try {
+              await update.downloadAndInstall((event) => {
+                setDownloadProgressTracker((currentTracker) =>
+                  applyDownloadEvent(currentTracker, event),
+                );
+              });
+              updateRef.current = O.none;
+              setDialogState({
+                kind: "ready",
+                version: update.version,
+              });
+            } catch (error: unknown) {
+              updateRef.current = O.none;
+              const message = resolveErrorMessage(error);
+              console.error(`[updater] failed to apply update: ${message}`);
+              setDialogState(
+                createFailedDialogState({
+                  detail: message,
+                  operation: "download-install",
+                  version: O.some(update.version),
+                }),
+              );
+            }
+          };
+
+          void run();
+        },
+      ),
+    );
+  }, [dialogState]);
 
   const onRestartNow = useCallback((): void => {
     const run = async (): Promise<void> => {
@@ -287,15 +452,21 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
       } catch (error: unknown) {
         const message = resolveErrorMessage(error);
         console.error(`[updater] failed to relaunch: ${message}`);
-        setDialogState({
-          kind: "failed",
-          message,
-        });
+        setDialogState(
+          createFailedDialogState({
+            detail: message,
+            operation: "restart",
+            version:
+              dialogState.kind === "ready"
+                ? O.some(dialogState.version)
+                : O.none,
+          }),
+        );
       }
     };
 
     void run();
-  }, []);
+  }, [dialogState]);
 
   useEffect(() => {
     const run = async (): Promise<void> => {
@@ -320,44 +491,21 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
         const updaterModule = await import("@tauri-apps/plugin-updater");
         const update = await updaterModule.check();
 
-        if (update instanceof Object !== true) {
-          return;
-        }
-
-        const shouldInstall = window.confirm(
-          buildUpdatePromptMessage(update.version, update.body),
+        pipe(
+          O.fromNullable(update),
+          O.match(
+            () => {
+              return;
+            },
+            (availableUpdate) => {
+              updateRef.current = O.some(availableUpdate);
+              setDialogState({
+                kind: "available",
+                version: availableUpdate.version,
+              });
+            },
+          ),
         );
-
-        if (shouldInstall !== true) {
-          return;
-        }
-
-        setDownloadProgressTracker(createInitialDownloadProgressTracker());
-        setDialogState({
-          kind: "downloading",
-          version: update.version,
-        });
-
-        try {
-          await update.downloadAndInstall((event) => {
-            setDownloadProgressTracker((currentTracker) =>
-              applyDownloadEvent(currentTracker, event),
-            );
-          });
-        } catch (error: unknown) {
-          const message = resolveErrorMessage(error);
-          console.error(`[updater] failed to apply update: ${message}`);
-          setDialogState({
-            kind: "failed",
-            message,
-          });
-          return;
-        }
-
-        setDialogState({
-          kind: "ready",
-          version: update.version,
-        });
       } catch (error: unknown) {
         console.info(
           `[updater] auto-update check skipped: ${resolveErrorMessage(error)}`,
@@ -366,6 +514,10 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
     };
 
     void run();
+
+    return () => {
+      updateRef.current = O.none;
+    };
   }, []);
 
   const progressPercent = useMemo((): O.Option<number> => {
@@ -380,6 +532,7 @@ export const useDesktopAutoUpdate = (): DesktopAutoUpdateController => {
     dialogState,
     progressPercent,
     onDialogClose,
+    onUpdateNow,
     onRestartNow,
   };
 };
