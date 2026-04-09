@@ -81,3 +81,76 @@ test("desktop auto-update dialog respects per-state dismissal rules", async ({
   await readyDialog.getByRole("button", { name: "あとで" }).click();
   await expect(readyDialog).toBeHidden();
 });
+
+test("shows pwa update dialog flow in preview mode", async ({ page }) => {
+  await page.goto("/?__debug-pwa-update-state=available");
+
+  const availableDialog = page.getByRole("dialog", {
+    name: "新しい更新を利用できます",
+  });
+  await expect(availableDialog).toBeVisible();
+  await expect(
+    availableDialog.getByRole("button", {
+      name: "今すぐ更新",
+    }),
+  ).toBeVisible();
+  await expect(
+    availableDialog.getByRole("button", {
+      name: "あとで",
+    }),
+  ).toBeVisible();
+
+  await page.goto("/?__debug-pwa-update-state=applying");
+
+  const applyingDialog = page.getByRole("dialog", {
+    name: "更新を適用中",
+  });
+  await expect(applyingDialog).toBeVisible();
+  await expect(
+    applyingDialog.getByRole("button", {
+      name: "更新中...",
+    }),
+  ).toBeDisabled();
+
+  await page.goto(
+    "/?__debug-pwa-update-state=failed&__debug-pwa-update-error=%E6%9B%B4%E6%96%B0%E3%81%AE%E9%81%A9%E7%94%A8%E3%81%AB%E5%A4%B1%E6%95%97%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F",
+  );
+
+  const failedDialog = page.getByRole("dialog", {
+    name: "更新に失敗しました",
+  });
+  await expect(failedDialog).toBeVisible();
+  await expect(
+    failedDialog.getByText("更新の適用に失敗しました"),
+  ).toBeVisible();
+  await failedDialog
+    .getByRole("button", {
+      name: "閉じる",
+    })
+    .click();
+  await expect(failedDialog).toBeHidden();
+});
+
+test("pwa update dialog respects per-state dismissal rules", async ({
+  page,
+}) => {
+  await page.goto("/?__debug-pwa-update-state=applying");
+
+  const applyingDialog = page.getByRole("dialog", {
+    name: "更新を適用中",
+  });
+
+  await expect(applyingDialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(applyingDialog).toBeVisible();
+
+  await page.goto("/?__debug-pwa-update-state=available");
+
+  const availableDialog = page.getByRole("dialog", {
+    name: "新しい更新を利用できます",
+  });
+
+  await expect(availableDialog).toBeVisible();
+  await availableDialog.getByRole("button", { name: "あとで" }).click();
+  await expect(availableDialog).toBeHidden();
+});

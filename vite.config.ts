@@ -21,8 +21,8 @@ export default defineConfig(({ command }) => {
     plugins: [
       react({ jsxImportSource: "@emotion/react" }),
       VitePWA({
-        registerType: "autoUpdate",
-        injectRegister: "auto",
+        registerType: "prompt",
+        injectRegister: false,
         includeAssets: [
           "favicon.ico",
           "favicon.svg",

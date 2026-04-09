@@ -1,6 +1,6 @@
-import * as O from "fp-ts/Option";
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import * as O from "fp-ts/Option";
 import { createRoot } from "react-dom/client";
 import { App } from "./presentation/App";
 import { appTheme } from "./presentation/theme";

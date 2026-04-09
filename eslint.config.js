@@ -366,6 +366,7 @@ const config = [
       "react-hooks/exhaustive-deps": "warn",
     },
     settings: {
+      "import/core-modules": ["virtual:pwa-register"],
       "import/resolver": {
         typescript: true,
         node: true,

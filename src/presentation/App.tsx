@@ -11,6 +11,7 @@ import {
   undoLatestGlobalChange,
 } from "../application/state/undoHistory";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
+import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
 import {
   Container,
   LeftPane,
@@ -24,6 +25,7 @@ import {
 import { BgMode } from "./components/bgMode/core/BgMode";
 import { CharacterMode } from "./components/characterMode/core/CharacterMode";
 import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
+import { PwaUpdateDialog } from "./components/common/dialogs/PwaUpdateDialog";
 import {
   FileMenuBar,
   type WorkMode,
@@ -240,6 +242,7 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
  */
 export const App: React.FC = () => {
   const desktopAutoUpdate = useDesktopAutoUpdate();
+  const pwaUpdate = usePwaUpdate();
 
   const [editMode, setEditMode] = useState<WorkMode>("sprite");
   const [fileMenuState, setFileMenuState] =
@@ -409,6 +412,11 @@ export const App: React.FC = () => {
         progressPercent={desktopAutoUpdate.progressPercent}
         onDialogClose={desktopAutoUpdate.onDialogClose}
         onRestartNow={desktopAutoUpdate.onRestartNow}
+      />
+      <PwaUpdateDialog
+        state={pwaUpdate.dialogState}
+        onDialogClose={pwaUpdate.onDialogClose}
+        onUpdateNow={pwaUpdate.onUpdateNow}
       />
 
       <Container spacing={{ xs: "0.75rem", md: "1rem" }}>

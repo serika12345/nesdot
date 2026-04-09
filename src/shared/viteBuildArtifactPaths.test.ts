@@ -75,7 +75,7 @@ describe("vite build artifact paths", () => {
       expect(artifacts.indexHtml).toContain('href="/manifest.webmanifest"');
       expect(artifacts.indexHtml).toContain('href="/favicon.svg"');
       expect(artifacts.indexHtml).toMatch(/src="\/assets\/index-[^"]+\.js"/u);
-      expect(artifacts.indexHtml).toContain('src="/registerSW.js"');
+      expect(artifacts.indexHtml).not.toContain("registerSW.js");
       expect(artifacts.indexHtml).not.toContain("/nesdot/");
       expect(artifacts.manifest).toContain('"start_url":"/"');
       expect(artifacts.manifest).toContain('"scope":"/"');
@@ -99,7 +99,7 @@ describe("vite build artifact paths", () => {
       expect(artifacts.indexHtml).toMatch(
         /src="\/nesdot\/assets\/index-[^"]+\.js"/u,
       );
-      expect(artifacts.indexHtml).toContain('src="/nesdot/registerSW.js"');
+      expect(artifacts.indexHtml).not.toContain("registerSW.js");
       expect(artifacts.manifest).toContain('"start_url":"/nesdot/"');
       expect(artifacts.manifest).toContain('"scope":"/nesdot/"');
     },
