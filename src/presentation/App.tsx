@@ -26,10 +26,7 @@ import { BgMode } from "./components/bgMode/core/BgMode";
 import { CharacterMode } from "./components/characterMode/core/CharacterMode";
 import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
 import { PwaUpdateDialog } from "./components/common/dialogs/PwaUpdateDialog";
-import {
-  FileMenuBar,
-  type WorkMode,
-} from "./components/common/menu/FileMenuBar";
+import { MenuBar, type WorkMode } from "./components/common/menu/MenuBar";
 import { PalettePicker } from "./components/common/pickers/PalettePicker";
 import {
   emptyFileMenuState,
@@ -440,7 +437,7 @@ export const App: React.FC = () => {
         {isNativeMacMenu === true ? (
           <></>
         ) : (
-          <FileMenuBar
+          <MenuBar
             fileMenuState={fileMenuState}
             editMode={editMode}
             onEditModeSelect={handleEditModeSelect}

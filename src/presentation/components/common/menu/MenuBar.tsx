@@ -21,7 +21,7 @@ import { type FileMenuState } from "../state/fileMenuState";
 
 export type WorkMode = "screen" | "sprite" | "character" | "bg";
 
-interface FileMenuBarProps {
+interface MenuBarProps {
   fileMenuState: FileMenuState;
   editMode: WorkMode;
   onEditModeSelect: (mode: WorkMode) => void;
@@ -220,7 +220,7 @@ const AboutVersionText = styled("span")(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const FileMenuBar: React.FC<FileMenuBarProps> = ({
+export const MenuBar: React.FC<MenuBarProps> = ({
   fileMenuState,
   editMode,
   onEditModeSelect,
