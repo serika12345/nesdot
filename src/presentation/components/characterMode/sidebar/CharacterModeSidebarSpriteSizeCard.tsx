@@ -1,4 +1,4 @@
-import { styled } from "@mui/material/styles";
+import { Box } from "@mui/material";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { ToolButton } from "../../../App.styles";
@@ -7,16 +7,9 @@ import {
   useCharacterModeSpriteSize,
 } from "../core/CharacterModeStateProvider";
 
-const OptionGrid = styled("div")(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: theme.spacing(0.75),
-  width: "10.5rem",
-}));
-
-const WideToolButton = styled(ToolButton)({
+const fullWidthStyle: React.CSSProperties = {
   width: "100%",
-});
+};
 
 /**
  * プロジェクトのスプライトサイズ切り替えカードです。
@@ -27,11 +20,17 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
   const isDisabled = O.isNone(setSelection.selectedCharacterId);
 
   return (
-    <OptionGrid>
-      <WideToolButton
+    <Box
+      display="grid"
+      gridTemplateColumns="repeat(2, minmax(0, 1fr))"
+      gap={0.75}
+      width="10.5rem"
+    >
+      <ToolButton
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
         active={spriteSize.projectSpriteSize === 8}
+        style={fullWidthStyle}
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
@@ -40,11 +39,12 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
         onClick={() => spriteSize.handleProjectSpriteSizeChange(8)}
       >
         8×8
-      </WideToolButton>
-      <WideToolButton
+      </ToolButton>
+      <ToolButton
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x16"
         active={spriteSize.projectSpriteSize === 16}
+        style={fullWidthStyle}
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
@@ -53,7 +53,7 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
         onClick={() => spriteSize.handleProjectSpriteSizeChange(16)}
       >
         8×16
-      </WideToolButton>
-    </OptionGrid>
+      </ToolButton>
+    </Box>
   );
 };

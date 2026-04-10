@@ -4,6 +4,19 @@ import React from "react";
 
 type ButtonTone = "neutral" | "primary" | "danger";
 type BadgeTone = "neutral" | "accent" | "danger";
+type ToolButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  active?: boolean;
+  tone?: ButtonTone;
+};
+type CollapseToggleProps = React.ComponentProps<typeof ButtonBase> & {
+  open?: boolean;
+};
+type IconActionButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  active?: boolean;
+};
+type BadgeProps = React.ComponentProps<"span"> & {
+  tone?: BadgeTone;
+};
 
 const createBoxLayout = (
   displayName: string,
@@ -35,85 +48,109 @@ const createStackLayout = (
   return LayoutComponent;
 };
 
-const shouldForwardButtonStateProp = (prop: PropertyKey): boolean =>
-  prop !== "active" && prop !== "tone";
+const toBooleanDataValue = (value?: boolean): "true" | "false" =>
+  value === true ? "true" : "false";
 
-const shouldForwardOpenProp = (prop: PropertyKey): boolean => prop !== "open";
+const resolveButtonTone = (tone?: ButtonTone): ButtonTone => {
+  if (tone === "primary") {
+    return "primary";
+  }
 
-const shouldForwardActiveProp = (prop: PropertyKey): boolean =>
-  prop !== "active";
-
-const buttonStyleOptions = (active?: boolean, tone?: ButtonTone) => ({
-  ...(active === true ? { active: true } : {}),
-  ...(active === false ? { active: false } : {}),
-  ...(tone === "neutral" || tone === "primary" || tone === "danger"
-    ? { tone }
-    : {}),
-});
-
-const badgeStyleOptions = (tone?: BadgeTone) => ({
-  ...(tone === "neutral" || tone === "accent" || tone === "danger"
-    ? { tone }
-    : {}),
-});
-
-const buttonStyles = ({
-  active = false,
-  tone = "neutral",
-}: {
-  active?: boolean;
-  tone?: ButtonTone;
-}) => {
   if (tone === "danger") {
-    return {
-      color: "#fff1f2",
-      background: "linear-gradient(135deg, #be123c 0%, #9f1239 100%)",
-      border: "0.0625rem solid rgba(159, 18, 57, 0.4)",
-      boxShadow: "0 0.75rem 1.5rem rgba(190, 24, 93, 0.2)",
-    };
+    return "danger";
   }
 
-  if (tone === "primary" || active) {
-    return {
-      color: "#f0fdfa",
-      background: "linear-gradient(135deg, #0f766e 0%, #155e75 100%)",
-      border: "0.0625rem solid rgba(21, 94, 117, 0.35)",
-      boxShadow: "0 0.875rem 1.625rem rgba(15, 118, 110, 0.22)",
-    };
-  }
-
-  return {
-    color: "var(--ink-strong)",
-    background:
-      "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-    border: "0.0625rem solid rgba(148, 163, 184, 0.24)",
-    boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-  };
+  return "neutral";
 };
 
-const badgeStyles = ({ tone = "neutral" }: { tone?: BadgeTone }) => {
+const resolveBadgeTone = (tone?: BadgeTone): BadgeTone => {
   if (tone === "accent") {
-    return {
-      color: "#0f766e",
-      background: "rgba(15, 118, 110, 0.12)",
-      border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
-    };
+    return "accent";
   }
 
   if (tone === "danger") {
-    return {
-      color: "#be123c",
-      background: "rgba(190, 24, 93, 0.1)",
-      border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
-    };
+    return "danger";
   }
 
-  return {
-    color: "var(--ink-soft)",
-    background: "rgba(148, 163, 184, 0.12)",
-    border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  };
+  return "neutral";
 };
+
+const neutralButtonStateStyles = {
+  color: "var(--ink-strong)",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.24)",
+  boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
+};
+
+const primaryButtonStateStyles = {
+  color: "#f0fdfa",
+  background: "linear-gradient(135deg, #0f766e 0%, #155e75 100%)",
+  border: "0.0625rem solid rgba(21, 94, 117, 0.35)",
+  boxShadow: "0 0.875rem 1.625rem rgba(15, 118, 110, 0.22)",
+};
+
+const dangerButtonStateStyles = {
+  color: "#fff1f2",
+  background: "linear-gradient(135deg, #be123c 0%, #9f1239 100%)",
+  border: "0.0625rem solid rgba(159, 18, 57, 0.4)",
+  boxShadow: "0 0.75rem 1.5rem rgba(190, 24, 93, 0.2)",
+};
+
+const neutralBadgeToneStyles = {
+  color: "var(--ink-soft)",
+  background: "rgba(148, 163, 184, 0.12)",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+};
+
+const accentBadgeToneStyles = {
+  color: "#0f766e",
+  background: "rgba(15, 118, 110, 0.12)",
+  border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
+};
+
+const dangerBadgeToneStyles = {
+  color: "#be123c",
+  background: "rgba(190, 24, 93, 0.1)",
+  border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
+};
+
+const ToolButtonRoot = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
+  function ToolButtonRoot({ active, tone, ...props }, ref) {
+    return (
+      <ButtonBase
+        ref={ref}
+        {...props}
+        data-active={toBooleanDataValue(active)}
+        data-tone={resolveButtonTone(tone)}
+      />
+    );
+  },
+);
+
+const CollapseToggleRoot = React.forwardRef<
+  HTMLButtonElement,
+  CollapseToggleProps
+>(function CollapseToggleRoot({ open, ...props }, ref) {
+  return (
+    <ButtonBase ref={ref} {...props} data-open={toBooleanDataValue(open)} />
+  );
+});
+
+const IconActionButtonRoot = React.forwardRef<
+  HTMLButtonElement,
+  IconActionButtonProps
+>(function IconActionButtonRoot({ active, ...props }, ref) {
+  return (
+    <ButtonBase ref={ref} {...props} data-active={toBooleanDataValue(active)} />
+  );
+});
+
+const BadgeRoot = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  function BadgeRoot({ tone, ...props }, ref) {
+    return <span ref={ref} {...props} data-tone={resolveBadgeTone(tone)} />;
+  },
+);
 
 const ContainerRoot = styled("div")({
   position: "relative",
@@ -269,12 +306,7 @@ export const Spacer = createBoxLayout("Spacer", {
   minWidth: "0.75rem",
 });
 
-export const ToolButton = styled(ButtonBase, {
-  shouldForwardProp: shouldForwardButtonStateProp,
-})<{
-  active?: boolean;
-  tone?: ButtonTone;
-}>(({ active, tone }) => ({
+export const ToolButton = styled(ToolButtonRoot)({
   appearance: "none",
   borderRadius: "1rem",
   padding: "0.75rem 1rem",
@@ -285,7 +317,10 @@ export const ToolButton = styled(ButtonBase, {
   textAlign: "center",
   transition:
     "transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease",
-  ...buttonStyles(buttonStyleOptions(active, tone)),
+  "&[data-tone='neutral'][data-active='false']": neutralButtonStateStyles,
+  "&[data-tone='neutral'][data-active='true'], &[data-tone='primary']":
+    primaryButtonStateStyles,
+  "&[data-tone='danger']": dangerButtonStateStyles,
   "&:hover:not(:disabled)": {
     transform: "translateY(-0.0625rem)",
   },
@@ -295,31 +330,35 @@ export const ToolButton = styled(ButtonBase, {
     transform: "none",
     boxShadow: "none",
   },
-}));
+});
 
 export const ActionButton = ToolButton;
 
-export const CollapseToggle = styled(ButtonBase, {
-  shouldForwardProp: shouldForwardOpenProp,
-})<{ open?: boolean }>(({ open }) => ({
+export const CollapseToggle = styled(CollapseToggleRoot)({
   appearance: "none",
   gap: "0.5rem",
   borderRadius: "62.4375rem",
   padding: "0.5625rem 0.75rem",
-  border: `0.0625rem solid ${open === true ? "rgba(15, 118, 110, 0.2)" : "rgba(148, 163, 184, 0.18)"}`,
-  background:
-    open === true ? "rgba(15, 118, 110, 0.1)" : "rgba(248, 250, 252, 0.88)",
-  color: open === true ? "#0f766e" : "var(--ink-soft)",
   fontSize: "0.75rem",
   fontWeight: 700,
   letterSpacing: "0.06em",
   cursor: "pointer",
   transition:
     "transform 160ms ease, background 160ms ease, border-color 160ms ease",
+  "&[data-open='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+    background: "rgba(248, 250, 252, 0.88)",
+    color: "var(--ink-soft)",
+  },
+  "&[data-open='true']": {
+    border: "0.0625rem solid rgba(15, 118, 110, 0.2)",
+    background: "rgba(15, 118, 110, 0.1)",
+    color: "#0f766e",
+  },
   "&:hover": {
     transform: "translateY(-0.0625rem)",
   },
-}));
+});
 
 export const ActionCluster = createBoxLayout("ActionCluster", {
   position: "relative",
@@ -336,24 +375,13 @@ export const ActionButtonsRow = createStackLayout("ActionButtonsRow", {
   width: "100%",
 });
 
-export const IconActionButton = styled(ButtonBase, {
-  shouldForwardProp: shouldForwardActiveProp,
-})<{ active?: boolean }>(({ active }) => ({
+export const IconActionButton = styled(IconActionButtonRoot)({
   appearance: "none",
   gap: "0.625rem",
   minHeight: "2.625rem",
   padding: "0.625rem 0.875rem",
   borderRadius: "1rem",
   whiteSpace: "nowrap",
-  border:
-    active === true
-      ? "0.0625rem solid rgba(15, 118, 110, 0.22)"
-      : "0.0625rem solid rgba(148, 163, 184, 0.2)",
-  background:
-    active === true
-      ? "linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.9))"
-      : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92))",
-  color: active === true ? "#0f766e" : "var(--ink-strong)",
   boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
   cursor: "pointer",
   fontSize: "0.8125rem",
@@ -361,10 +389,22 @@ export const IconActionButton = styled(ButtonBase, {
   letterSpacing: "0.01em",
   transition:
     "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
+  "&[data-active='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
+    background:
+      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92))",
+    color: "var(--ink-strong)",
+  },
+  "&[data-active='true']": {
+    border: "0.0625rem solid rgba(15, 118, 110, 0.22)",
+    background:
+      "linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.9))",
+    color: "#0f766e",
+  },
   "&:hover": {
     transform: "translateY(-0.0625rem)",
   },
-}));
+});
 
 export const IconLabel = createStackLayout("IconLabel", {
   component: "span",
@@ -433,15 +473,17 @@ export const FieldLabel = styled("span")({
   color: "var(--ink-soft)",
 });
 
-export const Badge = styled("span")<{ tone?: BadgeTone }>(({ tone }) => ({
+export const Badge = styled(BadgeRoot)({
   width: "fit-content",
   padding: "0.4375rem 0.75rem",
   borderRadius: "62.4375rem",
   fontSize: "0.75rem",
   fontWeight: 700,
   letterSpacing: "0.06em",
-  ...badgeStyles(badgeStyleOptions(tone)),
-}));
+  "&[data-tone='neutral']": neutralBadgeToneStyles,
+  "&[data-tone='accent']": accentBadgeToneStyles,
+  "&[data-tone='danger']": dangerBadgeToneStyles,
+});
 
 export const SplitLayout = createStackLayout("SplitLayout", {
   direction: { xs: "column", lg: "row" },

@@ -9,9 +9,6 @@ import {
   ToolButton,
 } from "../../../App.styles";
 
-const shouldForwardActiveProp = (prop: PropertyKey): boolean =>
-  prop !== "active";
-
 const createStackLayout = (
   displayName: string,
   defaultProps: StackProps,
@@ -107,11 +104,14 @@ export const GroupActionButton = styled(TallToolButton)({
   width: "100%",
 });
 
-const PreviewViewportRoot = styled(CanvasViewport, {
-  shouldForwardProp: shouldForwardActiveProp,
-})<{ active?: boolean }>(({ active }) => ({
-  cursor: active === true ? "grabbing" : "default",
-}));
+const PreviewViewportRoot = styled(CanvasViewport)({
+  "&[data-active='false']": {
+    cursor: "default",
+  },
+  "&[data-active='true']": {
+    cursor: "grabbing",
+  },
+});
 
 type PreviewViewportProps = React.ComponentProps<typeof CanvasViewport> & {
   active?: boolean;
@@ -124,7 +124,7 @@ export const PreviewViewport = React.forwardRef<
   return (
     <PreviewViewportRoot
       ref={ref}
-      active={active === true}
+      data-active={active === true ? "true" : "false"}
       flex={1}
       minHeight={0}
       p="1.5rem"

@@ -1,9 +1,9 @@
 import {
+  Box,
   ButtonBase,
-  Container,
   Grid as MaterialGrid,
   Stack,
-  type ContainerProps,
+  type BoxProps,
   type GridProps,
   type GridSize,
   type StackProps,
@@ -18,6 +18,75 @@ import {
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
+type CharacterStageViewportProps = React.ComponentProps<
+  typeof CanvasViewport
+> & {
+  dragging?: boolean;
+};
+
+type DecompositionCanvasElementProps = React.ComponentProps<"canvas"> & {
+  cursorStyle: string;
+};
+
+type StageDragPreviewProps = React.ComponentProps<"div"> & {
+  previewLeft: number;
+  previewTop: number;
+};
+
+type RegionOverlayButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  issueState?: boolean;
+  regionHeightPx: number;
+  regionLeft: number;
+  regionScale: number;
+  regionTop: number;
+  selectedState?: boolean;
+  toolMode: DecompositionTool;
+};
+
+type FloatingLibraryPreviewProps = React.ComponentProps<"div"> & {
+  dragClientX: number;
+  dragClientY: number;
+};
+
+type PositionedActionMenuProps = React.ComponentProps<typeof ActionMenu> & {
+  menuLeft: number;
+  menuTop: number;
+  menuWidth: number;
+  ready: boolean;
+};
+
+type PositionedActionMenuButtonProps = React.ComponentProps<
+  typeof ActionMenuButton
+> & {
+  danger?: boolean;
+};
+
+type EmptyTilePreviewProps = React.ComponentProps<"div"> & {
+  previewHeight: number;
+  previewWidth: number;
+};
+
+type PixelPreviewCellProps = React.ComponentProps<"div"> & {
+  colorHex: string;
+  pixelSize: number;
+};
+
+type StageSurfaceProps = React.ComponentProps<"div"> & {
+  activeDrop?: boolean;
+  stageHeightPx: number;
+  stageScale: number;
+  stageWidthPx: number;
+};
+
+type StageSurfaceStyle = React.CSSProperties & {
+  "--stage-cell-size": string;
+  "--stage-grid-size": string;
+  "--stage-height-px": string;
+  "--stage-mid-x": string;
+  "--stage-mid-y": string;
+  "--stage-width-px": string;
+};
+
 const editorCardStyles = {
   position: "relative",
   zIndex: 1,
@@ -27,54 +96,8 @@ const editorCardStyles = {
   boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.72)",
 } satisfies React.CSSProperties;
 
-const shouldForwardStageProp = (prop: PropertyKey): boolean =>
-  prop !== "activeDrop" &&
-  prop !== "stageWidthPx" &&
-  prop !== "stageHeightPx" &&
-  prop !== "stageScale";
-
-const createShouldForwardProp = (
-  blockedProps: ReadonlyArray<string>,
-): ((prop: PropertyKey) => boolean) => {
-  return (prop: PropertyKey): boolean =>
-    typeof prop !== "string" || blockedProps.includes(prop) === false;
-};
-
-const shouldForwardPixelPreviewSizeProp = createShouldForwardProp([
-  "previewWidth",
-  "previewHeight",
-  "pixelSize",
-  "colorHex",
-]);
-
-const shouldForwardMenuPositionProp = createShouldForwardProp([
-  "menuTop",
-  "menuLeft",
-  "menuWidth",
-  "ready",
-  "danger",
-]);
-
-const shouldForwardLibraryStateProp = createShouldForwardProp([
-  "dragging",
-  "draggableState",
-  "previewLeft",
-  "previewTop",
-  "dragClientX",
-  "dragClientY",
-]);
-
-const shouldForwardRegionStateProp = createShouldForwardProp([
-  "selectedState",
-  "issueState",
-  "regionLeft",
-  "regionTop",
-  "regionHeightPx",
-  "regionScale",
-  "toolMode",
-]);
-
-const shouldForwardCanvasCursorProp = createShouldForwardProp(["cursorStyle"]);
+const toBooleanDataValue = (value?: boolean): "true" | "false" =>
+  value === true ? "true" : "false";
 
 const createStackLayout = (
   displayName: string,
@@ -90,12 +113,6 @@ const createStackLayout = (
 
   return LayoutComponent;
 };
-
-const BareContainer = React.forwardRef<HTMLDivElement, ContainerProps>(
-  function BareContainer(props, ref) {
-    return <Container ref={ref} disableGutters maxWidth={false} {...props} />;
-  },
-);
 
 type UniformGridLayoutProps = Omit<
   GridProps,
@@ -135,62 +152,26 @@ const createUniformGridLayout = (
   return LayoutComponent;
 };
 
-const FullWidthContainer = styled(BareContainer)({
-  width: "100%",
-  minWidth: 0,
-});
-
-const WorkspaceStageContainer = styled(FullWidthContainer)({
-  display: "flex",
-  minHeight: 0,
-  height: "100%",
-});
-
-const ComposeSidebarContainer = styled(FullWidthContainer)(({ theme }) => ({
-  display: "flex",
-  minHeight: 0,
-  height: "100%",
-  [theme.breakpoints.up("lg")]: {
-    width: "17.5rem",
-    flexShrink: 0,
+const FullWidthBox = React.forwardRef<HTMLDivElement, BoxProps>(
+  function FullWidthBox(props, ref) {
+    return <Box ref={ref} width="100%" minWidth={0} {...props} />;
   },
-}));
+);
 
-export const StageInputContainer = styled(FullWidthContainer)(({ theme }) => ({
-  [theme.breakpoints.up("sm")]: {
-    width: "7.5rem",
+export const StageInputContainer = React.forwardRef<HTMLDivElement, BoxProps>(
+  function StageInputContainer(props, ref) {
+    return (
+      <FullWidthBox ref={ref} width={{ xs: "100%", sm: "7.5rem" }} {...props} />
+    );
   },
-}));
+);
 
-export const PaletteControlContainer = styled(FullWidthContainer)({
-  flex: "1 1 10rem",
+export const PaletteControlContainer = React.forwardRef<
+  HTMLDivElement,
+  BoxProps
+>(function PaletteControlContainer(props, ref) {
+  return <FullWidthBox ref={ref} flex="1 1 10rem" {...props} />;
 });
-
-const WorkspaceColumnsGrid = styled(MaterialGrid)({
-  width: "100%",
-  minHeight: 0,
-  flex: "1 1 0",
-});
-
-const ComposeSidebarGridItem = styled(MaterialGrid)(({ theme }) => ({
-  width: "100%",
-  minHeight: 0,
-  [theme.breakpoints.up("lg")]: {
-    flexBasis: "17.5rem",
-    maxWidth: "17.5rem",
-    height: "100%",
-  },
-}));
-
-const WorkspaceStageGridItem = styled(MaterialGrid)(({ theme }) => ({
-  width: "100%",
-  minWidth: 0,
-  flex: "1 1 0",
-  minHeight: 0,
-  [theme.breakpoints.up("lg")]: {
-    height: "100%",
-  },
-}));
 
 type CharacterComposeWorkspaceGridProps = StackProps;
 
@@ -204,14 +185,35 @@ export const CharacterComposeWorkspaceGrid = React.forwardRef<
 
   return (
     <Stack ref={ref} minHeight={0} spacing="1rem" overflow="auto" {...props}>
-      <WorkspaceColumnsGrid container spacing={2}>
-        <ComposeSidebarGridItem size={12}>
-          <ComposeSidebarContainer>{sidebar}</ComposeSidebarContainer>
-        </ComposeSidebarGridItem>
-        <WorkspaceStageGridItem size={12}>
-          <WorkspaceStageContainer>{stage}</WorkspaceStageContainer>
-        </WorkspaceStageGridItem>
-      </WorkspaceColumnsGrid>
+      <Stack
+        useFlexGap
+        width="100%"
+        minHeight={0}
+        flex="1 1 0"
+        direction={{ xs: "column", lg: "row" }}
+        spacing={2}
+      >
+        <FullWidthBox
+          minHeight={0}
+          height="100%"
+          flexBasis={{ lg: "17.5rem" }}
+          maxWidth={{ lg: "17.5rem" }}
+          flexShrink={{ lg: 0 }}
+          display="flex"
+        >
+          {sidebar}
+        </FullWidthBox>
+        <Box
+          width="100%"
+          minWidth={0}
+          minHeight={0}
+          flex="1 1 0"
+          height={{ lg: "100%" }}
+          display="flex"
+        >
+          {stage}
+        </Box>
+      </Stack>
     </Stack>
   );
 });
@@ -293,17 +295,14 @@ export const PaletteSlotGrid = createUniformGridLayout(
   1,
 );
 
-type CharacterStageViewportProps = React.ComponentProps<
-  typeof CanvasViewport
-> & {
-  dragging?: boolean;
-};
-
-const CharacterStageViewportRoot = styled(CanvasViewport, {
-  shouldForwardProp: createShouldForwardProp(["dragging"]),
-})<{ dragging?: boolean }>(({ dragging }) => ({
-  cursor: dragging === true ? "grabbing" : "default",
-}));
+const CharacterStageViewportRoot = styled(CanvasViewport)({
+  "&[data-dragging-state='false']": {
+    cursor: "default",
+  },
+  "&[data-dragging-state='true']": {
+    cursor: "grabbing",
+  },
+});
 
 export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
@@ -312,7 +311,7 @@ export const CharacterStageViewport = React.forwardRef<
   return (
     <CharacterStageViewportRoot
       ref={ref}
-      dragging={dragging === true}
+      data-dragging-state={toBooleanDataValue(dragging)}
       flex="1 1 0"
       minHeight={0}
       minWidth={0}
@@ -347,93 +346,139 @@ export const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
   return <StageCanvasElement ref={onCanvasRef} aria-hidden="true" />;
 });
 
-export const DecompositionCanvasElement = styled(StageCanvasElement, {
-  shouldForwardProp: shouldForwardCanvasCursorProp,
-})<{ cursorStyle: string }>(({ cursorStyle }) => ({
+const DecompositionCanvasElementRoot = styled(StageCanvasElement)({
   imageRendering: "pixelated",
-  cursor: cursorStyle,
-}));
+});
 
-export const StageDragPreview = styled("div", {
-  shouldForwardProp: shouldForwardLibraryStateProp,
-})<{ previewLeft: number; previewTop: number }>(
-  ({ previewLeft, previewTop }) => ({
-    position: "absolute",
-    left: previewLeft,
-    top: previewTop,
-    opacity: 0.6,
+export const DecompositionCanvasElement = React.forwardRef<
+  HTMLCanvasElement,
+  DecompositionCanvasElementProps
+>(function DecompositionCanvasElement({ cursorStyle, style, ...props }, ref) {
+  return (
+    <DecompositionCanvasElementRoot
+      ref={ref}
+      {...props}
+      style={{ ...style, cursor: cursorStyle }}
+    />
+  );
+});
+
+const StageDragPreviewRoot = styled("div")({
+  position: "absolute",
+  opacity: 0.6,
+  pointerEvents: "none",
+  outline: "0.125rem dashed rgba(15, 118, 110, 0.72)",
+  borderRadius: "0.5rem",
+  boxShadow: "0 0 0 0.375rem rgba(15, 118, 110, 0.12)",
+  background: "rgba(255, 255, 255, 0.72)",
+  padding: "0.125rem",
+});
+
+export const StageDragPreview = React.forwardRef<
+  HTMLDivElement,
+  StageDragPreviewProps
+>(function StageDragPreview({ previewLeft, previewTop, style, ...props }, ref) {
+  return (
+    <StageDragPreviewRoot
+      ref={ref}
+      {...props}
+      style={{ ...style, left: previewLeft, top: previewTop }}
+    />
+  );
+});
+
+const RegionOverlayButtonRoot = styled(ButtonBase)({
+  position: "absolute",
+  padding: "0.375rem",
+  "&[data-issue-state='false']": {
+    border: "0.125rem solid rgba(15, 118, 110, 0.92)",
+    background: "rgba(240, 253, 250, 0.18)",
+  },
+  "&[data-issue-state='true']": {
+    border: "0.125rem solid rgba(190, 24, 93, 0.92)",
+    background: "rgba(255, 241, 242, 0.18)",
+  },
+  "&[data-selected-state='false']": {
+    boxShadow: "none",
+  },
+  "&[data-selected-state='true']": {
+    boxShadow: "0 0 0 0.375rem rgba(190, 24, 93, 0.12)",
+  },
+  "&[data-tool-mode='eraser'], &[data-tool-mode='pen']": {
+    cursor: "default",
     pointerEvents: "none",
-    outline: "0.125rem dashed rgba(15, 118, 110, 0.72)",
-    borderRadius: "0.5rem",
-    boxShadow: "0 0 0 0.375rem rgba(15, 118, 110, 0.12)",
-    background: "rgba(255, 255, 255, 0.72)",
-    padding: "0.125rem",
-  }),
-);
+  },
+  "&[data-tool-mode='region']": {
+    cursor: "grab",
+    pointerEvents: "auto",
+  },
+});
 
-export const RegionOverlayButton = styled(ButtonBase, {
-  shouldForwardProp: shouldForwardRegionStateProp,
-})<{
-  selectedState?: boolean;
-  issueState?: boolean;
-  regionLeft: number;
-  regionTop: number;
-  regionHeightPx: number;
-  regionScale: number;
-  toolMode: DecompositionTool;
-}>(
-  ({
-    selectedState,
+export const RegionOverlayButton = React.forwardRef<
+  HTMLButtonElement,
+  RegionOverlayButtonProps
+>(function RegionOverlayButton(
+  {
     issueState,
-    regionLeft,
-    regionTop,
     regionHeightPx,
+    regionLeft,
     regionScale,
+    regionTop,
+    selectedState,
+    style,
     toolMode,
-  }) => ({
-    position: "absolute",
-    left: regionLeft,
-    top: regionTop,
-    width: 8 * regionScale,
-    height: regionHeightPx,
-    padding: "0.375rem",
-    border:
-      selectedState === true || issueState === true
-        ? "0.125rem solid rgba(190, 24, 93, 0.92)"
-        : "0.125rem solid rgba(15, 118, 110, 0.92)",
-    background:
-      issueState === true
-        ? "rgba(255, 241, 242, 0.18)"
-        : "rgba(240, 253, 250, 0.18)",
-    boxShadow:
-      selectedState === true
-        ? "0 0 0 0.375rem rgba(190, 24, 93, 0.12)"
-        : "none",
-    cursor: toolMode === "region" ? "grab" : "default",
-    pointerEvents: toolMode === "region" ? "auto" : "none",
-  }),
-);
+    ...props
+  },
+  ref,
+) {
+  return (
+    <RegionOverlayButtonRoot
+      ref={ref}
+      {...props}
+      data-issue-state={toBooleanDataValue(issueState)}
+      data-selected-state={toBooleanDataValue(selectedState)}
+      data-tool-mode={toolMode}
+      style={{
+        ...style,
+        left: regionLeft,
+        top: regionTop,
+        width: 8 * regionScale,
+        height: regionHeightPx,
+      }}
+    />
+  );
+});
 
-export const FloatingLibraryPreview = styled("div", {
-  shouldForwardProp: shouldForwardLibraryStateProp,
-})<{ dragClientX: number; dragClientY: number }>(
-  ({ dragClientX, dragClientY }) => ({
-    position: "fixed",
-    left: dragClientX + 18,
-    top: dragClientY + 18,
-    zIndex: 200,
-    pointerEvents: "none",
-    width: "4rem",
-    minHeight: "4rem",
-    padding: "0.625rem",
-    borderRadius: "1.125rem",
-    background:
-      "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-    border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-    boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.18)",
-    opacity: 0.92,
-  }),
-);
+const FloatingLibraryPreviewRoot = styled("div")({
+  position: "fixed",
+  zIndex: 200,
+  pointerEvents: "none",
+  width: "4rem",
+  minHeight: "4rem",
+  padding: "0.625rem",
+  borderRadius: "1.125rem",
+  background:
+    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+  boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.18)",
+  opacity: 0.92,
+});
+
+export const FloatingLibraryPreview = React.forwardRef<
+  HTMLDivElement,
+  FloatingLibraryPreviewProps
+>(function FloatingLibraryPreview(
+  { dragClientX, dragClientY, style, ...props },
+  ref,
+) {
+  return (
+    <FloatingLibraryPreviewRoot
+      ref={ref}
+      {...props}
+      style={{ ...style, left: dragClientX + 18, top: dragClientY + 18 }}
+    />
+  );
+});
 
 export const PortalOverlay = styled("div")({
   position: "fixed",
@@ -441,74 +486,118 @@ export const PortalOverlay = styled("div")({
   zIndex: 320,
 });
 
-export const PositionedActionMenu = styled(ActionMenu, {
-  shouldForwardProp: shouldForwardMenuPositionProp,
-})<{
-  menuTop: number;
-  menuLeft: number;
-  menuWidth: number;
-  ready: boolean;
-}>(({ menuTop, menuLeft, menuWidth, ready }) => ({
-  top: menuTop,
-  left: menuLeft,
-  width: menuWidth,
-  visibility: ready === true ? "visible" : "hidden",
-}));
+const PositionedActionMenuRoot = styled(ActionMenu)({
+  "&[data-ready='false']": {
+    visibility: "hidden",
+  },
+  "&[data-ready='true']": {
+    visibility: "visible",
+  },
+});
 
-export const PositionedActionMenuButton = styled(ActionMenuButton, {
-  shouldForwardProp: shouldForwardMenuPositionProp,
-})<{ danger?: boolean }>(({ danger }) => ({
-  color: danger === true ? "rgb(190, 24, 93)" : "var(--ink-strong)",
+export const PositionedActionMenu = React.forwardRef<
+  HTMLDivElement,
+  PositionedActionMenuProps
+>(function PositionedActionMenu(
+  { menuLeft, menuTop, menuWidth, ready, style, ...props },
+  ref,
+) {
+  return (
+    <PositionedActionMenuRoot
+      ref={ref}
+      {...props}
+      data-ready={toBooleanDataValue(ready)}
+      style={{ ...style, left: menuLeft, top: menuTop, width: menuWidth }}
+    />
+  );
+});
+
+const PositionedActionMenuButtonRoot = styled(ActionMenuButton)({
+  "&[data-danger='false']": {
+    color: "var(--ink-strong)",
+    background: "rgba(248, 250, 252, 0.96)",
+  },
+  "&[data-danger='true']": {
+    color: "rgb(190, 24, 93)",
+    background: "rgba(255, 241, 242, 0.96)",
+  },
+});
+
+export const PositionedActionMenuButton = React.forwardRef<
+  HTMLButtonElement,
+  PositionedActionMenuButtonProps
+>(function PositionedActionMenuButton({ danger, ...props }, ref) {
+  return (
+    <PositionedActionMenuButtonRoot
+      ref={ref}
+      {...props}
+      data-danger={toBooleanDataValue(danger)}
+    />
+  );
+});
+
+const EmptyTilePreviewRoot = styled("div")({
+  borderRadius: "0.5rem",
   background:
-    danger === true ? "rgba(255, 241, 242, 0.96)" : "rgba(248, 250, 252, 0.96)",
-}));
+    "linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02))",
+  border: "0.0625rem dashed rgba(148, 163, 184, 0.34)",
+});
 
-export const EmptyTilePreview = styled("div", {
-  shouldForwardProp: shouldForwardPixelPreviewSizeProp,
-})<{ previewWidth: number; previewHeight: number }>(
-  ({ previewWidth, previewHeight }) => ({
-    width: previewWidth,
-    height: previewHeight,
-    borderRadius: "0.5rem",
-    background:
-      "linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02))",
-    border: "0.0625rem dashed rgba(148, 163, 184, 0.34)",
-  }),
-);
+export const EmptyTilePreview = React.forwardRef<
+  HTMLDivElement,
+  EmptyTilePreviewProps
+>(function EmptyTilePreview(
+  { previewHeight, previewWidth, style, ...props },
+  ref,
+) {
+  return (
+    <EmptyTilePreviewRoot
+      ref={ref}
+      {...props}
+      style={{ ...style, width: previewWidth, height: previewHeight }}
+    />
+  );
+});
 
-export const PixelPreviewCell = styled("div", {
-  shouldForwardProp: shouldForwardPixelPreviewSizeProp,
-})<{ pixelSize: number; colorHex: string }>(({ pixelSize, colorHex }) => ({
-  width: pixelSize,
-  height: pixelSize,
-  backgroundColor: colorHex,
-}));
+const PixelPreviewCellRoot = styled("div")({
+  flexShrink: 0,
+});
 
-export const StageSurface = styled("div", {
-  shouldForwardProp: shouldForwardStageProp,
-})<{
-  activeDrop?: boolean;
-  stageWidthPx: number;
-  stageHeightPx: number;
-  stageScale: number;
-}>(({ activeDrop, stageWidthPx, stageHeightPx, stageScale }) => ({
+export const PixelPreviewCell = React.forwardRef<
+  HTMLDivElement,
+  PixelPreviewCellProps
+>(function PixelPreviewCell({ colorHex, pixelSize, style, ...props }, ref) {
+  return (
+    <PixelPreviewCellRoot
+      ref={ref}
+      {...props}
+      style={{
+        ...style,
+        width: pixelSize,
+        height: pixelSize,
+        backgroundColor: colorHex,
+      }}
+    />
+  );
+});
+
+const StageSurfaceRoot = styled("div")({
   position: "relative",
-  width: stageWidthPx,
-  height: stageHeightPx,
-  minWidth: stageWidthPx,
-  minHeight: stageHeightPx,
   overflow: "hidden",
-  border:
-    activeDrop === true
-      ? "0.0625rem solid rgba(45, 212, 191, 0.72)"
-      : "0.0625rem solid rgba(148, 163, 184, 0.22)",
   background:
     "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
   boxShadow:
     "0 1.75rem 3.75rem rgba(15, 23, 42, 0.22), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.92)",
-  transform: activeDrop === true ? "scale(1.01)" : "none",
   transition:
     "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
+  "&[data-active-drop='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.22)",
+    transform: "none",
+  },
+  "&[data-active-drop='true']": {
+    border: "0.0625rem solid rgba(45, 212, 191, 0.72)",
+    transform: "scale(1.01)",
+  },
   "&:focus-visible": {
     outline: "0.125rem solid rgba(15, 118, 110, 0.92)",
     outlineOffset: "0.25rem",
@@ -524,10 +613,10 @@ export const StageSurface = styled("div", {
       "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
     ].join(", "),
     backgroundSize: [
-      `${stageScale}px ${stageScale}px`,
-      `${stageScale}px ${stageScale}px`,
-      `${stageScale * 8}px ${stageScale * 8}px`,
-      `${stageScale * 8}px ${stageScale * 8}px`,
+      "var(--stage-cell-size) var(--stage-cell-size)",
+      "var(--stage-cell-size) var(--stage-cell-size)",
+      "var(--stage-grid-size) var(--stage-grid-size)",
+      "var(--stage-grid-size) var(--stage-grid-size)",
     ].join(", "),
     opacity: 0.95,
     pointerEvents: "none",
@@ -540,9 +629,40 @@ export const StageSurface = styled("div", {
       "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
       "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
     ].join(", "),
-    backgroundSize: `0.0625rem ${stageHeightPx}px, ${stageWidthPx}px 0.0625rem`,
-    backgroundPosition: `${Math.floor(stageWidthPx / 2)}px 0, 0 ${Math.floor(stageHeightPx / 2)}px`,
+    backgroundSize:
+      "0.0625rem var(--stage-height-px), var(--stage-width-px) 0.0625rem",
+    backgroundPosition: "var(--stage-mid-x) 0, 0 var(--stage-mid-y)",
     backgroundRepeat: "no-repeat",
     pointerEvents: "none",
   },
-}));
+});
+
+export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
+  function StageSurface(
+    { activeDrop, stageHeightPx, stageScale, stageWidthPx, style, ...props },
+    ref,
+  ) {
+    const stageSurfaceStyle: StageSurfaceStyle = {
+      ...style,
+      width: stageWidthPx,
+      height: stageHeightPx,
+      minWidth: stageWidthPx,
+      minHeight: stageHeightPx,
+      "--stage-cell-size": `${stageScale}px`,
+      "--stage-grid-size": `${stageScale * 8}px`,
+      "--stage-height-px": `${stageHeightPx}px`,
+      "--stage-width-px": `${stageWidthPx}px`,
+      "--stage-mid-x": `${Math.floor(stageWidthPx / 2)}px`,
+      "--stage-mid-y": `${Math.floor(stageHeightPx / 2)}px`,
+    };
+
+    return (
+      <StageSurfaceRoot
+        ref={ref}
+        {...props}
+        data-active-drop={toBooleanDataValue(activeDrop)}
+        style={stageSurfaceStyle}
+      />
+    );
+  },
+);

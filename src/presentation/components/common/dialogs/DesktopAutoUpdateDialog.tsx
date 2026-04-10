@@ -1,12 +1,14 @@
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   LinearProgress,
+  Stack,
+  Typography,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -20,52 +22,16 @@ interface DesktopAutoUpdateDialogProps {
   readonly onRestartNow: () => void;
 }
 
-const DialogBody = styled("div")(({ theme }) => ({
-  display: "grid",
-  gap: theme.spacing(1),
-}));
-
-const DescriptionText = styled("p")(({ theme }) => ({
+const failureDetailLabelStyle: React.CSSProperties = {
   margin: 0,
-  color: theme.palette.text.primary,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
-}));
+  fontWeight: 500,
+};
 
-const FailureDetailsGrid = styled("dl")(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "max-content minmax(0, 1fr)",
-  gap: theme.spacing(0.5, 1.5),
-  margin: 0,
-}));
-
-const FailureDetailLabel = styled("dt")(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  fontSize: theme.typography.caption.fontSize,
-  fontWeight: theme.typography.fontWeightMedium,
-  lineHeight: theme.typography.caption.lineHeight,
-  margin: 0,
-}));
-
-const FailureDetailValue = styled("dd")(({ theme }) => ({
-  color: theme.palette.text.primary,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
+const failureDetailValueStyle: React.CSSProperties = {
   margin: 0,
   overflowWrap: "anywhere",
   whiteSpace: "pre-wrap",
-}));
-
-const DownloadProgressSection = styled("div")(({ theme }) => ({
-  display: "grid",
-  gap: theme.spacing(0.5),
-}));
-
-const ProgressMetaText = styled("span")(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  fontSize: theme.typography.caption.fontSize,
-  lineHeight: theme.typography.caption.lineHeight,
-}));
+};
 
 const resolveDialogTitle = (state: DesktopAutoUpdateDialogState): string => {
   if (state.kind === "checking") {
@@ -173,43 +139,108 @@ export const DesktopAutoUpdateDialog: React.FC<
         {resolveDialogTitle(state)}
       </DialogTitle>
       <DialogContent>
-        <DialogBody>
-          <DescriptionText>{resolveDialogDescription(state)}</DescriptionText>
+        <Stack spacing={1}>
+          <Typography component="p" variant="body2" color="text.primary">
+            {resolveDialogDescription(state)}
+          </Typography>
 
           {state.kind === "checking" ? (
-            <DownloadProgressSection>
+            <Stack spacing={0.5}>
               <LinearProgress />
-            </DownloadProgressSection>
+            </Stack>
           ) : (
             <></>
           )}
 
           {state.kind === "downloading" ? (
-            <DownloadProgressSection>
+            <Stack spacing={0.5}>
               {renderProgressBar(progressPercent)}
-              <ProgressMetaText>
+              <Typography variant="caption" color="text.secondary">
                 {resolveProgressText(progressPercent)}
-              </ProgressMetaText>
-            </DownloadProgressSection>
+              </Typography>
+            </Stack>
           ) : (
             <></>
           )}
 
           {state.kind === "failed" ? (
-            <FailureDetailsGrid>
-              <FailureDetailLabel>対象バージョン</FailureDetailLabel>
-              <FailureDetailValue>{state.versionLabel}</FailureDetailValue>
-              <FailureDetailLabel>処理段階</FailureDetailLabel>
-              <FailureDetailValue>{state.operationLabel}</FailureDetailValue>
-              <FailureDetailLabel>技術詳細</FailureDetailLabel>
-              <FailureDetailValue>{state.detail}</FailureDetailValue>
-              <FailureDetailLabel>対処</FailureDetailLabel>
-              <FailureDetailValue>{state.recoveryHint}</FailureDetailValue>
-            </FailureDetailsGrid>
+            <Box
+              component="dl"
+              display="grid"
+              gridTemplateColumns="max-content minmax(0, 1fr)"
+              rowGap={0.5}
+              columnGap={1.5}
+              m={0}
+            >
+              <Typography
+                component="dt"
+                variant="caption"
+                color="text.secondary"
+                style={failureDetailLabelStyle}
+              >
+                対象バージョン
+              </Typography>
+              <Typography
+                component="dd"
+                variant="body2"
+                color="text.primary"
+                style={failureDetailValueStyle}
+              >
+                {state.versionLabel}
+              </Typography>
+              <Typography
+                component="dt"
+                variant="caption"
+                color="text.secondary"
+                style={failureDetailLabelStyle}
+              >
+                処理段階
+              </Typography>
+              <Typography
+                component="dd"
+                variant="body2"
+                color="text.primary"
+                style={failureDetailValueStyle}
+              >
+                {state.operationLabel}
+              </Typography>
+              <Typography
+                component="dt"
+                variant="caption"
+                color="text.secondary"
+                style={failureDetailLabelStyle}
+              >
+                技術詳細
+              </Typography>
+              <Typography
+                component="dd"
+                variant="body2"
+                color="text.primary"
+                style={failureDetailValueStyle}
+              >
+                {state.detail}
+              </Typography>
+              <Typography
+                component="dt"
+                variant="caption"
+                color="text.secondary"
+                style={failureDetailLabelStyle}
+              >
+                対処
+              </Typography>
+              <Typography
+                component="dd"
+                variant="body2"
+                color="text.primary"
+                style={failureDetailValueStyle}
+              >
+                {state.recoveryHint}
+              </Typography>
+            </Box>
           ) : (
             <></>
           )}
-        </DialogBody>
+        </Stack>
       </DialogContent>
       <DialogActions>
         {state.kind === "checking" ? (

@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   ButtonBase,
   Dialog,
@@ -32,12 +33,6 @@ interface ScreenModeBackgroundTilePickerDialogProps {
 
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 
-const PreviewGrid = styled("div")({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))",
-  gap: "0.875rem",
-});
-
 const PreviewButton = styled(ButtonBase)({
   width: "100%",
   borderRadius: "1rem",
@@ -47,19 +42,6 @@ const PreviewButton = styled(ButtonBase)({
   boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
   padding: "0.875rem",
   textAlign: "left",
-});
-
-const PreviewButtonLayout = styled(Stack)({
-  width: "100%",
-  alignItems: "flex-start",
-  gap: "0.625rem",
-});
-
-const DialogToolbar = styled(Stack)({
-  flexDirection: "row",
-  flexWrap: "wrap",
-  alignItems: "center",
-  gap: "0.625rem",
 });
 
 /**
@@ -93,7 +75,13 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
       <DialogTitle>BG編集</DialogTitle>
       <DialogContent>
         <Stack spacing="1rem" useFlexGap>
-          <DialogToolbar>
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            alignItems="center"
+            spacing="0.625rem"
+            useFlexGap
+          >
             <ToolButton
               type="button"
               active={pickerMode === "bgTile"}
@@ -116,10 +104,14 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
             >
               BG属性
             </ToolButton>
-          </DialogToolbar>
+          </Stack>
 
           {pickerMode === "bgTile" ? (
-            <PreviewGrid>
+            <Box
+              display="grid"
+              gridTemplateColumns="repeat(auto-fill, minmax(8rem, 1fr))"
+              gap="0.875rem"
+            >
               {visibleBackgroundTiles.map((tile, tileIndex) => (
                 <PreviewButton
                   key={`screen-mode-bg-dialog-tile-${tileIndex}`}
@@ -129,7 +121,12 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                     onTileSelect(tileIndex);
                   }}
                 >
-                  <PreviewButtonLayout>
+                  <Stack
+                    useFlexGap
+                    width="100%"
+                    alignItems="flex-start"
+                    spacing="0.625rem"
+                  >
                     <BackgroundTilePreview
                       scale={8}
                       tile={tile}
@@ -137,12 +134,18 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                       universalBackgroundColor={nes.universalBackgroundColor}
                     />
                     <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
-                  </PreviewButtonLayout>
+                  </Stack>
                 </PreviewButton>
               ))}
-            </PreviewGrid>
+            </Box>
           ) : (
-            <DialogToolbar>
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              alignItems="center"
+              spacing="0.625rem"
+              useFlexGap
+            >
               {BG_PALETTE_OPTIONS.map((paletteIndex) => (
                 <ToolButton
                   key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
@@ -158,7 +161,7 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                   {`Palette ${paletteIndex}`}
                 </ToolButton>
               ))}
-            </DialogToolbar>
+            </Stack>
           )}
         </Stack>
       </DialogContent>

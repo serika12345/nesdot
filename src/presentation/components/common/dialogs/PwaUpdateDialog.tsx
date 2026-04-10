@@ -5,8 +5,9 @@ import {
   DialogContent,
   DialogTitle,
   LinearProgress,
+  Stack,
+  Typography,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import type { PwaUpdateDialogState } from "../../../../infrastructure/browser/pwaUpdateMonitor";
 
@@ -15,25 +16,6 @@ interface PwaUpdateDialogProps {
   readonly onDialogClose: () => void;
   readonly onUpdateNow: () => void;
 }
-
-const DialogBody = styled("div")(({ theme }) => ({
-  display: "grid",
-  gap: theme.spacing(1),
-}));
-
-const DescriptionText = styled("p")(({ theme }) => ({
-  margin: 0,
-  color: theme.palette.text.primary,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
-}));
-
-const ErrorMessageText = styled("p")(({ theme }) => ({
-  margin: 0,
-  color: theme.palette.error.main,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
-}));
 
 const resolveDialogTitle = (state: PwaUpdateDialogState): string => {
   if (state.kind === "available") {
@@ -93,17 +75,21 @@ export const PwaUpdateDialog: React.FC<PwaUpdateDialogProps> = ({
         {resolveDialogTitle(state)}
       </DialogTitle>
       <DialogContent>
-        <DialogBody>
-          <DescriptionText>{resolveDialogDescription(state)}</DescriptionText>
+        <Stack spacing={1}>
+          <Typography component="p" variant="body2" color="text.primary">
+            {resolveDialogDescription(state)}
+          </Typography>
 
           {state.kind === "applying" ? <LinearProgress /> : <></>}
 
           {state.kind === "failed" ? (
-            <ErrorMessageText>{state.message}</ErrorMessageText>
+            <Typography component="p" variant="body2" color="error.main">
+              {state.message}
+            </Typography>
           ) : (
             <></>
           )}
-        </DialogBody>
+        </Stack>
       </DialogContent>
       <DialogActions>
         {state.kind === "available" ? (

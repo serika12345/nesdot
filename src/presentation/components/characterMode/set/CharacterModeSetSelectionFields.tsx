@@ -1,4 +1,5 @@
 import {
+  Box,
   Dialog,
   DialogActions,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   Select,
   Stack,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -17,18 +17,6 @@ import {
   useCharacterModeSetName,
   useCharacterModeSetSelection,
 } from "../core/CharacterModeStateProvider";
-
-const ResponsiveActionContainer = styled("div")({
-  flexShrink: 0,
-});
-
-const SetSelectContainer = styled("div")(({ theme }) => ({
-  minWidth: "14rem",
-  flex: "1 1 16rem",
-  [theme.breakpoints.down("sm")]: {
-    minWidth: "100%",
-  },
-}));
 
 /**
  * 編集対象セットの選択、名前変更、削除を扱う入力欄です。
@@ -82,7 +70,7 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
 
   return (
     <>
-      <SetSelectContainer>
+      <Box minWidth={{ xs: "100%", sm: "14rem" }} flex="1 1 16rem">
         <Select
           fullWidth
           variant="outlined"
@@ -107,8 +95,8 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
             </MenuItem>
           ))}
         </Select>
-      </SetSelectContainer>
-      <ResponsiveActionContainer>
+      </Box>
+      <Box flexShrink={0}>
         <ToolButton
           type="button"
           disabled={O.isNone(setSelection.selectedCharacterId)}
@@ -116,8 +104,8 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
         >
           セット名変更
         </ToolButton>
-      </ResponsiveActionContainer>
-      <ResponsiveActionContainer>
+      </Box>
+      <Box flexShrink={0}>
         <ToolButton
           type="button"
           tone="danger"
@@ -126,7 +114,7 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
         >
           セットを削除
         </ToolButton>
-      </ResponsiveActionContainer>
+      </Box>
 
       <Dialog
         open={isRenameDialogOpen}

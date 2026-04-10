@@ -1,23 +1,6 @@
 import { Stack } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import { CharacterModeSetSelectionFields } from "./CharacterModeSetSelectionFields";
-
-const SetHeaderRow = styled(Stack)(({ theme }) => ({
-  width: "100%",
-  minWidth: 0,
-  flexDirection: "row",
-  alignItems: "flex-end",
-  gap: theme.spacing(2),
-}));
-
-const SetHeaderGroup = styled(Stack)(({ theme }) => ({
-  minWidth: 0,
-  flex: "1 1 0",
-  flexDirection: "row",
-  alignItems: "flex-end",
-  gap: theme.spacing(1.5),
-}));
 
 /**
  * キャラクターセットの選択、名前変更、削除を行うヘッダーです。
@@ -25,10 +8,24 @@ const SetHeaderGroup = styled(Stack)(({ theme }) => ({
  */
 export const CharacterModeSetHeader: React.FC = () => {
   return (
-    <SetHeaderRow>
-      <SetHeaderGroup>
+    <Stack
+      useFlexGap
+      width="100%"
+      minWidth={0}
+      direction="row"
+      alignItems="flex-end"
+      spacing={2}
+    >
+      <Stack
+        useFlexGap
+        minWidth={0}
+        flex="1 1 0"
+        direction="row"
+        alignItems="flex-end"
+        spacing={1.5}
+      >
         <CharacterModeSetSelectionFields />
-      </SetHeaderGroup>
-    </SetHeaderRow>
+      </Stack>
+    </Stack>
   );
 };

@@ -19,9 +19,6 @@ import {
   useCharacterModeSetSelection,
 } from "./CharacterModeStateProvider";
 
-const shouldForwardLockedStateProp = (prop: PropertyKey): boolean =>
-  prop !== "lockedState";
-
 const WorkspaceGateRoot = styled("div")({
   position: "relative",
   minHeight: 0,
@@ -30,19 +27,17 @@ const WorkspaceGateRoot = styled("div")({
   display: "flex",
 });
 
-const WorkspaceLockOverlay = styled("div", {
-  shouldForwardProp: shouldForwardLockedStateProp,
-})<{ lockedState: boolean }>(({ lockedState }) => ({
+const WorkspaceLockOverlay = styled("div")({
   position: "absolute",
   inset: 0,
   zIndex: 14,
-  display: lockedState ? "grid" : "none",
+  display: "grid",
   placeItems: "center",
   borderRadius: "1.25rem",
   border: "0.0625rem solid rgba(148, 163, 184, 0.26)",
   background: "rgba(248, 250, 252, 0.76)",
   backdropFilter: "blur(1.5px)",
-}));
+});
 
 const WorkspaceLockMessage = styled("div")({
   borderRadius: "999px",
@@ -89,10 +84,7 @@ export const CharacterModeWorkspace: React.FC = () => {
         </CharacterComposeWorkspaceGrid>
 
         {isWorkspaceLocked === true ? (
-          <WorkspaceLockOverlay
-            lockedState={isWorkspaceLocked}
-            aria-label="キャラクター編集ロックオーバーレイ"
-          >
+          <WorkspaceLockOverlay aria-label="キャラクター編集ロックオーバーレイ">
             <WorkspaceLockMessage>
               セットを作成すると編集できます
             </WorkspaceLockMessage>

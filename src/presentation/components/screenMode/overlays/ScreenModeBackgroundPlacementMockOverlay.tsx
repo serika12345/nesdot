@@ -31,25 +31,15 @@ interface ScreenModeBackgroundPlacementMockOverlayProps {
   screenZoomLevel: number;
 }
 
-const shouldForwardOverlayProp = (prop: PropertyKey): boolean =>
-  prop !== "overlayHeight" &&
-  prop !== "overlayLeft" &&
-  prop !== "overlayTop" &&
-  prop !== "overlayWidth";
-
-const OverlayRoot = styled("div", {
-  shouldForwardProp: shouldForwardOverlayProp,
-})<{
+type OverlayRootProps = React.ComponentProps<"div"> & {
   overlayHeight: number;
   overlayLeft: number;
   overlayTop: number;
   overlayWidth: number;
-}>(({ overlayHeight, overlayLeft, overlayTop, overlayWidth }) => ({
+};
+
+const OverlayRootBase = styled("div")({
   position: "absolute",
-  left: overlayLeft,
-  top: overlayTop,
-  width: overlayWidth,
-  height: overlayHeight,
   borderRadius: 0,
   border: "0.125rem dashed rgba(20, 184, 166, 0.9)",
   background: "rgba(45, 212, 191, 0.14)",
@@ -58,7 +48,28 @@ const OverlayRoot = styled("div", {
   display: "flex",
   alignItems: "flex-start",
   justifyContent: "flex-start",
-}));
+});
+
+const OverlayRoot = React.forwardRef<HTMLDivElement, OverlayRootProps>(
+  function OverlayRoot(
+    { overlayHeight, overlayLeft, overlayTop, overlayWidth, style, ...props },
+    ref,
+  ) {
+    return (
+      <OverlayRootBase
+        ref={ref}
+        {...props}
+        style={{
+          ...style,
+          left: overlayLeft,
+          top: overlayTop,
+          width: overlayWidth,
+          height: overlayHeight,
+        }}
+      />
+    );
+  },
+);
 
 const OverlayPreview = styled("div")({
   position: "absolute",

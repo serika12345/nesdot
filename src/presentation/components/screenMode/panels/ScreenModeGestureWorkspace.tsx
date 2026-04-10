@@ -19,48 +19,75 @@ import {
   PreviewViewport,
 } from "../primitives/ScreenModePrimitives";
 
-const shouldForwardStageProp = (prop: PropertyKey): boolean =>
-  prop !== "draggingState" && prop !== "stageHeight" && prop !== "stageWidth";
+type StageSurfaceProps = React.ComponentProps<"div"> & {
+  draggingState: boolean;
+  stageHeight: number;
+  stageWidth: number;
+};
 
-const shouldForwardSpriteOutlineProp = (prop: PropertyKey): boolean =>
-  prop !== "outlineVisibleState" &&
-  prop !== "selectedState" &&
-  prop !== "spriteHeight" &&
-  prop !== "spriteWidth" &&
-  prop !== "spriteX" &&
-  prop !== "spriteY";
+type StageSpriteOutlineProps = React.ComponentProps<"div"> & {
+  outlineVisibleState: boolean;
+  selectedState: boolean;
+  spriteHeight: number;
+  spriteWidth: number;
+  spriteX: number;
+  spriteY: number;
+};
 
-const shouldForwardMarqueeProp = (prop: PropertyKey): boolean =>
-  prop !== "marqueeHeight" &&
-  prop !== "marqueeWidth" &&
-  prop !== "marqueeX" &&
-  prop !== "marqueeY";
+type StageMarqueeProps = React.ComponentProps<"div"> & {
+  marqueeHeight: number;
+  marqueeWidth: number;
+  marqueeX: number;
+  marqueeY: number;
+};
 
-const shouldForwardDraggingProp = (prop: PropertyKey): boolean =>
-  prop !== "draggingState";
+type LibrarySectionContentProps = React.ComponentProps<"div"> & {
+  openState: boolean;
+};
 
-const shouldForwardFloatingPreviewProp = (prop: PropertyKey): boolean =>
-  prop !== "previewLeft" && prop !== "previewTop";
+type LibraryPreviewButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  draggingState?: boolean;
+};
 
-const shouldForwardOpenStateProp = (prop: PropertyKey): boolean =>
-  prop !== "openState";
+type FloatingDragPreviewProps = React.ComponentProps<"div"> & {
+  previewLeft: number;
+  previewTop: number;
+};
+
+const toBooleanDataValue = (value?: boolean): "true" | "false" =>
+  value === true ? "true" : "false";
 
 const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transform: open ? "rotate(180deg)" : "rotate(0deg)",
   transition: "transform 160ms ease",
 });
 
-const StageSurface = styled("div", {
-  shouldForwardProp: shouldForwardStageProp,
-})<{ stageWidth: number; stageHeight: number; draggingState: boolean }>(
-  ({ draggingState, stageHeight, stageWidth }) => ({
-    position: "relative",
-    width: stageWidth,
-    height: stageHeight,
-    cursor: draggingState === true ? "grabbing" : "default",
-    touchAction: "none",
-    userSelect: "none",
-  }),
+const StageSurfaceRoot = styled("div")({
+  position: "relative",
+  touchAction: "none",
+  userSelect: "none",
+  "&[data-dragging-state='false']": {
+    cursor: "default",
+  },
+  "&[data-dragging-state='true']": {
+    cursor: "grabbing",
+  },
+});
+
+const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
+  function StageSurface(
+    { draggingState, stageHeight, stageWidth, style, ...props },
+    ref,
+  ) {
+    return (
+      <StageSurfaceRoot
+        ref={ref}
+        {...props}
+        data-dragging-state={toBooleanDataValue(draggingState)}
+        style={{ ...style, width: stageWidth, height: stageHeight }}
+      />
+    );
+  },
 );
 
 const StageInteractionLayer = styled("div")({
@@ -69,54 +96,55 @@ const StageInteractionLayer = styled("div")({
   zIndex: 3,
 });
 
-const StageSpriteOutline = styled("div", {
-  shouldForwardProp: shouldForwardSpriteOutlineProp,
-})<{
-  spriteX: number;
-  spriteY: number;
-  spriteWidth: number;
-  spriteHeight: number;
-  selectedState: boolean;
-  outlineVisibleState: boolean;
-}>(({
-  outlineVisibleState,
-  selectedState,
-  spriteHeight,
-  spriteWidth,
-  spriteX,
-  spriteY,
-}) => {
-  if (outlineVisibleState === false) {
-    return {
-      position: "absolute",
-      left: spriteX,
-      top: spriteY,
-      width: spriteWidth,
-      height: spriteHeight,
-      border: "none",
-      borderRadius: 0,
-      background: "transparent",
-      pointerEvents: "none",
-    };
-  }
+const StageSpriteOutlineRoot = styled("div")({
+  position: "absolute",
+  borderRadius: 0,
+  pointerEvents: "none",
+  "&[data-outline-visible-state='false']": {
+    border: "none",
+    background: "transparent",
+  },
+  "&[data-outline-visible-state='true'][data-selected-state='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.68)",
+    background: "rgba(255, 255, 255, 0.02)",
+  },
+  "&[data-outline-visible-state='true'][data-selected-state='true']": {
+    border: "0.125rem solid rgba(20, 184, 166, 0.92)",
+    background: "rgba(45, 212, 191, 0.1)",
+  },
+});
 
-  return {
-    position: "absolute",
-    left: spriteX,
-    top: spriteY,
-    width: spriteWidth,
-    height: spriteHeight,
-    border:
-      selectedState === true
-        ? "0.125rem solid rgba(20, 184, 166, 0.92)"
-        : "0.0625rem solid rgba(148, 163, 184, 0.68)",
-    borderRadius: 0,
-    background:
-      selectedState === true
-        ? "rgba(45, 212, 191, 0.1)"
-        : "rgba(255, 255, 255, 0.02)",
-    pointerEvents: "none",
-  };
+const StageSpriteOutline = React.forwardRef<
+  HTMLDivElement,
+  StageSpriteOutlineProps
+>(function StageSpriteOutline(
+  {
+    outlineVisibleState,
+    selectedState,
+    spriteHeight,
+    spriteWidth,
+    spriteX,
+    spriteY,
+    style,
+    ...props
+  },
+  ref,
+) {
+  return (
+    <StageSpriteOutlineRoot
+      ref={ref}
+      {...props}
+      data-outline-visible-state={toBooleanDataValue(outlineVisibleState)}
+      data-selected-state={toBooleanDataValue(selectedState)}
+      style={{
+        ...style,
+        left: spriteX,
+        top: spriteY,
+        width: spriteWidth,
+        height: spriteHeight,
+      }}
+    />
+  );
 });
 
 const StageSpriteIndex = styled("span")({
@@ -133,58 +161,37 @@ const StageSpriteIndex = styled("span")({
   lineHeight: 1.2,
 });
 
-const StageMarquee = styled("div", {
-  shouldForwardProp: shouldForwardMarqueeProp,
-})<{
-  marqueeX: number;
-  marqueeY: number;
-  marqueeWidth: number;
-  marqueeHeight: number;
-}>(({ marqueeHeight, marqueeWidth, marqueeX, marqueeY }) => ({
+const StageMarqueeRoot = styled("div")({
   position: "absolute",
-  left: marqueeX,
-  top: marqueeY,
-  width: marqueeWidth,
-  height: marqueeHeight,
   border: "0.0625rem solid rgba(45, 212, 191, 0.9)",
   background: "rgba(45, 212, 191, 0.12)",
   borderRadius: "0.375rem",
   pointerEvents: "none",
-}));
+});
+
+const StageMarquee = React.forwardRef<HTMLDivElement, StageMarqueeProps>(
+  function StageMarquee(
+    { marqueeHeight, marqueeWidth, marqueeX, marqueeY, style, ...props },
+    ref,
+  ) {
+    return (
+      <StageMarqueeRoot
+        ref={ref}
+        {...props}
+        style={{
+          ...style,
+          left: marqueeX,
+          top: marqueeY,
+          width: marqueeWidth,
+          height: marqueeHeight,
+        }}
+      />
+    );
+  },
+);
 
 const StageGuide = styled(HelperText)({
   marginTop: "0.25rem",
-});
-
-const WorkspaceColumns = styled(Stack)(({ theme }) => ({
-  minHeight: 0,
-  minWidth: 0,
-  flex: "1 1 0",
-  gap: theme.spacing(2),
-  flexDirection: "column",
-  [theme.breakpoints.up("lg")]: {
-    flexDirection: "row",
-  },
-}));
-
-const LibrarySidebar = styled(Stack)(({ theme }) => ({
-  minHeight: 0,
-  minWidth: 0,
-  maxHeight: "100%",
-  overflowY: "auto",
-  overflowX: "hidden",
-  scrollbarGutter: "stable",
-  gap: theme.spacing(1.5),
-  [theme.breakpoints.up("lg")]: {
-    width: "21rem",
-    flexShrink: 0,
-  },
-}));
-
-const StageWorkspace = styled(Stack)({
-  minHeight: 0,
-  minWidth: 0,
-  flex: "1 1 0",
 });
 
 const LibrarySection = styled(Stack)({
@@ -200,22 +207,28 @@ const LibrarySection = styled(Stack)({
   minHeight: 0,
 });
 
-const LibraryHeader = styled(PanelHeaderRow)({
-  alignItems: "center",
-});
-
-const LibraryHeaderActions = styled(Stack)({
-  flexDirection: "row",
-  alignItems: "center",
-  gap: "0.5rem",
-});
-
-const LibrarySectionContent = styled("div", {
-  shouldForwardProp: shouldForwardOpenStateProp,
-})<{ openState: boolean }>(({ openState }) => ({
-  display: openState === true ? "block" : "none",
+const LibrarySectionContentRoot = styled("div")({
   minHeight: 0,
-}));
+  "&[data-open-state='false']": {
+    display: "none",
+  },
+  "&[data-open-state='true']": {
+    display: "block",
+  },
+});
+
+const LibrarySectionContent = React.forwardRef<
+  HTMLDivElement,
+  LibrarySectionContentProps
+>(function LibrarySectionContent({ openState, ...props }, ref) {
+  return (
+    <LibrarySectionContentRoot
+      ref={ref}
+      {...props}
+      data-open-state={toBooleanDataValue(openState)}
+    />
+  );
+});
 
 const LibraryScrollArea = styled("div")({
   maxHeight: "15.5rem",
@@ -241,38 +254,44 @@ const CharacterLibraryGrid = styled("div")({
   gap: "0.625rem",
 });
 
-const LibraryPreviewButton = styled(ButtonBase, {
-  shouldForwardProp: shouldForwardDraggingProp,
-})<{ draggingState?: boolean }>(({ draggingState }) => ({
+const LibraryPreviewButtonRoot = styled(ButtonBase)({
   appearance: "none",
   width: "100%",
   minWidth: 0,
   minHeight: "6rem",
   borderRadius: "0.875rem",
-  border:
-    draggingState === true
-      ? "0.0625rem solid rgba(15, 118, 110, 0.46)"
-      : "0.0625rem solid rgba(148, 163, 184, 0.2)",
-  background:
-    draggingState === true
-      ? "rgba(240, 253, 250, 0.96)"
-      : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94))",
   padding: "0.5rem",
   cursor: "grab",
   touchAction: "none",
   userSelect: "none",
   transition: "transform 160ms ease, border-color 160ms ease",
-  boxShadow: "0 0.5rem 1rem rgba(15, 23, 42, 0.08)",
+  "&[data-dragging-state='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
+    background:
+      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94))",
+    boxShadow: "0 0.5rem 1rem rgba(15, 23, 42, 0.08)",
+  },
+  "&[data-dragging-state='true']": {
+    border: "0.0625rem solid rgba(15, 118, 110, 0.46)",
+    background: "rgba(240, 253, 250, 0.96)",
+    boxShadow: "0 0.5rem 1rem rgba(15, 23, 42, 0.08)",
+  },
   "&:active": {
     cursor: "grabbing",
   },
-}));
+});
 
-const LibraryButtonLayout = styled(Stack)({
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  gap: "0.375rem",
+const LibraryPreviewButton = React.forwardRef<
+  HTMLButtonElement,
+  LibraryPreviewButtonProps
+>(function LibraryPreviewButton({ draggingState, ...props }, ref) {
+  return (
+    <LibraryPreviewButtonRoot
+      ref={ref}
+      {...props}
+      data-dragging-state={toBooleanDataValue(draggingState)}
+    />
+  );
 });
 
 const PreviewLabel = styled("span")({
@@ -290,28 +309,32 @@ const CharacterPreviewTiles = styled("div")({
   minHeight: "1.5rem",
 });
 
-const FloatingDragPreview = styled("div", {
-  shouldForwardProp: shouldForwardFloatingPreviewProp,
-})<{ previewLeft: number; previewTop: number }>(
-  ({ previewLeft, previewTop }) => ({
-    position: "fixed",
-    left: previewLeft,
-    top: previewTop,
-    zIndex: 9997,
-    pointerEvents: "none",
-    borderRadius: "0.875rem",
-    border: "0.0625rem solid rgba(15, 118, 110, 0.36)",
-    background: "rgba(240, 253, 250, 0.96)",
-    boxShadow: "0 1rem 1.75rem rgba(15, 118, 110, 0.2)",
-    padding: "0.5rem",
-    minWidth: "4.25rem",
-  }),
-);
+const FloatingDragPreviewRoot = styled("div")({
+  position: "fixed",
+  zIndex: 9997,
+  pointerEvents: "none",
+  borderRadius: "0.875rem",
+  border: "0.0625rem solid rgba(15, 118, 110, 0.36)",
+  background: "rgba(240, 253, 250, 0.96)",
+  boxShadow: "0 1rem 1.75rem rgba(15, 118, 110, 0.2)",
+  padding: "0.5rem",
+  minWidth: "4.25rem",
+});
 
-const FloatingPreviewBody = styled(Stack)({
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "0.375rem",
+const FloatingDragPreview = React.forwardRef<
+  HTMLDivElement,
+  FloatingDragPreviewProps
+>(function FloatingDragPreview(
+  { previewLeft, previewTop, style, ...props },
+  ref,
+) {
+  return (
+    <FloatingDragPreviewRoot
+      ref={ref}
+      {...props}
+      style={{ ...style, left: previewLeft, top: previewTop }}
+    />
+  );
 });
 
 const resolveMenuPosition = (
@@ -572,7 +595,12 @@ export const ScreenModeGestureWorkspace: React.FC<
             previewLeft={dragState.clientX + 18}
             previewTop={dragState.clientY + 18}
           >
-            <FloatingPreviewBody>
+            <Stack
+              useFlexGap
+              alignItems="center"
+              justifyContent="center"
+              spacing="0.375rem"
+            >
               {dragState.kind === "sprite" ? (
                 <CharacterModeTilePreview
                   scale={3}
@@ -586,7 +614,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                   ? `Sprite ${dragState.spriteIndex}`
                   : characterPreviewName}
               </PreviewLabel>
-            </FloatingPreviewBody>
+            </Stack>
           </FloatingDragPreview>
         );
       },
@@ -599,8 +627,27 @@ export const ScreenModeGestureWorkspace: React.FC<
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
       </StageGuide>
 
-      <WorkspaceColumns>
-        <LibrarySidebar
+      <Stack
+        useFlexGap
+        minHeight={0}
+        minWidth={0}
+        flex="1 1 0"
+        direction={{ xs: "column", lg: "row" }}
+        spacing={2}
+      >
+        <Stack
+          useFlexGap
+          minHeight={0}
+          minWidth={0}
+          maxHeight="100%"
+          spacing={1.5}
+          width={{ lg: "21rem" }}
+          flexShrink={{ lg: 0 }}
+          style={{
+            overflowY: "auto",
+            overflowX: "hidden",
+            scrollbarGutter: "stable",
+          }}
           role="complementary"
           aria-label="スクリーン配置サイドバー"
         >
@@ -608,7 +655,7 @@ export const ScreenModeGestureWorkspace: React.FC<
             role="region"
             aria-label="スクリーン配置スプライトライブラリ"
           >
-            <LibraryHeader>
+            <PanelHeaderRow alignItems="center">
               <Stack direction="row" spacing="0.75rem" alignItems="center">
                 <FieldLabel>スプライトプレビュー</FieldLabel>
                 <CollapseToggle
@@ -631,7 +678,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                   />
                 </CollapseToggle>
               </Stack>
-            </LibraryHeader>
+            </PanelHeaderRow>
 
             <LibrarySectionContent
               id={spriteLibraryContentId}
@@ -650,19 +697,27 @@ export const ScreenModeGestureWorkspace: React.FC<
                         spriteIndex,
                       )}
                       draggable={false}
-                      onDragStart={(event) => event.preventDefault()}
-                      onPointerDown={(event) =>
-                        handleLibrarySpritePointerDown(event, spriteIndex)
-                      }
+                      onDragStart={(
+                        event: React.DragEvent<HTMLButtonElement>,
+                      ) => event.preventDefault()}
+                      onPointerDown={(
+                        event: React.PointerEvent<HTMLButtonElement>,
+                      ) => handleLibrarySpritePointerDown(event, spriteIndex)}
                     >
-                      <LibraryButtonLayout>
+                      <Stack
+                        useFlexGap
+                        alignItems="center"
+                        justifyContent="center"
+                        width="100%"
+                        spacing="0.375rem"
+                      >
                         <CharacterModeTilePreview
                           scale={3}
                           tileOption={O.some(sprite)}
                         />
                         <PreviewLabel>{`Sprite ${spriteIndex}`}</PreviewLabel>
                         <Badge tone="accent">{`${sprite.width}×${sprite.height}`}</Badge>
-                      </LibraryButtonLayout>
+                      </Stack>
                     </LibraryPreviewButton>
                   ))}
                 </SpriteLibraryGrid>
@@ -674,9 +729,9 @@ export const ScreenModeGestureWorkspace: React.FC<
             role="region"
             aria-label="スクリーン配置キャラクターライブラリ"
           >
-            <LibraryHeader>
+            <PanelHeaderRow alignItems="center">
               <FieldLabel>キャラクタープレビュー</FieldLabel>
-              <LibraryHeaderActions>
+              <Stack direction="row" spacing="0.5rem" alignItems="center">
                 <Badge tone="neutral">{`${characterPreviewCards.length} sets`}</Badge>
                 <CollapseToggle
                   type="button"
@@ -697,8 +752,8 @@ export const ScreenModeGestureWorkspace: React.FC<
                     style={collapseChevronStyle(isCharacterLibraryOpen)}
                   />
                 </CollapseToggle>
-              </LibraryHeaderActions>
-            </LibraryHeader>
+              </Stack>
+            </PanelHeaderRow>
 
             <LibrarySectionContent
               id={characterLibraryContentId}
@@ -718,15 +773,25 @@ export const ScreenModeGestureWorkspace: React.FC<
                           characterCard.id,
                         )}
                         draggable={false}
-                        onDragStart={(event) => event.preventDefault()}
-                        onPointerDown={(event) =>
+                        onDragStart={(
+                          event: React.DragEvent<HTMLButtonElement>,
+                        ) => event.preventDefault()}
+                        onPointerDown={(
+                          event: React.PointerEvent<HTMLButtonElement>,
+                        ) =>
                           handleLibraryCharacterPointerDown(
                             event,
                             characterCard.id,
                           )
                         }
                       >
-                        <LibraryButtonLayout>
+                        <Stack
+                          useFlexGap
+                          alignItems="center"
+                          justifyContent="center"
+                          width="100%"
+                          spacing="0.375rem"
+                        >
                           <CharacterPreviewTiles>
                             {characterCard.previewSpriteIndices.map(
                               (spriteIndex) => (
@@ -742,7 +807,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                           </CharacterPreviewTiles>
                           <PreviewLabel>{characterCard.name}</PreviewLabel>
                           <Badge tone="accent">{`${characterCard.spriteCount} sprites`}</Badge>
-                        </LibraryButtonLayout>
+                        </Stack>
                       </LibraryPreviewButton>
                     ))}
                   </CharacterLibraryGrid>
@@ -754,9 +819,9 @@ export const ScreenModeGestureWorkspace: React.FC<
               )}
             </LibrarySectionContent>
           </LibrarySection>
-        </LibrarySidebar>
+        </Stack>
 
-        <StageWorkspace>
+        <Stack minHeight={0} minWidth={0} flex="1 1 0">
           <PreviewViewport
             ref={setViewportRef}
             aria-label="画面プレビューキャンバスビュー"
@@ -837,8 +902,8 @@ export const ScreenModeGestureWorkspace: React.FC<
               </StageSurface>
             </PreviewCanvasWrap>
           </PreviewViewport>
-        </StageWorkspace>
-      </WorkspaceColumns>
+        </Stack>
+      </Stack>
 
       <Menu
         open={O.isSome(contextMenuPosition)}

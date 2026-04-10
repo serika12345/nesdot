@@ -21,24 +21,44 @@ import {
   PaletteSlotGrid,
 } from "../primitives/CharacterModePrimitives";
 
-const PaletteSlotButton = styled(ButtonBase, {
-  shouldForwardProp: (prop) => prop !== "selectedState" && prop !== "colorHex",
-})<{ selectedState?: boolean; colorHex: string }>(
-  ({ selectedState, colorHex }) => ({
-    width: "2.625rem",
-    height: "2.625rem",
-    borderRadius: "0.875rem",
-    border:
-      selectedState === true
-        ? "0.1875rem solid #0f766e"
-        : "0.0625rem solid rgba(148, 163, 184, 0.28)",
-    boxShadow:
-      selectedState === true
-        ? "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)"
-        : "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
-    backgroundColor: colorHex,
-  }),
-);
+type PaletteSlotButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  colorHex: string;
+  selectedState?: boolean;
+};
+
+const toBooleanDataValue = (value?: boolean): "true" | "false" =>
+  value === true ? "true" : "false";
+
+const PaletteSlotButtonRoot = styled(ButtonBase)({
+  width: "2.625rem",
+  height: "2.625rem",
+  borderRadius: "0.875rem",
+  "&[data-selected-state='false']": {
+    border: "0.0625rem solid rgba(148, 163, 184, 0.28)",
+    boxShadow: "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
+  },
+  "&[data-selected-state='true']": {
+    border: "0.1875rem solid #0f766e",
+    boxShadow: "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)",
+  },
+});
+
+const PaletteSlotButton = React.forwardRef<
+  HTMLButtonElement,
+  PaletteSlotButtonProps
+>(function PaletteSlotButton(
+  { colorHex, selectedState, style, ...props },
+  ref,
+) {
+  return (
+    <PaletteSlotButtonRoot
+      ref={ref}
+      {...props}
+      data-selected-state={toBooleanDataValue(selectedState)}
+      style={{ ...style, backgroundColor: colorHex }}
+    />
+  );
+});
 
 /**
  * 分解モード専用のツールと描画パレット設定カードです。

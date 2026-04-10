@@ -1,5 +1,4 @@
 import { Stack } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { Panel } from "../../../App.styles";
@@ -8,44 +7,17 @@ import {
   type FileMenuState,
 } from "../../common/state/fileMenuState";
 import { CharacterModeDecompositionRegionMenu } from "../decomposition/CharacterModeDecompositionRegionMenu";
+import { CharacterModeSpriteMenu } from "../menu/CharacterModeSpriteMenu";
 import { CharacterWorkspaceRoot } from "../primitives/CharacterModePrimitives";
 import { CharacterModeSetDraftFields } from "../set/CharacterModeSetDraftFields";
 import { CharacterModeSetSelectionFields } from "../set/CharacterModeSetSelectionFields";
 import { CharacterModeSidebarEditorModeCard } from "../sidebar/CharacterModeSidebarEditorModeCard";
 import { CharacterModeSidebarSpriteSizeCard } from "../sidebar/CharacterModeSidebarSpriteSizeCard";
-import { CharacterModeSpriteMenu } from "../menu/CharacterModeSpriteMenu";
 import {
   useCharacterModeProjectActions,
   useCharacterModeWorkspaceEvents,
 } from "./CharacterModeStateProvider";
 import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
-
-const ControlRow = styled(Stack)(({ theme }) => ({
-  width: "100%",
-  minWidth: 0,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: theme.spacing(1),
-  flexWrap: "wrap",
-}));
-
-const PrimaryActionGroup = styled(Stack)(({ theme }) => ({
-  minWidth: 0,
-  flexDirection: "row",
-  alignItems: "center",
-  gap: theme.spacing(1),
-  flexWrap: "wrap",
-}));
-
-const SetActionGroup = styled(Stack)(({ theme }) => ({
-  minWidth: 0,
-  flex: "1 1 24rem",
-  flexDirection: "row",
-  alignItems: "flex-end",
-  justifyContent: "flex-end",
-  gap: theme.spacing(1),
-}));
 
 interface CharacterModeScreenProps {
   onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
@@ -88,16 +60,40 @@ export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
         onPointerUpCapture={workspaceEvents.handleWorkspacePointerEnd}
         onPointerCancelCapture={workspaceEvents.handleWorkspacePointerEnd}
       >
-        <ControlRow>
-          <PrimaryActionGroup>
+        <Stack
+          useFlexGap
+          width="100%"
+          minWidth={0}
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1}
+          flexWrap="wrap"
+        >
+          <Stack
+            useFlexGap
+            minWidth={0}
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            flexWrap="wrap"
+          >
             <CharacterModeSidebarEditorModeCard />
             <CharacterModeSidebarSpriteSizeCard />
             <CharacterModeSetDraftFields />
-          </PrimaryActionGroup>
-          <SetActionGroup>
+          </Stack>
+          <Stack
+            useFlexGap
+            minWidth={0}
+            flex="1 1 24rem"
+            direction="row"
+            alignItems="flex-end"
+            justifyContent="flex-end"
+            spacing={1}
+          >
             <CharacterModeSetSelectionFields />
-          </SetActionGroup>
-        </ControlRow>
+          </Stack>
+        </Stack>
         <CharacterModeWorkspace />
         <CharacterModeSpriteMenu />
         <CharacterModeDecompositionRegionMenu />
