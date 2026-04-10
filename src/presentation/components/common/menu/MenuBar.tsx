@@ -338,8 +338,8 @@ export const MenuBar: React.FC<MenuBarProps> = ({
     () =>
       typeof navigator !== "undefined" && navigator.userAgent.includes("Mac")
         ? {
-            undo: "Cmd+Z",
-            redo: "Cmd+Shift+Z",
+            undo: "⌘Z",
+            redo: "⇧⌘Z",
           }
         : {
             undo: "Ctrl+Z",

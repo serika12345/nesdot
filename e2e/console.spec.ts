@@ -148,11 +148,9 @@ test("shows global app menu controls", async ({ page }) => {
   const undoMenuItem = getVisibleMenuItem(page, /アンドゥ/);
   const redoMenuItem = getVisibleMenuItem(page, /リドゥ/);
   await expect(undoMenuItem).toBeVisible();
-  await expect(undoMenuItem).toContainText(/(Ctrl\+Z|Cmd\+Z)/);
+  await expect(undoMenuItem).toContainText(/(Ctrl\+Z|⌘Z)/);
   await expect(redoMenuItem).toBeVisible();
-  await expect(redoMenuItem).toContainText(
-    /(Ctrl\+Shift\+Z|Ctrl\+Y|Cmd\+Shift\+Z)/,
-  );
+  await expect(redoMenuItem).toContainText(/(Ctrl\+Shift\+Z|Ctrl\+Y|⇧⌘Z)/);
   await page.keyboard.press("Escape");
 
   await openFileMenu(page);
