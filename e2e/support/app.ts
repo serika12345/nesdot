@@ -3,12 +3,15 @@ import { expect, type Page } from "@playwright/test";
 type AppMenuLabel = "作業モード" | "ファイル" | "編集" | "ヘルプ";
 
 const getAppMenuBar = (page: Page) =>
-  page.getByRole("toolbar", {
+  page.getByRole("menubar", {
     name: "ファイル操作メニューバー",
   });
 
 export const getMenuTrigger = (page: Page, label: AppMenuLabel) =>
-  getAppMenuBar(page).getByText(label, { exact: true });
+  getAppMenuBar(page).getByRole("menuitem", {
+    name: label,
+    exact: true,
+  });
 
 export const getVisibleMenuItem = (page: Page, label: string | RegExp) =>
   page.getByRole("menuitem", { name: label });

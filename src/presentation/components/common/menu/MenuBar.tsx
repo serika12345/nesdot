@@ -1,5 +1,18 @@
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import CodeRoundedIcon from "@mui/icons-material/CodeRounded";
+import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
+import DrawRoundedIcon from "@mui/icons-material/DrawRounded";
+import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
+import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import RedoRoundedIcon from "@mui/icons-material/RedoRounded";
+import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
+import TextureRoundedIcon from "@mui/icons-material/TextureRounded";
+import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
+import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
+import WallpaperRoundedIcon from "@mui/icons-material/WallpaperRounded";
 import {
   Button,
   Dialog,
@@ -8,7 +21,7 @@ import {
   DialogTitle,
   Stack,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { alpha, styled } from "@mui/material/styles";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -17,7 +30,10 @@ import {
   canRequestAvailableUpdateCheck,
   requestAvailableUpdateCheck,
 } from "../../../../infrastructure/browser/updateCheck";
-import { type FileMenuState } from "../state/fileMenuState";
+import {
+  type FileMenuState,
+  type FileShareActionId,
+} from "../state/fileMenuState";
 
 export type WorkMode = "screen" | "sprite" | "character" | "bg";
 
@@ -32,22 +48,27 @@ interface MenuBarProps {
 const WORK_MODE_ITEMS: ReadonlyArray<{
   value: WorkMode;
   label: string;
+  icon: React.ReactNode;
 }> = [
   {
     value: "sprite",
     label: "スプライト編集",
+    icon: <DrawRoundedIcon fontSize="small" />,
   },
   {
     value: "character",
     label: "キャラクター編集",
+    icon: <DashboardCustomizeRoundedIcon fontSize="small" />,
   },
   {
     value: "bg",
     label: "BG編集",
+    icon: <TextureRoundedIcon fontSize="small" />,
   },
   {
     value: "screen",
     label: "画面配置",
+    icon: <WallpaperRoundedIcon fontSize="small" />,
   },
 ];
 
@@ -57,79 +78,114 @@ const MenuBarRoot = styled(Stack)(({ theme }) => ({
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "flex-start",
-  borderRadius: "0.375rem",
-  border: `0.0625rem solid ${theme.palette.divider}`,
-  background: theme.palette.grey[100],
-  padding: theme.spacing(0.25),
-  minHeight: "2rem",
+  overflowX: "auto",
+  overflowY: "hidden",
+  borderRadius: theme.shape.borderRadius,
+  border: `0.0625rem solid ${alpha(theme.palette.common.white, 0.48)}`,
+  background: `linear-gradient(180deg, ${alpha(theme.palette.common.white, 0.96)} 0%, ${alpha(theme.palette.grey[50], 0.88)} 100%)`,
+  padding: theme.spacing(0.5),
+  minHeight: theme.spacing(6),
+  boxShadow: `inset 0 0.0625rem 0 ${alpha(theme.palette.common.white, 0.72)}, ${theme.shadows[3]}`,
+  backdropFilter: "blur(1rem)",
 }));
 
-const MenuButtons = styled(Stack)({
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 0,
+const MenuButtons = styled(Stack)(() => ({
   minWidth: 0,
-});
+}));
 
-const MenubarRoot = styled(Menubar.Root)({
+const MenubarRoot = styled(Menubar.Root)(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
+  gap: theme.spacing(0.25),
+  width: "max-content",
   minWidth: 0,
-});
+}));
 
 const TriggerItem = styled(Menubar.Trigger)(({ theme }) => ({
-  border: 0,
+  border: `0.0625rem solid ${alpha(theme.palette.primary.main, 0)}`,
   background: "transparent",
   color: theme.palette.text.primary,
-  borderRadius: "0.25rem",
+  borderRadius: theme.shape.borderRadius,
   fontFamily: theme.typography.fontFamily,
-  fontSize: "0.8125rem",
-  lineHeight: 1,
-  fontWeight: 500,
-  padding: "0.375rem 0.625rem",
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: theme.typography.body2.lineHeight,
+  fontWeight: theme.typography.button.fontWeight,
+  padding: `${theme.spacing(0.875)} ${theme.spacing(1.25)}`,
   userSelect: "none",
-  cursor: "default",
+  cursor: "pointer",
   outline: "none",
-  "&[data-highlighted], &[data-state='open']": {
-    background: theme.palette.action.hover,
+  transition: theme.transitions.create(
+    ["background-color", "border-color", "box-shadow", "color"],
+    {
+      duration: theme.transitions.duration.shortest,
+    },
+  ),
+  "&:hover": {
+    borderColor: alpha(theme.palette.primary.main, 0.12),
+    background: alpha(theme.palette.primary.main, 0.06),
+  },
+  "&[data-state='open']": {
+    color: theme.palette.primary.dark,
+    borderColor: alpha(theme.palette.primary.main, 0.18),
+    background: `linear-gradient(180deg, ${alpha(theme.palette.common.white, 0.9)} 0%, ${alpha(theme.palette.primary.main, 0.14)} 100%)`,
+    boxShadow: `0 0.75rem 1.5rem ${alpha(theme.palette.primary.main, 0.16)}`,
   },
   "&:focus-visible": {
-    boxShadow: `inset 0 0 0 0.0625rem ${theme.palette.primary.main}`,
+    borderColor: alpha(theme.palette.primary.main, 0.28),
+    boxShadow: `0 0 0 0.125rem ${alpha(theme.palette.primary.main, 0.18)}`,
   },
 }));
 
 const FileMenuContent = styled(Menubar.Content)(({ theme }) => ({
-  minWidth: "12rem",
-  borderRadius: "0.375rem",
-  border: `0.0625rem solid ${theme.palette.divider}`,
-  background: theme.palette.background.paper,
-  boxShadow: theme.shadows[8],
-  padding: "0.25rem",
+  minWidth: "15rem",
+  borderRadius: theme.shape.borderRadius,
+  border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
+  background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.98)} 0%, ${alpha(theme.palette.grey[50], 0.96)} 100%)`,
+  boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
+  padding: theme.spacing(0.75),
   zIndex: theme.zIndex.modal + 1,
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(0.25),
+  backdropFilter: "blur(1rem)",
 }));
 
 const ShareSubContent = styled(Menubar.SubContent)(({ theme }) => ({
-  minWidth: "12rem",
-  borderRadius: "0.375rem",
-  border: `0.0625rem solid ${theme.palette.divider}`,
-  background: theme.palette.background.paper,
-  boxShadow: theme.shadows[8],
-  padding: "0.25rem",
+  minWidth: "15rem",
+  borderRadius: theme.shape.borderRadius,
+  border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
+  background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.98)} 0%, ${alpha(theme.palette.grey[50], 0.96)} 100%)`,
+  boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
+  padding: theme.spacing(0.75),
   zIndex: theme.zIndex.modal + 1,
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(0.25),
+  backdropFilter: "blur(1rem)",
+}));
+
+const MenuSeparator = styled(Menubar.Separator)(({ theme }) => ({
+  height: "0.0625rem",
+  margin: `${theme.spacing(0.5)} ${theme.spacing(0.25)}`,
+  background: alpha(theme.palette.divider, 0.96),
 }));
 
 const FileMenuItem = styled(Menubar.Item)(({ theme }) => ({
-  borderRadius: "0.25rem",
-  minHeight: "1.75rem",
-  padding: "0.375rem 0.625rem",
-  fontSize: "0.8125rem",
-  lineHeight: 1.3,
+  borderRadius: theme.shape.borderRadius,
+  minHeight: theme.spacing(5),
+  padding: `${theme.spacing(0.75)} ${theme.spacing(1)}`,
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: theme.typography.body2.lineHeight,
   color: theme.palette.text.primary,
   outline: "none",
   userSelect: "none",
-  cursor: "default",
+  cursor: "pointer",
+  transition: theme.transitions.create(["background-color", "color"], {
+    duration: theme.transitions.duration.shortest,
+  }),
   "&[data-highlighted]": {
-    background: theme.palette.action.hover,
+    background: alpha(theme.palette.primary.main, 0.12),
+    color: theme.palette.primary.dark,
   },
   "&[data-disabled]": {
     color: theme.palette.text.secondary,
@@ -139,17 +195,21 @@ const FileMenuItem = styled(Menubar.Item)(({ theme }) => ({
 }));
 
 const FileMenuSubTrigger = styled(Menubar.SubTrigger)(({ theme }) => ({
-  borderRadius: "0.25rem",
-  minHeight: "1.75rem",
-  padding: "0.375rem 0.625rem",
-  fontSize: "0.8125rem",
-  lineHeight: 1.3,
+  borderRadius: theme.shape.borderRadius,
+  minHeight: theme.spacing(5),
+  padding: `${theme.spacing(0.75)} ${theme.spacing(1)}`,
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: theme.typography.body2.lineHeight,
   color: theme.palette.text.primary,
   outline: "none",
   userSelect: "none",
-  cursor: "default",
-  "&[data-highlighted]": {
-    background: theme.palette.action.hover,
+  cursor: "pointer",
+  transition: theme.transitions.create(["background-color", "color"], {
+    duration: theme.transitions.duration.shortest,
+  }),
+  "&[data-highlighted], &[data-state='open']": {
+    background: alpha(theme.palette.primary.main, 0.12),
+    color: theme.palette.primary.dark,
   },
   "&[data-disabled]": {
     color: theme.palette.text.secondary,
@@ -159,7 +219,7 @@ const FileMenuSubTrigger = styled(Menubar.SubTrigger)(({ theme }) => ({
   display: "block",
 }));
 
-const SubmenuItemLayout = styled(Stack)(({ theme }) => ({
+const MenuItemContentLayout = styled(Stack)(({ theme }) => ({
   width: "100%",
   minWidth: 0,
   flexDirection: "row",
@@ -168,29 +228,54 @@ const SubmenuItemLayout = styled(Stack)(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-const ModeMenuItemLayout = styled(Stack)(({ theme }) => ({
-  width: "100%",
+const MenuItemLabelLayout = styled(Stack)(({ theme }) => ({
   minWidth: 0,
+  flex: "1 1 auto",
   flexDirection: "row",
   alignItems: "center",
-  justifyContent: "space-between",
   gap: theme.spacing(1),
 }));
 
-const ModeSelectionMarker = styled("span")({
+const MenuItemIconSlot = styled("span")(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  width: "1rem",
-  height: "1rem",
+  width: theme.spacing(2.5),
+  height: theme.spacing(2.5),
   flexShrink: 0,
+  color: "currentColor",
+  opacity: 0.78,
+}));
+
+const MenuItemText = styled("span")({
+  minWidth: 0,
+  flex: "1 1 auto",
 });
+
+const MenuItemMeta = styled("span")(({ theme }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: theme.spacing(0.75),
+  flexShrink: 0,
+  color: "currentColor",
+  opacity: 0.72,
+}));
+
+const ModeSelectionMarker = styled("span")(({ theme }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: theme.spacing(2),
+  height: theme.spacing(2),
+  flexShrink: 0,
+}));
 
 const MenuItemShortcutText = styled("span")(({ theme }) => ({
   fontSize: theme.typography.caption.fontSize,
   lineHeight: theme.typography.caption.lineHeight,
-  color: theme.palette.text.secondary,
   whiteSpace: "nowrap",
+  fontVariantNumeric: "tabular-nums",
 }));
 
 const AboutContentLayout = styled(Stack)(({ theme }) => ({
@@ -219,6 +304,18 @@ const AboutVersionText = styled("span")(({ theme }) => ({
   lineHeight: theme.typography.body2.lineHeight,
   color: theme.palette.text.secondary,
 }));
+
+const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
+  if (actionId === "share-save-project") {
+    return <SaveRoundedIcon fontSize="small" />;
+  }
+
+  if (actionId === "share-export-png" || actionId === "share-export-svg") {
+    return <ImageRoundedIcon fontSize="small" />;
+  }
+
+  return <CodeRoundedIcon fontSize="small" />;
+};
 
 export const MenuBar: React.FC<MenuBarProps> = ({
   fileMenuState,
@@ -278,9 +375,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   return (
-    <MenuBarRoot role="toolbar" aria-label="ファイル操作メニューバー">
+    <MenuBarRoot>
       <MenuButtons>
-        <MenubarRoot>
+        <MenubarRoot aria-label="ファイル操作メニューバー">
           <Menubar.Menu>
             <TriggerItem aria-haspopup="menu">作業モード</TriggerItem>
 
@@ -300,16 +397,21 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                         onEditModeSelect(modeItem.value);
                       }}
                     >
-                      <ModeMenuItemLayout>
-                        <span>{modeItem.label}</span>
-                        <ModeSelectionMarker>
-                          {isSelected === true ? (
-                            <CheckRoundedIcon fontSize="small" />
-                          ) : (
-                            <></>
-                          )}
-                        </ModeSelectionMarker>
-                      </ModeMenuItemLayout>
+                      <MenuItemContentLayout>
+                        <MenuItemLabelLayout>
+                          <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
+                          <MenuItemText>{modeItem.label}</MenuItemText>
+                        </MenuItemLabelLayout>
+                        <MenuItemMeta>
+                          <ModeSelectionMarker>
+                            {isSelected === true ? (
+                              <CheckRoundedIcon fontSize="small" />
+                            ) : (
+                              <></>
+                            )}
+                          </ModeSelectionMarker>
+                        </MenuItemMeta>
+                      </MenuItemContentLayout>
                     </FileMenuItem>
                   );
                 })}
@@ -327,20 +429,34 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 aria-label="編集メニュー"
               >
                 <FileMenuItem onSelect={onUndoSelect}>
-                  <SubmenuItemLayout>
-                    <span>アンドゥ</span>
-                    <MenuItemShortcutText>
-                      {shortcutLabels.undo}
-                    </MenuItemShortcutText>
-                  </SubmenuItemLayout>
+                  <MenuItemContentLayout>
+                    <MenuItemLabelLayout>
+                      <MenuItemIconSlot>
+                        <UndoRoundedIcon fontSize="small" />
+                      </MenuItemIconSlot>
+                      <MenuItemText>アンドゥ</MenuItemText>
+                    </MenuItemLabelLayout>
+                    <MenuItemMeta>
+                      <MenuItemShortcutText>
+                        {shortcutLabels.undo}
+                      </MenuItemShortcutText>
+                    </MenuItemMeta>
+                  </MenuItemContentLayout>
                 </FileMenuItem>
                 <FileMenuItem onSelect={onRedoSelect}>
-                  <SubmenuItemLayout>
-                    <span>リドゥ</span>
-                    <MenuItemShortcutText>
-                      {shortcutLabels.redo}
-                    </MenuItemShortcutText>
-                  </SubmenuItemLayout>
+                  <MenuItemContentLayout>
+                    <MenuItemLabelLayout>
+                      <MenuItemIconSlot>
+                        <RedoRoundedIcon fontSize="small" />
+                      </MenuItemIconSlot>
+                      <MenuItemText>リドゥ</MenuItemText>
+                    </MenuItemLabelLayout>
+                    <MenuItemMeta>
+                      <MenuItemShortcutText>
+                        {shortcutLabels.redo}
+                      </MenuItemShortcutText>
+                    </MenuItemMeta>
+                  </MenuItemContentLayout>
                 </FileMenuItem>
               </FileMenuContent>
             </Menubar.Portal>
@@ -357,10 +473,17 @@ export const MenuBar: React.FC<MenuBarProps> = ({
               >
                 <Menubar.Sub>
                   <FileMenuSubTrigger disabled={hasShareActions === false}>
-                    <SubmenuItemLayout>
-                      <span>共有</span>
-                      <ChevronRightRoundedIcon fontSize="small" />
-                    </SubmenuItemLayout>
+                    <MenuItemContentLayout>
+                      <MenuItemLabelLayout>
+                        <MenuItemIconSlot>
+                          <ShareRoundedIcon fontSize="small" />
+                        </MenuItemIconSlot>
+                        <MenuItemText>共有</MenuItemText>
+                      </MenuItemLabelLayout>
+                      <MenuItemMeta>
+                        <ChevronRightRoundedIcon fontSize="small" />
+                      </MenuItemMeta>
+                    </MenuItemContentLayout>
                   </FileMenuSubTrigger>
 
                   <Menubar.Portal>
@@ -376,18 +499,34 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                             action.onSelect();
                           }}
                         >
-                          {action.label}
+                          <MenuItemContentLayout>
+                            <MenuItemLabelLayout>
+                              <MenuItemIconSlot>
+                                {getShareActionIcon(action.id)}
+                              </MenuItemIconSlot>
+                              <MenuItemText>{action.label}</MenuItemText>
+                            </MenuItemLabelLayout>
+                          </MenuItemContentLayout>
                         </FileMenuItem>
                       ))}
                     </ShareSubContent>
                   </Menubar.Portal>
                 </Menubar.Sub>
 
+                <MenuSeparator />
+
                 <FileMenuItem
                   disabled={hasRestoreAction === false}
                   onSelect={handleRestoreSelect}
                 >
-                  復元
+                  <MenuItemContentLayout>
+                    <MenuItemLabelLayout>
+                      <MenuItemIconSlot>
+                        <FileUploadRoundedIcon fontSize="small" />
+                      </MenuItemIconSlot>
+                      <MenuItemText>復元</MenuItemText>
+                    </MenuItemLabelLayout>
+                  </MenuItemContentLayout>
                 </FileMenuItem>
               </FileMenuContent>
             </Menubar.Portal>
@@ -406,9 +545,28 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   disabled={canCheckForUpdates === false}
                   onSelect={handleUpdateCheckSelect}
                 >
-                  更新を確認
+                  <MenuItemContentLayout>
+                    <MenuItemLabelLayout>
+                      <MenuItemIconSlot>
+                        <UpdateRoundedIcon fontSize="small" />
+                      </MenuItemIconSlot>
+                      <MenuItemText>更新を確認</MenuItemText>
+                    </MenuItemLabelLayout>
+                  </MenuItemContentLayout>
                 </FileMenuItem>
-                <FileMenuItem onSelect={handleAboutSelect}>About</FileMenuItem>
+
+                <MenuSeparator />
+
+                <FileMenuItem onSelect={handleAboutSelect}>
+                  <MenuItemContentLayout>
+                    <MenuItemLabelLayout>
+                      <MenuItemIconSlot>
+                        <InfoRoundedIcon fontSize="small" />
+                      </MenuItemIconSlot>
+                      <MenuItemText>About</MenuItemText>
+                    </MenuItemLabelLayout>
+                  </MenuItemContentLayout>
+                </FileMenuItem>
               </FileMenuContent>
             </Menubar.Portal>
           </Menubar.Menu>

@@ -127,7 +127,7 @@ test("layout follows window resize", async ({ page }) => {
 test("shows global app menu controls", async ({ page }) => {
   await gotoApp(page);
 
-  const menuBar = page.getByRole("toolbar", {
+  const menuBar = page.getByRole("menubar", {
     name: "ファイル操作メニューバー",
   });
 
@@ -189,6 +189,40 @@ test("shows global app menu controls", async ({ page }) => {
   expect(aboutIconPathname).toBe(expectedAboutIconPathname);
   await expect(page.getByText(/^Version /)).toBeVisible();
   await expect(aboutDialog.getByText("nesdot", { exact: true })).toBeVisible();
+});
+
+test("clicking the same menu trigger closes it without keeping the open styling", async ({
+  page,
+}) => {
+  await gotoApp(page);
+
+  const helpTrigger = getMenuTrigger(page, "ヘルプ");
+
+  await helpTrigger.click();
+  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+
+  await helpTrigger.click();
+  await expect(page.getByRole("menu", { name: "ヘルプメニュー" })).toHaveCount(
+    0,
+  );
+
+  await page.mouse.move(0, 0);
+
+  await expect
+    .poll(async () =>
+      helpTrigger.evaluate((element) => {
+        const computedStyle = window.getComputedStyle(element);
+
+        return {
+          backgroundImage: computedStyle.backgroundImage,
+          boxShadow: computedStyle.boxShadow,
+        };
+      }),
+    )
+    .toEqual({
+      backgroundImage: "none",
+      boxShadow: "none",
+    });
 });
 
 test("includes pwa manifest and app icons", async ({ page }) => {
