@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { gotoApp, openMode } from "./support/app";
+import {
+  getVisibleMenuItem,
+  gotoApp,
+  openFileMenu,
+  openMode,
+  openShareSubmenu,
+} from "./support/app";
 import {
   clickLogicalCanvasPixel,
   formatCanvasPixelColor,
@@ -99,4 +105,29 @@ test("bg mode edits the selected background tile", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Tile #005", exact: true }),
   ).toHaveCount(0);
+});
+
+test("bg mode exposes export actions for the selected tile", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "BG編集");
+
+  await openFileMenu(page);
+
+  const shareMenuItem = getVisibleMenuItem(page, "共有");
+
+  await expect(shareMenuItem).not.toHaveAttribute("aria-disabled", "true");
+
+  await openShareSubmenu(page);
+
+  await expect(
+    page.getByRole("menuitem", { name: "CHRエクスポート", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "PNGエクスポート", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "SVGエクスポート", exact: true }),
+  ).toBeVisible();
 });

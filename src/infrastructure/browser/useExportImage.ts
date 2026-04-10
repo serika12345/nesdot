@@ -97,7 +97,11 @@ export default function useExportImage() {
   };
 
   // ★ CHR エクスポート：任意サイズは 8x8 タイル列として連結
-  const exportChr = async (tile: SpriteTile, activePalette: PaletteIndex) => {
+  const exportChr = async (
+    tile: SpriteTile,
+    activePalette: PaletteIndex,
+    fileName?: string,
+  ) => {
     const chunkResults = Array.from({ length: tile.height / 8 }, (_, blockY) =>
       Array.from({ length: tile.width / 8 }, (_, blockX) => {
         const ty = blockY * 8;
@@ -141,7 +145,7 @@ export default function useExportImage() {
       if (E.isLeft(bin)) {
         return;
       }
-      await saveBinary(bin.right, "sprite_8x16.chr", [
+      await saveBinary(bin.right, fileName ?? "sprite_8x16.chr", [
         { name: "CHR files", extensions: ["chr"] },
       ]);
       return;
@@ -153,9 +157,11 @@ export default function useExportImage() {
       next.set(chunk, acc.length);
       return next;
     }, new Uint8Array(0));
-    await saveBinary(out, `sprite_${tile.width}x${tile.height}.chr`, [
-      { name: "CHR files", extensions: ["chr"] },
-    ]);
+    await saveBinary(
+      out,
+      fileName ?? `sprite_${tile.width}x${tile.height}.chr`,
+      [{ name: "CHR files", extensions: ["chr"] }],
+    );
   };
 
   const exportPng = async (hexPixels: string[][], fileName?: string) => {

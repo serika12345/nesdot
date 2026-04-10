@@ -9,6 +9,8 @@ import {
 } from "../project/project";
 import {
   createDefaultProjectStateV2,
+  createEmptyBackgroundTile,
+  type BackgroundTile,
   type ProjectStateV2,
 } from "../project/projectV2";
 import {
@@ -20,6 +22,7 @@ import {
 import { nesIndexToCssHex } from "./palette";
 import { buildNesProjection } from "./projection";
 import {
+  renderBackgroundTileToHexArray,
   renderProjectStateV2ToHexArray,
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
@@ -37,6 +40,15 @@ function createSpriteTile(fill: ColorIndexOfPalette = 0): SpriteTile {
     width: 8,
     height: 8,
     paletteIndex: 0,
+    pixels: Array.from({ length: 8 }, () =>
+      Array.from({ length: 8 }, () => fill),
+    ),
+  };
+}
+
+function createBackgroundTile(fill: ColorIndexOfPalette = 0): BackgroundTile {
+  return {
+    ...createEmptyBackgroundTile(),
     pixels: Array.from({ length: 8 }, () =>
       Array.from({ length: 8 }, () => fill),
     ),
@@ -188,6 +200,24 @@ describe("renderSpriteTileToHexArray", () => {
     const rendered = renderSpriteTileToHexArray(tile, palettes);
 
     expectRenderedHex(rendered, 0, 0, 0);
+    expectRenderedHex(rendered, 0, 1, 1);
+    expectRenderedHex(rendered, 0, 2, 21);
+    expectRenderedHex(rendered, 0, 3, 34);
+  });
+});
+
+describe("renderBackgroundTileToHexArray", () => {
+  it("renders palette slot 0 with the universal background color", () => {
+    const tile = setTilePixel(
+      setTilePixel(setTilePixel(createBackgroundTile(), 0, 1, 1), 0, 2, 2),
+      0,
+      3,
+      3,
+    );
+
+    const rendered = renderBackgroundTileToHexArray(tile, [45, 1, 21, 34], 13);
+
+    expectRenderedHex(rendered, 0, 0, 13);
     expectRenderedHex(rendered, 0, 1, 1);
     expectRenderedHex(rendered, 0, 2, 21);
     expectRenderedHex(rendered, 0, 3, 34);

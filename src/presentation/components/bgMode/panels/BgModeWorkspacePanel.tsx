@@ -2,6 +2,7 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React from "react";
+import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import {
   CanvasViewport,
   CollapseToggle,
@@ -19,6 +20,7 @@ import {
 } from "../../common/state/fileMenuState";
 import { BgModeTileEditorCanvas } from "../canvas/BgModeTileEditorCanvas";
 import { useBgModeEditingState } from "../hooks/useBgModeEditingState";
+import { createBgModeProjectActions } from "../hooks/useBgModeProjectActions";
 
 interface BgModeWorkspacePanelProps {
   onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
@@ -147,6 +149,7 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
   onFileMenuStateChange,
 }) => {
   const bgModeState = useBgModeEditingState();
+  const { exportChr, exportPng, exportSvgSimple } = useExportImage();
   const deferredVisibleBackgroundTiles = React.useDeferredValue(
     bgModeState.visibleBackgroundTiles,
   );
@@ -162,10 +165,38 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
       bgModeState.universalBackgroundColor,
     ],
   );
+  const projectActions = React.useMemo(
+    () =>
+      createBgModeProjectActions({
+        exportChr,
+        exportPng,
+        exportSvgSimple,
+        getActivePaletteIndex: () => bgModeState.activePaletteIndex,
+        getSelectedTile: () => bgModeState.selectedTile,
+        getSelectedTileIndex: () => bgModeState.selectedTileIndex,
+      }),
+    [
+      bgModeState.activePaletteIndex,
+      bgModeState.selectedTile,
+      bgModeState.selectedTileIndex,
+      exportChr,
+      exportPng,
+      exportSvgSimple,
+    ],
+  );
+  const fileMenuState = React.useMemo<FileMenuState>(
+    () => ({
+      shareActions: projectActions,
+      restoreAction: emptyFileMenuState.restoreAction,
+    }),
+    [projectActions],
+  );
 
   React.useEffect(() => {
-    onFileMenuStateChange(emptyFileMenuState);
+    onFileMenuStateChange(fileMenuState);
+  }, [fileMenuState, onFileMenuStateChange]);
 
+  React.useEffect(() => {
     return () => {
       onFileMenuStateChange(emptyFileMenuState);
     };

@@ -258,7 +258,7 @@ test("file menu availability follows the current work mode", async ({
     page.getByRole("region", { name: "BG編集ワークスペース", exact: true }),
   ).toBeVisible();
   await expectFileMenuState(page, {
-    shareDisabled: true,
+    shareDisabled: false,
     restoreDisabled: true,
   });
 
