@@ -1,5 +1,6 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { Box, Stack } from "@mui/material";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import {

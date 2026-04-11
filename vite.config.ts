@@ -1,13 +1,19 @@
 /// <reference types="vitest/config" />
 
+import { pigment } from "@pigment-css/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+import { appTheme } from "./src/presentation/theme";
 import { getViteBase } from "./src/shared/viteBase";
 
 const host = process.env.TAURI_DEV_HOST;
 const appVersion = process.env.npm_package_version ?? "0.0.0";
+const pigmentConfig = {
+  theme: appTheme,
+  transformLibraries: ["@mui/material"],
+};
 
 export default defineConfig(({ command }) => {
   const base = getViteBase(command);
@@ -19,7 +25,8 @@ export default defineConfig(({ command }) => {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
     },
     plugins: [
-      react({ jsxImportSource: "@emotion/react" }),
+      react(),
+      pigment(pigmentConfig),
       VitePWA({
         registerType: "prompt",
         injectRegister: false,
@@ -76,6 +83,9 @@ export default defineConfig(({ command }) => {
     build: {
       outDir: "../dist",
       emptyOutDir: true,
+    },
+    optimizeDeps: {
+      include: ["prop-types", "react-is", "hoist-non-react-statics"],
     },
     clearScreen: false,
     test: {

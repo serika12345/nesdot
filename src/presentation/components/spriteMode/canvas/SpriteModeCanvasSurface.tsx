@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import { useSpriteCanvas } from "../../../../infrastructure/browser/canvas/useSpriteCanvas";
 import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../styleClassNames";

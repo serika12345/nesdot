@@ -1,5 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { Button } from "@mui/material";
+import Button from "@mui/material/Button";
 import React from "react";
 import {
   CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME,

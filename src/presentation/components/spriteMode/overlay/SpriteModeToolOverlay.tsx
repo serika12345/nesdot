@@ -1,5 +1,6 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { Box, Button } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import React from "react";
 import { useSpriteModeToolsVisibility } from "../core/SpriteModeStateProvider";
 import { SpriteModeToolMenu } from "../menu/SpriteModeToolMenu";

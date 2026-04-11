@@ -1,4 +1,5 @@
-import { ButtonBase, Stack, type StackProps } from "@mui/material";
+import ButtonBase from "@mui/material/ButtonBase";
+import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,

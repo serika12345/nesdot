@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import { MAX_SCREEN_SPRITES } from "../../../../domain/screen/constraints";
 import {

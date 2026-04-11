@@ -1,7 +1,9 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import IosShareRoundedIcon from "@mui/icons-material/IosShareRounded";
 import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
-import { Button, Menu, MenuItem } from "@mui/material";
+import Button from "@mui/material/Button";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import * as O from "fp-ts/Option";
 import React, { useState } from "react";
 

@@ -1,13 +1,10 @@
-import {
-  Box,
-  ButtonBase,
-  Grid as MaterialGrid,
-  Stack,
-  type BoxProps,
+import Box, { type BoxProps } from "@mui/material/Box";
+import ButtonBase from "@mui/material/ButtonBase";
+import MaterialGrid, {
   type GridProps,
   type GridSize,
-  type StackProps,
-} from "@mui/material";
+} from "@mui/material/Grid";
+import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   ActionMenu,

@@ -13,15 +13,13 @@ import TextureRoundedIcon from "@mui/icons-material/TextureRounded";
 import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import WallpaperRoundedIcon from "@mui/icons-material/WallpaperRounded";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-} from "@mui/material";
-import { alpha, type Theme, useTheme } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
+import { alpha, type Theme } from "@mui/material/styles";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -47,6 +45,7 @@ import {
   MENU_SUB_TRIGGER_CLASS_NAME,
   MENU_TRIGGER_CLASS_NAME,
 } from "../../../styleClassNames";
+import { appTheme } from "../../../theme";
 import {
   type FileMenuState,
   type FileShareActionId,
@@ -113,6 +112,8 @@ const createMenuThemeStyle = (theme: Theme): MenuThemeStyle => ({
   "--menu-z-index": String(theme.zIndex.modal + 1),
   "--menu-transition-shortest": `${theme.transitions.duration.shortest}ms`,
 });
+
+const menuThemeStyle = createMenuThemeStyle(appTheme);
 
 const WORK_MODE_ITEMS: ReadonlyArray<{
   value: WorkMode;
@@ -191,15 +192,10 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   onUndoSelect,
   onRedoSelect,
 }) => {
-  const theme = useTheme();
   const appVersion = import.meta.env.VITE_APP_VERSION;
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const aboutDialogTitleId = React.useId();
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
-  const menuThemeStyle = React.useMemo(
-    () => createMenuThemeStyle(theme),
-    [theme],
-  );
   const canCheckForUpdates = React.useMemo(
     () => canRequestAvailableUpdateCheck(),
     [],

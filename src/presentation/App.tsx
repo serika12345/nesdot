@@ -1,4 +1,3 @@
-import { GlobalStyles } from "@mui/material";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -36,7 +35,6 @@ import {
 } from "./components/common/state/fileMenuState";
 import { ScreenMode } from "./components/screenMode/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
-import { getAppGlobalStyles } from "./theme";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -419,7 +417,6 @@ export const App: React.FC = () => {
 
   return (
     <>
-      <GlobalStyles styles={getAppGlobalStyles} />
       <DesktopAutoUpdateDialog
         state={desktopAutoUpdate.dialogState}
         progressPercent={desktopAutoUpdate.progressPercent}

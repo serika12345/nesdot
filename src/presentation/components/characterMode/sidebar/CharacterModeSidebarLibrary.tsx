@@ -1,5 +1,6 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { ButtonBase, Stack } from "@mui/material";
+import ButtonBase from "@mui/material/ButtonBase";
+import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../application/state/projectStore";

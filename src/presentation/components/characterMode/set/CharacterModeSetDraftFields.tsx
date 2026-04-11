@@ -1,11 +1,9 @@
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  OutlinedInput,
-  Stack,
-} from "@mui/material";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import { Field, FieldLabel, ToolButton } from "../../../App.styles";
 import { CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME } from "../../../styleClassNames";

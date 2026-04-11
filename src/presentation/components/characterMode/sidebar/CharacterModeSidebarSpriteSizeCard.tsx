@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import Box from "@mui/material/Box";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { ToolButton } from "../../../App.styles";

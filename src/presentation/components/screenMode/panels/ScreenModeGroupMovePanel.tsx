@@ -1,5 +1,7 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { MenuItem, OutlinedInput, Select } from "@mui/material";
+import MenuItem from "@mui/material/MenuItem";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import Select from "@mui/material/Select";
 import React from "react";
 import { getGroupBounds } from "../../../../domain/screen/spriteGroup";
 import {

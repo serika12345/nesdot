@@ -1,4 +1,8 @@
-import { ButtonBase, MenuItem, Select, Stack, Typography } from "@mui/material";
+import ButtonBase from "@mui/material/ButtonBase";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import {

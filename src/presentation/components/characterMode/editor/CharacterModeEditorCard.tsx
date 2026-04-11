@@ -1,4 +1,4 @@
-import { Stack, type StackProps } from "@mui/material";
+import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   CHARACTER_EDITOR_CARD_CLASS_NAME,

@@ -1,4 +1,5 @@
-import { Chip, Stack } from "@mui/material";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import {
   Panel,
@@ -6,8 +7,8 @@ import {
   PanelTitle,
   ScrollArea,
 } from "../../../App.styles";
-import { SpriteModeEditorSelectionFields } from "../forms/SpriteModeEditorSelectionFields";
 import { useSpriteModeProjectSpriteSize } from "../core/SpriteModeStateProvider";
+import { SpriteModeEditorSelectionFields } from "../forms/SpriteModeEditorSelectionFields";
 
 /**
  * スプライト番号とパレットを切り替える編集サイドパネルです。

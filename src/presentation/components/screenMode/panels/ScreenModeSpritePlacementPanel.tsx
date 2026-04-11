@@ -1,5 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { OutlinedInput } from "@mui/material";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import React from "react";
 import {
   CollapseToggle,

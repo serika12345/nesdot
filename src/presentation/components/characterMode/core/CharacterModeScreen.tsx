@@ -1,4 +1,4 @@
-import { Stack } from "@mui/material";
+import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { Panel } from "../../../App.styles";
