@@ -1,18 +1,18 @@
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
 import React, { useCallback, useEffect, useRef } from "react";
-import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
   SpriteTile,
   useProjectState,
 } from "../../../application/state/projectStore";
+import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { makeTile } from "../../../domain/tiles/utils";
+import { getSwapPreviewTile } from "../../../presentation/components/spriteMode/reorder/swapPreview";
+import { useSwap } from "../../../presentation/components/spriteMode/reorder/useSwap";
 import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
-import { getSwapPreviewTile } from "../../../presentation/components/hooks/swapPreview";
 import { useGhost } from "./useGhost";
-import { useSwap } from "../../../presentation/components/hooks/useSwap";
 
 export type Tool = "pen" | "eraser";
 export type SpriteCanvasDisplayModel = Readonly<{

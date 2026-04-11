@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { ColorIndexOfPalette } from "../../../domain/project/project";
-import { swap8x8Blocks } from "../../../domain/tiles/swap";
+import { ColorIndexOfPalette } from "../../../../domain/project/project";
+import { swap8x8Blocks } from "../../../../domain/tiles/swap";
 
 /**
  * 8x8 ブロックの入れ替え処理を React から使いやすい形で返すフックです。
