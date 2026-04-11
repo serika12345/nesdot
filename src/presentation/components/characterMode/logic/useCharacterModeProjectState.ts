@@ -107,7 +107,7 @@ const createCharacterModeProjectActions = (params: {
     ),
   );
 
-export interface CharacterModeProjectStateResult {
+interface CharacterModeProjectStateResult {
   activeSet: O.Option<CharacterSet>;
   activeSetId: string;
   activeSetName: string;

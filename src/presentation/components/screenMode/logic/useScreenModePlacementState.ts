@@ -1,7 +1,7 @@
 import * as E from "fp-ts/Either";
-import { useState, type Dispatch, type SetStateAction } from "react";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { type SpriteInScreen } from "../../../../application/state/projectStore";
 import { expandCharacterToScreenSprites } from "../../../../domain/characters/characterSet";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
@@ -19,7 +19,7 @@ type ScreenModePlacementDependencies = Pick<
   setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
 };
 
-export interface ScreenModePlacementStateResult {
+interface ScreenModePlacementStateResult {
   spriteNumber: number;
   setSpriteNumber: Dispatch<SetStateAction<number>>;
   x: number;

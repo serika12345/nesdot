@@ -19,6 +19,8 @@ import {
 } from "../../../../domain/characters/characterDecomposition";
 import { type CharacterSet } from "../../../../domain/characters/characterSet";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
+import { type DecompositionTool } from "../ui/primitives/CharacterModePrimitives";
+import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 import {
   createDecompositionCanvas,
   createDecompositionCanvasRgba,
@@ -31,14 +33,12 @@ import {
   clampDecompositionRegions,
 } from "./decomposition/decompositionRegionRules";
 import { trySetPointerCapture } from "./input/pointerCapture";
-import { type DecompositionTool } from "../ui/primitives/CharacterModePrimitives";
 import {
   type DecompositionDrawState,
   type DecompositionRegionContextMenuState,
   type DecompositionRegionDragState,
 } from "./types/characterModeInteractionState";
 import { type CharacterEditorMode } from "./view/characterEditorMode";
-import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 
 interface UseCharacterModeDecompositionStateArgs {
   activeSet: O.Option<CharacterSet>;
@@ -53,7 +53,7 @@ interface UseCharacterModeDecompositionStateArgs {
   stageWidth: number;
 }
 
-export interface CharacterModeDecompositionStateResult {
+interface CharacterModeDecompositionStateResult {
   clearRegionsAndSelection: () => void;
   clearSelectedRegion: () => void;
   closeDecompositionRegionContextMenu: () => void;

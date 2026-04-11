@@ -1,6 +1,7 @@
 // src/tiles/utils.ts
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
+import { getMatrixItem } from "../../shared/arrayAccess";
 import {
   Backing,
   ColorIndexOfPalette,
@@ -8,7 +9,6 @@ import {
   SpriteTile,
   SpriteTileND,
 } from "../project/project";
-import { getMatrixItem } from "../../shared/arrayAccess";
 
 /**
  * 与えられたタイルサイズが 8 の倍数条件を満たすか検査します。
@@ -41,7 +41,7 @@ export function makeTile(
   return { width, height, pixels, paletteIndex };
 }
 
-export type ResizeAnchor =
+type ResizeAnchor =
   | "top-left"
   | "top"
   | "top-right"

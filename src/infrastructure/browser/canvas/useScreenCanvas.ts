@@ -3,8 +3,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { useProjectState } from "../../../application/state/projectStore";
 import { renderScreenToHexArray } from "../../../domain/nes/rendering";
 
-export type Tool = "pen" | "eraser";
-export interface UseCanvasParams {
+interface UseCanvasParams {
   scale?: number; // ピクセル拡大倍率
   showGrid?: boolean;
 }

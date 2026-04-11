@@ -12,7 +12,7 @@ export interface CharacterSprite {
   layer: number;
 }
 
-export interface CharacterSpriteInput {
+interface CharacterSpriteInput {
   spriteIndex: number;
   x?: number;
   y?: number;
@@ -25,13 +25,13 @@ export interface CharacterSet {
   sprites: CharacterSprite[];
 }
 
-export interface ExpandCharacterInput {
+interface ExpandCharacterInput {
   baseX: number;
   baseY: number;
   sprites: SpriteTile[];
 }
 
-export interface BuildCharacterPreviewInput {
+interface BuildCharacterPreviewInput {
   sprites: SpriteTile[];
   palettes: NesSpritePalettes;
   transparentHex: string;

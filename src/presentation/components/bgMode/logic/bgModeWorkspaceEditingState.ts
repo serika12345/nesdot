@@ -12,7 +12,7 @@ import {
   type BackgroundTile,
 } from "../../../../domain/project/projectV2";
 
-export type BgTool = "pen" | "eraser";
+type BgTool = "pen" | "eraser";
 type BgPaletteIndex = 0 | 1 | 2 | 3;
 
 const decodeVisibleBackgroundTile = (

@@ -8,25 +8,17 @@ import React from "react";
 import {
   CanvasViewport,
   DetailList,
-  DetailRow,
   PanelHeaderRow,
-  ToolButton,
 } from "../../../../../App.styles";
 import {
   SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
   SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
-  SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
-  SCREEN_GROUP_ACTION_BUTTON_CLASS_NAME,
   SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME,
   SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
   SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
-  SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME,
   SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME,
-  SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME,
-  SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
   SCREEN_WARNING_LIST_CLASS_NAME,
-  SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME,
   SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME,
   SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
   mergeClassNames,
@@ -171,13 +163,6 @@ const createUniformGridLayout = (
   );
 };
 
-export const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
-  direction: "row",
-  flexWrap: "wrap",
-  spacing: "0.75rem",
-  alignItems: "end",
-});
-
 export const ScreenModeEditorContent = createStackLayout(
   "ScreenModeEditorContent",
   {
@@ -185,17 +170,6 @@ export const ScreenModeEditorContent = createStackLayout(
     className: SCREEN_EDITOR_CONTENT_CLASS_NAME,
   },
 );
-
-export const ScreenModeSection = createStackLayout("ScreenModeSection", {
-  spacing: "0.875rem",
-});
-
-export const SummaryMetricGrid = createStackLayout("SummaryMetricGrid", {
-  className: SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME,
-  direction: "row",
-  flexWrap: "wrap",
-  spacing: 1.5,
-});
 
 export const WorkspaceHeaderActionCluster = createStackLayout(
   "WorkspaceHeaderActionCluster",
@@ -208,39 +182,6 @@ export const WorkspaceHeaderActionCluster = createStackLayout(
   },
 );
 
-export const FullWidthField = createStackLayout("FullWidthField", {
-  component: "label",
-  spacing: "0.5rem",
-  flexBasis: "100%",
-});
-
-export const GridActionRow = createStackLayout("GridActionRow", {
-  flex: "1 1 10rem",
-  justifyContent: "flex-end",
-});
-
-export const FullWidthActionRow = createStackLayout("FullWidthActionRow", {
-  flexBasis: "100%",
-  justifyContent: "flex-end",
-});
-
-export const WideTallToolButton = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<typeof ToolButton>
->(function WideTallToolButton({ className, ...props }, ref) {
-  return (
-    <ToolButton
-      ref={ref}
-      {...props}
-      className={mergeClassNames(
-        SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
-        SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
 export const ZoomControlsRow = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof PanelHeaderRow>
@@ -252,63 +193,6 @@ export const ZoomControlsRow = React.forwardRef<
       justifyContent="flex-start"
       className={mergeClassNames(
         SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
-export const ReadOnlyDetailRow = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof DetailRow>
->(function ReadOnlyDetailRow({ className, ...props }, ref) {
-  return (
-    <DetailRow
-      ref={ref}
-      {...props}
-      px={0}
-      py={0}
-      className={mergeClassNames(
-        SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
-export const FlipButtonGrid = createStackLayout("FlipButtonGrid", {
-  direction: "row",
-  spacing: "0.75rem",
-  alignItems: "end",
-});
-
-export const FlipToolButton = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<typeof ToolButton>
->(function FlipToolButton({ className, ...props }, ref) {
-  return (
-    <ToolButton
-      ref={ref}
-      {...props}
-      className={mergeClassNames(
-        SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
-export const GroupActionButton = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<typeof ToolButton>
->(function GroupActionButton({ className, ...props }, ref) {
-  return (
-    <ToolButton
-      ref={ref}
-      {...props}
-      className={mergeClassNames(
-        SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
-        SCREEN_GROUP_ACTION_BUTTON_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
     />

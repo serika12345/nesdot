@@ -6,7 +6,7 @@ import {
 } from "./pwaUpdateMonitor";
 import { requestDesktopAutoUpdateCheck } from "./useDesktopAutoUpdate";
 
-export type UpdateCheckTarget = "desktop" | "pwa";
+type UpdateCheckTarget = "desktop" | "pwa";
 
 export interface UpdateCheckAvailabilityFlags {
   readonly hasTauriRuntime: boolean;
@@ -53,7 +53,7 @@ const resolveNavigatorServiceWorker = (): O.Option<PwaServiceWorkerLike> => {
   return O.none;
 };
 
-export const resolveUpdateCheckTarget = (): O.Option<UpdateCheckTarget> => {
+const resolveUpdateCheckTarget = (): O.Option<UpdateCheckTarget> => {
   return resolveUpdateCheckTargetFromFlags({
     hasTauriRuntime: resolveHasTauriRuntime(),
     isProduction: import.meta.env.PROD,

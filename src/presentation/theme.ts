@@ -162,7 +162,7 @@ export const appTheme = createTheme(appThemeBase, {
  * テーマ値を使ってアプリ全体のグローバルスタイルを生成します。
  * CSS 変数とベース要素の見た目を一元化し、各画面が同じデザイントークンを共有できるようにします。
  */
-export function getAppGlobalStyles(theme: Theme) {
+function getAppGlobalStyles(theme: Theme) {
   return {
     ":root": {
       "--ink-strong": theme.palette.text.primary,

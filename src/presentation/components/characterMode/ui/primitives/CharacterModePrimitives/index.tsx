@@ -13,7 +13,6 @@ import {
 } from "../../../../../App.styles";
 import {
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
   CHARACTER_EDITOR_CARD_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
@@ -352,16 +351,6 @@ const EditorCard = createStackLayout("EditorCard", {
 export const StageEditorCard = React.forwardRef<HTMLDivElement, StackProps>(
   function StageEditorCard(props, ref) {
     return <EditorCard ref={ref} {...props} />;
-  },
-);
-
-export const DecompositionToolCard = createStackLayout(
-  "DecompositionToolCard",
-  {
-    component: "div",
-    className: CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
-    spacing: "0.75rem",
-    p: "0.75rem",
   },
 );
 

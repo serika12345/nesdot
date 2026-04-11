@@ -2,12 +2,12 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { CharacterSprite } from "../../../../../domain/characters/characterSet";
 
-export interface CharacterLayerEntry {
+interface CharacterLayerEntry {
   index: number;
   sprite: CharacterSprite;
 }
 
-export interface ResolveCharacterStagePointInput {
+interface ResolveCharacterStagePointInput {
   clientX: number;
   clientY: number;
   stageLeft: number;
@@ -21,7 +21,7 @@ export interface ResolveCharacterStagePointInput {
   maxY: number;
 }
 
-export type CharacterSpriteNudgeDirection = "left" | "right" | "up" | "down";
+type CharacterSpriteNudgeDirection = "left" | "right" | "up" | "down";
 
 interface OrderedCharacterLayerEntry extends CharacterLayerEntry {
   layer: number;

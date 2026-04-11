@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
-import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { NesSpritePalettes } from "../../../domain/nes/nesProject";
+import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { PaletteIndex, SpriteTile } from "../../../domain/project/project";
 import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
 
@@ -10,7 +10,7 @@ import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
  * - ゴースト要素の作成/移動/破棄
  * - クリックされた位置のセルインデックスを見て 8*8 タイルを特定し、そのタイルをゴースト表示
  */
-export interface UseGhostParams {
+interface UseGhostParams {
   scale: number; // ピクセル拡大倍率
   width: number; // スプライト全体の幅（px）
   height: number; // スプライト全体の高さ（px）

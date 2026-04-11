@@ -4,27 +4,19 @@ import React from "react";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
   APP_ACTION_MENU_CLASS_NAME,
-  APP_ACTION_MENU_OVERLAY_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_CONTAINER_CLASS_NAME,
   APP_DETAIL_KEY_CLASS_NAME,
   APP_DETAIL_ROW_CLASS_NAME,
   APP_DETAIL_VALUE_CLASS_NAME,
-  APP_DIVIDER_CLASS_NAME,
   APP_EYEBROW_CLASS_NAME,
   APP_FIELD_LABEL_CLASS_NAME,
-  APP_H3_CLASS_NAME,
   APP_HELPER_TEXT_CLASS_NAME,
-  APP_METRIC_CARD_CLASS_NAME,
-  APP_METRIC_LABEL_CLASS_NAME,
-  APP_METRIC_VALUE_CLASS_NAME,
-  APP_MODE_SWITCHER_CARD_CLASS_NAME,
   APP_MODE_SWITCHER_TITLE_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
   APP_PANEL_DESCRIPTION_CLASS_NAME,
   APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
-  APP_SCROLL_COLUMN_CLASS_NAME,
   BADGE_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   ICON_ACTION_BUTTON_CLASS_NAME,
@@ -206,24 +198,6 @@ export const Eyebrow = React.forwardRef<
   );
 });
 
-export const ModeSwitcherCard = createBoxLayout("ModeSwitcherCard", {
-  component: "div",
-  className: APP_MODE_SWITCHER_CARD_CLASS_NAME,
-  width: "100%",
-  p: "0.875rem",
-});
-
-export const ModeSwitcherLayout = createStackLayout("ModeSwitcherLayout", {
-  direction: { xs: "column", xl: "row" },
-  spacing: "0.75rem",
-  alignItems: "center",
-});
-
-export const ModeSwitcherHeader = createStackLayout("ModeSwitcherHeader", {
-  minWidth: 0,
-  spacing: "0.125rem",
-});
-
 export const ModeSwitcherTitle = React.forwardRef<
   HTMLHeadingElement,
   React.ComponentProps<"h2">
@@ -322,29 +296,6 @@ export const PanelDescription = React.forwardRef<
   );
 });
 
-export const H3 = React.forwardRef<
-  HTMLHeadingElement,
-  React.ComponentProps<"h3">
->(function H3({ className, ...props }, ref) {
-  return (
-    <h3
-      ref={ref}
-      {...props}
-      className={resolvePrimitiveClassName(
-        APP_H3_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
-export const Toolbar = createStackLayout("Toolbar", {
-  direction: "row",
-  flexWrap: "wrap",
-  spacing: "0.625rem",
-  alignItems: "center",
-});
-
 export const Spacer = createBoxLayout("Spacer", {
   flex: "1 1 1.5rem",
   minWidth: "0.75rem",
@@ -365,8 +316,6 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
   },
 );
 
-export const ActionButton = ToolButton;
-
 export const CollapseToggle = React.forwardRef<
   HTMLButtonElement,
   CollapseToggleProps
@@ -381,21 +330,6 @@ export const CollapseToggle = React.forwardRef<
       )}
     />
   );
-});
-
-export const ActionCluster = createBoxLayout("ActionCluster", {
-  position: "relative",
-  zIndex: 3,
-  width: "min(100%, 20rem)",
-});
-
-export const ActionButtonsRow = createStackLayout("ActionButtonsRow", {
-  direction: "row",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  spacing: "0.625rem",
-  flexWrap: "wrap",
-  width: "100%",
 });
 
 export const IconActionButton = React.forwardRef<
@@ -414,13 +348,6 @@ export const IconActionButton = React.forwardRef<
   );
 });
 
-export const IconLabel = createStackLayout("IconLabel", {
-  component: "span",
-  direction: "row",
-  alignItems: "center",
-  spacing: "0.625rem",
-});
-
 export const ActionMenu = createStackLayout("ActionMenu", {
   component: "div",
   className: APP_ACTION_MENU_CLASS_NAME,
@@ -430,11 +357,6 @@ export const ActionMenu = createStackLayout("ActionMenu", {
   spacing: "0.375rem",
   p: "0.625rem",
   zIndex: 9999,
-});
-
-export const ActionMenuOverlay = createBoxLayout("ActionMenuOverlay", {
-  component: "div",
-  className: APP_ACTION_MENU_OVERLAY_CLASS_NAME,
 });
 
 export const ActionMenuButton = React.forwardRef<
@@ -503,59 +425,11 @@ export const CanvasViewport = createBoxLayout("CanvasViewport", {
   p: "1.125rem",
 });
 
-export const ScrollColumn = createStackLayout("ScrollColumn", {
-  component: "div",
-  className: APP_SCROLL_COLUMN_CLASS_NAME,
-  minHeight: 0,
-  overflow: "auto",
-  spacing: "1rem",
-});
-
 export const ScrollArea = createBoxLayout("ScrollArea", {
   component: "div",
   className: APP_SCROLL_AREA_CLASS_NAME,
   minHeight: 0,
   overflow: "auto",
-});
-
-export const MetricCard = createStackLayout("MetricCard", {
-  component: "div",
-  className: APP_METRIC_CARD_CLASS_NAME,
-  spacing: "0.375rem",
-  px: "1rem",
-  py: "0.875rem",
-});
-
-export const MetricLabel = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(function MetricLabel({ className, ...props }, ref) {
-  return (
-    <div
-      ref={ref}
-      {...props}
-      className={resolvePrimitiveClassName(
-        APP_METRIC_LABEL_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
-
-export const MetricValue = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(function MetricValue({ className, ...props }, ref) {
-  return (
-    <div
-      ref={ref}
-      {...props}
-      className={resolvePrimitiveClassName(
-        APP_METRIC_VALUE_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
 });
 
 export const DetailList = createStackLayout("DetailList", {
@@ -613,12 +487,4 @@ export const HelperText = createBoxLayout("HelperText", {
   position: "relative",
   zIndex: 1,
   m: 0,
-});
-
-export const Divider = createBoxLayout("Divider", {
-  component: "div",
-  className: APP_DIVIDER_CLASS_NAME,
-  position: "relative",
-  zIndex: 1,
-  height: "0.0625rem",
 });

@@ -12,7 +12,7 @@ import {
 
 type UpdateServiceWorker = (reloadPage?: boolean) => Promise<void>;
 
-export interface PwaUpdateController {
+interface PwaUpdateController {
   readonly dialogState: PwaUpdateDialogState;
   readonly onDialogClose: () => void;
   readonly onUpdateNow: () => void;

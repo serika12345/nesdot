@@ -1,16 +1,16 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 import {
   isValidGroupMovement,
   moveGroupByDelta,
 } from "../../../../domain/screen/spriteGroup";
+import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ScreenModeGroupMoveDependencies = Pick<
   ScreenModeProjectStateResult,
   "screen" | "spritesOnScreen" | "scan" | "setScreenAndSyncNes"
 >;
 
-export interface ScreenModeGroupMoveStateResult {
+interface ScreenModeGroupMoveStateResult {
   isGroupMoveOpen: boolean;
   setIsGroupMoveOpen: Dispatch<SetStateAction<boolean>>;
   selectedSpriteIndices: Set<number>;

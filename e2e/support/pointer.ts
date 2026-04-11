@@ -1,11 +1,11 @@
 import { type Locator, type Page } from "@playwright/test";
 
-export interface LocatorPoint {
+interface LocatorPoint {
   clientX: number;
   clientY: number;
 }
 
-export interface LocatorRect extends LocatorPoint {
+interface LocatorRect extends LocatorPoint {
   width: number;
   height: number;
 }

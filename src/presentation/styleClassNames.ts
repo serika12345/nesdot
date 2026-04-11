@@ -35,7 +35,6 @@ export const BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME =
   "background-tile-preview-canvas";
 
 export const MENU_BAR_ROOT_CLASS_NAME = "menu-bar-root";
-export const MENU_BUTTONS_CLASS_NAME = "menu-buttons";
 export const MENU_ROOT_CLASS_NAME = "menu-root";
 export const MENU_TRIGGER_CLASS_NAME = "menu-trigger";
 export const MENU_CONTENT_CLASS_NAME = "menu-content";
@@ -50,7 +49,6 @@ export const MENU_ITEM_META_CLASS_NAME = "menu-item-meta";
 export const MENU_MODE_SELECTION_MARKER_CLASS_NAME =
   "menu-mode-selection-marker";
 export const MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME = "menu-item-shortcut-text";
-export const MENU_ABOUT_CONTENT_LAYOUT_CLASS_NAME = "menu-about-content-layout";
 export const MENU_ABOUT_ICON_IMAGE_CLASS_NAME = "menu-about-icon-image";
 export const MENU_ABOUT_APP_NAME_CLASS_NAME = "menu-about-app-name";
 export const MENU_ABOUT_VERSION_TEXT_CLASS_NAME = "menu-about-version-text";

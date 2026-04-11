@@ -2,9 +2,9 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
+  useProjectState,
   type SpriteInScreen,
   type SpritePriority,
-  useProjectState,
 } from "../../../../application/state/projectStore";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
@@ -13,7 +13,7 @@ type ScreenModeSelectionDependencies = Pick<
   "screen" | "spritesOnScreen" | "scan" | "setScreenAndSyncNes"
 >;
 
-export interface ScreenModeSelectionStateResult {
+interface ScreenModeSelectionStateResult {
   selectedSpriteIndex: O.Option<number>;
   setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
   isSelectionOpen: boolean;

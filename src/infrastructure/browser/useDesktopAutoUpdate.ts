@@ -11,12 +11,12 @@ const hasTauriRuntime = (): boolean => {
   return Reflect.has(window, "__TAURI_INTERNALS__");
 };
 
-export interface DownloadProgressTracker {
+interface DownloadProgressTracker {
   readonly downloadedBytes: number;
   readonly totalBytes: O.Option<number>;
 }
 
-export type DesktopAutoUpdateFailureOperation =
+type DesktopAutoUpdateFailureOperation =
   | "check"
   | "start"
   | "download-install"
@@ -53,7 +53,7 @@ export type DesktopAutoUpdateDialogState =
       readonly versionLabel: string;
     };
 
-export interface DesktopAutoUpdateController {
+interface DesktopAutoUpdateController {
   readonly dialogState: DesktopAutoUpdateDialogState;
   readonly progressPercent: O.Option<number>;
   readonly onCheckNow: () => void;

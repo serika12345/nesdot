@@ -5,9 +5,7 @@ import { type ProjectStateV2 } from "../project/projectV2";
 export const MAX_SCREEN_SPRITES = 64;
 export const MAX_SPRITES_PER_SCANLINE = 8;
 
-export type ScreenConstraintReport =
-  | { ok: true }
-  | { ok: false; errors: string[] };
+type ScreenConstraintReport = { ok: true } | { ok: false; errors: string[] };
 
 const summarizeViolatedScanlines = (violatedLines: number[]): string =>
   violatedLines.slice(0, 10).join(", ");

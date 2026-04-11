@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 
-export interface PwaServiceWorkerRegistrationLike {
+interface PwaServiceWorkerRegistrationLike {
   readonly update: () => Promise<void>;
 }
 
@@ -24,14 +24,14 @@ export interface PwaServiceWorkerLike {
   readonly ready: Promise<PwaServiceWorkerRegistrationLike>;
 }
 
-export interface PwaWindowLike {
+interface PwaWindowLike {
   readonly addEventListener: (type: "focus", listener: () => void) => void;
   readonly removeEventListener: (type: "focus", listener: () => void) => void;
   readonly setInterval: (handler: () => void, timeout: number) => number;
   readonly clearInterval: (intervalId: number) => void;
 }
 
-export interface PwaDocumentLike {
+interface PwaDocumentLike {
   readonly visibilityState: "hidden" | "visible" | "prerender";
   readonly addEventListener: (
     type: "visibilitychange",
@@ -43,7 +43,7 @@ export interface PwaDocumentLike {
   ) => void;
 }
 
-export interface PwaUpdateEnvironment {
+interface PwaUpdateEnvironment {
   readonly document: PwaDocumentLike;
   readonly serviceWorker: PwaServiceWorkerLike;
   readonly window: PwaWindowLike;

@@ -15,7 +15,7 @@ interface UseCharacterModeWorkspaceStateArgs {
   ) => boolean;
 }
 
-export interface CharacterModeWorkspaceStateResult {
+interface CharacterModeWorkspaceStateResult {
   handleWorkspacePointerDownCapture: React.PointerEventHandler<HTMLDivElement>;
   handleWorkspacePointerEnd: React.PointerEventHandler<HTMLDivElement>;
   handleWorkspacePointerMove: React.PointerEventHandler<HTMLDivElement>;

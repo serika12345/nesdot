@@ -32,7 +32,7 @@ type ScreenModeProjectActionsDependencies = Pick<
   setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
 };
 
-export interface ScreenModeProjectActionsResult {
+interface ScreenModeProjectActionsResult {
   projectActions: ProjectActionItem[];
   handleImport: () => Promise<void>;
 }

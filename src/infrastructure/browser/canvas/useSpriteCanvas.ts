@@ -15,13 +15,13 @@ import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
 import { useGhost } from "./useGhost";
 
 export type Tool = "pen" | "eraser";
-export type SpriteCanvasDisplayModel = Readonly<{
+type SpriteCanvasDisplayModel = Readonly<{
   scale?: number;
   showGrid?: boolean;
   target: number;
 }>;
 
-export type SpriteCanvasInteractionModel = Readonly<{
+type SpriteCanvasInteractionModel = Readonly<{
   activeColorIndex: ColorIndexOfPalette; // 0..3（0は透明スロット）
   currentSelectPalette: PaletteIndex;
   isChangeOrderMode?: boolean; // 並べ替えモード
@@ -29,7 +29,7 @@ export type SpriteCanvasInteractionModel = Readonly<{
   tool: Tool;
 }>;
 
-export interface UseCanvasParams {
+interface UseCanvasParams {
   display: SpriteCanvasDisplayModel;
   interaction: SpriteCanvasInteractionModel;
 }

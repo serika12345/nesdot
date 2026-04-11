@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 
-export interface SwapPreviewTile {
+interface SwapPreviewTile {
   tileX: number;
   tileY: number;
 }

@@ -13,12 +13,12 @@ const SCREEN_BACKGROUND_WIDTH_PIXELS =
 const SCREEN_BACKGROUND_HEIGHT_PIXELS =
   SCREEN_BACKGROUND_PALETTE_HEIGHT * SCREEN_BACKGROUND_PALETTE_REGION_SIZE;
 
-export interface ScreenBackgroundPaletteCoordinate {
+interface ScreenBackgroundPaletteCoordinate {
   regionX: number;
   regionY: number;
 }
 
-export interface ScreenBackgroundPalettePlacement extends ScreenBackgroundPaletteCoordinate {
+interface ScreenBackgroundPalettePlacement extends ScreenBackgroundPaletteCoordinate {
   snappedPixelX: number;
   snappedPixelY: number;
   linearIndex: number;

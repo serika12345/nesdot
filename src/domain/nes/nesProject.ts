@@ -1,13 +1,13 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
-export const NES_NAME_TABLE_WIDTH_TILES = 32;
-export const NES_NAME_TABLE_HEIGHT_TILES = 30;
+const NES_NAME_TABLE_WIDTH_TILES = 32;
+const NES_NAME_TABLE_HEIGHT_TILES = 30;
 export const NES_NAME_TABLE_TILE_COUNT =
   NES_NAME_TABLE_WIDTH_TILES * NES_NAME_TABLE_HEIGHT_TILES;
 
-export const NES_ATTRIBUTE_TABLE_WIDTH_BYTES = 8;
-export const NES_ATTRIBUTE_TABLE_HEIGHT_BYTES = 8;
+const NES_ATTRIBUTE_TABLE_WIDTH_BYTES = 8;
+const NES_ATTRIBUTE_TABLE_HEIGHT_BYTES = 8;
 export const NES_ATTRIBUTE_TABLE_BYTE_COUNT =
   NES_ATTRIBUTE_TABLE_WIDTH_BYTES * NES_ATTRIBUTE_TABLE_HEIGHT_BYTES;
 
@@ -16,7 +16,7 @@ export const NES_EMPTY_BACKGROUND_TILE_INDEX = -1;
 
 export type NesPaletteIndex = 0 | 1 | 2 | 3;
 export type NesColorIndex = number;
-export type PatternTableSelect = 0 | 1;
+type PatternTableSelect = 0 | 1;
 
 export type NesSubPalette = [
   NesColorIndex,
@@ -56,7 +56,7 @@ export interface OamSpriteEntry {
   x: number;
 }
 
-export interface PpuControlState {
+interface PpuControlState {
   spriteSize: 8 | 16;
   backgroundPatternTable: PatternTableSelect;
   spritePatternTable: PatternTableSelect;

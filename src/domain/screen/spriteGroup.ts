@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import { SpriteInScreen } from "../project/project";
 
-export interface GroupBounds {
+interface GroupBounds {
   minX: number;
   minY: number;
   maxX: number;

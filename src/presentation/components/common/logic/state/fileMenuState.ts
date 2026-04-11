@@ -13,7 +13,7 @@ export type FileShareAction = {
   onSelect: () => void;
 };
 
-export type FileRestoreAction = {
+type FileRestoreAction = {
   label: string;
   onSelect: () => Promise<void> | void;
 };

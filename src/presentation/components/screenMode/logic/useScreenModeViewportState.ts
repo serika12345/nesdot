@@ -21,7 +21,7 @@ interface ViewportAnchor {
   clientY: number;
 }
 
-export interface ViewportPanState {
+interface ViewportPanState {
   pointerId: number;
   startClientX: number;
   startClientY: number;
@@ -29,7 +29,7 @@ export interface ViewportPanState {
   startScrollTop: number;
 }
 
-export interface ScreenModeViewportStateResult {
+interface ScreenModeViewportStateResult {
   screenZoomLevel: number;
   viewportPanState: O.Option<ViewportPanState>;
   setViewportRef: (element: HTMLDivElement | null) => void;

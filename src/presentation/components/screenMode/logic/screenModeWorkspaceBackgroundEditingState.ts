@@ -10,10 +10,7 @@ import { type PaletteIndex } from "../../../../domain/project/project";
 import { getScreenBackgroundTilePlacementFromPixel } from "../../../../domain/screen/backgroundLayout";
 import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../domain/screen/backgroundPalette";
 
-export type ScreenModeBackgroundEditingTarget =
-  | "sprite"
-  | "bgTile"
-  | "bgPalette";
+type ScreenModeBackgroundEditingTarget = "sprite" | "bgTile" | "bgPalette";
 
 interface BackgroundCursorOverlayState {
   height: number;

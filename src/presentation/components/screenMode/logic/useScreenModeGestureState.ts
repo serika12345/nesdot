@@ -46,14 +46,14 @@ interface StageMarqueeState {
   additive: boolean;
 }
 
-export interface ScreenModeMarqueeRect {
+interface ScreenModeMarqueeRect {
   x: number;
   y: number;
   width: number;
   height: number;
 }
 
-export type ScreenModeLibraryDragState =
+type ScreenModeLibraryDragState =
   | {
       kind: "sprite";
       pointerId: number;
@@ -69,13 +69,13 @@ export type ScreenModeLibraryDragState =
       characterId: string;
     };
 
-export interface ScreenModeGestureContextMenuState {
+interface ScreenModeGestureContextMenuState {
   clientX: number;
   clientY: number;
   targetSpriteIndex: O.Option<number>;
 }
 
-export interface ScreenModeCharacterPreviewCard {
+interface ScreenModeCharacterPreviewCard {
   id: string;
   name: string;
   spriteCount: number;
@@ -89,7 +89,7 @@ type ScreenModeGestureDependencies = Pick<
   screenZoomLevel: number;
 };
 
-export interface ScreenModeGestureStateResult {
+interface ScreenModeGestureStateResult {
   characterPreviewCards: ReadonlyArray<ScreenModeCharacterPreviewCard>;
   gestureContextMenu: O.Option<ScreenModeGestureContextMenuState>;
   gestureLibraryDragState: O.Option<ScreenModeLibraryDragState>;

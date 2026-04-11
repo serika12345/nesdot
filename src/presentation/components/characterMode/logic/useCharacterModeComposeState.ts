@@ -55,7 +55,7 @@ interface UseCharacterModeComposeStateArgs {
   stageWidth: number;
 }
 
-export interface CharacterModeComposeStateResult {
+interface CharacterModeComposeStateResult {
   clearSelectionAndDrag: () => void;
   clampSpritesToStage: (nextWidth: number, nextHeight: number) => void;
   closeSpriteContextMenu: () => void;

@@ -1,7 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
 import { getLocatorPoint } from "./pointer";
 
-export interface StageDebugState {
+interface StageDebugState {
   activeSetName: string;
   selectedSpriteIndex: string;
   selectedSpriteLayer: string;
