@@ -79,12 +79,6 @@ export const SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME =
   "screen-summary-metric-card";
 export const SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME =
   "screen-workspace-header-action-cluster";
-export const SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME =
-  "screen-bg-tile-picker-preview-button";
-export const SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME =
-  "screen-bg-placement-overlay-root";
-export const SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME =
-  "screen-bg-placement-overlay-preview";
 export const SCREEN_STAGE_SURFACE_CLASS_NAME = "screen-stage-surface";
 export const SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME =
   "screen-stage-interaction-layer";
@@ -112,29 +106,10 @@ export const SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME =
 export const SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME =
   "screen-floating-drag-preview";
 
-export const BG_MODE_TILE_LIBRARY_GRID_CLASS_NAME = "bg-mode-tile-library-grid";
-export const BG_MODE_TILE_BUTTON_LAYOUT_CLASS_NAME =
-  "bg-mode-tile-button-layout";
-export const BG_MODE_MOCK_TOOLBAR_CLASS_NAME = "bg-mode-mock-toolbar";
-export const BG_MODE_CENTERED_CANVAS_WRAP_CLASS_NAME =
-  "bg-mode-centered-canvas-wrap";
-export const BG_MODE_CANVAS_OVERLAY_ROOT_CLASS_NAME =
-  "bg-mode-canvas-overlay-root";
-export const BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME =
-  "bg-mode-canvas-overlay-menu";
-export const BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME =
-  "bg-mode-overlay-toggle-button";
-
 export const CHARACTER_EDITOR_CARD_CLASS_NAME = "character-mode-editor-card";
 export const CHARACTER_SIDEBAR_CLASS_NAME = "character-mode-sidebar";
 export const CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME =
   "character-decomposition-tool-card";
-export const CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME =
-  "character-decomposition-overlay-root";
-export const CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME =
-  "character-decomposition-overlay-toggle-button";
-export const CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME =
-  "character-decomposition-overlay-menu";
 export const CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME =
   "character-decomposition-palette-slot-button";
 export const CHARACTER_STAGE_VIEWPORT_CLASS_NAME = "character-stage-viewport";
@@ -176,11 +151,6 @@ export const CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME =
 export const CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME =
   "character-pixel-preview-cell";
 export const CHARACTER_STAGE_SURFACE_CLASS_NAME = "character-stage-surface";
-export const CHARACTER_WORKSPACE_GATE_CLASS_NAME = "character-workspace-gate";
-export const CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME =
-  "character-workspace-lock-overlay";
-export const CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME =
-  "character-workspace-lock-message";
 export const CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME =
   "character-set-draft-action-container";
 export const CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME =

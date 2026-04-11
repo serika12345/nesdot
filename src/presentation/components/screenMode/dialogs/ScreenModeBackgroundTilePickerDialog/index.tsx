@@ -8,15 +8,15 @@ import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import * as E from "fp-ts/Either";
 import React from "react";
-import { useProjectState } from "../../../../application/state/projectStore";
-import { decodeBackgroundTileAtIndex } from "../../../../domain/nes/backgroundEditing";
+import { useProjectState } from "../../../../../application/state/projectStore";
+import { decodeBackgroundTileAtIndex } from "../../../../../domain/nes/backgroundEditing";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   createEmptyBackgroundTile,
-} from "../../../../domain/project/projectV2";
-import { ToolButton } from "../../../App.styles";
-import { SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME } from "../../../styleClassNames";
-import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
+} from "../../../../../domain/project/projectV2";
+import { ToolButton } from "../../../../App.styles";
+import { BackgroundTilePreview } from "../../../common/preview/BackgroundTilePreview";
+import { previewButtonStyle } from "./styles";
 
 type BgPickerMode = "bgTile" | "bgPalette";
 type BgPaletteIndex = 0 | 1 | 2 | 3;
@@ -102,9 +102,9 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
               {visibleBackgroundTiles.map((tile, tileIndex) => (
                 <Grid key={`screen-mode-bg-dialog-tile-${tileIndex}`} size={1}>
                   <ButtonBase
-                    className={SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}
                     type="button"
                     aria-label={`BGタイルプレビュー ${tileIndex}`}
+                    style={previewButtonStyle}
                     onClick={() => {
                       onTileSelect(tileIndex);
                     }}

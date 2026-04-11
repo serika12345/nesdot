@@ -2,17 +2,13 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import React from "react";
+import { CharacterModeDecompositionToolCard } from "../CharacterModeDecompositionToolCard";
 import {
-  CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
-} from "../../../styleClassNames";
-import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
-
-const chevronStyle = (open: boolean): React.CSSProperties => ({
-  transform: open ? "rotate(180deg)" : "rotate(0deg)",
-  transition: "transform 160ms ease",
-});
+  chevronStyle,
+  overlayMenuProps,
+  overlayRootProps,
+  overlayToggleButtonStyle,
+} from "./styles";
 
 /**
  * 分解キャンバス上に重なるツールメニューを描画します。
@@ -22,21 +18,11 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
   const [isToolsOpen, setIsToolsOpen] = React.useState(false);
 
   return (
-    <Box
-      className={CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME}
-      position="absolute"
-      top={0}
-      right={0}
-      zIndex={4}
-      display="flex"
-      flexDirection="column"
-      alignItems="flex-end"
-      style={{ pointerEvents: "none" }}
-    >
+    <Box {...overlayRootProps}>
       <Button
-        className={CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}
         type="button"
         variant={isToolsOpen ? "contained" : "outlined"}
+        style={overlayToggleButtonStyle}
         endIcon={<ExpandMoreRoundedIcon style={chevronStyle(isToolsOpen)} />}
         onClick={() => setIsToolsOpen((previous) => !previous)}
       >
@@ -44,12 +30,7 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
       </Button>
 
       {isToolsOpen === true ? (
-        <Box
-          className={CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME}
-          mt={1.5}
-          width="20rem"
-          style={{ pointerEvents: "auto" }}
-        >
+        <Box {...overlayMenuProps}>
           <CharacterModeDecompositionToolCard />
         </Box>
       ) : (

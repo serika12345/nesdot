@@ -26,10 +26,7 @@ import {
   APP_SCROLL_COLUMN_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   BADGE_CLASS_NAME,
-  BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME,
-  BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
   CHARACTER_EDITOR_CARD_CLASS_NAME,
@@ -53,8 +50,6 @@ import {
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
   CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
-  CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME,
-  CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   ICON_ACTION_BUTTON_CLASS_NAME,
   MENU_ABOUT_APP_NAME_CLASS_NAME,
@@ -73,9 +68,6 @@ import {
   MENU_SEPARATOR_CLASS_NAME,
   MENU_SUB_TRIGGER_CLASS_NAME,
   MENU_TRIGGER_CLASS_NAME,
-  SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME,
-  SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME,
-  SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
   SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
@@ -737,30 +729,6 @@ export function getAppGlobalStyles(theme: Theme) {
       border: "none",
       boxShadow: "none",
     },
-    [`.MuiButtonBase-root.${SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}`]:
-      {
-        width: "100%",
-        borderRadius: "1rem",
-        border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-        background:
-          "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-        boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-        padding: "0.875rem",
-        textAlign: "left",
-      },
-    [`.${SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME}`]: {
-      borderRadius: 0,
-      border: "0.125rem dashed rgba(20, 184, 166, 0.9)",
-      background: "rgba(45, 212, 191, 0.14)",
-      boxShadow: "0 0 0 0.375rem rgba(45, 212, 191, 0.08)",
-      pointerEvents: "none",
-    },
-    [`.${SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME}`]: {
-      position: "absolute",
-      inset: 0,
-      overflow: "hidden",
-      opacity: 0.94,
-    },
     [`.${SCREEN_STAGE_GUIDE_CLASS_NAME}`]: {
       marginTop: "0.25rem",
     },
@@ -876,16 +844,6 @@ export function getAppGlobalStyles(theme: Theme) {
       borderRadius: "0.375rem",
       pointerEvents: "none",
     },
-    [`.${BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME}`]: {
-      borderRadius: "1.125rem",
-      background: "rgba(255, 255, 255, 0.98)",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-      boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
-      backdropFilter: "blur(1.125rem)",
-    },
-    [`.MuiButtonBase-root.${BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}`]: {
-      pointerEvents: "auto",
-    },
     [`.${CHARACTER_EDITOR_CARD_CLASS_NAME}`]: {
       position: "relative",
       zIndex: 1,
@@ -950,10 +908,6 @@ export function getAppGlobalStyles(theme: Theme) {
         "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
       border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
     },
-    [`.MuiButtonBase-root.${CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}`]:
-      {
-        pointerEvents: "auto",
-      },
     [`.MuiButtonBase-root.${CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME}`]:
       {
         width: "2.625rem",
@@ -1132,23 +1086,6 @@ export function getAppGlobalStyles(theme: Theme) {
         backgroundRepeat: "no-repeat",
         pointerEvents: "none",
       },
-    },
-    [`.${CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME}`]: {
-      borderRadius: "1.25rem",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.26)",
-      background: "rgba(248, 250, 252, 0.76)",
-      backdropFilter: "blur(1.5px)",
-    },
-    [`.${CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME}`]: {
-      borderRadius: "999px",
-      padding: "0.625rem 0.875rem",
-      background:
-        "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.28)",
-      color: "var(--ink-strong)",
-      fontSize: "0.8125rem",
-      fontWeight: 700,
-      letterSpacing: "0.05em",
     },
     [`.${CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME}`]: {
       flexShrink: 0,

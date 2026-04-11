@@ -3,13 +3,10 @@ import React from "react";
 import {
   type NesColorIndex,
   type NesSubPalette,
-} from "../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../domain/project/projectV2";
-import {
-  SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME,
-  SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME,
-} from "../../../styleClassNames";
-import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
+} from "../../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { BackgroundTilePreview } from "../../../common/preview/BackgroundTilePreview";
+import { overlayStaticStyle, previewContainerStyle } from "./styles";
 
 interface BackgroundPlacementOverlayPlacement {
   height: number;
@@ -49,15 +46,11 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
 
   return (
     <Box
-      className={SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME}
       role="img"
       aria-label="BG配置プレビュー"
       position="absolute"
-      borderRadius={0}
-      display="flex"
-      alignItems="flex-start"
-      justifyContent="flex-start"
       style={{
+        ...overlayStaticStyle,
         left: overlayLeft,
         top: overlayTop,
         width: overlayWidth,
@@ -65,7 +58,7 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
       }}
     >
       {preview.kind === "tile" ? (
-        <div className={SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME}>
+        <div style={previewContainerStyle}>
           <BackgroundTilePreview
             ariaLabel="BG配置タイルプレビューキャンバス"
             scale={screenZoomLevel}
