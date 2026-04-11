@@ -40,7 +40,7 @@ const listDirectTsxFiles = (directoryPath: string): ReadonlyArray<string> =>
   });
 
 const isPrimitivesCollectionFile = (filePath: string): boolean =>
-  /Primitives\.tsx$/u.test(filePath);
+  /Primitives(?:[\\/]index)?\.tsx$/u.test(filePath);
 
 const countPublicComponentExports = (source: string): number => {
   const exportedConstCount = Array.from(

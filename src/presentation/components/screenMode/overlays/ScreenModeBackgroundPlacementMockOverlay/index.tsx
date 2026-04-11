@@ -6,7 +6,7 @@ import {
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { BackgroundTilePreview } from "../../../common/preview/BackgroundTilePreview";
-import { overlayStaticStyle, previewContainerStyle } from "./styles";
+import { createOverlayStyle, previewContainerStyle } from "./styles";
 
 interface BackgroundPlacementOverlayPlacement {
   height: number;
@@ -49,13 +49,12 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
       role="img"
       aria-label="BG配置プレビュー"
       position="absolute"
-      style={{
-        ...overlayStaticStyle,
-        left: overlayLeft,
-        top: overlayTop,
-        width: overlayWidth,
-        height: overlayHeight,
-      }}
+      style={createOverlayStyle(
+        overlayLeft,
+        overlayTop,
+        overlayWidth,
+        overlayHeight,
+      )}
     >
       {preview.kind === "tile" ? (
         <div style={previewContainerStyle}>

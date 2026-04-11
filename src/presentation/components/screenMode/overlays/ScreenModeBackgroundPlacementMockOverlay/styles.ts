@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-export const overlayStaticStyle: CSSProperties = {
+const overlayStaticStyle: CSSProperties = {
   borderRadius: 0,
   display: "flex",
   alignItems: "flex-start",
@@ -17,3 +17,16 @@ export const previewContainerStyle: CSSProperties = {
   overflow: "hidden",
   opacity: 0.94,
 };
+
+export const createOverlayStyle = (
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+): CSSProperties => ({
+  ...overlayStaticStyle,
+  left,
+  top,
+  width,
+  height,
+});
