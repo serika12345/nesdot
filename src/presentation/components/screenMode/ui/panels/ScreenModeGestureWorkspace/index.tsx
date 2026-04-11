@@ -29,6 +29,7 @@ import {
 import { CharacterModeTilePreview } from "../../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { ScreenCanvas } from "../../../../common/ui/canvas/ScreenCanvas";
 import type { ScreenModeState } from "../../../logic/useScreenModeState";
+import { ScreenModeCharacterPreview } from "../../preview/ScreenModeCharacterPreview";
 import {
   CharacterLibraryGrid,
   CharacterPreviewTiles,
@@ -275,22 +276,9 @@ export const ScreenModeGestureWorkspace: React.FC<
               )
             : O.none;
 
-        const characterPreviewContent = pipe(
+        const characterPreviewGrid = pipe(
           previewCardOption,
-          O.match(
-            () => <CharacterPreviewTiles />,
-            (previewCard) => (
-              <CharacterPreviewTiles>
-                {previewCard.previewSpriteIndices.map((spriteIndex) => (
-                  <CharacterModeTilePreview
-                    key={`floating-character-sprite-${previewCard.id}-${spriteIndex}`}
-                    scale={2}
-                    tileOption={O.fromNullable(sprites[spriteIndex])}
-                  />
-                ))}
-              </CharacterPreviewTiles>
-            ),
-          ),
+          O.chain((previewCard) => previewCard.previewGrid),
         );
 
         const characterPreviewName = pipe(
@@ -321,7 +309,14 @@ export const ScreenModeGestureWorkspace: React.FC<
                   tileOption={O.fromNullable(sprites[dragState.spriteIndex])}
                 />
               ) : (
-                characterPreviewContent
+                <CharacterPreviewTiles>
+                  <ScreenModeCharacterPreview
+                    maxHeightPx={88}
+                    maxWidthPx={112}
+                    preferredScale={3}
+                    previewGrid={characterPreviewGrid}
+                  />
+                </CharacterPreviewTiles>
               )}
               <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                 {dragState.kind === "sprite"
@@ -525,17 +520,12 @@ export const ScreenModeGestureWorkspace: React.FC<
                           spacing="0.375rem"
                         >
                           <CharacterPreviewTiles>
-                            {characterCard.previewSpriteIndices.map(
-                              (spriteIndex) => (
-                                <CharacterModeTilePreview
-                                  key={`screen-library-character-sprite-${characterCard.id}-${spriteIndex}`}
-                                  scale={2}
-                                  tileOption={O.fromNullable(
-                                    sprites[spriteIndex],
-                                  )}
-                                />
-                              ),
-                            )}
+                            <ScreenModeCharacterPreview
+                              maxHeightPx={64}
+                              maxWidthPx={96}
+                              preferredScale={3}
+                              previewGrid={characterCard.previewGrid}
+                            />
                           </CharacterPreviewTiles>
                           <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                             {characterCard.name}

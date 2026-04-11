@@ -284,6 +284,8 @@ export const CharacterPreviewTiles = createStackLayout(
     direction: "row",
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
+    minWidth: 0,
     spacing: 0.5,
     minHeight: "1.5rem",
   },

@@ -46,6 +46,7 @@ export const useScreenModeState = () => {
     screen: projectModel.screen,
     sprites: projectModel.sprites,
     characterSets: projectModel.characterSets,
+    nes: projectModel.nes,
     scan,
     setScreenAndSyncNes,
     screenZoomLevel: viewportState.screenZoomLevel,

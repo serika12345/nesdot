@@ -7,6 +7,10 @@ import {
 } from "../../../../application/state/projectStore";
 import { expandCharacterToScreenSprites } from "../../../../domain/characters/characterSet";
 import { trySetPointerCapture } from "../../characterMode/logic/input/pointerCapture";
+import {
+  createScreenModeCharacterPreviewCards,
+  type ScreenModeCharacterPreviewCard,
+} from "./screenModeCharacterPreviewCards";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 const clamp = (value: number, min: number, max: number): number =>
@@ -75,16 +79,14 @@ interface ScreenModeGestureContextMenuState {
   targetSpriteIndex: O.Option<number>;
 }
 
-interface ScreenModeCharacterPreviewCard {
-  id: string;
-  name: string;
-  spriteCount: number;
-  previewSpriteIndices: ReadonlyArray<number>;
-}
-
 type ScreenModeGestureDependencies = Pick<
   ScreenModeProjectStateResult,
-  "characterSets" | "scan" | "screen" | "setScreenAndSyncNes" | "sprites"
+  | "characterSets"
+  | "nes"
+  | "scan"
+  | "screen"
+  | "setScreenAndSyncNes"
+  | "sprites"
 > & {
   screenZoomLevel: number;
 };
@@ -262,24 +264,13 @@ const moveArrayItem = <T>(
   ];
 };
 
-const resolveCharacterPreviewCards = (
-  characterSets: ScreenModeProjectStateResult["characterSets"],
-): ReadonlyArray<ScreenModeCharacterPreviewCard> =>
-  characterSets.map((characterSet) => ({
-    id: characterSet.id,
-    name: characterSet.name,
-    spriteCount: characterSet.sprites.length,
-    previewSpriteIndices: characterSet.sprites
-      .slice(0, 3)
-      .map((sprite) => sprite.spriteIndex),
-  }));
-
 /**
  * `screenMode` のジェスチャー操作を扱います。
  * スプライト/キャラクターのドロップ、ステージ上の選択と移動、右クリックメニュー操作を統合します。
  */
 export const useScreenModeGestureState = ({
   characterSets,
+  nes,
   scan,
   screen,
   screenZoomLevel,
@@ -316,8 +307,13 @@ export const useScreenModeGestureState = ({
   );
 
   const characterPreviewCards = React.useMemo(
-    () => resolveCharacterPreviewCards(characterSets),
-    [characterSets],
+    () =>
+      createScreenModeCharacterPreviewCards({
+        characterSets,
+        spritePalettes: nes.spritePalettes,
+        sprites,
+      }),
+    [characterSets, nes.spritePalettes, sprites],
   );
 
   const gestureMarqueeRect = React.useMemo(
