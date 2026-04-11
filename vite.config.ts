@@ -172,7 +172,7 @@ export default defineConfig(({ command }) => {
     clearScreen: false,
     test: {
       environment: "node",
-      include: ["**/*.test.ts"],
+      include: ["**/*.test.ts", "../tests/repo/**/*.test.ts"],
     },
     server: {
       port: 1420,

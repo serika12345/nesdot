@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getViteBase } from "./viteBase";
+import { getViteBase } from "../../src/shared/viteBase";
 
 describe("getViteBase", () => {
   test("returns the root base while serving in GitHub Actions", () => {

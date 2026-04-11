@@ -1,6 +1,6 @@
 import * as E from "fp-ts/Either";
 import { describe, expect, test } from "vitest";
-import { bumpSemver } from "./releaseSemver";
+import { bumpSemver } from "../../src/shared/releaseSemver";
 
 describe("bumpSemver", () => {
   test("increments patch by default", () => {

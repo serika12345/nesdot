@@ -8,7 +8,7 @@
 ## 現在の状態
 
 - `'unsafe-inline'` はまだ [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) の `csp` / `devCsp` 両方で必須になっています
-- [../scripts/verify-security.mjs](../scripts/verify-security.mjs) は現時点で `style-src` に `'unsafe-inline'` が含まれることを検査しており、[../src/shared/securityWorkflow.test.ts](../src/shared/securityWorkflow.test.ts) も同じ前提です
+- [../scripts/verify-security.mjs](../scripts/verify-security.mjs) は現時点で `style-src` に `'unsafe-inline'` が含まれることを検査しており、[../tests/repo/securityWorkflow.test.ts](../tests/repo/securityWorkflow.test.ts) も同じ前提です
 - [../src/main.tsx](../src/main.tsx) には Emotion nonce を付ける `CacheProvider` / `createCache` が未導入です
 - Presentation 層とインフラ層に `style={...}` と DOM 直接 style 操作が残っています
 
@@ -81,7 +81,7 @@
 
 - [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json): `style-src` の tightening
 - [../scripts/verify-security.mjs](../scripts/verify-security.mjs): 現状は `'unsafe-inline'` の存在を要求しているため、条件を反転する必要がある
-- [../src/shared/securityWorkflow.test.ts](../src/shared/securityWorkflow.test.ts): 期待値の更新が必要
+- [../tests/repo/securityWorkflow.test.ts](../tests/repo/securityWorkflow.test.ts): 期待値の更新が必要
 - console E2E: dev / build の両方で CSP violation が出ないことを確認したい
 
 ## 推奨する作業順

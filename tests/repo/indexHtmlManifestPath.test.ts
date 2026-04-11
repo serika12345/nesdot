@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 
 const readIndexHtml = (): string => {
-  return readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  return readFileSync(new URL("../../src/index.html", import.meta.url), "utf8");
 };
 
 describe("index.html manifest link", () => {
