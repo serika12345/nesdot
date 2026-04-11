@@ -1,10 +1,12 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
 import React from "react";
 import { CharacterModeDecompositionToolCard } from "../CharacterModeDecompositionToolCard";
 import {
   chevronStyle,
+  overlayCollapsedToggleButtonStyle,
   overlayMenuProps,
   overlayRootProps,
   overlayToggleButtonStyle,
@@ -19,15 +21,26 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
 
   return (
     <Box {...overlayRootProps}>
-      <Button
-        type="button"
-        variant={isToolsOpen ? "contained" : "outlined"}
-        style={overlayToggleButtonStyle}
-        endIcon={<ExpandMoreRoundedIcon style={chevronStyle(isToolsOpen)} />}
-        onClick={() => setIsToolsOpen((previous) => !previous)}
-      >
-        {isToolsOpen ? "分解ツールを閉じる" : "分解ツールを開く"}
-      </Button>
+      {isToolsOpen === true ? (
+        <Button
+          type="button"
+          variant="contained"
+          style={overlayToggleButtonStyle}
+          endIcon={<ExpandMoreRoundedIcon style={chevronStyle(true)} />}
+          onClick={() => setIsToolsOpen((previous) => !previous)}
+        >
+          分解ツールを閉じる
+        </Button>
+      ) : (
+        <IconButton
+          type="button"
+          aria-label="分解ツールを開く"
+          style={overlayCollapsedToggleButtonStyle}
+          onClick={() => setIsToolsOpen((previous) => !previous)}
+        >
+          <ExpandMoreRoundedIcon style={chevronStyle(false)} />
+        </IconButton>
+      )}
 
       {isToolsOpen === true ? (
         <Box {...overlayMenuProps}>

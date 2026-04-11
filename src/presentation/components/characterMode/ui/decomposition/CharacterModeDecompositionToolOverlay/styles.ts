@@ -9,16 +9,26 @@ export const chevronStyle = (open: boolean): CSSProperties => ({
 export const overlayRootProps: BoxProps = {
   position: "absolute",
   top: 0,
-  right: 0,
+  left: 0,
   zIndex: 4,
   display: "flex",
   flexDirection: "column",
-  alignItems: "flex-end",
+  alignItems: "flex-start",
   style: { pointerEvents: "none" },
 };
 
 export const overlayToggleButtonStyle: CSSProperties = {
   pointerEvents: "auto",
+};
+
+export const overlayCollapsedToggleButtonStyle: CSSProperties = {
+  pointerEvents: "auto",
+  width: "2.5rem",
+  height: "2.5rem",
+  borderRadius: "999px",
+  border: "0.0625rem solid rgba(15, 118, 110, 0.24)",
+  background: "rgba(255, 255, 255, 0.96)",
+  boxShadow: "0 0.75rem 1.5rem rgba(15, 23, 42, 0.12)",
 };
 
 export const overlayMenuProps: BoxProps = {

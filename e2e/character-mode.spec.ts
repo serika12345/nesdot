@@ -887,7 +887,19 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   const closeDecompositionToolMenuButton = page.getByRole("button", {
     name: "分解ツールを閉じる",
   });
+  const viewport = page.getByLabel("プレビューキャンバスビュー");
+
   await expect(openDecompositionToolMenuButton).toBeVisible();
+  await expect(viewport).toBeVisible();
+
+  const [openDecompositionToolMenuButtonBox, viewportBox] = await Promise.all([
+    getLocatorRect(openDecompositionToolMenuButton),
+    getLocatorRect(viewport),
+  ]);
+
+  expect(
+    openDecompositionToolMenuButtonBox.clientX - viewportBox.clientX,
+  ).toBeLessThan(80);
   await expect(closeDecompositionToolMenuButton).toHaveCount(0);
   await openDecompositionToolMenuButton.click();
   await expect(closeDecompositionToolMenuButton).toBeVisible();
@@ -902,7 +914,6 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   const sidebar = page.getByRole("complementary", {
     name: "キャラクター編集サイドバー",
   });
-  const viewport = page.getByLabel("プレビューキャンバスビュー");
   const regionToolButton = page.getByRole("button", {
     name: "分解ツール 切り取り",
   });
@@ -925,14 +936,12 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
 
   const [
     sidebarBox,
-    viewportBox,
     regionToolButtonBox,
     decomposeStageBox,
     selectedRegionLabelBox,
     spriteLibraryLabelBox,
   ] = await Promise.all([
     getLocatorRect(sidebar),
-    getLocatorRect(viewport),
     getLocatorRect(regionToolButton),
     getLocatorRect(decomposeStage),
     getLocatorRect(selectedRegionLabel),
