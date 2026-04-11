@@ -2,7 +2,13 @@
 
 import { pigment } from "@pigment-css/vite-plugin";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { createRequire } from "node:module";
+import {
+  defineConfig,
+  type ConfigPluginContext,
+  type Plugin,
+  type PluginOption,
+} from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 import { appTheme } from "./src/presentation/theme";
@@ -10,10 +16,86 @@ import { getViteBase } from "./src/shared/viteBase";
 
 const host = process.env.TAURI_DEV_HOST;
 const appVersion = process.env.npm_package_version ?? "0.0.0";
+const require = createRequire(import.meta.url);
 const pigmentConfig = {
   theme: appTheme,
   transformLibraries: ["@mui/material"],
 };
+
+type ViteConfigHook = NonNullable<Plugin["config"]>;
+type ExtractHookHandler<Hook> = Hook extends { handler: infer Handler }
+  ? Handler
+  : Hook extends (...args: infer Args) => infer Result
+    ? (...args: Args) => Result
+    : never;
+type ViteConfigHandler = ExtractHookHandler<ViteConfigHook>;
+type ViteConfigHookArgs = Parameters<ViteConfigHandler>;
+
+const isVitePlugin = (pluginOption: PluginOption): pluginOption is Plugin =>
+  pluginOption instanceof Object &&
+  !Array.isArray(pluginOption) &&
+  "name" in pluginOption;
+
+const isResolvableOptimizeDep = (dependencyName: string): boolean => {
+  try {
+    require.resolve(dependencyName);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const patchPigmentConfigPlugin = (plugin: Plugin): Plugin => {
+  if (plugin.name !== "pigment-css-config-plugin") {
+    return plugin;
+  }
+
+  if (typeof plugin.config !== "function") {
+    return plugin;
+  }
+
+  const originalConfig = plugin.config;
+
+  return {
+    ...plugin,
+    config(this: ConfigPluginContext, ...args: ViteConfigHookArgs) {
+      return Promise.resolve(originalConfig.call(this, ...args)).then(
+        (configResult) => {
+          const optimizeDeps = configResult?.optimizeDeps;
+          const include = optimizeDeps?.include;
+
+          if (!Array.isArray(include)) {
+            return configResult;
+          }
+
+          return {
+            ...configResult,
+            optimizeDeps: {
+              ...optimizeDeps,
+              include: include.filter(isResolvableOptimizeDep),
+            },
+          };
+        },
+      );
+    },
+  };
+};
+
+const patchPigmentPluginOptions = (
+  pluginOption: PluginOption,
+): PluginOption => {
+  if (Array.isArray(pluginOption)) {
+    return pluginOption.map(patchPigmentPluginOptions);
+  }
+
+  if (isVitePlugin(pluginOption)) {
+    return patchPigmentConfigPlugin(pluginOption);
+  }
+
+  return pluginOption;
+};
+
+const pigmentPlugins = patchPigmentPluginOptions(pigment(pigmentConfig));
 
 export default defineConfig(({ command }) => {
   const base = getViteBase(command);
@@ -26,7 +108,7 @@ export default defineConfig(({ command }) => {
     },
     plugins: [
       react(),
-      pigment(pigmentConfig),
+      pigmentPlugins,
       VitePWA({
         registerType: "prompt",
         injectRegister: false,
