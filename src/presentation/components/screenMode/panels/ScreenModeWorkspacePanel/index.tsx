@@ -19,7 +19,6 @@ import {
   type FileMenuState,
 } from "../../../common/state/fileMenuState";
 import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
-import { useScreenModeBackgroundEditingState } from "../../hooks/useScreenModeBackgroundEditingState";
 import type { ScreenModeState } from "../../hooks/useScreenModeState";
 import { ScreenModeBackgroundPlacementMockOverlay } from "../../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
@@ -28,6 +27,7 @@ import {
   ZoomControlsRow,
 } from "../../primitives/ScreenModePrimitives";
 import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace";
+import { useScreenModeWorkspaceBackgroundEditingState } from "./backgroundEditingState";
 
 interface ScreenModeWorkspacePanelProps {
   screenMode: ScreenModeState;
@@ -45,7 +45,7 @@ export const ScreenModeWorkspacePanel: React.FC<
   const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
     React.useState(true);
   const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
-  const backgroundEditingState = useScreenModeBackgroundEditingState();
+  const backgroundEditingState = useScreenModeWorkspaceBackgroundEditingState();
 
   const {
     projectActions,

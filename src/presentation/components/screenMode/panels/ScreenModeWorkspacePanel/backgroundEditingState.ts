@@ -1,14 +1,14 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { useProjectState } from "../../../../application/state/projectStore";
+import { useProjectState } from "../../../../../application/state/projectStore";
 import {
   setAttributeTablePaletteAtPixel,
   setNameTableTileAtPixel,
-} from "../../../../domain/nes/backgroundEditing";
-import { type PaletteIndex } from "../../../../domain/project/project";
-import { getScreenBackgroundTilePlacementFromPixel } from "../../../../domain/screen/backgroundLayout";
-import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../domain/screen/backgroundPalette";
+} from "../../../../../domain/nes/backgroundEditing";
+import { type PaletteIndex } from "../../../../../domain/project/project";
+import { getScreenBackgroundTilePlacementFromPixel } from "../../../../../domain/screen/backgroundLayout";
+import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../../domain/screen/backgroundPalette";
 
 export type ScreenModeBackgroundEditingTarget =
   | "sprite"
@@ -81,7 +81,7 @@ const resolvePaletteCursorOverlay = (
   };
 };
 
-export const useScreenModeBackgroundEditingState = () => {
+export const useScreenModeWorkspaceBackgroundEditingState = () => {
   const [editingTarget, setEditingTarget] =
     React.useState<ScreenModeBackgroundEditingTarget>("sprite");
   const [isTilePickerOpen, setIsTilePickerOpen] = React.useState(false);

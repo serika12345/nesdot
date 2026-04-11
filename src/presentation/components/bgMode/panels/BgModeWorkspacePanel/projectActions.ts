@@ -2,9 +2,9 @@ import {
   getHexArrayForBackgroundTile,
   type PaletteIndex,
   type SpriteTile,
-} from "../../../../application/state/projectStore";
-import { type BackgroundTile } from "../../../../domain/project/projectV2";
-import { type FileShareAction } from "../../common/state/fileMenuState";
+} from "../../../../../application/state/projectStore";
+import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type FileShareAction } from "../../../common/state/fileMenuState";
 
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");
@@ -22,7 +22,7 @@ const createBackgroundTileSprite = (
 const createBgTileFileName = (tileIndex: number, extension: string): string =>
   `bg_tile_${formatTileNumber(tileIndex)}.${extension}`;
 
-interface CreateBgModeProjectActionsDependencies {
+interface CreateBgModeWorkspaceProjectActionsDependencies {
   exportChr: (
     tile: SpriteTile,
     paletteIndex: PaletteIndex,
@@ -39,14 +39,14 @@ interface CreateBgModeProjectActionsDependencies {
   getSelectedTileIndex: () => number;
 }
 
-export const createBgModeProjectActions = ({
+export const createBgModeWorkspaceProjectActions = ({
   exportChr,
   exportPng,
   exportSvgSimple,
   getActivePaletteIndex,
   getSelectedTile,
   getSelectedTileIndex,
-}: CreateBgModeProjectActionsDependencies): ReadonlyArray<FileShareAction> => [
+}: CreateBgModeWorkspaceProjectActionsDependencies): ReadonlyArray<FileShareAction> => [
   {
     id: "share-export-chr",
     label: "CHRエクスポート",

@@ -4,13 +4,13 @@ import {
   useProjectState,
   type PaletteIndex,
   type ProjectStoreState,
-} from "../../../../application/state/projectStore";
-import { createDefaultProjectState } from "../../../../domain/project/project";
+} from "../../../../../application/state/projectStore";
+import { createDefaultProjectState } from "../../../../../domain/project/project";
 import {
   createEmptyBackgroundTile,
   type BackgroundTile,
-} from "../../../../domain/project/projectV2";
-import { createBgModeProjectActions } from "./useBgModeProjectActions";
+} from "../../../../../domain/project/projectV2";
+import { createBgModeWorkspaceProjectActions } from "./projectActions";
 
 const setBackgroundTilePixel = (
   tile: BackgroundTile,
@@ -49,7 +49,7 @@ const createProjectStateWithBackgroundPalette = (
   };
 };
 
-describe("createBgModeProjectActions", () => {
+describe("createBgModeWorkspaceProjectActions", () => {
   it("reads the latest selected tile and palette state when an action runs", () => {
     const initialProjectState = createProjectStateWithBackgroundPalette(
       45,
@@ -83,7 +83,7 @@ describe("createBgModeProjectActions", () => {
     const exportPng = vi.fn();
     const exportSvgSimple = vi.fn();
 
-    const projectActions = createBgModeProjectActions({
+    const projectActions = createBgModeWorkspaceProjectActions({
       exportChr,
       exportPng,
       exportSvgSimple,

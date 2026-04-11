@@ -20,8 +20,8 @@ import {
   type FileMenuState,
 } from "../../../common/state/fileMenuState";
 import { BgModeTileEditorCanvas } from "../../canvas/BgModeTileEditorCanvas";
-import { useBgModeEditingState } from "../../hooks/useBgModeEditingState";
-import { createBgModeProjectActions } from "../../hooks/useBgModeProjectActions";
+import { useBgModeWorkspaceEditingState } from "./editingState";
+import { createBgModeWorkspaceProjectActions } from "./projectActions";
 import {
   canvasOverlayMenuProps,
   canvasOverlayRootProps,
@@ -46,10 +46,10 @@ const formatTileNumber = (tileIndex: number): string =>
 interface BgTileLibraryPreviewState {
   activePaletteIndex: BgPaletteIndex;
   backgroundPalettes: ReturnType<
-    typeof useBgModeEditingState
+    typeof useBgModeWorkspaceEditingState
   >["backgroundPalettes"];
   universalBackgroundColor: ReturnType<
-    typeof useBgModeEditingState
+    typeof useBgModeWorkspaceEditingState
   >["universalBackgroundColor"];
 }
 
@@ -57,7 +57,9 @@ interface BgTileLibraryProps {
   onSelectTile: (tileIndex: number) => void;
   previewState: BgTileLibraryPreviewState;
   selectedTileIndex: number;
-  tiles: ReturnType<typeof useBgModeEditingState>["visibleBackgroundTiles"];
+  tiles: ReturnType<
+    typeof useBgModeWorkspaceEditingState
+  >["visibleBackgroundTiles"];
 }
 
 const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
@@ -104,7 +106,7 @@ const BgTileLibrary = React.memo(BgTileLibraryComponent);
 const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
   onFileMenuStateChange,
 }) => {
-  const bgModeState = useBgModeEditingState();
+  const bgModeState = useBgModeWorkspaceEditingState();
   const { exportChr, exportPng, exportSvgSimple } = useExportImage();
   const deferredVisibleBackgroundTiles = React.useDeferredValue(
     bgModeState.visibleBackgroundTiles,
@@ -123,7 +125,7 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
   );
   const projectActions = React.useMemo(
     () =>
-      createBgModeProjectActions({
+      createBgModeWorkspaceProjectActions({
         exportChr,
         exportPng,
         exportSvgSimple,
