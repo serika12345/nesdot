@@ -10,7 +10,7 @@ import {
   PositionedActionMenuButton,
   StageDragPreview,
   StageSurface,
-} from "./components/characterMode/primitives/CharacterModePrimitives";
+} from "./components/characterMode/ui/primitives/CharacterModePrimitives";
 import {
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,

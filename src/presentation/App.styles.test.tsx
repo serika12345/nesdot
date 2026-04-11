@@ -18,7 +18,7 @@ import {
   PreviewCanvasWrap,
   PreviewViewport,
   ScreenModeEditorContent,
-} from "./components/screenMode/primitives/ScreenModePrimitives";
+} from "./components/screenMode/ui/primitives/ScreenModePrimitives";
 import {
   APP_ACTION_MENU_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,

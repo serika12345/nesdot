@@ -9,8 +9,8 @@ import {
 } from "../../../application/state/projectStore";
 import { nesIndexToCssHex } from "../../../domain/nes/palette";
 import { makeTile } from "../../../domain/tiles/utils";
-import { getSwapPreviewTile } from "../../../presentation/components/spriteMode/reorder/swapPreview";
-import { useSwap } from "../../../presentation/components/spriteMode/reorder/useSwap";
+import { getSwapPreviewTile } from "../../../presentation/components/spriteMode/logic/reorder/swapPreview";
+import { useSwap } from "../../../presentation/components/spriteMode/logic/reorder/useSwap";
 import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
 import { useGhost } from "./useGhost";
 

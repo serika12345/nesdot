@@ -21,20 +21,20 @@ import {
   ScrollArea,
   WorkspaceGrid,
 } from "./App.styles";
-import { BgMode } from "./components/bgMode/core/BgMode";
-import { CharacterMode } from "./components/characterMode/core/CharacterMode";
-import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
-import { PwaUpdateDialog } from "./components/common/dialogs/PwaUpdateDialog";
-import { MenuBar, type WorkMode } from "./components/common/menu/MenuBar";
-import { PalettePicker } from "./components/common/pickers/PalettePicker";
+import { BgMode } from "./components/bgMode/ui/core/BgMode";
+import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
+import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
+import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
+import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
+import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
-} from "./components/common/state/fileMenuState";
-import { ScreenMode } from "./components/screenMode/core/ScreenMode";
-import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
+} from "./components/common/logic/state/fileMenuState";
+import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
+import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;

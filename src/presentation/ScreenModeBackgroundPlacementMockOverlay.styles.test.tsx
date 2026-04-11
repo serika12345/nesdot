@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ScreenModeBackgroundPlacementMockOverlay } from "./components/screenMode/overlays/ScreenModeBackgroundPlacementMockOverlay";
+import { ScreenModeBackgroundPlacementMockOverlay } from "./components/screenMode/ui/overlays/ScreenModeBackgroundPlacementMockOverlay";
 
 describe("ScreenModeBackgroundPlacementMockOverlay", () => {
   it("moves overlay geometry props into style attributes", () => {

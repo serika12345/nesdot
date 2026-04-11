@@ -6,11 +6,13 @@ import { describe, expect, it } from "vitest";
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 const componentsRoot = path.join(projectRoot, "src/presentation/components");
 const groupedComponentsRoots = [
+  path.join(componentsRoot, "bgMode"),
   path.join(componentsRoot, "characterMode"),
   path.join(componentsRoot, "screenMode"),
   path.join(componentsRoot, "spriteMode"),
   path.join(componentsRoot, "common"),
 ];
+const allowedFeatureRootDirectories: ReadonlyArray<string> = ["logic", "ui"];
 
 type TsxFileMetric = Readonly<{
   filePath: string;
@@ -39,6 +41,33 @@ const listDirectTsxFiles = (directoryPath: string): ReadonlyArray<string> =>
       : [];
   });
 
+const listDirectDirectoryNames = (
+  directoryPath: string,
+): ReadonlyArray<string> =>
+  fs.readdirSync(directoryPath, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isDirectory() === false) {
+      return [];
+    }
+
+    return [entry.name];
+  });
+
+const matchesAllowedFeatureRootDirectories = (
+  directoryNames: ReadonlyArray<string>,
+): boolean => {
+  const sortedDirectoryNames = [...directoryNames].sort((left, right) =>
+    left.localeCompare(right),
+  );
+
+  return (
+    sortedDirectoryNames.length === allowedFeatureRootDirectories.length &&
+    sortedDirectoryNames.every(
+      (directoryName, index) =>
+        directoryName === allowedFeatureRootDirectories[index],
+    )
+  );
+};
+
 const isPrimitivesCollectionFile = (filePath: string): boolean =>
   /Primitives(?:[\\/]index)?\.tsx$/u.test(filePath);
 
@@ -57,6 +86,24 @@ const toRelativeMetricLabel = ({ filePath, value }: TsxFileMetric): string =>
   `${path.relative(projectRoot, filePath)}:${value}`;
 
 describe("presentation component file discipline", () => {
+  it("keeps each feature root split into ui and logic directories", () => {
+    const offenders = groupedComponentsRoots
+      .map((directoryPath) => ({
+        directoryPath,
+        entries: listDirectDirectoryNames(directoryPath),
+      }))
+      .filter(
+        ({ entries }) =>
+          matchesAllowedFeatureRootDirectories(entries) === false,
+      )
+      .map(
+        ({ directoryPath, entries }) =>
+          `${path.relative(projectRoot, directoryPath)}:${entries.join(",")}`,
+      );
+
+    expect(offenders).toStrictEqual([]);
+  });
+
   it("keeps major component directories free of direct TSX files", () => {
     const offenders = groupedComponentsRoots
       .flatMap(listDirectTsxFiles)
