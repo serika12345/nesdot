@@ -1,17 +1,12 @@
-import { styled } from "@mui/material/styles";
 import React from "react";
 import { useScreenCanvas } from "../../../../infrastructure/browser/canvas/useScreenCanvas";
+import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../styleClassNames";
 
 interface Props {
   scale?: number; // ピクセル拡大倍率
   showGrid?: boolean;
   ariaLabel?: string;
 }
-
-const CanvasElement = styled("canvas")({
-  touchAction: "none",
-  imageRendering: "pixelated",
-});
 
 /**
  * スクリーンプレビュー用 canvas を描画する薄いラッパーです。
@@ -20,5 +15,11 @@ const CanvasElement = styled("canvas")({
 export const ScreenCanvas: React.FC<Props> = ({ ariaLabel, ...params }) => {
   const { canvasProps } = useScreenCanvas(params);
 
-  return <CanvasElement aria-label={ariaLabel} {...canvasProps} />;
+  return (
+    <canvas
+      className={APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME}
+      aria-label={ariaLabel}
+      {...canvasProps}
+    />
+  );
 };

@@ -1,4 +1,3 @@
-import { styled } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
@@ -7,6 +6,7 @@ import {
 } from "../../../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../styleClassNames";
 
 interface BgModeTileEditorCanvasProps {
   onPaintPixel: (pixelX: number, pixelY: number) => void;
@@ -16,12 +16,6 @@ interface BgModeTileEditorCanvasProps {
 }
 
 const EDITOR_TILE_SCALE = 24;
-
-const CanvasElement = styled("canvas")({
-  display: "block",
-  touchAction: "none",
-  imageRendering: "pixelated",
-});
 
 const resolvePixelHex = (
   palette: NesSubPalette,
@@ -213,7 +207,8 @@ const BgModeTileEditorCanvasComponent: React.FC<
   }, []);
 
   return (
-    <CanvasElement
+    <canvas
+      className={APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME}
       ref={handleCanvasRef}
       aria-label="BGタイル編集キャンバス"
       width={tile.width * EDITOR_TILE_SCALE}

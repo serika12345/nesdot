@@ -6,7 +6,6 @@ import {
   OutlinedInput,
   Stack,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -19,6 +18,13 @@ import {
   ToolButton,
 } from "../../../App.styles";
 import {
+  CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
+  CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME,
+  CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME,
+  CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME,
+  CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME,
+} from "../../../styleClassNames";
+import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
 } from "../core/CharacterModeStateProvider";
@@ -29,33 +35,6 @@ import {
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { INSPECTOR_PREVIEW_SCALE } from "../hooks/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
-
-const RegionPreviewSurfaceRoot = styled("div")({
-  borderRadius: "1.125rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-});
-
-const RegionPreviewSurface = styled(Stack)({
-  minHeight: "6.75rem",
-  alignItems: "center",
-  justifyContent: "center",
-});
-
-const InspectorSection = styled(Stack)({
-  gap: "0.625rem",
-});
-
-const InspectorFieldGrid = styled("div")({
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: "1.5rem",
-});
-
-const WideToolButton = styled(ToolButton)({
-  width: "100%",
-});
 
 /**
  * 分解モードで選択中の領域詳細を表示するカードです。
@@ -89,8 +68,15 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           <FieldLabel>選択中の領域</FieldLabel>
         </div>
 
-        <RegionPreviewSurfaceRoot>
-          <RegionPreviewSurface>
+        <div
+          className={CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME}
+        >
+          <Stack
+            className={CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME}
+            minHeight="6.75rem"
+            alignItems="center"
+            justifyContent="center"
+          >
             <CharacterModeTilePreview
               scale={INSPECTOR_PREVIEW_SCALE}
               tileOption={pipe(
@@ -98,8 +84,8 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 O.chain((regionAnalysis) => regionAnalysis.tile),
               )}
             />
-          </RegionPreviewSurface>
-        </RegionPreviewSurfaceRoot>
+          </Stack>
+        </div>
 
         <DetailList>
           <DetailRow>
@@ -133,8 +119,16 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           O.match(
             () => <></>,
             (regionAnalysis) => (
-              <InspectorSection>
-                <InspectorFieldGrid>
+              <Stack
+                className={
+                  CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME
+                }
+                spacing={1.25}
+                useFlexGap
+              >
+                <div
+                  className={CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME}
+                >
                   <Field>
                     <FieldLabel>x</FieldLabel>
                     <OutlinedInput
@@ -157,7 +151,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                       }}
                     />
                   </Field>
-                </InspectorFieldGrid>
+                </div>
 
                 <DetailList>
                   <DetailRow>
@@ -183,12 +177,13 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                     </Badge>
                   </DetailRow>
                 </DetailList>
-              </InspectorSection>
+              </Stack>
             ),
           ),
         )}
 
-        <WideToolButton
+        <ToolButton
+          className={CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME}
           type="button"
           tone="primary"
           disabled={
@@ -199,7 +194,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           onClick={handleApplyDecomposition}
         >
           分解して現在のセットへ反映
-        </WideToolButton>
+        </ToolButton>
       </CharacterModeEditorCard>
 
       <Dialog

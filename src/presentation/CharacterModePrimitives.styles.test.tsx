@@ -1,4 +1,3 @@
-import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
@@ -12,6 +11,17 @@ import {
   StageDragPreview,
   StageSurface,
 } from "./components/characterMode/primitives/CharacterModePrimitives";
+import {
+  CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
+  CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
+  CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
+  CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
+  CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
+  CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
+  CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
+  CHARACTER_STAGE_SURFACE_CLASS_NAME,
+  CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
+} from "./styleClassNames";
 
 describe("CharacterModePrimitives", () => {
   it("maps boolean state props to data attributes", () => {
@@ -35,13 +45,18 @@ describe("CharacterModePrimitives", () => {
     );
 
     expect(viewportMarkup).toContain('data-dragging-state="true"');
+    expect(viewportMarkup).toContain(CHARACTER_STAGE_VIEWPORT_CLASS_NAME);
     expect(viewportMarkup).not.toMatch(/\sdragging="/);
     expect(menuMarkup).toContain('data-ready="false"');
+    expect(menuMarkup).toContain(CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME);
     expect(menuMarkup).not.toMatch(/\smenuLeft="/);
     expect(menuMarkup).not.toMatch(/\smenuTop="/);
     expect(menuMarkup).not.toMatch(/\smenuWidth="/);
     expect(menuMarkup).not.toMatch(/\sready="/);
     expect(buttonMarkup).toContain('data-danger="true"');
+    expect(buttonMarkup).toContain(
+      CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
+    );
     expect(buttonMarkup).not.toMatch(/\sdanger="/);
   });
 
@@ -68,6 +83,7 @@ describe("CharacterModePrimitives", () => {
     );
 
     expect(stageMarkup).toContain('data-active-drop="true"');
+    expect(stageMarkup).toContain(CHARACTER_STAGE_SURFACE_CLASS_NAME);
     expect(stageMarkup).not.toMatch(/\sactiveDrop="/);
     expect(stageMarkup).not.toMatch(/\sstageWidthPx="/);
     expect(stageMarkup).not.toMatch(/\sstageHeightPx="/);
@@ -75,18 +91,28 @@ describe("CharacterModePrimitives", () => {
     expect(stageMarkup).toContain("width:64px");
     expect(stageMarkup).toContain("height:32px");
     expect(stageMarkup).toContain("--stage-cell-size:2px");
+    expect(dragPreviewMarkup).toContain(
+      CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
+    );
     expect(dragPreviewMarkup).not.toMatch(/\spreviewLeft="/);
     expect(dragPreviewMarkup).not.toMatch(/\spreviewTop="/);
     expect(dragPreviewMarkup).toContain("left:12px");
     expect(dragPreviewMarkup).toContain("top:34px");
+    expect(floatingPreviewMarkup).toContain(
+      CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
+    );
     expect(floatingPreviewMarkup).not.toMatch(/\sdragClientX="/);
     expect(floatingPreviewMarkup).not.toMatch(/\sdragClientY="/);
     expect(floatingPreviewMarkup).toContain("left:28px");
     expect(floatingPreviewMarkup).toContain("top:38px");
+    expect(emptyPreviewMarkup).toContain(
+      CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
+    );
     expect(emptyPreviewMarkup).not.toMatch(/\spreviewWidth="/);
     expect(emptyPreviewMarkup).not.toMatch(/\spreviewHeight="/);
     expect(emptyPreviewMarkup).toContain("width:8px");
     expect(emptyPreviewMarkup).toContain("height:16px");
+    expect(pixelMarkup).toContain(CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME);
     expect(pixelMarkup).not.toMatch(/\spixelSize="/);
     expect(pixelMarkup).not.toMatch(/\scolorHex="/);
     expect(pixelMarkup).toContain("width:3px");
@@ -104,6 +130,7 @@ describe("CharacterModePrimitives", () => {
     );
 
     expect(markup).not.toMatch(/\scursorStyle="/);
+    expect(markup).toContain(CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME);
     expect(markup).toContain("cursor:crosshair");
   });
 });

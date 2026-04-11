@@ -1,6 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import { Stack } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Box, Stack } from "@mui/material";
 import React from "react";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import {
@@ -13,6 +12,15 @@ import {
   SplitLayout,
   ToolButton,
 } from "../../../App.styles";
+import {
+  BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME,
+  BG_MODE_CANVAS_OVERLAY_ROOT_CLASS_NAME,
+  BG_MODE_CENTERED_CANVAS_WRAP_CLASS_NAME,
+  BG_MODE_MOCK_TOOLBAR_CLASS_NAME,
+  BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
+  BG_MODE_TILE_BUTTON_LAYOUT_CLASS_NAME,
+  BG_MODE_TILE_LIBRARY_GRID_CLASS_NAME,
+} from "../../../styleClassNames";
 import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
 import {
   emptyFileMenuState,
@@ -28,59 +36,6 @@ interface BgModeWorkspacePanelProps {
 
 type BgPaletteIndex = 0 | 1 | 2 | 3;
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
-
-const TileLibraryGrid = styled("div")({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(5.5rem, 1fr))",
-  gap: "0.75rem",
-});
-
-const TileButtonLayout = styled(Stack)({
-  alignItems: "center",
-  gap: "0.5rem",
-  width: "100%",
-});
-
-const MockToolbar = styled(Stack)({
-  flexDirection: "row",
-  flexWrap: "wrap",
-  alignItems: "center",
-  gap: "0.625rem",
-});
-
-const CenteredCanvasWrap = styled("div")({
-  display: "grid",
-  placeItems: "center",
-  width: "100%",
-  height: "100%",
-  minWidth: "100%",
-  minHeight: "100%",
-});
-
-const CanvasOverlayRoot = styled("div")({
-  position: "absolute",
-  top: "1.125rem",
-  left: "1.125rem",
-  zIndex: 2,
-  pointerEvents: "none",
-});
-
-const CanvasOverlayMenu = styled(Stack)({
-  marginTop: "0.75rem",
-  width: "20rem",
-  maxWidth: "calc(100vw - 4rem)",
-  pointerEvents: "auto",
-  borderRadius: "1.125rem",
-  background: "rgba(255, 255, 255, 0.98)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-  boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
-  backdropFilter: "blur(1.125rem)",
-  padding: "0.75rem",
-});
-
-const OverlayToggleButton = styled(CollapseToggle)({
-  pointerEvents: "auto",
-});
 
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");
@@ -114,7 +69,12 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
   tiles,
 }) => {
   return (
-    <TileLibraryGrid>
+    <Box
+      className={BG_MODE_TILE_LIBRARY_GRID_CLASS_NAME}
+      display="grid"
+      gridTemplateColumns="repeat(auto-fill, minmax(5.5rem, 1fr))"
+      gap={1.5}
+    >
       {tiles.map((tile, tileIndex) => (
         <ToolButton
           key={`bg-tile-preview-${tileIndex}`}
@@ -126,7 +86,13 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
             onSelectTile(tileIndex);
           }}
         >
-          <TileButtonLayout>
+          <Stack
+            className={BG_MODE_TILE_BUTTON_LAYOUT_CLASS_NAME}
+            alignItems="center"
+            spacing={1}
+            useFlexGap
+            width="100%"
+          >
             <BackgroundTilePreview
               scale={6}
               tile={tile}
@@ -136,10 +102,10 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
               universalBackgroundColor={previewState.universalBackgroundColor}
             />
             <span>{`#${formatTileNumber(tileIndex)}`}</span>
-          </TileButtonLayout>
+          </Stack>
         </ToolButton>
       ))}
-    </TileLibraryGrid>
+    </Box>
   );
 };
 
@@ -235,8 +201,16 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
           minHeight={0}
           aria-label="BGタイル編集キャンバスビュー"
         >
-          <CanvasOverlayRoot>
-            <OverlayToggleButton
+          <Box
+            className={BG_MODE_CANVAS_OVERLAY_ROOT_CLASS_NAME}
+            position="absolute"
+            top={2.25}
+            left={2.25}
+            zIndex={2}
+            style={{ pointerEvents: "none" }}
+          >
+            <CollapseToggle
+              className={BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}
               type="button"
               open={bgModeState.isToolMenuOpen}
               aria-expanded={bgModeState.isToolMenuOpen}
@@ -254,15 +228,27 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
               <ExpandMoreRoundedIcon
                 style={chevronStyle(bgModeState.isToolMenuOpen)}
               />
-            </OverlayToggleButton>
+            </CollapseToggle>
 
             {bgModeState.isToolMenuOpen === true ? (
-              <CanvasOverlayMenu
+              <Stack
+                className={BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME}
                 id="bg-mode-canvas-tool-menu"
-                spacing="0.75rem"
+                spacing={1.5}
                 useFlexGap
+                width="20rem"
+                maxWidth="calc(100vw - 4rem)"
+                p={1.5}
+                style={{ pointerEvents: "auto" }}
               >
-                <MockToolbar>
+                <Stack
+                  className={BG_MODE_MOCK_TOOLBAR_CLASS_NAME}
+                  direction="row"
+                  flexWrap="wrap"
+                  alignItems="center"
+                  spacing={1.25}
+                  useFlexGap
+                >
                   <ToolButton
                     type="button"
                     active={bgModeState.tool === "pen"}
@@ -285,9 +271,16 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                   >
                     消しゴム
                   </ToolButton>
-                </MockToolbar>
+                </Stack>
 
-                <MockToolbar>
+                <Stack
+                  className={BG_MODE_MOCK_TOOLBAR_CLASS_NAME}
+                  direction="row"
+                  flexWrap="wrap"
+                  alignItems="center"
+                  spacing={1.25}
+                  useFlexGap
+                >
                   {BG_PALETTE_OPTIONS.map((paletteIndex) => (
                     <ToolButton
                       key={`bg-mode-palette-${paletteIndex}`}
@@ -304,14 +297,22 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                       {`Palette ${paletteIndex}`}
                     </ToolButton>
                   ))}
-                </MockToolbar>
-              </CanvasOverlayMenu>
+                </Stack>
+              </Stack>
             ) : (
               <></>
             )}
-          </CanvasOverlayRoot>
+          </Box>
 
-          <CenteredCanvasWrap>
+          <Box
+            className={BG_MODE_CENTERED_CANVAS_WRAP_CLASS_NAME}
+            display="grid"
+            width="100%"
+            height="100%"
+            minWidth="100%"
+            minHeight="100%"
+            style={{ placeItems: "center" }}
+          >
             <BgModeTileEditorCanvas
               tile={bgModeState.selectedTile}
               palette={
@@ -320,7 +321,7 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
               universalBackgroundColor={bgModeState.universalBackgroundColor}
               onPaintPixel={bgModeState.handlePaintPixel}
             />
-          </CenteredCanvasWrap>
+          </Box>
         </CanvasViewport>
       </Panel>
     </SplitLayout>

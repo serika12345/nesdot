@@ -21,7 +21,7 @@ import {
   DialogTitle,
   Stack,
 } from "@mui/material";
-import { alpha, styled, type Theme, useTheme } from "@mui/material/styles";
+import { alpha, type Theme, useTheme } from "@mui/material/styles";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -30,6 +30,23 @@ import {
   canRequestAvailableUpdateCheck,
   requestAvailableUpdateCheck,
 } from "../../../../infrastructure/browser/updateCheck";
+import {
+  MENU_ABOUT_APP_NAME_CLASS_NAME,
+  MENU_ABOUT_ICON_IMAGE_CLASS_NAME,
+  MENU_ABOUT_VERSION_TEXT_CLASS_NAME,
+  MENU_BAR_ROOT_CLASS_NAME,
+  MENU_CONTENT_CLASS_NAME,
+  MENU_ITEM_CLASS_NAME,
+  MENU_ITEM_ICON_SLOT_CLASS_NAME,
+  MENU_ITEM_META_CLASS_NAME,
+  MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME,
+  MENU_ITEM_TEXT_CLASS_NAME,
+  MENU_MODE_SELECTION_MARKER_CLASS_NAME,
+  MENU_ROOT_CLASS_NAME,
+  MENU_SEPARATOR_CLASS_NAME,
+  MENU_SUB_TRIGGER_CLASS_NAME,
+  MENU_TRIGGER_CLASS_NAME,
+} from "../../../styleClassNames";
 import {
   type FileMenuState,
   type FileShareActionId,
@@ -124,236 +141,36 @@ const WORK_MODE_ITEMS: ReadonlyArray<{
   },
 ];
 
-const MenuBarRoot = styled(Stack)({
-  width: "100%",
-  minWidth: 0,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "flex-start",
-  overflowX: "auto",
-  overflowY: "hidden",
-  borderRadius: "var(--menu-radius)",
-  border: "0.0625rem solid var(--menu-border-root)",
-  background:
-    "linear-gradient(180deg, var(--menu-bg-root-top) 0%, var(--menu-bg-root-bottom) 100%)",
-  padding: "var(--menu-space-05)",
-  minHeight: "var(--menu-size-root-height)",
-  boxShadow: "var(--menu-shadow-root)",
-  backdropFilter: "blur(1rem)",
-});
+const MenuItemContent: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    justifyContent="space-between"
+    spacing={1}
+    useFlexGap
+    width="100%"
+    minWidth={0}
+  >
+    {children}
+  </Stack>
+);
 
-const MenuButtons = styled(Stack)({
-  minWidth: 0,
-});
-
-const MenubarRoot = styled(Menubar.Root)({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "var(--menu-space-025)",
-  width: "max-content",
-  minWidth: 0,
-});
-
-const TriggerItem = styled(Menubar.Trigger)({
-  border: "0.0625rem solid var(--menu-border-transparent)",
-  background: "transparent",
-  color: "var(--menu-color-text-primary)",
-  borderRadius: "var(--menu-radius)",
-  fontFamily: "var(--menu-font-family)",
-  fontSize: "var(--menu-font-size-body2)",
-  lineHeight: "var(--menu-line-height-body2)",
-  fontWeight: "var(--menu-font-weight-button)",
-  padding: "var(--menu-space-0875) var(--menu-space-125)",
-  userSelect: "none",
-  cursor: "pointer",
-  outline: "none",
-  transition:
-    "background-color var(--menu-transition-shortest) ease, border-color var(--menu-transition-shortest) ease, box-shadow var(--menu-transition-shortest) ease, color var(--menu-transition-shortest) ease",
-  "&:hover": {
-    borderColor: "var(--menu-border-hover)",
-    background: "var(--menu-bg-hover)",
-  },
-  "&[data-state='open']": {
-    color: "var(--menu-color-primary-dark)",
-    borderColor: "var(--menu-border-open)",
-    background:
-      "linear-gradient(180deg, var(--menu-bg-root-top) 0%, var(--menu-bg-open) 100%)",
-    boxShadow: "var(--menu-shadow-open)",
-  },
-  "&:focus-visible": {
-    borderColor: "var(--menu-border-focus)",
-    boxShadow: "0 0 0 0.125rem var(--menu-color-focus-ring)",
-  },
-});
-
-const FileMenuContent = styled(Menubar.Content)({
-  minWidth: "15rem",
-  borderRadius: "var(--menu-radius)",
-  border: "0.0625rem solid var(--menu-border-surface)",
-  background:
-    "linear-gradient(180deg, var(--menu-bg-surface-top) 0%, var(--menu-bg-surface-bottom) 100%)",
-  boxShadow: "var(--menu-shadow-surface)",
-  padding: "var(--menu-space-075)",
-  zIndex: "var(--menu-z-index)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--menu-space-025)",
-  backdropFilter: "blur(1rem)",
-});
-
-const ShareSubContent = styled(Menubar.SubContent)({
-  minWidth: "15rem",
-  borderRadius: "var(--menu-radius)",
-  border: "0.0625rem solid var(--menu-border-surface)",
-  background:
-    "linear-gradient(180deg, var(--menu-bg-surface-top) 0%, var(--menu-bg-surface-bottom) 100%)",
-  boxShadow: "var(--menu-shadow-surface)",
-  padding: "var(--menu-space-075)",
-  zIndex: "var(--menu-z-index)",
-  display: "flex",
-  flexDirection: "column",
-  gap: "var(--menu-space-025)",
-  backdropFilter: "blur(1rem)",
-});
-
-const MenuSeparator = styled(Menubar.Separator)({
-  height: "0.0625rem",
-  margin: "var(--menu-space-05) var(--menu-space-025)",
-  background: "var(--menu-border-divider)",
-});
-
-const FileMenuItem = styled(Menubar.Item)({
-  borderRadius: "var(--menu-radius)",
-  minHeight: "var(--menu-size-item-height)",
-  padding: "var(--menu-space-075) var(--menu-space-1)",
-  fontSize: "var(--menu-font-size-body2)",
-  lineHeight: "var(--menu-line-height-body2)",
-  color: "var(--menu-color-text-primary)",
-  outline: "none",
-  userSelect: "none",
-  cursor: "pointer",
-  transition:
-    "background-color var(--menu-transition-shortest) ease, color var(--menu-transition-shortest) ease",
-  "&[data-highlighted]": {
-    background: "var(--menu-bg-highlight)",
-    color: "var(--menu-color-primary-dark)",
-  },
-  "&[data-disabled]": {
-    color: "var(--menu-color-text-secondary)",
-    opacity: 0.56,
-    cursor: "not-allowed",
-  },
-});
-
-const FileMenuSubTrigger = styled(Menubar.SubTrigger)({
-  borderRadius: "var(--menu-radius)",
-  minHeight: "var(--menu-size-item-height)",
-  padding: "var(--menu-space-075) var(--menu-space-1)",
-  fontSize: "var(--menu-font-size-body2)",
-  lineHeight: "var(--menu-line-height-body2)",
-  color: "var(--menu-color-text-primary)",
-  outline: "none",
-  userSelect: "none",
-  cursor: "pointer",
-  transition:
-    "background-color var(--menu-transition-shortest) ease, color var(--menu-transition-shortest) ease",
-  "&[data-highlighted], &[data-state='open']": {
-    background: "var(--menu-bg-highlight)",
-    color: "var(--menu-color-primary-dark)",
-  },
-  "&[data-disabled]": {
-    color: "var(--menu-color-text-secondary)",
-    opacity: 0.56,
-    cursor: "not-allowed",
-  },
-  display: "block",
-});
-
-const MenuItemContentLayout = styled(Stack)({
-  width: "100%",
-  minWidth: 0,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "var(--menu-space-1)",
-});
-
-const MenuItemLabelLayout = styled(Stack)({
-  minWidth: 0,
-  flex: "1 1 auto",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: "var(--menu-space-1)",
-});
-
-const MenuItemIconSlot = styled("span")({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "var(--menu-size-icon-slot)",
-  height: "var(--menu-size-icon-slot)",
-  flexShrink: 0,
-  color: "currentColor",
-  opacity: 0.78,
-});
-
-const MenuItemText = styled("span")({
-  minWidth: 0,
-  flex: "1 1 auto",
-});
-
-const MenuItemMeta = styled("span")({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "var(--menu-space-075)",
-  flexShrink: 0,
-  color: "currentColor",
-  opacity: 0.72,
-});
-
-const ModeSelectionMarker = styled("span")({
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "var(--menu-size-marker)",
-  height: "var(--menu-size-marker)",
-  flexShrink: 0,
-});
-
-const MenuItemShortcutText = styled("span")({
-  fontSize: "var(--menu-font-size-caption)",
-  lineHeight: "var(--menu-line-height-caption)",
-  whiteSpace: "nowrap",
-  fontVariantNumeric: "tabular-nums",
-});
-
-const AboutContentLayout = styled(Stack)({
-  minWidth: "12rem",
-  alignItems: "center",
-  gap: "var(--menu-space-1)",
-  paddingTop: "var(--menu-space-1)",
-  paddingBottom: "var(--menu-space-1)",
-});
-
-const AboutIconImage = styled("img")({
-  width: "4.5rem",
-  height: "4.5rem",
-  borderRadius: "var(--menu-radius)",
-});
-
-const AboutAppName = styled("span")({
-  fontSize: "var(--menu-font-size-subtitle1)",
-  fontWeight: 700,
-  lineHeight: "var(--menu-line-height-subtitle1)",
-  color: "var(--menu-color-text-primary)",
-});
-
-const AboutVersionText = styled("span")({
-  fontSize: "var(--menu-font-size-body2)",
-  lineHeight: "var(--menu-line-height-body2)",
-  color: "var(--menu-color-text-secondary)",
-});
+const MenuItemLabel: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Stack
+    direction="row"
+    alignItems="center"
+    spacing={1}
+    useFlexGap
+    minWidth={0}
+    flex="1 1 auto"
+  >
+    {children}
+  </Stack>
+);
 
 const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
   if (actionId === "share-save-project") {
@@ -430,14 +247,30 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   return (
-    <MenuBarRoot style={menuThemeStyle}>
-      <MenuButtons>
-        <MenubarRoot aria-label="ファイル操作メニューバー">
+    <Stack
+      className={MENU_BAR_ROOT_CLASS_NAME}
+      style={menuThemeStyle}
+      direction="row"
+      alignItems="center"
+      justifyContent="flex-start"
+      minWidth={0}
+    >
+      <Stack minWidth={0}>
+        <Menubar.Root
+          className={MENU_ROOT_CLASS_NAME}
+          aria-label="ファイル操作メニューバー"
+        >
           <Menubar.Menu>
-            <TriggerItem aria-haspopup="menu">作業モード</TriggerItem>
+            <Menubar.Trigger
+              className={MENU_TRIGGER_CLASS_NAME}
+              aria-haspopup="menu"
+            >
+              作業モード
+            </Menubar.Trigger>
 
             <Menubar.Portal>
-              <FileMenuContent
+              <Menubar.Content
+                className={MENU_CONTENT_CLASS_NAME}
                 style={menuThemeStyle}
                 align="start"
                 sideOffset={6}
@@ -447,191 +280,239 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   const isSelected = modeItem.value === editMode;
 
                   return (
-                    <FileMenuItem
+                    <Menubar.Item
                       key={modeItem.value}
+                      className={MENU_ITEM_CLASS_NAME}
                       onSelect={() => {
                         onEditModeSelect(modeItem.value);
                       }}
                     >
-                      <MenuItemContentLayout>
-                        <MenuItemLabelLayout>
-                          <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
-                          <MenuItemText>{modeItem.label}</MenuItemText>
-                        </MenuItemLabelLayout>
-                        <MenuItemMeta>
-                          <ModeSelectionMarker>
+                      <MenuItemContent>
+                        <MenuItemLabel>
+                          <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                            {modeItem.icon}
+                          </span>
+                          <span className={MENU_ITEM_TEXT_CLASS_NAME}>
+                            {modeItem.label}
+                          </span>
+                        </MenuItemLabel>
+                        <span className={MENU_ITEM_META_CLASS_NAME}>
+                          <span
+                            className={MENU_MODE_SELECTION_MARKER_CLASS_NAME}
+                          >
                             {isSelected === true ? (
                               <CheckRoundedIcon fontSize="small" />
                             ) : (
                               <></>
                             )}
-                          </ModeSelectionMarker>
-                        </MenuItemMeta>
-                      </MenuItemContentLayout>
-                    </FileMenuItem>
+                          </span>
+                        </span>
+                      </MenuItemContent>
+                    </Menubar.Item>
                   );
                 })}
-              </FileMenuContent>
+              </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
 
           <Menubar.Menu>
-            <TriggerItem aria-haspopup="menu">編集</TriggerItem>
+            <Menubar.Trigger
+              className={MENU_TRIGGER_CLASS_NAME}
+              aria-haspopup="menu"
+            >
+              編集
+            </Menubar.Trigger>
 
             <Menubar.Portal>
-              <FileMenuContent
+              <Menubar.Content
+                className={MENU_CONTENT_CLASS_NAME}
                 style={menuThemeStyle}
                 align="start"
                 sideOffset={6}
                 aria-label="編集メニュー"
               >
-                <FileMenuItem onSelect={onUndoSelect}>
-                  <MenuItemContentLayout>
-                    <MenuItemLabelLayout>
-                      <MenuItemIconSlot>
+                <Menubar.Item
+                  className={MENU_ITEM_CLASS_NAME}
+                  onSelect={onUndoSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                         <UndoRoundedIcon fontSize="small" />
-                      </MenuItemIconSlot>
-                      <MenuItemText>アンドゥ</MenuItemText>
-                    </MenuItemLabelLayout>
-                    <MenuItemMeta>
-                      <MenuItemShortcutText>
+                      </span>
+                      <span className={MENU_ITEM_TEXT_CLASS_NAME}>
+                        アンドゥ
+                      </span>
+                    </MenuItemLabel>
+                    <span className={MENU_ITEM_META_CLASS_NAME}>
+                      <span className={MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME}>
                         {shortcutLabels.undo}
-                      </MenuItemShortcutText>
-                    </MenuItemMeta>
-                  </MenuItemContentLayout>
-                </FileMenuItem>
-                <FileMenuItem onSelect={onRedoSelect}>
-                  <MenuItemContentLayout>
-                    <MenuItemLabelLayout>
-                      <MenuItemIconSlot>
+                      </span>
+                    </span>
+                  </MenuItemContent>
+                </Menubar.Item>
+
+                <Menubar.Item
+                  className={MENU_ITEM_CLASS_NAME}
+                  onSelect={onRedoSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                         <RedoRoundedIcon fontSize="small" />
-                      </MenuItemIconSlot>
-                      <MenuItemText>リドゥ</MenuItemText>
-                    </MenuItemLabelLayout>
-                    <MenuItemMeta>
-                      <MenuItemShortcutText>
+                      </span>
+                      <span className={MENU_ITEM_TEXT_CLASS_NAME}>リドゥ</span>
+                    </MenuItemLabel>
+                    <span className={MENU_ITEM_META_CLASS_NAME}>
+                      <span className={MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME}>
                         {shortcutLabels.redo}
-                      </MenuItemShortcutText>
-                    </MenuItemMeta>
-                  </MenuItemContentLayout>
-                </FileMenuItem>
-              </FileMenuContent>
+                      </span>
+                    </span>
+                  </MenuItemContent>
+                </Menubar.Item>
+              </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
 
           <Menubar.Menu>
-            <TriggerItem aria-haspopup="menu">ファイル</TriggerItem>
+            <Menubar.Trigger
+              className={MENU_TRIGGER_CLASS_NAME}
+              aria-haspopup="menu"
+            >
+              ファイル
+            </Menubar.Trigger>
 
             <Menubar.Portal>
-              <FileMenuContent
+              <Menubar.Content
+                className={MENU_CONTENT_CLASS_NAME}
                 style={menuThemeStyle}
                 align="start"
                 sideOffset={6}
                 aria-label="ファイルメニュー"
               >
                 <Menubar.Sub>
-                  <FileMenuSubTrigger disabled={hasShareActions === false}>
-                    <MenuItemContentLayout>
-                      <MenuItemLabelLayout>
-                        <MenuItemIconSlot>
+                  <Menubar.SubTrigger
+                    className={MENU_SUB_TRIGGER_CLASS_NAME}
+                    disabled={hasShareActions === false}
+                  >
+                    <MenuItemContent>
+                      <MenuItemLabel>
+                        <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                           <ShareRoundedIcon fontSize="small" />
-                        </MenuItemIconSlot>
-                        <MenuItemText>共有</MenuItemText>
-                      </MenuItemLabelLayout>
-                      <MenuItemMeta>
+                        </span>
+                        <span className={MENU_ITEM_TEXT_CLASS_NAME}>共有</span>
+                      </MenuItemLabel>
+                      <span className={MENU_ITEM_META_CLASS_NAME}>
                         <ChevronRightRoundedIcon fontSize="small" />
-                      </MenuItemMeta>
-                    </MenuItemContentLayout>
-                  </FileMenuSubTrigger>
+                      </span>
+                    </MenuItemContent>
+                  </Menubar.SubTrigger>
 
                   <Menubar.Portal>
-                    <ShareSubContent
+                    <Menubar.SubContent
+                      className={MENU_CONTENT_CLASS_NAME}
                       style={menuThemeStyle}
                       sideOffset={4}
                       alignOffset={-4}
                       aria-label="共有サブメニュー"
                     >
                       {fileMenuState.shareActions.map((action) => (
-                        <FileMenuItem
+                        <Menubar.Item
                           key={action.id}
+                          className={MENU_ITEM_CLASS_NAME}
                           onSelect={() => {
                             action.onSelect();
                           }}
                         >
-                          <MenuItemContentLayout>
-                            <MenuItemLabelLayout>
-                              <MenuItemIconSlot>
+                          <MenuItemContent>
+                            <MenuItemLabel>
+                              <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                                 {getShareActionIcon(action.id)}
-                              </MenuItemIconSlot>
-                              <MenuItemText>{action.label}</MenuItemText>
-                            </MenuItemLabelLayout>
-                          </MenuItemContentLayout>
-                        </FileMenuItem>
+                              </span>
+                              <span className={MENU_ITEM_TEXT_CLASS_NAME}>
+                                {action.label}
+                              </span>
+                            </MenuItemLabel>
+                          </MenuItemContent>
+                        </Menubar.Item>
                       ))}
-                    </ShareSubContent>
+                    </Menubar.SubContent>
                   </Menubar.Portal>
                 </Menubar.Sub>
 
-                <MenuSeparator />
+                <Menubar.Separator className={MENU_SEPARATOR_CLASS_NAME} />
 
-                <FileMenuItem
+                <Menubar.Item
+                  className={MENU_ITEM_CLASS_NAME}
                   disabled={hasRestoreAction === false}
                   onSelect={handleRestoreSelect}
                 >
-                  <MenuItemContentLayout>
-                    <MenuItemLabelLayout>
-                      <MenuItemIconSlot>
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                         <FileUploadRoundedIcon fontSize="small" />
-                      </MenuItemIconSlot>
-                      <MenuItemText>復元</MenuItemText>
-                    </MenuItemLabelLayout>
-                  </MenuItemContentLayout>
-                </FileMenuItem>
-              </FileMenuContent>
+                      </span>
+                      <span className={MENU_ITEM_TEXT_CLASS_NAME}>復元</span>
+                    </MenuItemLabel>
+                  </MenuItemContent>
+                </Menubar.Item>
+              </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
 
           <Menubar.Menu>
-            <TriggerItem aria-haspopup="menu">ヘルプ</TriggerItem>
+            <Menubar.Trigger
+              className={MENU_TRIGGER_CLASS_NAME}
+              aria-haspopup="menu"
+            >
+              ヘルプ
+            </Menubar.Trigger>
 
             <Menubar.Portal>
-              <FileMenuContent
+              <Menubar.Content
+                className={MENU_CONTENT_CLASS_NAME}
                 style={menuThemeStyle}
                 align="start"
                 sideOffset={6}
                 aria-label="ヘルプメニュー"
               >
-                <FileMenuItem
+                <Menubar.Item
+                  className={MENU_ITEM_CLASS_NAME}
                   disabled={canCheckForUpdates === false}
                   onSelect={handleUpdateCheckSelect}
                 >
-                  <MenuItemContentLayout>
-                    <MenuItemLabelLayout>
-                      <MenuItemIconSlot>
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                         <UpdateRoundedIcon fontSize="small" />
-                      </MenuItemIconSlot>
-                      <MenuItemText>更新を確認</MenuItemText>
-                    </MenuItemLabelLayout>
-                  </MenuItemContentLayout>
-                </FileMenuItem>
+                      </span>
+                      <span className={MENU_ITEM_TEXT_CLASS_NAME}>
+                        更新を確認
+                      </span>
+                    </MenuItemLabel>
+                  </MenuItemContent>
+                </Menubar.Item>
 
-                <MenuSeparator />
+                <Menubar.Separator className={MENU_SEPARATOR_CLASS_NAME} />
 
-                <FileMenuItem onSelect={handleAboutSelect}>
-                  <MenuItemContentLayout>
-                    <MenuItemLabelLayout>
-                      <MenuItemIconSlot>
+                <Menubar.Item
+                  className={MENU_ITEM_CLASS_NAME}
+                  onSelect={handleAboutSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
                         <InfoRoundedIcon fontSize="small" />
-                      </MenuItemIconSlot>
-                      <MenuItemText>About</MenuItemText>
-                    </MenuItemLabelLayout>
-                  </MenuItemContentLayout>
-                </FileMenuItem>
-              </FileMenuContent>
+                      </span>
+                      <span className={MENU_ITEM_TEXT_CLASS_NAME}>About</span>
+                    </MenuItemLabel>
+                  </MenuItemContent>
+                </Menubar.Item>
+              </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
-        </MenubarRoot>
-      </MenuButtons>
+        </Menubar.Root>
+      </Stack>
 
       <Dialog
         open={isAboutOpen}
@@ -640,11 +521,25 @@ export const MenuBar: React.FC<MenuBarProps> = ({
       >
         <DialogTitle id={aboutDialogTitleId}>About</DialogTitle>
         <DialogContent>
-          <AboutContentLayout style={menuThemeStyle}>
-            <AboutIconImage src={aboutIconSrc} alt="nesdot icon" />
-            <AboutAppName>nesdot</AboutAppName>
-            <AboutVersionText>{`Version ${appVersion}`}</AboutVersionText>
-          </AboutContentLayout>
+          <Stack
+            style={menuThemeStyle}
+            alignItems="center"
+            spacing={1}
+            useFlexGap
+            minWidth="12rem"
+            pt={1}
+            pb={1}
+          >
+            <img
+              className={MENU_ABOUT_ICON_IMAGE_CLASS_NAME}
+              src={aboutIconSrc}
+              alt="nesdot icon"
+            />
+            <span className={MENU_ABOUT_APP_NAME_CLASS_NAME}>nesdot</span>
+            <span className={MENU_ABOUT_VERSION_TEXT_CLASS_NAME}>
+              {`Version ${appVersion}`}
+            </span>
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button
@@ -658,6 +553,6 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-    </MenuBarRoot>
+    </Stack>
   );
 };

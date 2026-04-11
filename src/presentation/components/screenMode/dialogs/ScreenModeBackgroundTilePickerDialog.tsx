@@ -8,7 +8,6 @@ import {
   DialogTitle,
   Stack,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import * as E from "fp-ts/Either";
 import React from "react";
 import { useProjectState } from "../../../../application/state/projectStore";
@@ -18,6 +17,7 @@ import {
   createEmptyBackgroundTile,
 } from "../../../../domain/project/projectV2";
 import { ToolButton } from "../../../App.styles";
+import { SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME } from "../../../styleClassNames";
 import { BackgroundTilePreview } from "../../common/preview/BackgroundTilePreview";
 
 type BgPickerMode = "bgTile" | "bgPalette";
@@ -32,17 +32,6 @@ interface ScreenModeBackgroundTilePickerDialogProps {
 }
 
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
-
-const PreviewButton = styled(ButtonBase)({
-  width: "100%",
-  borderRadius: "1rem",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-  boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-  padding: "0.875rem",
-  textAlign: "left",
-});
 
 /**
  * BG タイル配置導線の picker dialog を描画します。
@@ -113,8 +102,9 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
               gap="0.875rem"
             >
               {visibleBackgroundTiles.map((tile, tileIndex) => (
-                <PreviewButton
+                <ButtonBase
                   key={`screen-mode-bg-dialog-tile-${tileIndex}`}
+                  className={SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}
                   type="button"
                   aria-label={`BGタイルプレビュー ${tileIndex}`}
                   onClick={() => {
@@ -135,7 +125,7 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                     />
                     <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
                   </Stack>
-                </PreviewButton>
+                </ButtonBase>
               ))}
             </Box>
           ) : (

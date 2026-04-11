@@ -1,4 +1,3 @@
-import { styled } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
@@ -7,6 +6,7 @@ import {
 } from "../../../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME } from "../../../styleClassNames";
 
 interface BackgroundTilePreviewProps {
   ariaLabel?: string;
@@ -15,13 +15,6 @@ interface BackgroundTilePreviewProps {
   palette: NesSubPalette;
   universalBackgroundColor: NesColorIndex;
 }
-
-const CanvasElement = styled("canvas")({
-  display: "block",
-  imageRendering: "pixelated",
-  backgroundImage: "repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%)",
-  backgroundSize: "0.5rem 0.5rem",
-});
 
 const resolvePixelHex = (
   palette: NesSubPalette,
@@ -98,14 +91,16 @@ const BackgroundTilePreviewComponent: React.FC<BackgroundTilePreviewProps> = ({
   }, [palette, scale, tile, universalBackgroundColor]);
 
   return typeof ariaLabel === "string" ? (
-    <CanvasElement
+    <canvas
+      className={BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME}
       ref={handleCanvasRef}
       width={tile.width * scale}
       height={tile.height * scale}
       aria-label={ariaLabel}
     />
   ) : (
-    <CanvasElement
+    <canvas
+      className={BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME}
       ref={handleCanvasRef}
       width={tile.width * scale}
       height={tile.height * scale}

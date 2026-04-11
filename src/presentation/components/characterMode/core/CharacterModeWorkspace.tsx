@@ -1,8 +1,12 @@
 import { Stack } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import {
+  CHARACTER_WORKSPACE_GATE_CLASS_NAME,
+  CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME,
+  CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME,
+} from "../../../styleClassNames";
 import { CharacterModeComposePreviewCanvas } from "../compose/CharacterModeComposePreviewCanvas";
 import { CharacterModeDecomposePreviewCanvas } from "../decomposition/CharacterModeDecomposePreviewCanvas";
 import { CharacterModeDecompositionInspector } from "../decomposition/CharacterModeDecompositionInspector";
@@ -19,38 +23,6 @@ import {
   useCharacterModeSetSelection,
 } from "./CharacterModeStateProvider";
 
-const WorkspaceGateRoot = styled("div")({
-  position: "relative",
-  minHeight: 0,
-  minWidth: 0,
-  flex: "1 1 0",
-  display: "flex",
-});
-
-const WorkspaceLockOverlay = styled("div")({
-  position: "absolute",
-  inset: 0,
-  zIndex: 14,
-  display: "grid",
-  placeItems: "center",
-  borderRadius: "1.25rem",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.26)",
-  background: "rgba(248, 250, 252, 0.76)",
-  backdropFilter: "blur(1.5px)",
-});
-
-const WorkspaceLockMessage = styled("div")({
-  borderRadius: "999px",
-  padding: "0.625rem 0.875rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.28)",
-  color: "var(--ink-strong)",
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  letterSpacing: "0.05em",
-});
-
 /**
  * 現在の編集モードに応じてワークスペース本体を切り替えます。
  */
@@ -62,7 +34,7 @@ export const CharacterModeWorkspace: React.FC = () => {
 
   return (
     <>
-      <WorkspaceGateRoot>
+      <div className={CHARACTER_WORKSPACE_GATE_CLASS_NAME}>
         <CharacterComposeWorkspaceGrid
           aria-label="キャラクター編集ワークスペース"
           aria-disabled={isWorkspaceLocked}
@@ -84,15 +56,18 @@ export const CharacterModeWorkspace: React.FC = () => {
         </CharacterComposeWorkspaceGrid>
 
         {isWorkspaceLocked === true ? (
-          <WorkspaceLockOverlay aria-label="キャラクター編集ロックオーバーレイ">
-            <WorkspaceLockMessage>
+          <div
+            className={CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME}
+            aria-label="キャラクター編集ロックオーバーレイ"
+          >
+            <div className={CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME}>
               セットを作成すると編集できます
-            </WorkspaceLockMessage>
-          </WorkspaceLockOverlay>
+            </div>
+          </div>
         ) : (
           <></>
         )}
-      </WorkspaceGateRoot>
+      </div>
 
       {editorMode === "compose" ? (
         pipe(

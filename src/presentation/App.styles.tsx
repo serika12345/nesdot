@@ -1,6 +1,35 @@
 import { ButtonBase, Stack, type StackProps } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
+import {
+  ACTION_MENU_BUTTON_CLASS_NAME,
+  APP_ACTION_MENU_CLASS_NAME,
+  APP_ACTION_MENU_OVERLAY_CLASS_NAME,
+  APP_CANVAS_VIEWPORT_CLASS_NAME,
+  APP_CONTAINER_CLASS_NAME,
+  APP_DETAIL_KEY_CLASS_NAME,
+  APP_DETAIL_ROW_CLASS_NAME,
+  APP_DETAIL_VALUE_CLASS_NAME,
+  APP_DIVIDER_CLASS_NAME,
+  APP_EYEBROW_CLASS_NAME,
+  APP_FIELD_LABEL_CLASS_NAME,
+  APP_H3_CLASS_NAME,
+  APP_HELPER_TEXT_CLASS_NAME,
+  APP_METRIC_CARD_CLASS_NAME,
+  APP_METRIC_LABEL_CLASS_NAME,
+  APP_METRIC_VALUE_CLASS_NAME,
+  APP_MODE_SWITCHER_CARD_CLASS_NAME,
+  APP_MODE_SWITCHER_TITLE_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
+  APP_PANEL_DESCRIPTION_CLASS_NAME,
+  APP_PANEL_TITLE_CLASS_NAME,
+  APP_SCROLL_AREA_CLASS_NAME,
+  APP_SCROLL_COLUMN_CLASS_NAME,
+  BADGE_CLASS_NAME,
+  COLLAPSE_TOGGLE_CLASS_NAME,
+  ICON_ACTION_BUTTON_CLASS_NAME,
+  TOOL_BUTTON_CLASS_NAME,
+  mergeClassNames,
+} from "./styleClassNames";
 
 type ButtonTone = "neutral" | "primary" | "danger";
 type BadgeTone = "neutral" | "accent" | "danger";
@@ -25,8 +54,26 @@ const createBoxLayout = (
 ) => {
   void displayName;
   const LayoutComponent = React.forwardRef<HTMLDivElement, StackProps>(
-    function LayoutComponent(props, ref) {
-      return <Root ref={ref} {...defaultProps} {...props} />;
+    function LayoutComponent({ className, ...props }, ref) {
+      const mergedClassName = mergeClassNames(
+        typeof defaultProps.className === "string"
+          ? defaultProps.className
+          : false,
+        typeof className === "string" ? className : false,
+      );
+
+      if (mergedClassName === "") {
+        return <Root ref={ref} {...defaultProps} {...props} />;
+      }
+
+      return (
+        <Root
+          ref={ref}
+          {...defaultProps}
+          {...props}
+          className={mergedClassName}
+        />
+      );
     },
   );
 
@@ -40,8 +87,27 @@ const createStackLayout = (
 ) => {
   void displayName;
   const LayoutComponent = React.forwardRef<HTMLDivElement, StackProps>(
-    function LayoutComponent(props, ref) {
-      return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+    function LayoutComponent({ className, ...props }, ref) {
+      const mergedClassName = mergeClassNames(
+        typeof defaultProps.className === "string"
+          ? defaultProps.className
+          : false,
+        typeof className === "string" ? className : false,
+      );
+
+      if (mergedClassName === "") {
+        return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+      }
+
+      return (
+        <Root
+          ref={ref}
+          useFlexGap
+          {...defaultProps}
+          {...props}
+          className={mergedClassName}
+        />
+      );
     },
   );
 
@@ -73,46 +139,6 @@ const resolveBadgeTone = (tone?: BadgeTone): BadgeTone => {
   }
 
   return "neutral";
-};
-
-const neutralButtonStateStyles = {
-  color: "var(--ink-strong)",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.24)",
-  boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-};
-
-const primaryButtonStateStyles = {
-  color: "#f0fdfa",
-  background: "linear-gradient(135deg, #0f766e 0%, #155e75 100%)",
-  border: "0.0625rem solid rgba(21, 94, 117, 0.35)",
-  boxShadow: "0 0.875rem 1.625rem rgba(15, 118, 110, 0.22)",
-};
-
-const dangerButtonStateStyles = {
-  color: "#fff1f2",
-  background: "linear-gradient(135deg, #be123c 0%, #9f1239 100%)",
-  border: "0.0625rem solid rgba(159, 18, 57, 0.4)",
-  boxShadow: "0 0.75rem 1.5rem rgba(190, 24, 93, 0.2)",
-};
-
-const neutralBadgeToneStyles = {
-  color: "var(--ink-soft)",
-  background: "rgba(148, 163, 184, 0.12)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-};
-
-const accentBadgeToneStyles = {
-  color: "#0f766e",
-  background: "rgba(15, 118, 110, 0.12)",
-  border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
-};
-
-const dangerBadgeToneStyles = {
-  color: "#be123c",
-  background: "rgba(190, 24, 93, 0.1)",
-  border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
 };
 
 const ToolButtonRoot = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
@@ -152,36 +178,36 @@ const BadgeRoot = React.forwardRef<HTMLSpanElement, BadgeProps>(
   },
 );
 
-const ContainerRoot = styled("div")({
-  position: "relative",
-  zIndex: 1,
-  height: "100vh",
-  overflow: "hidden",
-});
+const resolvePrimitiveClassName = (
+  defaultClassName: string,
+  className: false | string,
+): string => mergeClassNames(defaultClassName, className);
 
 export const Container = createBoxLayout("Container", {
-  component: ContainerRoot,
+  component: "div",
+  className: APP_CONTAINER_CLASS_NAME,
   p: { xs: "1rem", md: "1.5rem" },
 });
 
-export const Eyebrow = styled("div")({
-  fontSize: "0.6875rem",
-  fontWeight: 700,
-  letterSpacing: "0.18em",
-  color: "rgba(148, 163, 184, 0.92)",
-});
-
-const ModeSwitcherCardRoot = styled("div")({
-  borderRadius: "1.25rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9))",
-  border: "0.0625rem solid var(--panel-border)",
-  boxShadow: "var(--panel-shadow)",
-  backdropFilter: "blur(1.125rem)",
+export const Eyebrow = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function Eyebrow({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_EYEBROW_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const ModeSwitcherCard = createBoxLayout("ModeSwitcherCard", {
-  component: ModeSwitcherCardRoot,
+  component: "div",
+  className: APP_MODE_SWITCHER_CARD_CLASS_NAME,
   width: "100%",
   p: "0.875rem",
 });
@@ -197,12 +223,20 @@ export const ModeSwitcherHeader = createStackLayout("ModeSwitcherHeader", {
   spacing: "0.125rem",
 });
 
-export const ModeSwitcherTitle = styled("h2")({
-  margin: 0,
-  fontSize: "1.125rem",
-  lineHeight: 1.05,
-  letterSpacing: "-0.02em",
-  color: "var(--ink-strong)",
+export const ModeSwitcherTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.ComponentProps<"h2">
+>(function ModeSwitcherTitle({ className, ...props }, ref) {
+  return (
+    <h2
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_MODE_SWITCHER_TITLE_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const WorkspaceGrid = createStackLayout("WorkspaceGrid", {
@@ -232,29 +266,9 @@ export const RightPane = createStackLayout("RightPane", {
   overflow: "hidden",
 });
 
-const PanelRoot = styled("div")({
-  position: "relative",
-  overflow: "hidden",
-  borderRadius: "1.5rem",
-  background:
-    "linear-gradient(180deg, var(--panel-surface-strong), var(--panel-surface))",
-  border: "0.0625rem solid var(--panel-border)",
-  boxShadow: "var(--panel-shadow)",
-  backdropFilter: "blur(1.125rem)",
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    inset: "0 auto auto 0",
-    width: "11.25rem",
-    height: "11.25rem",
-    background:
-      "radial-gradient(circle, rgba(45, 212, 191, 0.09) 0%, transparent 70%)",
-    pointerEvents: "none",
-  },
-});
-
 export const Panel = createStackLayout("Panel", {
-  component: PanelRoot,
+  component: "div",
+  className: APP_PANEL_CLASS_NAME,
   spacing: "0.875rem",
   minWidth: 0,
   minHeight: 0,
@@ -275,23 +289,52 @@ export const PanelHeaderRow = createStackLayout("PanelHeaderRow", {
   flexWrap: "wrap",
 });
 
-export const PanelTitle = styled("h2")({
-  margin: 0,
-  fontSize: "1.5rem",
-  lineHeight: 1.1,
-  letterSpacing: "-0.03em",
-  color: "var(--ink-strong)",
+export const PanelTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.ComponentProps<"h2">
+>(function PanelTitle({ className, ...props }, ref) {
+  return (
+    <h2
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_PANEL_TITLE_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const PanelDescription = styled("p")({
-  margin: 0,
-  fontSize: "0.875rem",
-  lineHeight: 1.6,
-  color: "var(--ink-soft)",
+export const PanelDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.ComponentProps<"p">
+>(function PanelDescription({ className, ...props }, ref) {
+  return (
+    <p
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_PANEL_DESCRIPTION_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const H3 = styled("h3")({
-  margin: 0,
+export const H3 = React.forwardRef<
+  HTMLHeadingElement,
+  React.ComponentProps<"h3">
+>(function H3({ className, ...props }, ref) {
+  return (
+    <h3
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_H3_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const Toolbar = createStackLayout("Toolbar", {
@@ -306,58 +349,37 @@ export const Spacer = createBoxLayout("Spacer", {
   minWidth: "0.75rem",
 });
 
-export const ToolButton = styled(ToolButtonRoot)({
-  appearance: "none",
-  borderRadius: "1rem",
-  padding: "0.75rem 1rem",
-  fontSize: "0.875rem",
-  fontWeight: 700,
-  letterSpacing: "0.01em",
-  cursor: "pointer",
-  textAlign: "center",
-  transition:
-    "transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease",
-  "&[data-tone='neutral'][data-active='false']": neutralButtonStateStyles,
-  "&[data-tone='neutral'][data-active='true'], &[data-tone='primary']":
-    primaryButtonStateStyles,
-  "&[data-tone='danger']": dangerButtonStateStyles,
-  "&:hover:not(:disabled)": {
-    transform: "translateY(-0.0625rem)",
+export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
+  function ToolButton({ className, ...props }, ref) {
+    return (
+      <ToolButtonRoot
+        ref={ref}
+        {...props}
+        className={mergeClassNames(
+          TOOL_BUTTON_CLASS_NAME,
+          typeof className === "string" ? className : false,
+        )}
+      />
+    );
   },
-  "&:disabled": {
-    opacity: 0.45,
-    cursor: "not-allowed",
-    transform: "none",
-    boxShadow: "none",
-  },
-});
+);
 
 export const ActionButton = ToolButton;
 
-export const CollapseToggle = styled(CollapseToggleRoot)({
-  appearance: "none",
-  gap: "0.5rem",
-  borderRadius: "62.4375rem",
-  padding: "0.5625rem 0.75rem",
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  letterSpacing: "0.06em",
-  cursor: "pointer",
-  transition:
-    "transform 160ms ease, background 160ms ease, border-color 160ms ease",
-  "&[data-open='false']": {
-    border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-    background: "rgba(248, 250, 252, 0.88)",
-    color: "var(--ink-soft)",
-  },
-  "&[data-open='true']": {
-    border: "0.0625rem solid rgba(15, 118, 110, 0.2)",
-    background: "rgba(15, 118, 110, 0.1)",
-    color: "#0f766e",
-  },
-  "&:hover": {
-    transform: "translateY(-0.0625rem)",
-  },
+export const CollapseToggle = React.forwardRef<
+  HTMLButtonElement,
+  CollapseToggleProps
+>(function CollapseToggle({ className, ...props }, ref) {
+  return (
+    <CollapseToggleRoot
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        COLLAPSE_TOGGLE_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const ActionCluster = createBoxLayout("ActionCluster", {
@@ -375,35 +397,20 @@ export const ActionButtonsRow = createStackLayout("ActionButtonsRow", {
   width: "100%",
 });
 
-export const IconActionButton = styled(IconActionButtonRoot)({
-  appearance: "none",
-  gap: "0.625rem",
-  minHeight: "2.625rem",
-  padding: "0.625rem 0.875rem",
-  borderRadius: "1rem",
-  whiteSpace: "nowrap",
-  boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-  cursor: "pointer",
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  letterSpacing: "0.01em",
-  transition:
-    "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
-  "&[data-active='false']": {
-    border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-    background:
-      "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92))",
-    color: "var(--ink-strong)",
-  },
-  "&[data-active='true']": {
-    border: "0.0625rem solid rgba(15, 118, 110, 0.22)",
-    background:
-      "linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.9))",
-    color: "#0f766e",
-  },
-  "&:hover": {
-    transform: "translateY(-0.0625rem)",
-  },
+export const IconActionButton = React.forwardRef<
+  HTMLButtonElement,
+  IconActionButtonProps
+>(function IconActionButton({ className, ...props }, ref) {
+  return (
+    <IconActionButtonRoot
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        ICON_ACTION_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const IconLabel = createStackLayout("IconLabel", {
@@ -413,16 +420,9 @@ export const IconLabel = createStackLayout("IconLabel", {
   spacing: "0.625rem",
 });
 
-const ActionMenuRoot = styled("div")({
-  borderRadius: "1.125rem",
-  background: "rgba(255, 255, 255, 0.98)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-  boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
-  backdropFilter: "blur(1.125rem)",
-});
-
 export const ActionMenu = createStackLayout("ActionMenu", {
-  component: ActionMenuRoot,
+  component: "div",
+  className: APP_ACTION_MENU_CLASS_NAME,
   position: "fixed",
   minWidth: "13.75rem",
   maxWidth: "min(20rem, calc(100vw - 2rem))",
@@ -431,34 +431,25 @@ export const ActionMenu = createStackLayout("ActionMenu", {
   zIndex: 9999,
 });
 
-const ActionMenuOverlayRoot = styled("div")({
-  position: "fixed",
-  inset: 0,
-  zIndex: 9998,
-});
-
 export const ActionMenuOverlay = createBoxLayout("ActionMenuOverlay", {
-  component: ActionMenuOverlayRoot,
+  component: "div",
+  className: APP_ACTION_MENU_OVERLAY_CLASS_NAME,
 });
 
-export const ActionMenuButton = styled(ButtonBase)({
-  appearance: "none",
-  width: "100%",
-  justifyContent: "space-between",
-  gap: "0.75rem",
-  padding: "0.6875rem 0.75rem",
-  border: 0,
-  borderRadius: "0.75rem",
-  background: "transparent",
-  color: "var(--ink-strong)",
-  cursor: "pointer",
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  textAlign: "left",
-  transition: "background 160ms ease",
-  "&:hover": {
-    background: "rgba(15, 23, 42, 0.05)",
-  },
+export const ActionMenuButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof ButtonBase>
+>(function ActionMenuButton({ className, ...props }, ref) {
+  return (
+    <ButtonBase
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        ACTION_MENU_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const Field = createStackLayout("Field", {
@@ -466,24 +457,36 @@ export const Field = createStackLayout("Field", {
   spacing: "0.5rem",
 });
 
-export const FieldLabel = styled("span")({
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  color: "var(--ink-soft)",
+export const FieldLabel = React.forwardRef<
+  HTMLSpanElement,
+  React.ComponentProps<"span">
+>(function FieldLabel({ className, ...props }, ref) {
+  return (
+    <span
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_FIELD_LABEL_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const Badge = styled(BadgeRoot)({
-  width: "fit-content",
-  padding: "0.4375rem 0.75rem",
-  borderRadius: "62.4375rem",
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  letterSpacing: "0.06em",
-  "&[data-tone='neutral']": neutralBadgeToneStyles,
-  "&[data-tone='accent']": accentBadgeToneStyles,
-  "&[data-tone='danger']": dangerBadgeToneStyles,
-});
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
+  function Badge({ className, ...props }, ref) {
+    return (
+      <BadgeRoot
+        ref={ref}
+        {...props}
+        className={mergeClassNames(
+          BADGE_CLASS_NAME,
+          typeof className === "string" ? className : false,
+        )}
+      />
+    );
+  },
+);
 
 export const SplitLayout = createStackLayout("SplitLayout", {
   direction: { xs: "column", lg: "row" },
@@ -491,74 +494,67 @@ export const SplitLayout = createStackLayout("SplitLayout", {
   minHeight: 0,
 });
 
-const CanvasViewportRoot = styled("div")({
-  position: "relative",
-  zIndex: 1,
-  borderRadius: "1.5rem",
-  background:
-    "radial-gradient(circle at top, rgba(30, 41, 59, 0.3), transparent 40%), linear-gradient(180deg, var(--canvas-shell-alt), var(--canvas-shell))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.03)",
-  scrollbarGutter: "stable both-edges",
-});
-
 export const CanvasViewport = createBoxLayout("CanvasViewport", {
-  component: CanvasViewportRoot,
+  component: "div",
+  className: APP_CANVAS_VIEWPORT_CLASS_NAME,
   overflow: "auto",
   minHeight: 0,
   p: "1.125rem",
 });
 
-const ScrollColumnRoot = styled("div")({
-  scrollbarGutter: "stable",
-  marginRight: "-1.125rem",
-  paddingRight: "1.125rem",
-});
-
-const ScrollAreaRoot = styled("div")({
-  scrollbarGutter: "stable",
-  marginRight: "-1.125rem",
-  paddingRight: "1.125rem",
-});
-
 export const ScrollColumn = createStackLayout("ScrollColumn", {
-  component: ScrollColumnRoot,
+  component: "div",
+  className: APP_SCROLL_COLUMN_CLASS_NAME,
   minHeight: 0,
   overflow: "auto",
   spacing: "1rem",
 });
 
 export const ScrollArea = createBoxLayout("ScrollArea", {
-  component: ScrollAreaRoot,
+  component: "div",
+  className: APP_SCROLL_AREA_CLASS_NAME,
   minHeight: 0,
   overflow: "auto",
 });
 
-const MetricCardRoot = styled("div")({
-  borderRadius: "1.25rem",
-  background: "rgba(248, 250, 252, 0.84)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-});
-
 export const MetricCard = createStackLayout("MetricCard", {
-  component: MetricCardRoot,
+  component: "div",
+  className: APP_METRIC_CARD_CLASS_NAME,
   spacing: "0.375rem",
   px: "1rem",
   py: "0.875rem",
 });
 
-export const MetricLabel = styled("div")({
-  fontSize: "0.6875rem",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  color: "var(--ink-soft)",
+export const MetricLabel = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function MetricLabel({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_METRIC_LABEL_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const MetricValue = styled("div")({
-  fontSize: "1.375rem",
-  fontWeight: 700,
-  letterSpacing: "-0.03em",
-  color: "var(--ink-strong)",
+export const MetricValue = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function MetricValue({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_METRIC_VALUE_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const DetailList = createStackLayout("DetailList", {
@@ -567,14 +563,9 @@ export const DetailList = createStackLayout("DetailList", {
   spacing: "0.625rem",
 });
 
-const DetailRowRoot = styled("div")({
-  borderRadius: "1.125rem",
-  background: "rgba(248, 250, 252, 0.84)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-});
-
 export const DetailRow = createStackLayout("DetailRow", {
-  component: DetailRowRoot,
+  component: "div",
+  className: APP_DETAIL_ROW_CLASS_NAME,
   direction: "row",
   alignItems: "center",
   justifyContent: "space-between",
@@ -583,39 +574,49 @@ export const DetailRow = createStackLayout("DetailRow", {
   py: "0.75rem",
 });
 
-export const DetailKey = styled("span")({
-  fontSize: "0.8125rem",
-  fontWeight: 600,
-  color: "var(--ink-soft)",
+export const DetailKey = React.forwardRef<
+  HTMLSpanElement,
+  React.ComponentProps<"span">
+>(function DetailKey({ className, ...props }, ref) {
+  return (
+    <span
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_DETAIL_KEY_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const DetailValue = styled("span")({
-  fontSize: "0.875rem",
-  fontWeight: 700,
-  color: "var(--ink-strong)",
-  textAlign: "right",
-});
-
-const HelperTextRoot = styled("p")({
-  fontSize: "0.8125rem",
-  lineHeight: 1.7,
-  color: "var(--ink-soft)",
+export const DetailValue = React.forwardRef<
+  HTMLSpanElement,
+  React.ComponentProps<"span">
+>(function DetailValue({ className, ...props }, ref) {
+  return (
+    <span
+      ref={ref}
+      {...props}
+      className={resolvePrimitiveClassName(
+        APP_DETAIL_VALUE_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const HelperText = createBoxLayout("HelperText", {
-  component: HelperTextRoot,
+  component: "p",
+  className: APP_HELPER_TEXT_CLASS_NAME,
   position: "relative",
   zIndex: 1,
   m: 0,
 });
 
-const DividerRoot = styled("div")({
-  background:
-    "linear-gradient(90deg, rgba(148, 163, 184, 0.18), rgba(148, 163, 184, 0.02))",
-});
-
 export const Divider = createBoxLayout("Divider", {
-  component: DividerRoot,
+  component: "div",
+  className: APP_DIVIDER_CLASS_NAME,
   position: "relative",
   zIndex: 1,
   height: "0.0625rem",

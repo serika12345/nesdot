@@ -1,5 +1,4 @@
 import { Stack, type StackProps } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import {
   CanvasViewport,
@@ -8,6 +7,19 @@ import {
   PanelHeaderRow,
   ToolButton,
 } from "../../../App.styles";
+import {
+  SCREEN_EDITOR_CONTENT_CLASS_NAME,
+  SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
+  SCREEN_GROUP_ACTION_BUTTON_CLASS_NAME,
+  SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
+  SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
+  SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME,
+  SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
+  SCREEN_WARNING_LIST_CLASS_NAME,
+  SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME,
+  SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
+  mergeClassNames,
+} from "../../../styleClassNames";
 
 const createStackLayout = (
   displayName: string,
@@ -16,11 +28,31 @@ const createStackLayout = (
 ) => {
   void displayName;
 
-  return React.forwardRef<HTMLDivElement, StackProps>(
-    function LayoutComponent(props, ref) {
+  return React.forwardRef<HTMLDivElement, StackProps>(function LayoutComponent(
+    { className, ...props },
+    ref,
+  ) {
+    const mergedClassName = mergeClassNames(
+      typeof defaultProps.className === "string"
+        ? defaultProps.className
+        : false,
+      typeof className === "string" ? className : false,
+    );
+
+    if (mergedClassName === "") {
       return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
-    },
-  );
+    }
+
+    return (
+      <Root
+        ref={ref}
+        useFlexGap
+        {...defaultProps}
+        {...props}
+        className={mergedClassName}
+      />
+    );
+  });
 };
 
 export const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
@@ -33,15 +65,8 @@ export const TwoColumnFieldGrid = createStackLayout("TwoColumnFieldGrid", {
 export const ScreenModeEditorContent = createStackLayout(
   "ScreenModeEditorContent",
   {
-    component: styled("div")({
-      position: "relative",
-      zIndex: 1,
-      "& > * + *": {
-        marginTop: "1rem",
-        paddingTop: "1rem",
-        borderTop: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-      },
-    }),
+    component: "div",
+    className: SCREEN_EDITOR_CONTENT_CLASS_NAME,
   },
 );
 
@@ -65,16 +90,38 @@ export const FullWidthActionRow = createStackLayout("FullWidthActionRow", {
   justifyContent: "flex-end",
 });
 
-const TallToolButton = styled(ToolButton)({
-  minHeight: "3rem",
+export const WideTallToolButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof ToolButton>
+>(function WideTallToolButton({ className, ...props }, ref) {
+  return (
+    <ToolButton
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
+        SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const WideTallToolButton = styled(TallToolButton)({
-  width: "100%",
-});
-
-export const ZoomControlsRow = styled(PanelHeaderRow)({
-  justifyContent: "flex-start",
+export const ZoomControlsRow = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof PanelHeaderRow>
+>(function ZoomControlsRow({ className, ...props }, ref) {
+  return (
+    <PanelHeaderRow
+      ref={ref}
+      {...props}
+      justifyContent="flex-start"
+      className={mergeClassNames(
+        SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
@@ -82,12 +129,22 @@ export const collapseChevronStyle = (open: boolean): React.CSSProperties => ({
   transition: "transform 160ms ease",
 });
 
-export const ReadOnlyDetailRow = styled(DetailRow)({
-  background: "transparent",
-  border: "none",
-  boxShadow: "none",
-  padding: 0,
-  borderRadius: 0,
+export const ReadOnlyDetailRow = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof DetailRow>
+>(function ReadOnlyDetailRow({ className, ...props }, ref) {
+  return (
+    <DetailRow
+      ref={ref}
+      {...props}
+      px={0}
+      py={0}
+      className={mergeClassNames(
+        SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const FlipButtonGrid = createStackLayout("FlipButtonGrid", {
@@ -96,21 +153,37 @@ export const FlipButtonGrid = createStackLayout("FlipButtonGrid", {
   alignItems: "end",
 });
 
-export const FlipToolButton = styled(ToolButton)({
-  flex: 1,
+export const FlipToolButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof ToolButton>
+>(function FlipToolButton({ className, ...props }, ref) {
+  return (
+    <ToolButton
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const GroupActionButton = styled(TallToolButton)({
-  width: "100%",
-});
-
-const PreviewViewportRoot = styled(CanvasViewport)({
-  "&[data-active='false']": {
-    cursor: "default",
-  },
-  "&[data-active='true']": {
-    cursor: "grabbing",
-  },
+export const GroupActionButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<typeof ToolButton>
+>(function GroupActionButton({ className, ...props }, ref) {
+  return (
+    <ToolButton
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
+        SCREEN_GROUP_ACTION_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 type PreviewViewportProps = React.ComponentProps<typeof CanvasViewport> & {
@@ -120,11 +193,15 @@ type PreviewViewportProps = React.ComponentProps<typeof CanvasViewport> & {
 export const PreviewViewport = React.forwardRef<
   HTMLDivElement,
   PreviewViewportProps
->(function PreviewViewport({ active, ...props }, ref) {
+>(function PreviewViewport({ active, className, ...props }, ref) {
   return (
-    <PreviewViewportRoot
+    <CanvasViewport
       ref={ref}
       data-active={active === true ? "true" : "false"}
+      className={mergeClassNames(
+        SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       flex={1}
       minHeight={0}
       p="1.5rem"
@@ -133,15 +210,35 @@ export const PreviewViewport = React.forwardRef<
   );
 });
 
-export const PreviewCanvasWrap = styled("div")({
-  display: "grid",
-  placeItems: "center",
-  width: "max-content",
-  height: "max-content",
-  minWidth: "100%",
-  minHeight: "100%",
+export const PreviewCanvasWrap = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function PreviewCanvasWrap({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
-export const WarningList = styled(DetailList)({
-  flexShrink: 0,
+export const WarningList = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof DetailList>
+>(function WarningList({ className, ...props }, ref) {
+  return (
+    <DetailList
+      ref={ref}
+      {...props}
+      flexShrink={0}
+      className={mergeClassNames(
+        SCREEN_WARNING_LIST_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });

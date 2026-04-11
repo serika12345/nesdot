@@ -6,14 +6,10 @@ import {
   OutlinedInput,
   Stack,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import { Field, FieldLabel, ToolButton } from "../../../App.styles";
+import { CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME } from "../../../styleClassNames";
 import { useCharacterModeSetDraft } from "../core/CharacterModeStateProvider";
-
-const ResponsiveActionContainer = styled("div")({
-  flexShrink: 0,
-});
 
 /**
  * 新規キャラクターセット作成用の入力欄と実行ボタンです。
@@ -39,7 +35,7 @@ export const CharacterModeSetDraftFields: React.FC = () => {
 
   return (
     <>
-      <ResponsiveActionContainer>
+      <div className={CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME}>
         <ToolButton
           type="button"
           tone="primary"
@@ -47,7 +43,7 @@ export const CharacterModeSetDraftFields: React.FC = () => {
         >
           セットを作成
         </ToolButton>
-      </ResponsiveActionContainer>
+      </div>
 
       <Dialog
         open={isCreateDialogOpen}

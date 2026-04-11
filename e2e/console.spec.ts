@@ -127,15 +127,61 @@ test("layout follows window resize", async ({ page }) => {
 test("shows global app menu controls", async ({ page }) => {
   await gotoApp(page);
 
+  type TopLevelTriggerLabel = "作業モード" | "編集" | "ファイル" | "ヘルプ";
+
   const menuBar = page.getByRole("menubar", {
     name: "ファイル操作メニューバー",
   });
+  const topLevelTriggerLabels: ReadonlyArray<TopLevelTriggerLabel> = [
+    "作業モード",
+    "編集",
+    "ファイル",
+    "ヘルプ",
+  ];
 
   await expect(menuBar).toBeVisible();
   await expect(getMenuTrigger(page, "作業モード")).toBeVisible();
   await expect(getMenuTrigger(page, "ファイル")).toBeVisible();
   await expect(getMenuTrigger(page, "編集")).toBeVisible();
   await expect(getMenuTrigger(page, "ヘルプ")).toBeVisible();
+
+  const triggerPositions = await Promise.all(
+    topLevelTriggerLabels.map(async (label) => {
+      const box = await getMenuTrigger(page, label).boundingBox();
+      const hasBoundingBox = box instanceof Object;
+
+      return {
+        x: hasBoundingBox ? box.x : -1,
+        y: hasBoundingBox ? box.y : -1,
+      };
+    }),
+  );
+
+  triggerPositions.forEach((position) => {
+    expect(position.x).toBeGreaterThanOrEqual(0);
+    expect(position.y).toBeGreaterThanOrEqual(0);
+  });
+
+  const firstTriggerY = triggerPositions[0]?.y ?? -1;
+
+  expect(
+    Math.abs((triggerPositions[1]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs((triggerPositions[2]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs((triggerPositions[3]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(triggerPositions[1]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[0]?.x ?? -1,
+  );
+  expect(triggerPositions[2]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[1]?.x ?? -1,
+  );
+  expect(triggerPositions[3]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[2]?.x ?? -1,
+  );
 
   await getMenuTrigger(page, "作業モード").click();
   await expect(getVisibleMenuItem(page, "スプライト編集")).toBeVisible();

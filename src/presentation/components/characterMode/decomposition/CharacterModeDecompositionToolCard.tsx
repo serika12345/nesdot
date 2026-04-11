@@ -1,5 +1,4 @@
 import { ButtonBase, MenuItem, Select, Stack, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
 import {
@@ -8,6 +7,7 @@ import {
   PanelHeaderRow,
   ToolButton,
 } from "../../../App.styles";
+import { CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME } from "../../../styleClassNames";
 import {
   useCharacterModeDecompositionPalette,
   useCharacterModeDecompositionTool,
@@ -28,37 +28,21 @@ type PaletteSlotButtonProps = React.ComponentProps<typeof ButtonBase> & {
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
-
-const PaletteSlotButtonRoot = styled(ButtonBase)({
-  width: "2.625rem",
-  height: "2.625rem",
-  borderRadius: "0.875rem",
-  "&[data-selected-state='false']": {
-    border: "0.0625rem solid rgba(148, 163, 184, 0.28)",
-    boxShadow: "0 0.5rem 1rem rgba(15, 23, 42, 0.06)",
-  },
-  "&[data-selected-state='true']": {
-    border: "0.1875rem solid #0f766e",
-    boxShadow: "0 0.75rem 1.5rem rgba(15, 118, 110, 0.16)",
-  },
-});
-
-const PaletteSlotButton = React.forwardRef<
-  HTMLButtonElement,
-  PaletteSlotButtonProps
->(function PaletteSlotButton(
-  { colorHex, selectedState, style, ...props },
-  ref,
-) {
+const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
+  colorHex,
+  selectedState,
+  style,
+  ...props
+}) => {
   return (
-    <PaletteSlotButtonRoot
-      ref={ref}
+    <ButtonBase
       {...props}
+      className={CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME}
       data-selected-state={toBooleanDataValue(selectedState)}
       style={{ ...style, backgroundColor: colorHex }}
     />
   );
-});
+};
 
 /**
  * 分解モード専用のツールと描画パレット設定カードです。

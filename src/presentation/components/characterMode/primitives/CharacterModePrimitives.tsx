@@ -8,13 +8,30 @@ import {
   type GridSize,
   type StackProps,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React from "react";
 import {
   ActionMenu,
   ActionMenuButton,
   CanvasViewport,
 } from "../../../App.styles";
+import {
+  CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
+  CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
+  CHARACTER_EDITOR_CARD_CLASS_NAME,
+  CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
+  CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
+  CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
+  CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
+  CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
+  CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
+  CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
+  CHARACTER_STAGE_CANVAS_CLASS_NAME,
+  CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
+  CHARACTER_STAGE_SURFACE_CLASS_NAME,
+  CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
+  CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
+  mergeClassNames,
+} from "../../../styleClassNames";
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
@@ -87,15 +104,6 @@ type StageSurfaceStyle = React.CSSProperties & {
   "--stage-width-px": string;
 };
 
-const editorCardStyles = {
-  position: "relative",
-  zIndex: 1,
-  borderRadius: "1.375rem",
-  background: "rgba(248, 250, 252, 0.84)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-  boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.72)",
-} satisfies React.CSSProperties;
-
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
 
@@ -106,8 +114,27 @@ const createStackLayout = (
 ) => {
   void displayName;
   const LayoutComponent = React.forwardRef<HTMLDivElement, StackProps>(
-    function LayoutComponent(props, ref) {
-      return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+    function LayoutComponent({ className, ...props }, ref) {
+      const mergedClassName = mergeClassNames(
+        typeof defaultProps.className === "string"
+          ? defaultProps.className
+          : false,
+        typeof className === "string" ? className : false,
+      );
+
+      if (mergedClassName === "") {
+        return <Root ref={ref} useFlexGap {...defaultProps} {...props} />;
+      }
+
+      return (
+        <Root
+          ref={ref}
+          useFlexGap
+          {...defaultProps}
+          {...props}
+          className={mergedClassName}
+        />
+      );
     },
   );
 
@@ -250,10 +277,9 @@ export const CharacterWorkspaceRoot = createStackLayout(
   },
 );
 
-const EditorCardRoot = styled("div")(editorCardStyles);
-
 const EditorCard = createStackLayout("EditorCard", {
-  component: EditorCardRoot,
+  component: "div",
+  className: CHARACTER_EDITOR_CARD_CLASS_NAME,
   minHeight: 0,
   spacing: "0.875rem",
   p: "1rem",
@@ -265,17 +291,11 @@ export const StageEditorCard = React.forwardRef<HTMLDivElement, StackProps>(
   },
 );
 
-const DecompositionToolCardRoot = styled("div")({
-  borderRadius: "1.125rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-});
-
 export const DecompositionToolCard = createStackLayout(
   "DecompositionToolCard",
   {
-    component: DecompositionToolCardRoot,
+    component: "div",
+    className: CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
     spacing: "0.75rem",
     p: "0.75rem",
   },
@@ -295,23 +315,18 @@ export const PaletteSlotGrid = createUniformGridLayout(
   1,
 );
 
-const CharacterStageViewportRoot = styled(CanvasViewport)({
-  "&[data-dragging-state='false']": {
-    cursor: "default",
-  },
-  "&[data-dragging-state='true']": {
-    cursor: "grabbing",
-  },
-});
-
 export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
   CharacterStageViewportProps
->(function CharacterStageViewport({ dragging, ...props }, ref) {
+>(function CharacterStageViewport({ dragging, className, ...props }, ref) {
   return (
-    <CharacterStageViewportRoot
+    <CanvasViewport
       ref={ref}
       data-dragging-state={toBooleanDataValue(dragging)}
+      className={mergeClassNames(
+        CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       flex="1 1 0"
       minHeight={0}
       minWidth={0}
@@ -322,20 +337,20 @@ export const CharacterStageViewport = React.forwardRef<
   );
 });
 
-export const ViewportCenterWrap = styled("div")({
-  display: "grid",
-  placeItems: "center",
-  width: "max-content",
-  height: "max-content",
-  minWidth: "100%",
-  minHeight: "100%",
-});
-
-const StageCanvasElement = styled("canvas")({
-  position: "absolute",
-  inset: 0,
-  width: "100%",
-  height: "100%",
+export const ViewportCenterWrap = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function ViewportCenterWrap({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
@@ -343,35 +358,34 @@ export const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
 }: {
   onCanvasRef: (element: HTMLCanvasElement | null) => void;
 }) {
-  return <StageCanvasElement ref={onCanvasRef} aria-hidden="true" />;
-});
-
-const DecompositionCanvasElementRoot = styled(StageCanvasElement)({
-  imageRendering: "pixelated",
+  return (
+    <canvas
+      ref={onCanvasRef}
+      aria-hidden="true"
+      className={CHARACTER_STAGE_CANVAS_CLASS_NAME}
+    />
+  );
 });
 
 export const DecompositionCanvasElement = React.forwardRef<
   HTMLCanvasElement,
   DecompositionCanvasElementProps
->(function DecompositionCanvasElement({ cursorStyle, style, ...props }, ref) {
+>(function DecompositionCanvasElement(
+  { className, cursorStyle, style, ...props },
+  ref,
+) {
   return (
-    <DecompositionCanvasElementRoot
+    <canvas
       ref={ref}
       {...props}
+      className={mergeClassNames(
+        CHARACTER_STAGE_CANVAS_CLASS_NAME,
+        CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{ ...style, cursor: cursorStyle }}
     />
   );
-});
-
-const StageDragPreviewRoot = styled("div")({
-  position: "absolute",
-  opacity: 0.6,
-  pointerEvents: "none",
-  outline: "0.125rem dashed rgba(15, 118, 110, 0.72)",
-  borderRadius: "0.5rem",
-  boxShadow: "0 0 0 0.375rem rgba(15, 118, 110, 0.12)",
-  background: "rgba(255, 255, 255, 0.72)",
-  padding: "0.125rem",
 });
 
 export const StageDragPreview = React.forwardRef<
@@ -379,39 +393,16 @@ export const StageDragPreview = React.forwardRef<
   StageDragPreviewProps
 >(function StageDragPreview({ previewLeft, previewTop, style, ...props }, ref) {
   return (
-    <StageDragPreviewRoot
+    <div
       ref={ref}
       {...props}
+      className={mergeClassNames(
+        CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
+        typeof props.className === "string" ? props.className : false,
+      )}
       style={{ ...style, left: previewLeft, top: previewTop }}
     />
   );
-});
-
-const RegionOverlayButtonRoot = styled(ButtonBase)({
-  position: "absolute",
-  padding: "0.375rem",
-  "&[data-issue-state='false']": {
-    border: "0.125rem solid rgba(15, 118, 110, 0.92)",
-    background: "rgba(240, 253, 250, 0.18)",
-  },
-  "&[data-issue-state='true']": {
-    border: "0.125rem solid rgba(190, 24, 93, 0.92)",
-    background: "rgba(255, 241, 242, 0.18)",
-  },
-  "&[data-selected-state='false']": {
-    boxShadow: "none",
-  },
-  "&[data-selected-state='true']": {
-    boxShadow: "0 0 0 0.375rem rgba(190, 24, 93, 0.12)",
-  },
-  "&[data-tool-mode='eraser'], &[data-tool-mode='pen']": {
-    cursor: "default",
-    pointerEvents: "none",
-  },
-  "&[data-tool-mode='region']": {
-    cursor: "grab",
-    pointerEvents: "auto",
-  },
 });
 
 export const RegionOverlayButton = React.forwardRef<
@@ -427,17 +418,22 @@ export const RegionOverlayButton = React.forwardRef<
     selectedState,
     style,
     toolMode,
+    className,
     ...props
   },
   ref,
 ) {
   return (
-    <RegionOverlayButtonRoot
+    <ButtonBase
       ref={ref}
       {...props}
       data-issue-state={toBooleanDataValue(issueState)}
       data-selected-state={toBooleanDataValue(selectedState)}
       data-tool-mode={toolMode}
+      className={mergeClassNames(
+        CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{
         ...style,
         left: regionLeft,
@@ -449,128 +445,115 @@ export const RegionOverlayButton = React.forwardRef<
   );
 });
 
-const FloatingLibraryPreviewRoot = styled("div")({
-  position: "fixed",
-  zIndex: 200,
-  pointerEvents: "none",
-  width: "4rem",
-  minHeight: "4rem",
-  padding: "0.625rem",
-  borderRadius: "1.125rem",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-  boxShadow: "0 1.125rem 2.125rem rgba(15, 23, 42, 0.18)",
-  opacity: 0.92,
-});
-
 export const FloatingLibraryPreview = React.forwardRef<
   HTMLDivElement,
   FloatingLibraryPreviewProps
 >(function FloatingLibraryPreview(
-  { dragClientX, dragClientY, style, ...props },
+  { className, dragClientX, dragClientY, style, ...props },
   ref,
 ) {
   return (
-    <FloatingLibraryPreviewRoot
+    <div
       ref={ref}
       {...props}
+      className={mergeClassNames(
+        CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{ ...style, left: dragClientX + 18, top: dragClientY + 18 }}
     />
   );
 });
 
-export const PortalOverlay = styled("div")({
-  position: "fixed",
-  inset: 0,
-  zIndex: 320,
-});
-
-const PositionedActionMenuRoot = styled(ActionMenu)({
-  "&[data-ready='false']": {
-    visibility: "hidden",
-  },
-  "&[data-ready='true']": {
-    visibility: "visible",
-  },
+export const PortalOverlay = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(function PortalOverlay({ className, ...props }, ref) {
+  return (
+    <div
+      ref={ref}
+      {...props}
+      className={mergeClassNames(
+        CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
+    />
+  );
 });
 
 export const PositionedActionMenu = React.forwardRef<
   HTMLDivElement,
   PositionedActionMenuProps
 >(function PositionedActionMenu(
-  { menuLeft, menuTop, menuWidth, ready, style, ...props },
+  { className, menuLeft, menuTop, menuWidth, ready, style, ...props },
   ref,
 ) {
   return (
-    <PositionedActionMenuRoot
+    <ActionMenu
       ref={ref}
       {...props}
       data-ready={toBooleanDataValue(ready)}
+      className={mergeClassNames(
+        CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{ ...style, left: menuLeft, top: menuTop, width: menuWidth }}
     />
   );
 });
 
-const PositionedActionMenuButtonRoot = styled(ActionMenuButton)({
-  "&[data-danger='false']": {
-    color: "var(--ink-strong)",
-    background: "rgba(248, 250, 252, 0.96)",
-  },
-  "&[data-danger='true']": {
-    color: "rgb(190, 24, 93)",
-    background: "rgba(255, 241, 242, 0.96)",
-  },
-});
-
 export const PositionedActionMenuButton = React.forwardRef<
   HTMLButtonElement,
   PositionedActionMenuButtonProps
->(function PositionedActionMenuButton({ danger, ...props }, ref) {
+>(function PositionedActionMenuButton({ className, danger, ...props }, ref) {
   return (
-    <PositionedActionMenuButtonRoot
+    <ActionMenuButton
       ref={ref}
       {...props}
       data-danger={toBooleanDataValue(danger)}
+      className={mergeClassNames(
+        CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
     />
   );
-});
-
-const EmptyTilePreviewRoot = styled("div")({
-  borderRadius: "0.5rem",
-  background:
-    "linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02))",
-  border: "0.0625rem dashed rgba(148, 163, 184, 0.34)",
 });
 
 export const EmptyTilePreview = React.forwardRef<
   HTMLDivElement,
   EmptyTilePreviewProps
 >(function EmptyTilePreview(
-  { previewHeight, previewWidth, style, ...props },
+  { className, previewHeight, previewWidth, style, ...props },
   ref,
 ) {
   return (
-    <EmptyTilePreviewRoot
+    <div
       ref={ref}
       {...props}
+      className={mergeClassNames(
+        CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{ ...style, width: previewWidth, height: previewHeight }}
     />
   );
 });
 
-const PixelPreviewCellRoot = styled("div")({
-  flexShrink: 0,
-});
-
 export const PixelPreviewCell = React.forwardRef<
   HTMLDivElement,
   PixelPreviewCellProps
->(function PixelPreviewCell({ colorHex, pixelSize, style, ...props }, ref) {
+>(function PixelPreviewCell(
+  { className, colorHex, pixelSize, style, ...props },
+  ref,
+) {
   return (
-    <PixelPreviewCellRoot
+    <div
       ref={ref}
       {...props}
+      className={mergeClassNames(
+        CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
+        typeof className === "string" ? className : false,
+      )}
       style={{
         ...style,
         width: pixelSize,
@@ -581,65 +564,17 @@ export const PixelPreviewCell = React.forwardRef<
   );
 });
 
-const StageSurfaceRoot = styled("div")({
-  position: "relative",
-  overflow: "hidden",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
-  boxShadow:
-    "0 1.75rem 3.75rem rgba(15, 23, 42, 0.22), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.92)",
-  transition:
-    "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
-  "&[data-active-drop='false']": {
-    border: "0.0625rem solid rgba(148, 163, 184, 0.22)",
-    transform: "none",
-  },
-  "&[data-active-drop='true']": {
-    border: "0.0625rem solid rgba(45, 212, 191, 0.72)",
-    transform: "scale(1.01)",
-  },
-  "&:focus-visible": {
-    outline: "0.125rem solid rgba(15, 118, 110, 0.92)",
-    outlineOffset: "0.25rem",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    backgroundImage: [
-      "linear-gradient(rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-    ].join(", "),
-    backgroundSize: [
-      "var(--stage-cell-size) var(--stage-cell-size)",
-      "var(--stage-cell-size) var(--stage-cell-size)",
-      "var(--stage-grid-size) var(--stage-grid-size)",
-      "var(--stage-grid-size) var(--stage-grid-size)",
-    ].join(", "),
-    opacity: 0.95,
-    pointerEvents: "none",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    backgroundImage: [
-      "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-      "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-    ].join(", "),
-    backgroundSize:
-      "0.0625rem var(--stage-height-px), var(--stage-width-px) 0.0625rem",
-    backgroundPosition: "var(--stage-mid-x) 0, 0 var(--stage-mid-y)",
-    backgroundRepeat: "no-repeat",
-    pointerEvents: "none",
-  },
-});
-
 export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
   function StageSurface(
-    { activeDrop, stageHeightPx, stageScale, stageWidthPx, style, ...props },
+    {
+      activeDrop,
+      className,
+      stageHeightPx,
+      stageScale,
+      stageWidthPx,
+      style,
+      ...props
+    },
     ref,
   ) {
     const stageSurfaceStyle: StageSurfaceStyle = {
@@ -657,10 +592,14 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
     };
 
     return (
-      <StageSurfaceRoot
+      <div
         ref={ref}
         {...props}
         data-active-drop={toBooleanDataValue(activeDrop)}
+        className={mergeClassNames(
+          CHARACTER_STAGE_SURFACE_CLASS_NAME,
+          typeof className === "string" ? className : false,
+        )}
         style={stageSurfaceStyle}
       />
     );
