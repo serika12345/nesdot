@@ -1,6 +1,6 @@
 import React from "react";
 import { type FileMenuState } from "../../../../common/logic/state/fileMenuState";
-import { useScreenModeState } from "../../../logic/hooks/useScreenModeState";
+import { useScreenModeState } from "../../../logic/useScreenModeState";
 import { ScreenModeWorkspacePanel } from "../../panels/ScreenModeWorkspacePanel";
 
 interface ScreenModeProps {

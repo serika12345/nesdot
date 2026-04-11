@@ -19,8 +19,8 @@ import {
   type FileMenuState,
 } from "../../../../common/logic/state/fileMenuState";
 import { BackgroundTilePreview } from "../../../../common/ui/preview/BackgroundTilePreview";
-import { useBgModeWorkspaceEditingState } from "../../../logic/panels/BgModeWorkspacePanel/editingState";
-import { createBgModeWorkspaceProjectActions } from "../../../logic/panels/BgModeWorkspacePanel/projectActions";
+import { useBgModeWorkspaceEditingState } from "../../../logic/bgModeWorkspaceEditingState";
+import { createBgModeWorkspaceProjectActions } from "../../../logic/bgModeWorkspaceProjectActions";
 import { BgModeTileEditorCanvas } from "../../canvas/BgModeTileEditorCanvas";
 import {
   canvasOverlayMenuProps,

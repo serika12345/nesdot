@@ -17,7 +17,7 @@ import {
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "../../core/CharacterModeStateProvider";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/hooks/characterModeConstants";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import {
   CharacterStageViewport,

@@ -28,7 +28,7 @@ import {
 } from "../../../../../styleClassNames";
 import { CharacterModeTilePreview } from "../../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { ScreenCanvas } from "../../../../common/ui/canvas/ScreenCanvas";
-import type { ScreenModeState } from "../../../logic/hooks/useScreenModeState";
+import type { ScreenModeState } from "../../../logic/useScreenModeState";
 import {
   CharacterLibraryGrid,
   CharacterPreviewTiles,

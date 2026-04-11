@@ -30,7 +30,7 @@ import {
   getRegionStatusLabel,
 } from "../../../logic/decomposition/decompositionRegionRules";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
-import { INSPECTOR_PREVIEW_SCALE } from "../../../logic/hooks/characterModeConstants";
+import { INSPECTOR_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../../primitives/CharacterModePrimitives";
 

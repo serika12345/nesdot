@@ -5,7 +5,7 @@ import {
   type SpriteInScreen,
   type SpritePriority,
   useProjectState,
-} from "../../../../../application/state/projectStore";
+} from "../../../../application/state/projectStore";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ScreenModeSelectionDependencies = Pick<

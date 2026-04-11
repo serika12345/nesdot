@@ -9,19 +9,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { type ProjectState } from "../../../../../application/state/projectStore";
+import { type ProjectState } from "../../../../application/state/projectStore";
 import {
   type CharacterSet,
   type CharacterSprite,
-} from "../../../../../domain/characters/characterSet";
+} from "../../../../domain/characters/characterSet";
+import { type CharacterModeSelectedSpriteStageMetadata } from "./characterModeStateTypes";
 import {
   createComposeSpriteSource,
   findComposeObjectEntry,
   isMouseLikeCanvasEvent,
   isSameOptionalNumber,
-} from "../compose/composeCanvasHelpers";
-import { clamp, isInRange } from "../geometry/characterModeBounds";
-import { trySetPointerCapture } from "../input/pointerCapture";
+} from "./compose/composeCanvasHelpers";
+import { clamp, isInRange } from "./geometry/characterModeBounds";
+import { trySetPointerCapture } from "./input/pointerCapture";
 import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntriesBackToFront,
@@ -31,14 +32,13 @@ import {
   resolveSelectionAfterSpriteRemoval,
   resolveVisibleSpriteContextMenu,
   shiftCharacterSpriteLayer,
-} from "../model/characterEditorModel";
+} from "./model/characterEditorModel";
 import {
   type FabricSpriteObjectEntry,
   type LibraryDragState,
   type SpriteContextMenuState,
-} from "../types/characterModeInteractionState";
-import { type CharacterEditorMode } from "../view/characterEditorMode";
-import { type CharacterModeSelectedSpriteStageMetadata } from "./characterModeStateTypes";
+} from "./types/characterModeInteractionState";
+import { type CharacterEditorMode } from "./view/characterEditorMode";
 
 interface UseCharacterModeComposeStateArgs {
   activeSet: O.Option<CharacterSet>;

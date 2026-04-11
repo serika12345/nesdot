@@ -12,7 +12,7 @@ import {
   ToolButton,
 } from "../../../../../App.styles";
 import { CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME } from "../../../../../styleClassNames";
-import { DECOMPOSITION_COLOR_SLOTS } from "../../../logic/hooks/characterModeConstants";
+import { DECOMPOSITION_COLOR_SLOTS } from "../../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
   useCharacterModeDecompositionTool,

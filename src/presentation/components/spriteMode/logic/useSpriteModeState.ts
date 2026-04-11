@@ -10,14 +10,14 @@ import {
   type ProjectStoreState,
   type SpriteTile,
   useProjectState,
-} from "../../../../../application/state/projectStore";
-import { mergeScreenIntoNesOam } from "../../../../../domain/screen/oamSync";
-import { makeTile } from "../../../../../domain/tiles/utils";
-import { type Tool } from "../../../../../infrastructure/browser/canvas/useSpriteCanvas";
-import useExportImage from "../../../../../infrastructure/browser/useExportImage";
-import useImportImage from "../../../../../infrastructure/browser/useImportImage";
-import { getArrayItem } from "../../../../../shared/arrayAccess";
-import { type FileShareAction } from "../../../common/logic/state/fileMenuState";
+} from "../../../../application/state/projectStore";
+import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
+import { makeTile } from "../../../../domain/tiles/utils";
+import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCanvas";
+import useExportImage from "../../../../infrastructure/browser/useExportImage";
+import useImportImage from "../../../../infrastructure/browser/useImportImage";
+import { getArrayItem } from "../../../../shared/arrayAccess";
+import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 
 function makeEmptyTile(
   height: ProjectSpriteSize,

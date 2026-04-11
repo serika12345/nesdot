@@ -4,7 +4,7 @@ import React from "react";
 import {
   type SpriteModeState,
   useSpriteModeInternalState,
-} from "../../../logic/hooks/useSpriteModeState";
+} from "../../../logic/useSpriteModeState";
 
 const noop = (): void => {};
 const noopAsync = async (): Promise<void> => {};

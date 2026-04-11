@@ -2,9 +2,9 @@ import {
   getHexArrayForBackgroundTile,
   type PaletteIndex,
   type SpriteTile,
-} from "../../../../../../application/state/projectStore";
-import { type BackgroundTile } from "../../../../../../domain/project/projectV2";
-import { type FileShareAction } from "../../../../common/logic/state/fileMenuState";
+} from "../../../../application/state/projectStore";
+import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");

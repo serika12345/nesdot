@@ -19,7 +19,7 @@ import {
   type FileMenuState,
 } from "../../../../common/logic/state/fileMenuState";
 import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
-import type { ScreenModeState } from "../../../logic/hooks/useScreenModeState";
+import type { ScreenModeState } from "../../../logic/useScreenModeState";
 import { ScreenModeBackgroundPlacementMockOverlay } from "../../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
   WarningList,
@@ -27,7 +27,7 @@ import {
   ZoomControlsRow,
 } from "../../primitives/ScreenModePrimitives";
 import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace";
-import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/panels/ScreenModeWorkspacePanel/backgroundEditingState";
+import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
 
 interface ScreenModeWorkspacePanelProps {
   screenMode: ScreenModeState;

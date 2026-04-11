@@ -3,7 +3,7 @@ import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 import {
   isValidGroupMovement,
   moveGroupByDelta,
-} from "../../../../../domain/screen/spriteGroup";
+} from "../../../../domain/screen/spriteGroup";
 
 type ScreenModeGroupMoveDependencies = Pick<
   ScreenModeProjectStateResult,

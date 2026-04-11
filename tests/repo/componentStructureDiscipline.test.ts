@@ -52,6 +52,19 @@ const listDirectDirectoryNames = (
     return [entry.name];
   });
 
+const listDirectoriesRecursively = (
+  directoryPath: string,
+): ReadonlyArray<string> =>
+  fs.readdirSync(directoryPath, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isDirectory() === false) {
+      return [];
+    }
+
+    const entryPath = path.join(directoryPath, entry.name);
+
+    return [entryPath, ...listDirectoriesRecursively(entryPath)];
+  });
+
 const matchesAllowedFeatureRootDirectories = (
   directoryNames: ReadonlyArray<string>,
 ): boolean => {
@@ -108,6 +121,24 @@ describe("presentation component file discipline", () => {
     const offenders = groupedComponentsRoots
       .flatMap(listDirectTsxFiles)
       .map((filePath) => path.relative(projectRoot, filePath));
+
+    expect(offenders).toStrictEqual([]);
+  });
+
+  it("keeps presentation component directories free of empty folders", () => {
+    const offenders = listDirectoriesRecursively(componentsRoot)
+      .filter((directoryPath) => fs.readdirSync(directoryPath).length === 0)
+      .map((directoryPath) => path.relative(projectRoot, directoryPath));
+
+    expect(offenders).toStrictEqual([]);
+  });
+
+  it("avoids generic hooks folders under component logic", () => {
+    const offenders = groupedComponentsRoots
+      .map((directoryPath) => path.join(directoryPath, "logic"))
+      .flatMap(listDirectoriesRecursively)
+      .filter((directoryPath) => path.basename(directoryPath) === "hooks")
+      .map((directoryPath) => path.relative(projectRoot, directoryPath));
 
     expect(offenders).toStrictEqual([]);
   });

@@ -4,9 +4,9 @@ import React from "react";
 import {
   type Screen,
   type SpriteInScreen,
-} from "../../../../../application/state/projectStore";
-import { expandCharacterToScreenSprites } from "../../../../../domain/characters/characterSet";
-import { trySetPointerCapture } from "../../../characterMode/logic/input/pointerCapture";
+} from "../../../../application/state/projectStore";
+import { expandCharacterToScreenSprites } from "../../../../domain/characters/characterSet";
+import { trySetPointerCapture } from "../../characterMode/logic/input/pointerCapture";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 const clamp = (value: number, min: number, max: number): number =>

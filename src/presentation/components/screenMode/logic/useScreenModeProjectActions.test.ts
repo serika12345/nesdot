@@ -3,12 +3,12 @@ import {
   getHexArrayForScreen,
   type ProjectStoreState,
   useProjectState,
-} from "../../../../../application/state/projectStore";
+} from "../../../../application/state/projectStore";
 import {
   createDefaultProjectState,
   type SpriteInScreen,
-} from "../../../../../domain/project/project";
-import { makeTile } from "../../../../../domain/tiles/utils";
+} from "../../../../domain/project/project";
+import { makeTile } from "../../../../domain/tiles/utils";
 import { createScreenModeProjectActions } from "./useScreenModeProjectActions";
 
 const createProjectStateWithScreenSprite = (

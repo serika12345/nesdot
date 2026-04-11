@@ -4,9 +4,9 @@ import {
   type PaletteIndex,
   type ProjectStoreState,
   useProjectState,
-} from "../../../../../application/state/projectStore";
-import { createDefaultProjectState } from "../../../../../domain/project/project";
-import { makeTile } from "../../../../../domain/tiles/utils";
+} from "../../../../application/state/projectStore";
+import { createDefaultProjectState } from "../../../../domain/project/project";
+import { makeTile } from "../../../../domain/tiles/utils";
 import { createSpriteModeProjectActions } from "./useSpriteModeState";
 
 const createProjectStateWithSprite = (

@@ -11,7 +11,7 @@ import {
   PanelHeader,
   PanelTitle,
 } from "../../../../../App.styles";
-import type { ScreenModeState } from "../../../logic/hooks/useScreenModeState";
+import type { ScreenModeState } from "../../../logic/useScreenModeState";
 import {
   FullWidthActionRow,
   FullWidthField,

@@ -4,13 +4,13 @@ import {
   useProjectState,
   type PaletteIndex,
   type ProjectStoreState,
-} from "../../../../../../application/state/projectStore";
-import { createDefaultProjectState } from "../../../../../../domain/project/project";
+} from "../../../../application/state/projectStore";
+import { createDefaultProjectState } from "../../../../domain/project/project";
 import {
   createEmptyBackgroundTile,
   type BackgroundTile,
-} from "../../../../../../domain/project/projectV2";
-import { createBgModeWorkspaceProjectActions } from "./projectActions";
+} from "../../../../domain/project/projectV2";
+import { createBgModeWorkspaceProjectActions } from "./bgModeWorkspaceProjectActions";
 
 const setBackgroundTilePixel = (
   tile: BackgroundTile,

@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { useCharacterModeLibraryDragPreview } from "../../core/CharacterModeStateProvider";
-import { LIBRARY_PREVIEW_SCALE } from "../../../logic/hooks/characterModeConstants";
+import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import {
   CharacterComposeWorkspaceGrid,

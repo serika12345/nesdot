@@ -9,7 +9,7 @@ import {
 import {
   DECOMPOSITION_REGION_CONTEXT_MENU_HEIGHT,
   DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH,
-} from "../../../logic/hooks/characterModeConstants";
+} from "../../../logic/characterModeConstants";
 import {
   PortalOverlay,
   PositionedActionMenu,

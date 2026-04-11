@@ -2,20 +2,20 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useMemo, useState } from "react";
-import { useCharacterState } from "../../../../../application/state/characterStore";
+import { useCharacterState } from "../../../../application/state/characterStore";
 import {
   useProjectState,
   type ProjectSpriteSize,
   type ProjectState,
-} from "../../../../../application/state/projectStore";
+} from "../../../../application/state/projectStore";
 import {
   buildCharacterPreviewHexGrid,
   type CharacterSet,
-} from "../../../../../domain/characters/characterSet";
-import useExportImage from "../../../../../infrastructure/browser/useExportImage";
-import { type FileShareAction } from "../../../common/logic/state/fileMenuState";
-import { isProjectSpriteSizeLocked } from "../project/projectSpriteSizeLock";
-import { type CharacterEditorMode } from "../view/characterEditorMode";
+} from "../../../../domain/characters/characterSet";
+import useExportImage from "../../../../infrastructure/browser/useExportImage";
+import { type FileShareAction } from "../../common/logic/state/fileMenuState";
+import { isProjectSpriteSizeLocked } from "./project/projectSpriteSizeLock";
+import { type CharacterEditorMode } from "./view/characterEditorMode";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 

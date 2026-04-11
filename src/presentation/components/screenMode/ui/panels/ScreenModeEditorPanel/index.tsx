@@ -5,7 +5,7 @@ import {
   PanelTitle,
   ScrollArea,
 } from "../../../../../App.styles";
-import type { ScreenModeState } from "../../../logic/hooks/useScreenModeState";
+import type { ScreenModeState } from "../../../logic/useScreenModeState";
 import { ScreenModeCharacterPanel } from "../ScreenModeCharacterPanel";
 import { ScreenModeGroupMovePanel } from "../ScreenModeGroupMovePanel";
 import { ScreenModeEditorContent } from "../../primitives/ScreenModePrimitives";

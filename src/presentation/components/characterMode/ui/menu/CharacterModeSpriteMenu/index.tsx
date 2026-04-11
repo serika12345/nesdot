@@ -9,7 +9,7 @@ import {
 import {
   STAGE_CONTEXT_MENU_HEIGHT,
   STAGE_CONTEXT_MENU_WIDTH,
-} from "../../../logic/hooks/characterModeConstants";
+} from "../../../logic/characterModeConstants";
 import {
   PortalOverlay,
   PositionedActionMenu,

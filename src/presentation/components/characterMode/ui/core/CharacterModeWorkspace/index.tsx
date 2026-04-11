@@ -3,7 +3,7 @@ import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { LIBRARY_PREVIEW_SCALE } from "../../../logic/hooks/characterModeConstants";
+import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { CharacterModeComposePreviewCanvas } from "../../compose/CharacterModeComposePreviewCanvas";
 import { CharacterModeDecomposePreviewCanvas } from "../../decomposition/CharacterModeDecomposePreviewCanvas";
 import { CharacterModeDecompositionInspector } from "../../decomposition/CharacterModeDecompositionInspector";

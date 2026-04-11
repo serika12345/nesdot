@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/hooks/characterModeConstants";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import {
   type CharacterModeComposeSection,
   type CharacterModeDecompositionSection,
@@ -10,8 +10,8 @@ import {
   type CharacterModeStageSection,
   type CharacterModeState,
   type CharacterModeWorkspaceSection,
-} from "../../../logic/hooks/characterModeStateTypes";
-import { useCharacterModeInternalState } from "../../../logic/hooks/useCharacterModeState";
+} from "../../../logic/characterModeStateTypes";
+import { useCharacterModeInternalState } from "../../../logic/useCharacterModeState";
 
 const noop = (): void => {};
 const noopBoolean = (): boolean => false;

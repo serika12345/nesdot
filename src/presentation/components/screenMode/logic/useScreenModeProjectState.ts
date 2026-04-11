@@ -1,16 +1,16 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useMemo } from "react";
-import { useCharacterState } from "../../../../../application/state/characterStore";
+import { useCharacterState } from "../../../../application/state/characterStore";
 import {
   type ProjectStoreState,
   type Screen,
   type SpriteTile,
   useProjectState,
-} from "../../../../../application/state/projectStore";
-import { type CharacterSet } from "../../../../../domain/characters/characterSet";
-import { scanNesSpriteConstraints } from "../../../../../domain/screen/constraints";
-import { mergeScreenIntoNesOam } from "../../../../../domain/screen/oamSync";
+} from "../../../../application/state/projectStore";
+import { type CharacterSet } from "../../../../domain/characters/characterSet";
+import { scanNesSpriteConstraints } from "../../../../domain/screen/constraints";
+import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 
 export type ScreenModeScanReport = ReturnType<typeof scanNesSpriteConstraints>;
 

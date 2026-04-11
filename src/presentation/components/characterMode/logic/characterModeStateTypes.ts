@@ -10,22 +10,22 @@ import type {
   ProjectSpriteSize,
   ProjectState,
   SpriteTile,
-} from "../../../../../application/state/projectStore";
+} from "../../../../application/state/projectStore";
 import type {
   CharacterDecompositionAnalysis,
   CharacterDecompositionRegion,
   CharacterDecompositionRegionAnalysis,
-} from "../../../../../domain/characters/characterDecomposition";
-import type { CharacterSet } from "../../../../../domain/characters/characterSet";
-import type { FileShareAction } from "../../../common/logic/state/fileMenuState";
-import type { DecompositionTool } from "../../ui/primitives/CharacterModePrimitives";
+} from "../../../../domain/characters/characterDecomposition";
+import type { CharacterSet } from "../../../../domain/characters/characterSet";
+import type { FileShareAction } from "../../common/logic/state/fileMenuState";
+import type { DecompositionTool } from "../ui/primitives/CharacterModePrimitives";
 import type {
   DecompositionRegionContextMenuState,
   LibraryDragState,
   SpriteContextMenuState,
   ViewportPanState,
-} from "../types/characterModeInteractionState";
-import type { CharacterEditorMode } from "../view/characterEditorMode";
+} from "./types/characterModeInteractionState";
+import type { CharacterEditorMode } from "./view/characterEditorMode";
 
 export interface CharacterModeProjectSection {
   activeSet: O.Option<CharacterSet>;

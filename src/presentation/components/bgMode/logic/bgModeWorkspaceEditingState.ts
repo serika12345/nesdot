@@ -1,16 +1,16 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { useProjectState } from "../../../../../../application/state/projectStore";
+import { useProjectState } from "../../../../application/state/projectStore";
 import {
   decodeBackgroundTileAtIndex,
   replaceBackgroundTilePixel,
-} from "../../../../../../domain/nes/backgroundEditing";
+} from "../../../../domain/nes/backgroundEditing";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   createEmptyBackgroundTile,
   type BackgroundTile,
-} from "../../../../../../domain/project/projectV2";
+} from "../../../../domain/project/projectV2";
 
 export type BgTool = "pen" | "eraser";
 type BgPaletteIndex = 0 | 1 | 2 | 3;

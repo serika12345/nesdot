@@ -2,13 +2,13 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useCharacterState } from "../../../../../application/state/characterStore";
+import { useCharacterState } from "../../../../application/state/characterStore";
 import {
   useProjectState,
   type PaletteIndex,
   type ProjectSpriteSize,
   type ProjectState,
-} from "../../../../../application/state/projectStore";
+} from "../../../../application/state/projectStore";
 import {
   analyzeCharacterDecomposition,
   applyCharacterDecomposition,
@@ -16,28 +16,28 @@ import {
   type CharacterDecompositionPixel,
   type CharacterDecompositionRegion,
   type CharacterDecompositionRegionAnalysis,
-} from "../../../../../domain/characters/characterDecomposition";
-import { type CharacterSet } from "../../../../../domain/characters/characterSet";
-import { mergeScreenIntoNesOam } from "../../../../../domain/screen/oamSync";
+} from "../../../../domain/characters/characterDecomposition";
+import { type CharacterSet } from "../../../../domain/characters/characterSet";
+import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import {
   createDecompositionCanvas,
   createDecompositionCanvasRgba,
   paintDecompositionPixel,
   resizeDecompositionCanvas,
   TRANSPARENT_DECOMPOSITION_PIXEL,
-} from "../decomposition/decompositionCanvas";
+} from "./decomposition/decompositionCanvas";
 import {
   clampDecompositionRegion,
   clampDecompositionRegions,
-} from "../decomposition/decompositionRegionRules";
-import { trySetPointerCapture } from "../input/pointerCapture";
-import { type DecompositionTool } from "../../ui/primitives/CharacterModePrimitives";
+} from "./decomposition/decompositionRegionRules";
+import { trySetPointerCapture } from "./input/pointerCapture";
+import { type DecompositionTool } from "../ui/primitives/CharacterModePrimitives";
 import {
   type DecompositionDrawState,
   type DecompositionRegionContextMenuState,
   type DecompositionRegionDragState,
-} from "../types/characterModeInteractionState";
-import { type CharacterEditorMode } from "../view/characterEditorMode";
+} from "./types/characterModeInteractionState";
+import { type CharacterEditorMode } from "./view/characterEditorMode";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 
 interface UseCharacterModeDecompositionStateArgs {

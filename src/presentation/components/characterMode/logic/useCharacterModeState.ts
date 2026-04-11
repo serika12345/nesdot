@@ -3,11 +3,11 @@ import * as O from "fp-ts/Option";
 import {
   type ProjectSpriteSize,
   useProjectState,
-} from "../../../../../application/state/projectStore";
-import { createEmptySpriteTile } from "../../../../../domain/project/project";
-import { mergeScreenIntoNesOam } from "../../../../../domain/screen/oamSync";
-import { clamp, toNumber } from "../geometry/characterModeBounds";
-import { type CharacterEditorMode } from "../view/characterEditorMode";
+} from "../../../../application/state/projectStore";
+import { createEmptySpriteTile } from "../../../../domain/project/project";
+import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
+import { clamp, toNumber } from "./geometry/characterModeBounds";
+import { type CharacterEditorMode } from "./view/characterEditorMode";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 import { type CharacterModeState } from "./characterModeStateTypes";
 import { useCharacterModeComposeState } from "./useCharacterModeComposeState";

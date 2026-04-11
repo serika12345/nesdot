@@ -20,7 +20,7 @@ import {
   CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME,
 } from "../../../../../styleClassNames";
-import { LIBRARY_PREVIEW_SCALE } from "../../../logic/hooks/characterModeConstants";
+import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../core/CharacterModeStateProvider";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";

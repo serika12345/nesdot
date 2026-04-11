@@ -9,11 +9,11 @@ import {
   getHexArrayForScreen,
   useProjectState,
   type ProjectStoreState,
-} from "../../../../../application/state/projectStore";
-import { mergeScreenIntoNesOam } from "../../../../../domain/screen/oamSync";
-import useExportImage from "../../../../../infrastructure/browser/useExportImage";
-import useImportImage from "../../../../../infrastructure/browser/useImportImage";
-import { type FileShareAction } from "../../../common/logic/state/fileMenuState";
+} from "../../../../application/state/projectStore";
+import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
+import useExportImage from "../../../../infrastructure/browser/useExportImage";
+import useImportImage from "../../../../infrastructure/browser/useImportImage";
+import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ProjectActionItem = FileShareAction;
