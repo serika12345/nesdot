@@ -1,4 +1,3 @@
-import Stack from "@mui/material/Stack";
 import React from "react";
 import { MAX_SCREEN_SPRITES } from "../../../../domain/screen/constraints";
 import {
@@ -7,11 +6,11 @@ import {
   MetricLabel,
   MetricValue,
 } from "../../../App.styles";
+import { SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME } from "../../../styleClassNames";
 import {
-  SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME,
-  SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME,
-} from "../../../styleClassNames";
-import { ScreenModeSection } from "../primitives/ScreenModePrimitives";
+  ScreenModeSection,
+  SummaryMetricGrid,
+} from "../primitives/ScreenModePrimitives";
 
 interface ScreenModeSummaryPanelProps {
   spritesOnScreenCount: number;
@@ -28,13 +27,7 @@ export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
 }) => {
   return (
     <ScreenModeSection>
-      <Stack
-        className={SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME}
-        direction="row"
-        flexWrap="wrap"
-        spacing={1.5}
-        useFlexGap
-      >
+      <SummaryMetricGrid>
         <MetricCard
           className={SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME}
           flex="1 1 8.75rem"
@@ -45,7 +38,7 @@ export const ScreenModeSummaryPanel: React.FC<ScreenModeSummaryPanelProps> = ({
             {spritesOnScreenCount}/{MAX_SCREEN_SPRITES}
           </MetricValue>
         </MetricCard>
-      </Stack>
+      </SummaryMetricGrid>
 
       {hasConstraintViolation && (
         <HelperText>

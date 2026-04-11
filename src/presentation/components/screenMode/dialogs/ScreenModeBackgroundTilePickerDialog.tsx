@@ -1,10 +1,10 @@
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import * as E from "fp-ts/Either";
 import React from "react";
@@ -94,38 +94,39 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
           </Stack>
 
           {pickerMode === "bgTile" ? (
-            <Box
-              display="grid"
-              gridTemplateColumns="repeat(auto-fill, minmax(8rem, 1fr))"
-              gap="0.875rem"
+            <Grid
+              container
+              columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+              spacing={1.75}
             >
               {visibleBackgroundTiles.map((tile, tileIndex) => (
-                <ButtonBase
-                  key={`screen-mode-bg-dialog-tile-${tileIndex}`}
-                  className={SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}
-                  type="button"
-                  aria-label={`BGタイルプレビュー ${tileIndex}`}
-                  onClick={() => {
-                    onTileSelect(tileIndex);
-                  }}
-                >
-                  <Stack
-                    useFlexGap
-                    width="100%"
-                    alignItems="flex-start"
-                    spacing="0.625rem"
+                <Grid key={`screen-mode-bg-dialog-tile-${tileIndex}`} size={1}>
+                  <ButtonBase
+                    className={SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}
+                    type="button"
+                    aria-label={`BGタイルプレビュー ${tileIndex}`}
+                    onClick={() => {
+                      onTileSelect(tileIndex);
+                    }}
                   >
-                    <BackgroundTilePreview
-                      scale={8}
-                      tile={tile}
-                      palette={nes.backgroundPalettes[activePaletteIndex]}
-                      universalBackgroundColor={nes.universalBackgroundColor}
-                    />
-                    <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
-                  </Stack>
-                </ButtonBase>
+                    <Stack
+                      useFlexGap
+                      width="100%"
+                      alignItems="flex-start"
+                      spacing="0.625rem"
+                    >
+                      <BackgroundTilePreview
+                        scale={8}
+                        tile={tile}
+                        palette={nes.backgroundPalettes[activePaletteIndex]}
+                        universalBackgroundColor={nes.universalBackgroundColor}
+                      />
+                      <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
+                    </Stack>
+                  </ButtonBase>
+                </Grid>
               ))}
-            </Box>
+            </Grid>
           ) : (
             <Stack
               direction="row"

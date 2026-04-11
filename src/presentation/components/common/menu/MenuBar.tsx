@@ -13,6 +13,7 @@ import TextureRoundedIcon from "@mui/icons-material/TextureRounded";
 import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
 import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
 import WallpaperRoundedIcon from "@mui/icons-material/WallpaperRounded";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -173,6 +174,57 @@ const MenuItemLabel: React.FC<{ children: React.ReactNode }> = ({
   </Stack>
 );
 
+const MenuItemIconSlot: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Box
+    component="span"
+    className={MENU_ITEM_ICON_SLOT_CLASS_NAME}
+    display="inline-flex"
+    alignItems="center"
+    justifyContent="center"
+    width="var(--menu-size-icon-slot)"
+    height="var(--menu-size-icon-slot)"
+    flexShrink={0}
+  >
+    {children}
+  </Box>
+);
+
+const MenuItemMeta: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Stack
+    component="span"
+    className={MENU_ITEM_META_CLASS_NAME}
+    direction="row"
+    alignItems="center"
+    justifyContent="center"
+    spacing="var(--menu-space-075)"
+    useFlexGap
+    flexShrink={0}
+  >
+    {children}
+  </Stack>
+);
+
+const MenuModeSelectionMarker: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Box
+    component="span"
+    className={MENU_MODE_SELECTION_MARKER_CLASS_NAME}
+    display="inline-flex"
+    alignItems="center"
+    justifyContent="center"
+    width="var(--menu-size-marker)"
+    height="var(--menu-size-marker)"
+    flexShrink={0}
+  >
+    {children}
+  </Box>
+);
+
 const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
   if (actionId === "share-save-project") {
     return <SaveRoundedIcon fontSize="small" />;
@@ -285,24 +337,20 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                     >
                       <MenuItemContent>
                         <MenuItemLabel>
-                          <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
-                            {modeItem.icon}
-                          </span>
+                          <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
                           <span className={MENU_ITEM_TEXT_CLASS_NAME}>
                             {modeItem.label}
                           </span>
                         </MenuItemLabel>
-                        <span className={MENU_ITEM_META_CLASS_NAME}>
-                          <span
-                            className={MENU_MODE_SELECTION_MARKER_CLASS_NAME}
-                          >
+                        <MenuItemMeta>
+                          <MenuModeSelectionMarker>
                             {isSelected === true ? (
                               <CheckRoundedIcon fontSize="small" />
                             ) : (
                               <></>
                             )}
-                          </span>
-                        </span>
+                          </MenuModeSelectionMarker>
+                        </MenuItemMeta>
                       </MenuItemContent>
                     </Menubar.Item>
                   );
@@ -333,18 +381,18 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
-                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                      <MenuItemIconSlot>
                         <UndoRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemIconSlot>
                       <span className={MENU_ITEM_TEXT_CLASS_NAME}>
                         アンドゥ
                       </span>
                     </MenuItemLabel>
-                    <span className={MENU_ITEM_META_CLASS_NAME}>
+                    <MenuItemMeta>
                       <span className={MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME}>
                         {shortcutLabels.undo}
                       </span>
-                    </span>
+                    </MenuItemMeta>
                   </MenuItemContent>
                 </Menubar.Item>
 
@@ -354,16 +402,16 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
-                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                      <MenuItemIconSlot>
                         <RedoRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemIconSlot>
                       <span className={MENU_ITEM_TEXT_CLASS_NAME}>リドゥ</span>
                     </MenuItemLabel>
-                    <span className={MENU_ITEM_META_CLASS_NAME}>
+                    <MenuItemMeta>
                       <span className={MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME}>
                         {shortcutLabels.redo}
                       </span>
-                    </span>
+                    </MenuItemMeta>
                   </MenuItemContent>
                 </Menubar.Item>
               </Menubar.Content>
@@ -393,14 +441,14 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   >
                     <MenuItemContent>
                       <MenuItemLabel>
-                        <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                        <MenuItemIconSlot>
                           <ShareRoundedIcon fontSize="small" />
-                        </span>
+                        </MenuItemIconSlot>
                         <span className={MENU_ITEM_TEXT_CLASS_NAME}>共有</span>
                       </MenuItemLabel>
-                      <span className={MENU_ITEM_META_CLASS_NAME}>
+                      <MenuItemMeta>
                         <ChevronRightRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemMeta>
                     </MenuItemContent>
                   </Menubar.SubTrigger>
 
@@ -422,9 +470,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                         >
                           <MenuItemContent>
                             <MenuItemLabel>
-                              <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                              <MenuItemIconSlot>
                                 {getShareActionIcon(action.id)}
-                              </span>
+                              </MenuItemIconSlot>
                               <span className={MENU_ITEM_TEXT_CLASS_NAME}>
                                 {action.label}
                               </span>
@@ -445,9 +493,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
-                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                      <MenuItemIconSlot>
                         <FileUploadRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemIconSlot>
                       <span className={MENU_ITEM_TEXT_CLASS_NAME}>復元</span>
                     </MenuItemLabel>
                   </MenuItemContent>
@@ -479,9 +527,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
-                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                      <MenuItemIconSlot>
                         <UpdateRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemIconSlot>
                       <span className={MENU_ITEM_TEXT_CLASS_NAME}>
                         更新を確認
                       </span>
@@ -497,9 +545,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
-                      <span className={MENU_ITEM_ICON_SLOT_CLASS_NAME}>
+                      <MenuItemIconSlot>
                         <InfoRoundedIcon fontSize="small" />
-                      </span>
+                      </MenuItemIconSlot>
                       <span className={MENU_ITEM_TEXT_CLASS_NAME}>About</span>
                     </MenuItemLabel>
                   </MenuItemContent>

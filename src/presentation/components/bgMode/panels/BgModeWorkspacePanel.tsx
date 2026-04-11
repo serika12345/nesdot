@@ -237,6 +237,7 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                 id="bg-mode-canvas-tool-menu"
                 spacing={1.5}
                 useFlexGap
+                mt={1.5}
                 width="20rem"
                 maxWidth="calc(100vw - 4rem)"
                 p={1.5}

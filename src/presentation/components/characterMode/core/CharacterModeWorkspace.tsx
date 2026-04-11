@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -34,7 +35,14 @@ export const CharacterModeWorkspace: React.FC = () => {
 
   return (
     <>
-      <div className={CHARACTER_WORKSPACE_GATE_CLASS_NAME}>
+      <Box
+        className={CHARACTER_WORKSPACE_GATE_CLASS_NAME}
+        position="relative"
+        minHeight={0}
+        minWidth={0}
+        flex="1 1 0"
+        display="flex"
+      >
         <CharacterComposeWorkspaceGrid
           aria-label="キャラクター編集ワークスペース"
           aria-disabled={isWorkspaceLocked}
@@ -56,18 +64,26 @@ export const CharacterModeWorkspace: React.FC = () => {
         </CharacterComposeWorkspaceGrid>
 
         {isWorkspaceLocked === true ? (
-          <div
+          <Box
             className={CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME}
             aria-label="キャラクター編集ロックオーバーレイ"
+            position="absolute"
+            top={0}
+            right={0}
+            bottom={0}
+            left={0}
+            zIndex={14}
+            display="grid"
+            style={{ placeItems: "center" }}
           >
             <div className={CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME}>
               セットを作成すると編集できます
             </div>
-          </div>
+          </Box>
         ) : (
           <></>
         )}
-      </div>
+      </Box>
 
       {editorMode === "compose" ? (
         pipe(

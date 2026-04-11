@@ -1,3 +1,4 @@
+import Box from "@mui/material/Box";
 import React from "react";
 import {
   type NesColorIndex,
@@ -47,10 +48,15 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
   const overlayHeight = placement.height * screenZoomLevel;
 
   return (
-    <div
+    <Box
       className={SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME}
       role="img"
       aria-label="BG配置プレビュー"
+      position="absolute"
+      borderRadius={0}
+      display="flex"
+      alignItems="flex-start"
+      justifyContent="flex-start"
       style={{
         left: overlayLeft,
         top: overlayTop,
@@ -71,6 +77,6 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
       ) : (
         <></>
       )}
-    </div>
+    </Box>
   );
 };

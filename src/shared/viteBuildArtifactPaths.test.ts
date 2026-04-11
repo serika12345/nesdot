@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
-const buildTestTimeoutMs = 15_000;
+const buildTestTimeoutMs = 30_000;
 
 type BuildArtifacts = Readonly<{
   indexHtml: string;

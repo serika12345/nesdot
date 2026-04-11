@@ -27,23 +27,14 @@ import {
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   BADGE_CLASS_NAME,
   BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME,
-  BG_MODE_CANVAS_OVERLAY_ROOT_CLASS_NAME,
-  BG_MODE_CENTERED_CANVAS_WRAP_CLASS_NAME,
-  BG_MODE_MOCK_TOOLBAR_CLASS_NAME,
   BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
-  BG_MODE_TILE_BUTTON_LAYOUT_CLASS_NAME,
-  BG_MODE_TILE_LIBRARY_GRID_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME,
-  CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME,
   CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_TOOL_CARD_CLASS_NAME,
   CHARACTER_EDITOR_CARD_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
-  CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME,
-  CHARACTER_LIBRARY_GRID_CLASS_NAME,
   CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME,
   CHARACTER_LIBRARY_SCROLL_AREA_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
@@ -54,9 +45,6 @@ import {
   CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
   CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME,
   CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME,
   CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME,
   CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME,
@@ -65,18 +53,14 @@ import {
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
   CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
-  CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
-  CHARACTER_WORKSPACE_GATE_CLASS_NAME,
   CHARACTER_WORKSPACE_LOCK_MESSAGE_CLASS_NAME,
   CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   ICON_ACTION_BUTTON_CLASS_NAME,
   MENU_ABOUT_APP_NAME_CLASS_NAME,
-  MENU_ABOUT_CONTENT_LAYOUT_CLASS_NAME,
   MENU_ABOUT_ICON_IMAGE_CLASS_NAME,
   MENU_ABOUT_VERSION_TEXT_CLASS_NAME,
   MENU_BAR_ROOT_CLASS_NAME,
-  MENU_BUTTONS_CLASS_NAME,
   MENU_CONTENT_CLASS_NAME,
   MENU_ITEM_CLASS_NAME,
   MENU_ITEM_CONTENT_LAYOUT_CLASS_NAME,
@@ -85,7 +69,6 @@ import {
   MENU_ITEM_META_CLASS_NAME,
   MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME,
   MENU_ITEM_TEXT_CLASS_NAME,
-  MENU_MODE_SELECTION_MARKER_CLASS_NAME,
   MENU_ROOT_CLASS_NAME,
   MENU_SEPARATOR_CLASS_NAME,
   MENU_SUB_TRIGGER_CLASS_NAME,
@@ -93,8 +76,6 @@ import {
   SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME,
   SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME,
   SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME,
-  SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
   SCREEN_FLIP_TOOL_BUTTON_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
@@ -102,12 +83,9 @@ import {
   SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
   SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME,
   SCREEN_LIBRARY_SECTION_CLASS_NAME,
-  SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME,
-  SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
   SCREEN_PREVIEW_LABEL_CLASS_NAME,
   SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
   SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME,
-  SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME,
   SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME,
   SCREEN_STAGE_GUIDE_CLASS_NAME,
   SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME,
@@ -116,12 +94,8 @@ import {
   SCREEN_STAGE_SPRITE_OUTLINE_CLASS_NAME,
   SCREEN_STAGE_SURFACE_CLASS_NAME,
   SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME,
-  SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME,
   SCREEN_TALL_TOOL_BUTTON_CLASS_NAME,
-  SCREEN_WARNING_LIST_CLASS_NAME,
   SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME,
-  SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME,
-  SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
   TOOL_BUTTON_CLASS_NAME,
 } from "./styleClassNames";
 
@@ -423,10 +397,6 @@ export function getAppGlobalStyles(theme: Theme) {
     },
     [`.${MENU_BAR_ROOT_CLASS_NAME}`]: {
       width: "100%",
-      minWidth: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-start",
       overflowX: "auto",
       overflowY: "hidden",
       borderRadius: "var(--menu-radius)",
@@ -437,9 +407,6 @@ export function getAppGlobalStyles(theme: Theme) {
       minHeight: "var(--menu-size-root-height)",
       boxShadow: "var(--menu-shadow-root)",
       backdropFilter: "blur(1rem)",
-    },
-    [`.${MENU_BUTTONS_CLASS_NAME}`]: {
-      minWidth: 0,
     },
     [`.${MENU_ROOT_CLASS_NAME}`]: {
       display: "inline-flex",
@@ -559,12 +526,6 @@ export function getAppGlobalStyles(theme: Theme) {
       gap: "var(--menu-space-1)",
     },
     [`.${MENU_ITEM_ICON_SLOT_CLASS_NAME}`]: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "var(--menu-size-icon-slot)",
-      height: "var(--menu-size-icon-slot)",
-      flexShrink: 0,
       color: "currentColor",
       opacity: 0.78,
     },
@@ -573,34 +534,14 @@ export function getAppGlobalStyles(theme: Theme) {
       flex: "1 1 auto",
     },
     [`.${MENU_ITEM_META_CLASS_NAME}`]: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "var(--menu-space-075)",
-      flexShrink: 0,
       color: "currentColor",
       opacity: 0.72,
-    },
-    [`.${MENU_MODE_SELECTION_MARKER_CLASS_NAME}`]: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "var(--menu-size-marker)",
-      height: "var(--menu-size-marker)",
-      flexShrink: 0,
     },
     [`.${MENU_ITEM_SHORTCUT_TEXT_CLASS_NAME}`]: {
       fontSize: "var(--menu-font-size-caption)",
       lineHeight: "var(--menu-line-height-caption)",
       whiteSpace: "nowrap",
       fontVariantNumeric: "tabular-nums",
-    },
-    [`.${MENU_ABOUT_CONTENT_LAYOUT_CLASS_NAME}`]: {
-      minWidth: "12rem",
-      alignItems: "center",
-      gap: "var(--menu-space-1)",
-      paddingTop: "var(--menu-space-1)",
-      paddingBottom: "var(--menu-space-1)",
     },
     [`.${MENU_ABOUT_ICON_IMAGE_CLASS_NAME}`]: {
       width: "4.5rem",
@@ -767,19 +708,8 @@ export function getAppGlobalStyles(theme: Theme) {
         borderTop: "0.0625rem solid rgba(148, 163, 184, 0.16)",
       },
     },
-    [`.${SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME}`]: {
-      display: "grid",
-      placeItems: "center",
-      width: "max-content",
-      height: "max-content",
-      minWidth: "100%",
-      minHeight: "100%",
-    },
     [`.${SCREEN_WIDE_TALL_TOOL_BUTTON_CLASS_NAME}`]: {
       width: "100%",
-    },
-    [`.${SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME}`]: {
-      justifyContent: "flex-start",
     },
     [`.${SCREEN_READ_ONLY_DETAIL_ROW_CLASS_NAME}`]: {
       background: "transparent",
@@ -802,26 +732,10 @@ export function getAppGlobalStyles(theme: Theme) {
         cursor: "grabbing",
       },
     },
-    [`.${SCREEN_WARNING_LIST_CLASS_NAME}`]: {
-      flexShrink: 0,
-    },
-    [`.${SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME}`]: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: "0.75rem",
-    },
     [`.${SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME}`]: {
-      flex: "1 1 8.75rem",
       background: "transparent",
       border: "none",
       boxShadow: "none",
-      padding: 0,
-    },
-    [`.${SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME}`]: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: "0.625rem",
-      flexWrap: "nowrap",
     },
     [`.MuiButtonBase-root.${SCREEN_BG_TILE_PICKER_PREVIEW_BUTTON_CLASS_NAME}`]:
       {
@@ -835,15 +749,11 @@ export function getAppGlobalStyles(theme: Theme) {
         textAlign: "left",
       },
     [`.${SCREEN_BG_PLACEMENT_OVERLAY_ROOT_CLASS_NAME}`]: {
-      position: "absolute",
       borderRadius: 0,
       border: "0.125rem dashed rgba(20, 184, 166, 0.9)",
       background: "rgba(45, 212, 191, 0.14)",
       boxShadow: "0 0 0 0.375rem rgba(45, 212, 191, 0.08)",
       pointerEvents: "none",
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
     },
     [`.${SCREEN_BG_PLACEMENT_OVERLAY_PREVIEW_CLASS_NAME}`]: {
       position: "absolute",
@@ -855,25 +765,10 @@ export function getAppGlobalStyles(theme: Theme) {
       marginTop: "0.25rem",
     },
     [`.${SCREEN_LIBRARY_SECTION_CLASS_NAME}`]: {
-      position: "relative",
-      flexShrink: 0,
-      overflow: "hidden",
       borderRadius: "1rem",
       border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
       background:
         "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-      padding: "0.75rem",
-      gap: "0.625rem",
-      minHeight: 0,
-    },
-    [`.${SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME}`]: {
-      minHeight: 0,
-      "&[data-open-state='false']": {
-        display: "none",
-      },
-      "&[data-open-state='true']": {
-        display: "block",
-      },
     },
     [`.${SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME}`]: {
       maxHeight: "15.5rem",
@@ -884,16 +779,6 @@ export function getAppGlobalStyles(theme: Theme) {
     },
     [`.${SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME}`]: {
       maxHeight: "13.5rem",
-    },
-    [`.${SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME}`]: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: "0.625rem",
-    },
-    [`.${SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME}`]: {
-      display: "grid",
-      gridTemplateColumns: "minmax(0, 1fr)",
-      gap: "0.625rem",
     },
     [`.MuiButtonBase-root.${SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME}`]: {
       appearance: "none",
@@ -926,13 +811,6 @@ export function getAppGlobalStyles(theme: Theme) {
       fontWeight: 700,
       letterSpacing: "0.08em",
       color: "var(--ink-soft)",
-    },
-    [`.${SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME}`]: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: "0.25rem",
-      minHeight: "1.5rem",
     },
     [`.${SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME}`]: {
       position: "fixed",
@@ -998,48 +876,12 @@ export function getAppGlobalStyles(theme: Theme) {
       borderRadius: "0.375rem",
       pointerEvents: "none",
     },
-    [`.${BG_MODE_TILE_LIBRARY_GRID_CLASS_NAME}`]: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(5.5rem, 1fr))",
-      gap: "0.75rem",
-    },
-    [`.${BG_MODE_TILE_BUTTON_LAYOUT_CLASS_NAME}`]: {
-      alignItems: "center",
-      gap: "0.5rem",
-      width: "100%",
-    },
-    [`.${BG_MODE_MOCK_TOOLBAR_CLASS_NAME}`]: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "center",
-      gap: "0.625rem",
-    },
-    [`.${BG_MODE_CENTERED_CANVAS_WRAP_CLASS_NAME}`]: {
-      display: "grid",
-      placeItems: "center",
-      width: "100%",
-      height: "100%",
-      minWidth: "100%",
-      minHeight: "100%",
-    },
-    [`.${BG_MODE_CANVAS_OVERLAY_ROOT_CLASS_NAME}`]: {
-      position: "absolute",
-      top: "1.125rem",
-      left: "1.125rem",
-      zIndex: 2,
-      pointerEvents: "none",
-    },
     [`.${BG_MODE_CANVAS_OVERLAY_MENU_CLASS_NAME}`]: {
-      marginTop: "0.75rem",
-      width: "20rem",
-      maxWidth: "calc(100vw - 4rem)",
-      pointerEvents: "auto",
       borderRadius: "1.125rem",
       background: "rgba(255, 255, 255, 0.98)",
       border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
       boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
       backdropFilter: "blur(1.125rem)",
-      padding: "0.75rem",
     },
     [`.MuiButtonBase-root.${BG_MODE_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}`]: {
       pointerEvents: "auto",
@@ -1057,11 +899,6 @@ export function getAppGlobalStyles(theme: Theme) {
     },
     [`.${CHARACTER_LIBRARY_SCROLL_AREA_CLASS_NAME}`]: {
       scrollbarGutter: "stable",
-    },
-    [`.${CHARACTER_LIBRARY_GRID_CLASS_NAME}`]: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: "1.25rem",
     },
     [`.MuiButtonBase-root.${CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME}`]: {
       appearance: "none",
@@ -1099,15 +936,6 @@ export function getAppGlobalStyles(theme: Theme) {
       background:
         "linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(148, 163, 184, 0.08))",
     },
-    [`.${CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME}`]: {
-      minHeight: 0,
-      "&[data-open-state='false']": {
-        display: "none",
-      },
-      "&[data-open-state='true']": {
-        display: "block",
-      },
-    },
     [`.${CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME}`]: {
       "&[data-interactive-state='false']": {
         cursor: "default",
@@ -1122,22 +950,10 @@ export function getAppGlobalStyles(theme: Theme) {
         "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.9))",
       border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
     },
-    [`.${CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME}`]: {
-      position: "absolute",
-      top: "1.125rem",
-      left: "1.125rem",
-      zIndex: 4,
-      pointerEvents: "none",
-    },
     [`.MuiButtonBase-root.${CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}`]:
       {
         pointerEvents: "auto",
       },
-    [`.${CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME}`]: {
-      marginTop: "0.75rem",
-      width: "20rem",
-      pointerEvents: "auto",
-    },
     [`.MuiButtonBase-root.${CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME}`]:
       {
         width: "2.625rem",
@@ -1158,19 +974,6 @@ export function getAppGlobalStyles(theme: Theme) {
         "linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.92))",
       border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
     },
-    [`.${CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME}`]: {
-      minHeight: "6.75rem",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    [`.${CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME}`]: {
-      gap: "0.625rem",
-    },
-    [`.${CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME}`]: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: "1.5rem",
-    },
     [`.MuiButtonBase-root.${CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME}`]:
       {
         width: "100%",
@@ -1182,14 +985,6 @@ export function getAppGlobalStyles(theme: Theme) {
       "&[data-dragging-state='true']": {
         cursor: "grabbing",
       },
-    },
-    [`.${CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME}`]: {
-      display: "grid",
-      placeItems: "center",
-      width: "max-content",
-      height: "max-content",
-      minWidth: "100%",
-      minHeight: "100%",
     },
     [`.${CHARACTER_STAGE_CANVAS_CLASS_NAME}`]: {
       position: "absolute",
@@ -1338,19 +1133,7 @@ export function getAppGlobalStyles(theme: Theme) {
         pointerEvents: "none",
       },
     },
-    [`.${CHARACTER_WORKSPACE_GATE_CLASS_NAME}`]: {
-      position: "relative",
-      minHeight: 0,
-      minWidth: 0,
-      flex: "1 1 0",
-      display: "flex",
-    },
     [`.${CHARACTER_WORKSPACE_LOCK_OVERLAY_CLASS_NAME}`]: {
-      position: "absolute",
-      inset: 0,
-      zIndex: 14,
-      display: "grid",
-      placeItems: "center",
       borderRadius: "1.25rem",
       border: "0.0625rem solid rgba(148, 163, 184, 0.26)",
       background: "rgba(248, 250, 252, 0.76)",

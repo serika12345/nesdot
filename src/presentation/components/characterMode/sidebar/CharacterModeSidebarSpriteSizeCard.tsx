@@ -1,4 +1,3 @@
-import Box from "@mui/material/Box";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { ToolButton } from "../../../App.styles";
@@ -6,6 +5,7 @@ import {
   useCharacterModeSetSelection,
   useCharacterModeSpriteSize,
 } from "../core/CharacterModeStateProvider";
+import { SidebarToggleGrid } from "../primitives/CharacterModePrimitives";
 
 const fullWidthStyle: React.CSSProperties = {
   width: "100%",
@@ -20,12 +20,7 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
   const isDisabled = O.isNone(setSelection.selectedCharacterId);
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns="repeat(2, minmax(0, 1fr))"
-      gap={0.75}
-      width="10.5rem"
-    >
+    <SidebarToggleGrid>
       <ToolButton
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
@@ -54,6 +49,6 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
       >
         8×16
       </ToolButton>
-    </Box>
+    </SidebarToggleGrid>
   );
 };

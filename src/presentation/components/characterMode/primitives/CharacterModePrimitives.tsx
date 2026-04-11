@@ -17,11 +17,13 @@ import {
   CHARACTER_EDITOR_CARD_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
+  CHARACTER_LIBRARY_GRID_CLASS_NAME,
   CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
   CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
   CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
+  CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
   CHARACTER_STAGE_CANVAS_CLASS_NAME,
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
@@ -101,6 +103,13 @@ type StageSurfaceStyle = React.CSSProperties & {
   "--stage-width-px": string;
 };
 
+type UniformGridLayoutProps = Omit<
+  GridProps,
+  "columns" | "container" | "size" | "spacing"
+>;
+
+type GridContainerLayoutProps = Omit<GridProps, "container" | "size">;
+
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
 
@@ -138,23 +147,44 @@ const createStackLayout = (
   return LayoutComponent;
 };
 
-type UniformGridLayoutProps = Omit<
-  GridProps,
-  "columns" | "container" | "size" | "spacing"
->;
-
 const createUniformGridLayout = (
   displayName: string,
-  columns: number,
+  columns: GridProps["columns"],
   itemSize: GridSize,
-  spacing: number,
+  spacing: GridProps["spacing"],
+  defaultProps: UniformGridLayoutProps = {},
 ) => {
   void displayName;
   const LayoutComponent = React.forwardRef<
     HTMLDivElement,
     UniformGridLayoutProps
-  >(function LayoutComponent({ children, ...props }, ref) {
+  >(function LayoutComponent({ children, className, ...props }, ref) {
     const childrenArray = React.Children.toArray(children);
+    const mergedClassName = mergeClassNames(
+      typeof defaultProps.className === "string"
+        ? defaultProps.className
+        : false,
+      typeof className === "string" ? className : false,
+    );
+
+    if (mergedClassName === "") {
+      return (
+        <MaterialGrid
+          ref={ref}
+          container
+          columns={columns}
+          spacing={spacing}
+          {...defaultProps}
+          {...props}
+        >
+          {childrenArray.map((child, index) => (
+            <MaterialGrid key={`grid-item-${index}`} size={itemSize}>
+              {child}
+            </MaterialGrid>
+          ))}
+        </MaterialGrid>
+      );
+    }
 
     return (
       <MaterialGrid
@@ -162,7 +192,9 @@ const createUniformGridLayout = (
         container
         columns={columns}
         spacing={spacing}
+        {...defaultProps}
         {...props}
+        className={mergedClassName}
       >
         {childrenArray.map((child, index) => (
           <MaterialGrid key={`grid-item-${index}`} size={itemSize}>
@@ -174,6 +206,40 @@ const createUniformGridLayout = (
   });
 
   return LayoutComponent;
+};
+
+const createGridContainerLayout = (
+  displayName: string,
+  defaultProps: GridContainerLayoutProps,
+) => {
+  void displayName;
+
+  return React.forwardRef<HTMLDivElement, GridContainerLayoutProps>(
+    function LayoutComponent({ className, ...props }, ref) {
+      const mergedClassName = mergeClassNames(
+        typeof defaultProps.className === "string"
+          ? defaultProps.className
+          : false,
+        typeof className === "string" ? className : false,
+      );
+
+      if (mergedClassName === "") {
+        return (
+          <MaterialGrid ref={ref} container {...defaultProps} {...props} />
+        );
+      }
+
+      return (
+        <MaterialGrid
+          ref={ref}
+          container
+          {...defaultProps}
+          {...props}
+          className={mergedClassName}
+        />
+      );
+    },
+  );
 };
 
 const FullWidthBox = React.forwardRef<HTMLDivElement, BoxProps>(
@@ -312,6 +378,36 @@ export const PaletteSlotGrid = createUniformGridLayout(
   1,
 );
 
+export const SidebarToggleGrid = createUniformGridLayout(
+  "SidebarToggleGrid",
+  2,
+  1,
+  0.75,
+  {
+    width: "10.5rem",
+  },
+);
+
+export const CharacterLibraryGrid = createUniformGridLayout(
+  "CharacterLibraryGrid",
+  2,
+  1,
+  2.5,
+  {
+    className: CHARACTER_LIBRARY_GRID_CLASS_NAME,
+  },
+);
+
+export const SelectedRegionFieldGrid = createUniformGridLayout(
+  "SelectedRegionFieldGrid",
+  2,
+  1,
+  3,
+  {
+    className: CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
+  },
+);
+
 export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
   CharacterStageViewportProps
@@ -334,21 +430,19 @@ export const CharacterStageViewport = React.forwardRef<
   );
 });
 
-export const ViewportCenterWrap = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(function ViewportCenterWrap({ className, ...props }, ref) {
-  return (
-    <div
-      ref={ref}
-      {...props}
-      className={mergeClassNames(
-        CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
+export const ViewportCenterWrap = createGridContainerLayout(
+  "ViewportCenterWrap",
+  {
+    className: CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
+    wrap: "nowrap",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "max-content",
+    height: "max-content",
+    minWidth: "100%",
+    minHeight: "100%",
+  },
+);
 
 export const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
   onCanvasRef,

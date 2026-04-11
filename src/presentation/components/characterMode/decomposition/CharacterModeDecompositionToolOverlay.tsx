@@ -1,4 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import React from "react";
 import {
@@ -21,7 +22,17 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
   const [isToolsOpen, setIsToolsOpen] = React.useState(false);
 
   return (
-    <div className={CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME}>
+    <Box
+      className={CHARACTER_DECOMPOSITION_OVERLAY_ROOT_CLASS_NAME}
+      position="absolute"
+      top={0}
+      right={0}
+      zIndex={4}
+      display="flex"
+      flexDirection="column"
+      alignItems="flex-end"
+      style={{ pointerEvents: "none" }}
+    >
       <Button
         className={CHARACTER_DECOMPOSITION_OVERLAY_TOGGLE_BUTTON_CLASS_NAME}
         type="button"
@@ -33,12 +44,17 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
       </Button>
 
       {isToolsOpen === true ? (
-        <div className={CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME}>
+        <Box
+          className={CHARACTER_DECOMPOSITION_OVERLAY_MENU_CLASS_NAME}
+          mt={1.5}
+          width="20rem"
+          style={{ pointerEvents: "auto" }}
+        >
           <CharacterModeDecompositionToolCard />
-        </div>
+        </Box>
       ) : (
         <></>
       )}
-    </div>
+    </Box>
   );
 };

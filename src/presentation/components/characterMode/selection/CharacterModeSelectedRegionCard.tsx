@@ -16,7 +16,6 @@ import {
   ToolButton,
 } from "../../../App.styles";
 import {
-  CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
   CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME,
   CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME,
   CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME,
@@ -33,6 +32,7 @@ import {
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { INSPECTOR_PREVIEW_SCALE } from "../hooks/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
+import { SelectedRegionFieldGrid } from "../primitives/CharacterModePrimitives";
 
 /**
  * 分解モードで選択中の領域詳細を表示するカードです。
@@ -124,9 +124,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 spacing={1.25}
                 useFlexGap
               >
-                <div
-                  className={CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME}
-                >
+                <SelectedRegionFieldGrid>
                   <Field>
                     <FieldLabel>x</FieldLabel>
                     <OutlinedInput
@@ -149,7 +147,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                       }}
                     />
                   </Field>
-                </div>
+                </SelectedRegionFieldGrid>
 
                 <DetailList>
                   <DetailRow>

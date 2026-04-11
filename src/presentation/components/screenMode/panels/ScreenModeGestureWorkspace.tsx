@@ -14,15 +14,11 @@ import {
   PanelHeaderRow,
 } from "../../../App.styles";
 import {
-  SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
   SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
   SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME,
   SCREEN_LIBRARY_SECTION_CLASS_NAME,
-  SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME,
   SCREEN_PREVIEW_LABEL_CLASS_NAME,
-  SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME,
   SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME,
   SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME,
   SCREEN_STAGE_MARQUEE_CLASS_NAME,
@@ -34,8 +30,12 @@ import { CharacterModeTilePreview } from "../../characterMode/preview/CharacterM
 import { ScreenCanvas } from "../../common/canvas/ScreenCanvas";
 import type { ScreenModeState } from "../hooks/useScreenModeState";
 import {
+  CharacterLibraryGrid,
+  CharacterPreviewTiles,
+  LibrarySectionContent,
   PreviewCanvasWrap,
   PreviewViewport,
+  SpriteLibraryGrid,
 } from "../primitives/ScreenModePrimitives";
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
@@ -276,9 +276,9 @@ export const ScreenModeGestureWorkspace: React.FC<
         const characterPreviewContent = pipe(
           previewCardOption,
           O.match(
-            () => <div className={SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME} />,
+            () => <CharacterPreviewTiles />,
             (previewCard) => (
-              <div className={SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME}>
+              <CharacterPreviewTiles>
                 {previewCard.previewSpriteIndices.map((spriteIndex) => (
                   <CharacterModeTilePreview
                     key={`floating-character-sprite-${previewCard.id}-${spriteIndex}`}
@@ -286,7 +286,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                     tileOption={O.fromNullable(sprites[spriteIndex])}
                   />
                 ))}
-              </div>
+              </CharacterPreviewTiles>
             ),
           ),
         );
@@ -400,16 +400,15 @@ export const ScreenModeGestureWorkspace: React.FC<
               </Stack>
             </PanelHeaderRow>
 
-            <div
-              className={SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME}
+            <LibrarySectionContent
               id={spriteLibraryContentId}
-              data-open-state={toBooleanDataValue(isSpriteLibraryOpen)}
+              open={isSpriteLibraryOpen}
               aria-hidden={isSpriteLibraryOpen === false}
             >
               <div
                 className={`${SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME} ${SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME}`}
               >
-                <div className={SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME}>
+                <SpriteLibraryGrid>
                   {sprites.map((sprite, spriteIndex) => (
                     <ButtonBase
                       key={`screen-library-sprite-${spriteIndex}`}
@@ -445,13 +444,12 @@ export const ScreenModeGestureWorkspace: React.FC<
                       </Stack>
                     </ButtonBase>
                   ))}
-                </div>
+                </SpriteLibraryGrid>
               </div>
-            </div>
+            </LibrarySectionContent>
           </Stack>
 
           <Stack
-            className={SCREEN_LIBRARY_SECTION_CLASS_NAME}
             position="relative"
             flexShrink={0}
             overflow="hidden"
@@ -488,15 +486,14 @@ export const ScreenModeGestureWorkspace: React.FC<
               </Stack>
             </PanelHeaderRow>
 
-            <div
-              className={SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME}
+            <LibrarySectionContent
               id={characterLibraryContentId}
-              data-open-state={toBooleanDataValue(isCharacterLibraryOpen)}
+              open={isCharacterLibraryOpen}
               aria-hidden={isCharacterLibraryOpen === false}
             >
               {characterPreviewCards.length > 0 ? (
                 <div className={SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME}>
-                  <div className={SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME}>
+                  <CharacterLibraryGrid>
                     {characterPreviewCards.map((characterCard) => (
                       <ButtonBase
                         key={`screen-library-character-${characterCard.id}`}
@@ -529,11 +526,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                           width="100%"
                           spacing="0.375rem"
                         >
-                          <div
-                            className={
-                              SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME
-                            }
-                          >
+                          <CharacterPreviewTiles>
                             {characterCard.previewSpriteIndices.map(
                               (spriteIndex) => (
                                 <CharacterModeTilePreview
@@ -545,7 +538,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                                 />
                               ),
                             )}
-                          </div>
+                          </CharacterPreviewTiles>
                           <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                             {characterCard.name}
                           </span>
@@ -553,14 +546,14 @@ export const ScreenModeGestureWorkspace: React.FC<
                         </Stack>
                       </ButtonBase>
                     ))}
-                  </div>
+                  </CharacterLibraryGrid>
                 </div>
               ) : (
                 <HelperText>
                   先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
                 </HelperText>
               )}
-            </div>
+            </LibrarySectionContent>
           </Stack>
         </Stack>
 

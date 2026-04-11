@@ -1,4 +1,3 @@
-import Stack from "@mui/material/Stack";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -15,7 +14,6 @@ import {
   Spacer,
   ToolButton,
 } from "../../../App.styles";
-import { SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME } from "../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -26,6 +24,7 @@ import type { ScreenModeState } from "../hooks/useScreenModeState";
 import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
   WarningList,
+  WorkspaceHeaderActionCluster,
   ZoomControlsRow,
 } from "../primitives/ScreenModePrimitives";
 import { ScreenModeGestureWorkspace } from "./ScreenModeGestureWorkspace";
@@ -183,14 +182,7 @@ export const ScreenModeWorkspacePanel: React.FC<
         <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
         <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
         <Spacer />
-        <Stack
-          className={SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME}
-          direction="row"
-          alignItems="center"
-          flexWrap="nowrap"
-          spacing={1.25}
-          useFlexGap
-        >
+        <WorkspaceHeaderActionCluster>
           <ToolButton
             type="button"
             aria-label="BGタイル追加"
@@ -218,7 +210,7 @@ export const ScreenModeWorkspacePanel: React.FC<
           >
             #表示
           </ToolButton>
-        </Stack>
+        </WorkspaceHeaderActionCluster>
       </ZoomControlsRow>
 
       <ScreenModeGestureWorkspace

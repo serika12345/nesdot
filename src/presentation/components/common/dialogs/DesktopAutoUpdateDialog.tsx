@@ -1,9 +1,9 @@
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Grid from "@mui/material/Grid";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -162,79 +162,95 @@ export const DesktopAutoUpdateDialog: React.FC<
           )}
 
           {state.kind === "failed" ? (
-            <Box
+            <Grid
+              container
               component="dl"
-              display="grid"
-              gridTemplateColumns="max-content minmax(0, 1fr)"
+              alignItems="start"
               rowGap={0.5}
               columnGap={1.5}
               m={0}
             >
-              <Typography
-                component="dt"
-                variant="caption"
-                color="text.secondary"
-                style={failureDetailLabelStyle}
-              >
-                対象バージョン
-              </Typography>
-              <Typography
-                component="dd"
-                variant="body2"
-                color="text.primary"
-                style={failureDetailValueStyle}
-              >
-                {state.versionLabel}
-              </Typography>
-              <Typography
-                component="dt"
-                variant="caption"
-                color="text.secondary"
-                style={failureDetailLabelStyle}
-              >
-                処理段階
-              </Typography>
-              <Typography
-                component="dd"
-                variant="body2"
-                color="text.primary"
-                style={failureDetailValueStyle}
-              >
-                {state.operationLabel}
-              </Typography>
-              <Typography
-                component="dt"
-                variant="caption"
-                color="text.secondary"
-                style={failureDetailLabelStyle}
-              >
-                技術詳細
-              </Typography>
-              <Typography
-                component="dd"
-                variant="body2"
-                color="text.primary"
-                style={failureDetailValueStyle}
-              >
-                {state.detail}
-              </Typography>
-              <Typography
-                component="dt"
-                variant="caption"
-                color="text.secondary"
-                style={failureDetailLabelStyle}
-              >
-                対処
-              </Typography>
-              <Typography
-                component="dd"
-                variant="body2"
-                color="text.primary"
-                style={failureDetailValueStyle}
-              >
-                {state.recoveryHint}
-              </Typography>
-            </Box>
+              <Grid size="auto">
+                <Typography
+                  component="dt"
+                  variant="caption"
+                  color="text.secondary"
+                  style={failureDetailLabelStyle}
+                >
+                  対象バージョン
+                </Typography>
+              </Grid>
+              <Grid size="grow">
+                <Typography
+                  component="dd"
+                  variant="body2"
+                  color="text.primary"
+                  style={failureDetailValueStyle}
+                >
+                  {state.versionLabel}
+                </Typography>
+              </Grid>
+              <Grid size="auto">
+                <Typography
+                  component="dt"
+                  variant="caption"
+                  color="text.secondary"
+                  style={failureDetailLabelStyle}
+                >
+                  処理段階
+                </Typography>
+              </Grid>
+              <Grid size="grow">
+                <Typography
+                  component="dd"
+                  variant="body2"
+                  color="text.primary"
+                  style={failureDetailValueStyle}
+                >
+                  {state.operationLabel}
+                </Typography>
+              </Grid>
+              <Grid size="auto">
+                <Typography
+                  component="dt"
+                  variant="caption"
+                  color="text.secondary"
+                  style={failureDetailLabelStyle}
+                >
+                  技術詳細
+                </Typography>
+              </Grid>
+              <Grid size="grow">
+                <Typography
+                  component="dd"
+                  variant="body2"
+                  color="text.primary"
+                  style={failureDetailValueStyle}
+                >
+                  {state.detail}
+                </Typography>
+              </Grid>
+              <Grid size="auto">
+                <Typography
+                  component="dt"
+                  variant="caption"
+                  color="text.secondary"
+                  style={failureDetailLabelStyle}
+                >
+                  対処
+                </Typography>
+              </Grid>
+              <Grid size="grow">
+                <Typography
+                  component="dd"
+                  variant="body2"
+                  color="text.primary"
+                  style={failureDetailValueStyle}
+                >
+                  {state.recoveryHint}
+                </Typography>
+              </Grid>
+            </Grid>
           ) : (
             <></>
           )}

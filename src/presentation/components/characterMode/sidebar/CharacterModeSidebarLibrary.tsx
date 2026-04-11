@@ -1,4 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
@@ -13,7 +14,6 @@ import {
 } from "../../../App.styles";
 import {
   CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME,
-  CHARACTER_LIBRARY_GRID_CLASS_NAME,
   CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME,
   CHARACTER_LIBRARY_SCROLL_AREA_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
@@ -24,6 +24,7 @@ import { useCharacterModeSpriteLibrary } from "../core/CharacterModeStateProvide
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { LIBRARY_PREVIEW_SCALE } from "../hooks/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
+import { CharacterLibraryGrid } from "../primitives/CharacterModePrimitives";
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
@@ -66,7 +67,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
         flex={1}
         minHeight={0}
       >
-        <div className={CHARACTER_LIBRARY_GRID_CLASS_NAME}>
+        <CharacterLibraryGrid>
           {sprites.map((spriteTile, spriteIndex) => (
             <ButtonBase
               key={`library-sprite-${spriteIndex}`}
@@ -103,7 +104,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
               </Stack>
             </ButtonBase>
           ))}
-        </div>
+        </CharacterLibraryGrid>
       </ScrollArea>
     );
   },
@@ -163,11 +164,13 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
         </Stack>
       </PanelHeaderRow>
 
-      <div
+      <Box
         className={CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME}
         id={libraryContentId}
         data-open-state={toBooleanDataValue(isLibraryOpen)}
         aria-hidden={isLibraryOpen === false}
+        display={isLibraryOpen === true ? "block" : "none"}
+        minHeight={0}
       >
         <div
           className={CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME}
@@ -182,7 +185,7 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
             sprites={spriteLibrary.sprites}
           />
         </div>
-      </div>
+      </Box>
     </CharacterModeEditorCard>
   );
 };
