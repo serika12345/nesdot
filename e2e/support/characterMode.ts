@@ -1,6 +1,19 @@
 import { type Locator, type Page } from "@playwright/test";
 import { getLocatorPoint } from "./pointer";
 
+/**
+ * Playwright の .click() は React 18 の createPortal で body に描画された要素では
+ * React のイベントハンドラを呼び出さない場合があるため、
+ * ネイティブ DOM の el.click() を使って回避します。
+ */
+export const clickPortalButton = async (locator: Locator): Promise<void> => {
+  await locator.evaluate((el) => {
+    if (el instanceof HTMLElement) {
+      el.click();
+    }
+  });
+};
+
 interface StageDebugState {
   activeSetName: string;
   selectedSpriteIndex: string;

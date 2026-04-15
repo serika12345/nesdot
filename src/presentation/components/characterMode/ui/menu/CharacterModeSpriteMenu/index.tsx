@@ -3,13 +3,13 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { createPortal } from "react-dom";
 import {
-  useCharacterModeSpriteMenuActions,
-  useCharacterModeSpriteMenuState,
-} from "../../core/CharacterModeStateProvider";
-import {
   STAGE_CONTEXT_MENU_HEIGHT,
   STAGE_CONTEXT_MENU_WIDTH,
 } from "../../../logic/characterModeConstants";
+import {
+  useCharacterModeSpriteMenuActions,
+  useCharacterModeSpriteMenuState,
+} from "../../core/CharacterModeStateProvider";
 import {
   PortalOverlay,
   PositionedActionMenu,

@@ -195,6 +195,25 @@ describe("characterModeStore", () => {
       const modeState = useCharacterModeStore.getState();
       expect(O.isSome(modeState.selectedSpriteEditorIndex)).toBe(true);
     });
+
+    it("handleShiftContextMenuSpriteLayer increments sprite layer", () => {
+      useCharacterState.getState().createSet({ name: "Set Layer" });
+
+      useCharacterModeStore.getState().handleDropSpriteOnStage(0, 5, 4);
+      useCharacterModeStore.getState().handleDropSpriteOnStage(0, 8, 8);
+
+      const charStateBefore = useCharacterState.getState();
+      const setBefore = charStateBefore.characterSets[0];
+      expect(setBefore?.sprites).toHaveLength(2);
+      expect(setBefore?.sprites[0]?.layer).toBe(0);
+      expect(setBefore?.sprites[1]?.layer).toBe(1);
+
+      useCharacterModeStore.getState().handleShiftContextMenuSpriteLayer(0, 1);
+
+      const charStateAfter = useCharacterState.getState();
+      const setAfter = charStateAfter.characterSets[0];
+      expect(setAfter?.sprites[0]?.layer).toBe(1);
+    });
   });
 
   describe("decomposition actions", () => {
