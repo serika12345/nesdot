@@ -1,13 +1,12 @@
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import OutlinedInput from "@mui/material/OutlinedInput";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  Badge,
-  FieldLabel,
-  PanelHeaderRow,
-  ToolButton,
-} from "../../../../../App.styles";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import {
   useCharacterModeComposeCanvas,
   useCharacterModeLibraryDragPreview,
@@ -17,7 +16,6 @@ import {
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "../../core/CharacterModeStateProvider";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import {
   CharacterStageViewport,
@@ -47,10 +45,21 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
   return (
     <StageEditorCard flex={1} minWidth={0}>
       <PreviewHeaderLayout>
-        <PanelHeaderRow>
-          <FieldLabel>プレビューキャンバス</FieldLabel>
-          <Badge tone="accent">{`${stageDisplay.activeSetSpriteCount} items`}</Badge>
-        </PanelHeaderRow>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1.5}
+          useFlexGap
+          flexWrap="wrap"
+        >
+          <Typography variant="body2">プレビューキャンバス</Typography>
+          <Chip
+            size="small"
+            color="primary"
+            label={`${stageDisplay.activeSetSpriteCount} items`}
+          />
+        </Stack>
 
         <PreviewControlsRow>
           <StageInputContainer>
@@ -83,13 +92,27 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
               }
             />
           </StageInputContainer>
-          <Badge tone="neutral">{`${stageZoom.stageZoomLevel}x`}</Badge>
-          <ToolButton type="button" onClick={stageZoom.handleZoomOut}>
+          <Chip
+            size="small"
+            variant="outlined"
+            label={`${stageZoom.stageZoomLevel}x`}
+          />
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            onClick={stageZoom.handleZoomOut}
+          >
             -
-          </ToolButton>
-          <ToolButton type="button" onClick={stageZoom.handleZoomIn}>
+          </Button>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            onClick={stageZoom.handleZoomIn}
+          >
             +
-          </ToolButton>
+          </Button>
         </PreviewControlsRow>
       </PreviewHeaderLayout>
 

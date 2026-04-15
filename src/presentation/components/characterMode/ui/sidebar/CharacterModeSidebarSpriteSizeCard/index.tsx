@@ -1,12 +1,11 @@
+import Button from "@mui/material/Button";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { ToolButton } from "../../../../../App.styles";
 import {
   useCharacterModeSetSelection,
   useCharacterModeSpriteSize,
 } from "../../core/CharacterModeStateProvider";
 import { SidebarToggleGrid } from "../../primitives/CharacterModePrimitives";
-import { fullWidthStyle } from "./styles";
 
 /**
  * プロジェクトのスプライトサイズ切り替えカードです。
@@ -18,34 +17,36 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
 
   return (
     <SidebarToggleGrid>
-      <ToolButton
+      <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
-        active={spriteSize.projectSpriteSize === 8}
-        style={fullWidthStyle}
+        fullWidth
+        size="small"
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 8)
         }
+        variant={spriteSize.projectSpriteSize === 8 ? "contained" : "outlined"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(8)}
       >
         8×8
-      </ToolButton>
-      <ToolButton
+      </Button>
+      <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x16"
-        active={spriteSize.projectSpriteSize === 16}
-        style={fullWidthStyle}
+        fullWidth
+        size="small"
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 16)
         }
+        variant={spriteSize.projectSpriteSize === 16 ? "contained" : "outlined"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(16)}
       >
         8×16
-      </ToolButton>
+      </Button>
     </SidebarToggleGrid>
   );
 };

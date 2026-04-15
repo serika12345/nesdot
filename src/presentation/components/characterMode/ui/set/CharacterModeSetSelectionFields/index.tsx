@@ -1,16 +1,16 @@
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
-import OutlinedInput from "@mui/material/OutlinedInput";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Field, FieldLabel, ToolButton } from "../../../../../App.styles";
 import {
   useCharacterModeSetName,
   useCharacterModeSetSelection,
@@ -68,9 +68,10 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
 
   return (
     <>
-      <Box minWidth={{ xs: "100%", sm: "14rem" }} flex="1 1 16rem">
+      <Box minWidth={{ xs: "100%", sm: "10rem" }} flex="1 1 12rem">
         <Select
           fullWidth
+          size="small"
           variant="outlined"
           inputProps={{
             "aria-label": "編集中のセット",
@@ -95,23 +96,27 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
         </Select>
       </Box>
       <Box flexShrink={0}>
-        <ToolButton
+        <Button
           type="button"
+          size="small"
+          variant="outlined"
           disabled={O.isNone(setSelection.selectedCharacterId)}
           onClick={handleOpenRenameDialog}
         >
           セット名変更
-        </ToolButton>
+        </Button>
       </Box>
       <Box flexShrink={0}>
-        <ToolButton
+        <Button
           type="button"
-          tone="danger"
+          size="small"
+          variant="outlined"
+          color="error"
           disabled={O.isNone(setSelection.selectedCharacterId)}
           onClick={handleDeleteSetWithConfirmation}
         >
           セットを削除
-        </ToolButton>
+        </Button>
       </Box>
 
       <Dialog
@@ -125,27 +130,26 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
           <DialogTitle id={renameDialogTitleId}>セット名を変更</DialogTitle>
 
           <DialogContent>
-            <Field minWidth={0} spacing="0.5rem">
-              <FieldLabel>変更後のセット名</FieldLabel>
-              <OutlinedInput
-                type="text"
-                value={renameDraftName}
-                autoFocus
-                inputProps={{
-                  "aria-label": "変更後のセット名",
-                }}
-                onChange={(event) => setRenameDraftName(event.target.value)}
-              />
-            </Field>
+            <TextField
+              fullWidth
+              type="text"
+              label="変更後のセット名"
+              value={renameDraftName}
+              autoFocus
+              inputProps={{
+                "aria-label": "変更後のセット名",
+              }}
+              onChange={(event) => setRenameDraftName(event.target.value)}
+            />
           </DialogContent>
 
           <DialogActions>
-            <ToolButton type="button" onClick={handleCloseRenameDialog}>
+            <Button type="button" onClick={handleCloseRenameDialog}>
               キャンセル
-            </ToolButton>
-            <ToolButton type="submit" tone="primary">
+            </Button>
+            <Button type="submit" variant="contained">
               変更する
-            </ToolButton>
+            </Button>
           </DialogActions>
         </Stack>
       </Dialog>

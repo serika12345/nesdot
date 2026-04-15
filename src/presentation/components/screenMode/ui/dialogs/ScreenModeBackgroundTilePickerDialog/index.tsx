@@ -14,7 +14,6 @@ import {
   PROJECT_BACKGROUND_TILE_COUNT,
   createEmptyBackgroundTile,
 } from "../../../../../../domain/project/projectV2";
-import { ToolButton } from "../../../../../App.styles";
 import { BackgroundTilePreview } from "../../../../common/ui/preview/BackgroundTilePreview";
 import { previewButtonStyle } from "./styles";
 
@@ -69,9 +68,10 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
             spacing="0.625rem"
             useFlexGap
           >
-            <ToolButton
+            <Button
               type="button"
-              active={pickerMode === "bgTile"}
+              size="small"
+              variant={pickerMode === "bgTile" ? "contained" : "outlined"}
               aria-label="BGタイル"
               aria-pressed={pickerMode === "bgTile"}
               onClick={() => {
@@ -79,10 +79,11 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
               }}
             >
               BGタイル
-            </ToolButton>
-            <ToolButton
+            </Button>
+            <Button
               type="button"
-              active={pickerMode === "bgPalette"}
+              size="small"
+              variant={pickerMode === "bgPalette" ? "contained" : "outlined"}
               aria-label="BG属性"
               aria-pressed={pickerMode === "bgPalette"}
               onClick={() => {
@@ -90,7 +91,7 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
               }}
             >
               BG属性
-            </ToolButton>
+            </Button>
           </Stack>
 
           {pickerMode === "bgTile" ? (
@@ -136,10 +137,15 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
               useFlexGap
             >
               {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-                <ToolButton
+                <Button
                   key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
                   type="button"
-                  active={activePaletteIndex === paletteIndex}
+                  size="small"
+                  variant={
+                    activePaletteIndex === paletteIndex
+                      ? "contained"
+                      : "outlined"
+                  }
                   aria-label={`BG属性パレット ${paletteIndex}`}
                   aria-pressed={activePaletteIndex === paletteIndex}
                   onClick={() => {
@@ -148,7 +154,7 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                   }}
                 >
                   {`Palette ${paletteIndex}`}
-                </ToolButton>
+                </Button>
               ))}
             </Stack>
           )}

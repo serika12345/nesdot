@@ -1,12 +1,12 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import React from "react";
-import { Field, FieldLabel, ToolButton } from "../../../../../App.styles";
-import { CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME } from "../../../../../styleClassNames";
 import { useCharacterModeSetDraft } from "../../core/CharacterModeStateProvider";
 
 /**
@@ -33,15 +33,16 @@ export const CharacterModeSetDraftFields: React.FC = () => {
 
   return (
     <>
-      <div className={CHARACTER_SET_DRAFT_ACTION_CONTAINER_CLASS_NAME}>
-        <ToolButton
+      <Box flexShrink={0}>
+        <Button
           type="button"
-          tone="primary"
+          size="small"
+          variant="contained"
           onClick={handleOpenCreateDialog}
         >
           セットを作成
-        </ToolButton>
-      </div>
+        </Button>
+      </Box>
 
       <Dialog
         open={isCreateDialogOpen}
@@ -56,29 +57,28 @@ export const CharacterModeSetDraftFields: React.FC = () => {
           </DialogTitle>
 
           <DialogContent>
-            <Field minWidth={0} spacing="0.5rem">
-              <FieldLabel>新規セット名</FieldLabel>
-              <OutlinedInput
-                type="text"
-                value={setDraft.newName}
-                autoFocus
-                inputProps={{
-                  "aria-label": "新規セット名",
-                }}
-                onChange={(event) =>
-                  setDraft.handleNewNameChange(event.target.value)
-                }
-              />
-            </Field>
+            <TextField
+              fullWidth
+              type="text"
+              label="新規セット名"
+              value={setDraft.newName}
+              autoFocus
+              inputProps={{
+                "aria-label": "新規セット名",
+              }}
+              onChange={(event) =>
+                setDraft.handleNewNameChange(event.target.value)
+              }
+            />
           </DialogContent>
 
           <DialogActions>
-            <ToolButton type="button" onClick={handleCloseCreateDialog}>
+            <Button type="button" onClick={handleCloseCreateDialog}>
               キャンセル
-            </ToolButton>
-            <ToolButton type="submit" tone="primary">
+            </Button>
+            <Button type="submit" variant="contained">
               作成する
-            </ToolButton>
+            </Button>
           </DialogActions>
         </Stack>
       </Dialog>

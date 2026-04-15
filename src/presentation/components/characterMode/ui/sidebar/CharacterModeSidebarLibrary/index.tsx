@@ -1,24 +1,19 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
+import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../../application/state/projectStore";
 import {
-  Badge,
-  CollapseToggle,
-  FieldLabel,
-  PanelHeaderRow,
-  ScrollArea,
-} from "../../../../../App.styles";
-import {
-  CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME,
+  APP_SCROLL_AREA_CLASS_NAME,
   CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME,
-  CHARACTER_LIBRARY_SCROLL_AREA_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME,
+  COLLAPSE_TOGGLE_CLASS_NAME,
 } from "../../../../../styleClassNames";
 import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../core/CharacterModeStateProvider";
@@ -57,11 +52,12 @@ const CharacterModeSidebarLibraryContent = React.memo(
     sprites,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
-      <ScrollArea
+      <Box
         id={id}
-        className={CHARACTER_LIBRARY_SCROLL_AREA_CLASS_NAME}
+        className={APP_SCROLL_AREA_CLASS_NAME}
         flex={1}
         minHeight={0}
+        overflow="auto"
       >
         <CharacterLibraryGrid>
           {sprites.map((spriteTile, spriteIndex) => (
@@ -96,12 +92,16 @@ const CharacterModeSidebarLibraryContent = React.memo(
                     tileOption={O.some(spriteTile)}
                   />
                 </Stack>
-                <Badge tone="accent">{`${spriteTile.width}×${spriteTile.height}`}</Badge>
+                <Chip
+                  size="small"
+                  color="primary"
+                  label={`${spriteTile.width}×${spriteTile.height}`}
+                />
               </Stack>
             </ButtonBase>
           ))}
         </CharacterLibraryGrid>
-      </ScrollArea>
+      </Box>
     );
   },
   areSameLibraryContentProps,
@@ -137,31 +137,27 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
       p="1rem"
       useFlexGap
     >
-      <PanelHeaderRow>
-        <Stack direction="row" spacing="0.75rem" alignItems="center">
-          <FieldLabel>スプライトライブラリ</FieldLabel>
-          <CollapseToggle
-            type="button"
-            open={isLibraryOpen}
-            aria-expanded={isLibraryOpen}
-            aria-controls={libraryContentId}
-            aria-label={
-              isLibraryOpen
-                ? "スプライトライブラリを閉じる"
-                : "スプライトライブラリを開く"
-            }
-            onClick={() => setIsLibraryOpen((previous) => !previous)}
-          >
-            {isLibraryOpen ? "閉じる" : "開く"}
-            <ExpandMoreRoundedIcon
-              style={collapseChevronStyle(isLibraryOpen)}
-            />
-          </CollapseToggle>
-        </Stack>
-      </PanelHeaderRow>
+      <Stack direction="row" spacing="0.75rem" alignItems="center">
+        <Typography variant="body2">スプライトライブラリ</Typography>
+        <ButtonBase
+          type="button"
+          className={COLLAPSE_TOGGLE_CLASS_NAME}
+          data-open={toBooleanDataValue(isLibraryOpen)}
+          aria-expanded={isLibraryOpen}
+          aria-controls={libraryContentId}
+          aria-label={
+            isLibraryOpen
+              ? "スプライトライブラリを閉じる"
+              : "スプライトライブラリを開く"
+          }
+          onClick={() => setIsLibraryOpen((previous) => !previous)}
+        >
+          {isLibraryOpen ? "閉じる" : "開く"}
+          <ExpandMoreRoundedIcon style={collapseChevronStyle(isLibraryOpen)} />
+        </ButtonBase>
+      </Stack>
 
       <Box
-        className={CHARACTER_LIBRARY_CONTENT_ROOT_CLASS_NAME}
         id={libraryContentId}
         data-open-state={toBooleanDataValue(isLibraryOpen)}
         aria-hidden={isLibraryOpen === false}

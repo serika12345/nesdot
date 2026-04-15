@@ -14,8 +14,7 @@ import {
 import { type NesSpritePalettes } from "../../../../../../domain/nes/nesProject";
 import { NES_PALETTE_HEX } from "../../../../../../domain/nes/palette";
 import { getArrayItem } from "../../../../../../shared/arrayAccess";
-import { PanelHeaderRow } from "../../../../../App.styles";
-import { paletteSlotsPaperStyle, slotSwatchStyle } from "./styles";
+import { slotSwatchStyle } from "./styles";
 
 const resolvePaletteHex = (index: number): string =>
   pipe(
@@ -41,41 +40,50 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
   onPaletteClick,
 }) => {
   return (
-    <Paper variant="outlined" style={paletteSlotsPaperStyle}>
-      <Stack spacing={1}>
-        <PanelHeaderRow>
-          <Typography variant="body2">現在のスロット</Typography>
-          <Chip
-            size="small"
-            color="primary"
-            label={`パレット ${activePalette}`}
-          />
-        </PanelHeaderRow>
+    <Box flexShrink={0}>
+      <Paper variant="outlined">
+        <Stack spacing={1} padding={1.75}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1.5}
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <Typography variant="body2">現在のスロット</Typography>
+            <Chip
+              size="small"
+              color="primary"
+              label={`パレット ${activePalette}`}
+            />
+          </Stack>
 
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-          {palettes[activePalette].map((colorIndex, slotIndex) => (
-            <Button
-              key={slotIndex}
-              type="button"
-              variant={activeSlot === slotIndex ? "contained" : "outlined"}
-              onClick={() => onPaletteClick(slotIndex)}
-              title={
-                slotIndex === 0 ? "スロット 0: 透明" : `スロット ${slotIndex}`
-              }
-              startIcon={
-                <Box
-                  style={slotSwatchStyle(
-                    slotIndex === 0,
-                    resolvePaletteHex(colorIndex),
-                  )}
-                />
-              }
-            >
-              スロット{slotIndex}
-            </Button>
-          ))}
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            {palettes[activePalette].map((colorIndex, slotIndex) => (
+              <Button
+                key={slotIndex}
+                type="button"
+                variant={activeSlot === slotIndex ? "contained" : "outlined"}
+                onClick={() => onPaletteClick(slotIndex)}
+                title={
+                  slotIndex === 0 ? "スロット 0: 透明" : `スロット ${slotIndex}`
+                }
+                startIcon={
+                  <Box
+                    style={slotSwatchStyle(
+                      slotIndex === 0,
+                      resolvePaletteHex(colorIndex),
+                    )}
+                  />
+                }
+              >
+                スロット{slotIndex}
+              </Button>
+            ))}
+          </Stack>
         </Stack>
-      </Stack>
-    </Paper>
+      </Paper>
+    </Box>
   );
 };

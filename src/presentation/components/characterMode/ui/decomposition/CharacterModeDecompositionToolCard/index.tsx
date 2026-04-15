@@ -1,16 +1,12 @@
+import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
+import Chip from "@mui/material/Chip";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../../domain/nes/palette";
-import {
-  Badge,
-  FieldLabel,
-  PanelHeaderRow,
-  ToolButton,
-} from "../../../../../App.styles";
 import { CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME } from "../../../../../styleClassNames";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../../logic/characterModeConstants";
 import {
@@ -63,42 +59,66 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
       p="1rem"
       useFlexGap
     >
-      <PanelHeaderRow>
-        <FieldLabel>分解ツール</FieldLabel>
-        <Badge tone="neutral">
-          {decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
-        </Badge>
-      </PanelHeaderRow>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1.5}
+        useFlexGap
+        flexWrap="wrap"
+      >
+        <Typography variant="body2">分解ツール</Typography>
+        <Chip
+          size="small"
+          variant="outlined"
+          label={decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
+        />
+      </Stack>
 
       <DecompositionToolGrid>
-        <ToolButton
+        <Button
           type="button"
           aria-label="分解ツール ペン"
-          active={decompositionTool.decompositionTool === "pen"}
+          size="small"
+          variant={
+            decompositionTool.decompositionTool === "pen"
+              ? "contained"
+              : "outlined"
+          }
           onClick={() => decompositionTool.handleDecompositionToolChange("pen")}
         >
           ペン
-        </ToolButton>
-        <ToolButton
+        </Button>
+        <Button
           type="button"
           aria-label="分解ツール 消しゴム"
-          active={decompositionTool.decompositionTool === "eraser"}
+          size="small"
+          variant={
+            decompositionTool.decompositionTool === "eraser"
+              ? "contained"
+              : "outlined"
+          }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("eraser")
           }
         >
           消しゴム
-        </ToolButton>
-        <ToolButton
+        </Button>
+        <Button
           type="button"
           aria-label="分解ツール 切り取り"
-          active={decompositionTool.decompositionTool === "region"}
+          size="small"
+          variant={
+            decompositionTool.decompositionTool === "region"
+              ? "contained"
+              : "outlined"
+          }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("region")
           }
         >
           切り取り
-        </ToolButton>
+        </Button>
       </DecompositionToolGrid>
 
       <PaletteControlRow>

@@ -1,10 +1,5 @@
 import type { CSSProperties } from "react";
 
-export const paletteSlotsPaperStyle: CSSProperties = {
-  padding: "0.875rem",
-  flexShrink: 0,
-};
-
 export const slotSwatchStyle = (
   transparent: boolean,
   colorHex: string,

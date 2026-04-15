@@ -7,13 +7,11 @@ import MaterialGrid, {
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
-  ActionMenu,
-  ActionMenuButton,
-  CanvasViewport,
-} from "../../../../../App.styles";
-import {
+  ACTION_MENU_BUTTON_CLASS_NAME,
+  APP_ACTION_MENU_CLASS_NAME,
+  APP_CANVAS_VIEWPORT_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
-  CHARACTER_EDITOR_CARD_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
   CHARACTER_LIBRARY_GRID_CLASS_NAME,
@@ -27,7 +25,6 @@ import {
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
   CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
-  CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
   mergeClassNames,
 } from "../../../../../styleClassNames";
 import {
@@ -43,9 +40,7 @@ import {
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
-type CharacterStageViewportProps = React.ComponentProps<
-  typeof CanvasViewport
-> & {
+type CharacterStageViewportProps = BoxProps & {
   dragging?: boolean;
 };
 
@@ -73,7 +68,7 @@ type FloatingLibraryPreviewProps = React.ComponentProps<"div"> & {
   dragClientY: number;
 };
 
-type PositionedActionMenuProps = React.ComponentProps<typeof ActionMenu> & {
+type PositionedActionMenuProps = StackProps & {
   menuLeft: number;
   menuTop: number;
   menuWidth: number;
@@ -81,7 +76,7 @@ type PositionedActionMenuProps = React.ComponentProps<typeof ActionMenu> & {
 };
 
 type PositionedActionMenuButtonProps = React.ComponentProps<
-  typeof ActionMenuButton
+  typeof ButtonBase
 > & {
   danger?: boolean;
 };
@@ -342,7 +337,7 @@ export const CharacterWorkspaceRoot = createStackLayout(
 
 const EditorCard = createStackLayout("EditorCard", {
   component: "div",
-  className: CHARACTER_EDITOR_CARD_CLASS_NAME,
+  className: APP_PANEL_CLASS_NAME,
   minHeight: 0,
   spacing: "0.875rem",
   p: "1rem",
@@ -403,16 +398,18 @@ export const CharacterStageViewport = React.forwardRef<
   CharacterStageViewportProps
 >(function CharacterStageViewport({ dragging, className, ...props }, ref) {
   return (
-    <CanvasViewport
+    <Box
       ref={ref}
       data-dragging-state={toBooleanDataValue(dragging)}
       className={mergeClassNames(
+        APP_CANVAS_VIEWPORT_CLASS_NAME,
         CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       flex="1 1 0"
       minHeight={0}
       minWidth={0}
+      overflow="auto"
       p="1.5rem"
       borderRadius={0}
       {...props}
@@ -423,7 +420,6 @@ export const CharacterStageViewport = React.forwardRef<
 export const ViewportCenterWrap = createGridContainerLayout(
   "ViewportCenterWrap",
   {
-    className: CHARACTER_VIEWPORT_CENTER_WRAP_CLASS_NAME,
     wrap: "nowrap",
     justifyContent: "center",
     alignItems: "center",
@@ -574,14 +570,22 @@ export const PositionedActionMenu = React.forwardRef<
   ref,
 ) {
   return (
-    <ActionMenu
+    <Stack
       ref={ref}
+      component="div"
+      useFlexGap
       {...props}
       data-ready={toBooleanDataValue(ready)}
       className={mergeClassNames(
+        APP_ACTION_MENU_CLASS_NAME,
         CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
+      minWidth="13.75rem"
+      maxWidth="min(20rem, calc(100vw - 2rem))"
+      spacing="0.375rem"
+      p="0.625rem"
+      zIndex={9999}
       style={createPositionedActionMenuStyle(
         style ?? {},
         menuLeft,
@@ -597,11 +601,12 @@ export const PositionedActionMenuButton = React.forwardRef<
   PositionedActionMenuButtonProps
 >(function PositionedActionMenuButton({ className, danger, ...props }, ref) {
   return (
-    <ActionMenuButton
+    <ButtonBase
       ref={ref}
       {...props}
       data-danger={toBooleanDataValue(danger)}
       className={mergeClassNames(
+        ACTION_MENU_BUTTON_CLASS_NAME,
         CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}

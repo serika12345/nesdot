@@ -1,14 +1,13 @@
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  Badge,
-  FieldLabel,
-  PanelHeaderRow,
-  ToolButton,
-} from "../../../../../App.styles";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
+import { getRegionStatusLabel } from "../../../logic/decomposition/decompositionRegionRules";
 import {
   useCharacterModeDecompositionCanvas,
   useCharacterModeDecompositionRegions,
@@ -19,7 +18,6 @@ import {
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "../../core/CharacterModeStateProvider";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import {
   CharacterStageViewport,
   DecompositionCanvasElement,
@@ -32,7 +30,6 @@ import {
   ViewportCenterWrap,
 } from "../../primitives/CharacterModePrimitives";
 import { CharacterModeDecompositionToolOverlay } from "../CharacterModeDecompositionToolOverlay";
-import { getRegionStatusLabel } from "../../../logic/decomposition/decompositionRegionRules";
 
 /**
  * 分解モードのプレビューキャンバス全体を描画します。
@@ -51,12 +48,21 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
   return (
     <StageEditorCard flex={1} minWidth={0}>
       <PreviewHeaderLayout>
-        <PanelHeaderRow>
-          <FieldLabel>分解キャンバス</FieldLabel>
-          <Badge tone="accent">
-            {`${decompositionRegions.decompositionRegions.length} regions`}
-          </Badge>
-        </PanelHeaderRow>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1.5}
+          useFlexGap
+          flexWrap="wrap"
+        >
+          <Typography variant="body2">分解キャンバス</Typography>
+          <Chip
+            size="small"
+            color="primary"
+            label={`${decompositionRegions.decompositionRegions.length} regions`}
+          />
+        </Stack>
 
         <PreviewControlsRow>
           <StageInputContainer>
@@ -89,13 +95,27 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
               }
             />
           </StageInputContainer>
-          <Badge tone="neutral">{`${stageZoom.stageZoomLevel}x`}</Badge>
-          <ToolButton type="button" onClick={stageZoom.handleZoomOut}>
+          <Chip
+            size="small"
+            variant="outlined"
+            label={`${stageZoom.stageZoomLevel}x`}
+          />
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            onClick={stageZoom.handleZoomOut}
+          >
             -
-          </ToolButton>
-          <ToolButton type="button" onClick={stageZoom.handleZoomIn}>
+          </Button>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            onClick={stageZoom.handleZoomIn}
+          >
             +
-          </ToolButton>
+          </Button>
         </PreviewControlsRow>
       </PreviewHeaderLayout>
 
@@ -199,12 +219,16 @@ export const CharacterModeDecomposePreviewCanvas: React.FC = () => {
                       justifyContent="space-between"
                       spacing={0}
                     >
-                      <Badge tone={hasIssues ? "danger" : "accent"}>
-                        {`#${regionIndex}`}
-                      </Badge>
-                      <Badge tone={hasIssues ? "danger" : "neutral"}>
-                        {getRegionStatusLabel(regionAnalysis)}
-                      </Badge>
+                      <Chip
+                        size="small"
+                        color={hasIssues ? "error" : "primary"}
+                        label={`#${regionIndex}`}
+                      />
+                      <Chip
+                        size="small"
+                        color={hasIssues ? "error" : "default"}
+                        label={getRegionStatusLabel(regionAnalysis)}
+                      />
                     </Stack>
                   </RegionOverlayButton>
                 );

@@ -1,36 +1,26 @@
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import OutlinedInput from "@mui/material/OutlinedInput";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  Badge,
-  DetailList,
-  DetailRow,
-  Field,
-  FieldLabel,
-  ToolButton,
-} from "../../../../../App.styles";
-import {
-  CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME,
-} from "../../../../../styleClassNames";
-import {
-  useCharacterModeDecompositionOverview,
-  useCharacterModeSelectedRegion,
-} from "../../core/CharacterModeStateProvider";
+import { INSPECTOR_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import {
   getIssueLabel,
   getRegionStatusLabel,
 } from "../../../logic/decomposition/decompositionRegionRules";
+import {
+  useCharacterModeDecompositionOverview,
+  useCharacterModeSelectedRegion,
+} from "../../core/CharacterModeStateProvider";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
-import { INSPECTOR_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../../primitives/CharacterModePrimitives";
 
@@ -62,15 +52,10 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
         p="1rem"
         useFlexGap
       >
-        <div>
-          <FieldLabel>選択中の領域</FieldLabel>
-        </div>
+        <Typography variant="body2">選択中の領域</Typography>
 
-        <div
-          className={CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_ROOT_CLASS_NAME}
-        >
+        <Paper variant="outlined" style={{ borderRadius: "1.125rem" }}>
           <Stack
-            className={CHARACTER_SELECTED_REGION_PREVIEW_SURFACE_CLASS_NAME}
             minHeight="6.75rem"
             alignItems="center"
             justifyContent="center"
@@ -83,51 +68,86 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
               )}
             />
           </Stack>
-        </div>
+        </Paper>
 
-        <DetailList>
-          <DetailRow>
-            <FieldLabel>領域数</FieldLabel>
-            <Badge tone="accent">
-              {decompositionOverview.decompositionAnalysis.regions.length}
-            </Badge>
-          </DetailRow>
-          <DetailRow>
-            <FieldLabel>有効 / 無効</FieldLabel>
-            <Badge
-              tone={
-                decompositionOverview.decompositionInvalidRegionCount > 0
-                  ? "danger"
-                  : "neutral"
-              }
+        <Stack spacing={0.75}>
+          <Paper variant="outlined">
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+              padding={1.5}
+              useFlexGap
             >
-              {`${decompositionOverview.decompositionValidRegionCount} / ${decompositionOverview.decompositionInvalidRegionCount}`}
-            </Badge>
-          </DetailRow>
-          <DetailRow>
-            <FieldLabel>再利用 / 新規</FieldLabel>
-            <Badge tone="neutral">
-              {`${decompositionOverview.decompositionAnalysis.reusableSpriteCount} / ${decompositionOverview.decompositionAnalysis.requiredNewSpriteCount}`}
-            </Badge>
-          </DetailRow>
-        </DetailList>
+              <Typography variant="body2" color="text.secondary">
+                領域数
+              </Typography>
+              <Chip
+                size="small"
+                color="primary"
+                label={
+                  decompositionOverview.decompositionAnalysis.regions.length
+                }
+              />
+            </Stack>
+          </Paper>
+          <Paper variant="outlined">
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+              padding={1.5}
+              useFlexGap
+            >
+              <Typography variant="body2" color="text.secondary">
+                有効 / 無効
+              </Typography>
+              <Chip
+                size="small"
+                color={
+                  decompositionOverview.decompositionInvalidRegionCount > 0
+                    ? "error"
+                    : "default"
+                }
+                label={`${decompositionOverview.decompositionValidRegionCount} / ${decompositionOverview.decompositionInvalidRegionCount}`}
+              />
+            </Stack>
+          </Paper>
+          <Paper variant="outlined">
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+              padding={1.5}
+              useFlexGap
+            >
+              <Typography variant="body2" color="text.secondary">
+                再利用 / 新規
+              </Typography>
+              <Chip
+                size="small"
+                label={`${decompositionOverview.decompositionAnalysis.reusableSpriteCount} / ${decompositionOverview.decompositionAnalysis.requiredNewSpriteCount}`}
+              />
+            </Stack>
+          </Paper>
+        </Stack>
 
         {pipe(
           selectedRegion.selectedRegionAnalysis,
           O.match(
             () => <></>,
             (regionAnalysis) => (
-              <Stack
-                className={
-                  CHARACTER_SELECTED_REGION_INSPECTOR_SECTION_CLASS_NAME
-                }
-                spacing={1.25}
-                useFlexGap
-              >
+              <Stack spacing={1.25} useFlexGap>
                 <SelectedRegionFieldGrid>
-                  <Field>
-                    <FieldLabel>x</FieldLabel>
+                  <Stack component="label" spacing={0.5}>
+                    <Typography variant="caption" color="text.secondary">
+                      x
+                    </Typography>
                     <OutlinedInput
+                      size="small"
                       type="number"
                       value={regionAnalysis.region.x}
                       readOnly
@@ -135,10 +155,13 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                         "aria-label": "選択中領域X座標",
                       }}
                     />
-                  </Field>
-                  <Field>
-                    <FieldLabel>y</FieldLabel>
+                  </Stack>
+                  <Stack component="label" spacing={0.5}>
+                    <Typography variant="caption" color="text.secondary">
+                      y
+                    </Typography>
                     <OutlinedInput
+                      size="small"
                       type="number"
                       value={regionAnalysis.region.y}
                       readOnly
@@ -146,42 +169,69 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                         "aria-label": "選択中領域Y座標",
                       }}
                     />
-                  </Field>
+                  </Stack>
                 </SelectedRegionFieldGrid>
 
-                <DetailList>
-                  <DetailRow>
-                    <FieldLabel>状態</FieldLabel>
-                    <Badge
-                      tone={
-                        regionAnalysis.issues.length > 0 ? "danger" : "accent"
-                      }
+                <Stack spacing={0.75}>
+                  <Paper variant="outlined">
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      spacing={1}
+                      padding={1.5}
+                      useFlexGap
                     >
-                      {getRegionStatusLabel(regionAnalysis)}
-                    </Badge>
-                  </DetailRow>
-                  <DetailRow>
-                    <FieldLabel>issues</FieldLabel>
-                    <Badge
-                      tone={
-                        regionAnalysis.issues.length > 0 ? "danger" : "neutral"
-                      }
+                      <Typography variant="body2" color="text.secondary">
+                        状態
+                      </Typography>
+                      <Chip
+                        size="small"
+                        color={
+                          regionAnalysis.issues.length > 0 ? "error" : "primary"
+                        }
+                        label={getRegionStatusLabel(regionAnalysis)}
+                      />
+                    </Stack>
+                  </Paper>
+                  <Paper variant="outlined">
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      spacing={1}
+                      padding={1.5}
+                      useFlexGap
                     >
-                      {regionAnalysis.issues.length > 0
-                        ? regionAnalysis.issues.map(getIssueLabel).join(", ")
-                        : "none"}
-                    </Badge>
-                  </DetailRow>
-                </DetailList>
+                      <Typography variant="body2" color="text.secondary">
+                        issues
+                      </Typography>
+                      <Chip
+                        size="small"
+                        color={
+                          regionAnalysis.issues.length > 0 ? "error" : "default"
+                        }
+                        label={
+                          regionAnalysis.issues.length > 0
+                            ? regionAnalysis.issues
+                                .map(getIssueLabel)
+                                .join(", ")
+                            : "none"
+                        }
+                      />
+                    </Stack>
+                  </Paper>
+                </Stack>
               </Stack>
             ),
           ),
         )}
 
-        <ToolButton
-          className={CHARACTER_SELECTED_REGION_WIDE_TOOL_BUTTON_CLASS_NAME}
+        <Button
           type="button"
-          tone="primary"
+          fullWidth
+          size="small"
+          variant="contained"
           disabled={
             O.isNone(decompositionOverview.activeSet) ||
             decompositionOverview.decompositionAnalysis.regions.length === 0 ||
@@ -190,7 +240,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           onClick={handleApplyDecomposition}
         >
           分解して現在のセットへ反映
-        </ToolButton>
+        </Button>
       </CharacterModeEditorCard>
 
       <Dialog
@@ -205,9 +255,9 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
         </DialogTitle>
         <DialogContent>分解結果を現在のセットへ反映しました。</DialogContent>
         <DialogActions>
-          <ToolButton type="button" onClick={handleCloseApplyFeedbackDialog}>
+          <Button type="button" onClick={handleCloseApplyFeedbackDialog}>
             閉じる
-          </ToolButton>
+          </Button>
         </DialogActions>
       </Dialog>
     </>

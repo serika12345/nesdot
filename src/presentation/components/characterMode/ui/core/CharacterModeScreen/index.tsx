@@ -1,7 +1,7 @@
 import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Panel } from "../../../../../App.styles";
+import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -52,7 +52,16 @@ export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
   }, [onFileMenuStateChange]);
 
   return (
-    <Panel flex={1} minHeight={0} height="100%">
+    <Stack
+      component="div"
+      className={APP_PANEL_CLASS_NAME}
+      flex={1}
+      minHeight={0}
+      height="100%"
+      spacing="0.875rem"
+      p="1.125rem"
+      useFlexGap
+    >
       <CharacterWorkspaceRoot
         flex={1}
         onPointerDownCapture={workspaceEvents.handleWorkspacePointerDownCapture}
@@ -98,6 +107,6 @@ export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
         <CharacterModeSpriteMenu />
         <CharacterModeDecompositionRegionMenu />
       </CharacterWorkspaceRoot>
-    </Panel>
+    </Stack>
   );
 };

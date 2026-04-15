@@ -1,7 +1,7 @@
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
-  CHARACTER_EDITOR_CARD_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
   mergeClassNames,
 } from "../../../../../styleClassNames";
 
@@ -18,7 +18,7 @@ export const CharacterModeEditorCard = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_EDITOR_CARD_CLASS_NAME,
+        APP_PANEL_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
     />

@@ -1,3 +1,8 @@
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -5,21 +10,14 @@ import React from "react";
 import { useProjectState } from "../../../../../../application/state/projectStore";
 import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
 import { createEmptyBackgroundTile } from "../../../../../../domain/project/projectV2";
-import {
-  Badge,
-  DetailKey,
-  DetailRow,
-  DetailValue,
-  Panel,
-  Spacer,
-  ToolButton,
-} from "../../../../../App.styles";
+import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
 } from "../../../../common/logic/state/fileMenuState";
-import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
+import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
 import type { ScreenModeState } from "../../../logic/useScreenModeState";
+import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
 import { ScreenModeBackgroundPlacementMockOverlay } from "../../overlays/ScreenModeBackgroundPlacementMockOverlay";
 import {
   WarningList,
@@ -27,7 +25,6 @@ import {
   ZoomControlsRow,
 } from "../../primitives/ScreenModePrimitives";
 import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace";
-import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
 
 interface ScreenModeWorkspacePanelProps {
   screenMode: ScreenModeState;
@@ -152,11 +149,16 @@ export const ScreenModeWorkspacePanel: React.FC<
       : {};
 
   return (
-    <Panel
+    <Stack
+      component="div"
+      className={APP_PANEL_CLASS_NAME}
       flex={1}
       minHeight={0}
       role="region"
       aria-label="スクリーン配置ジェスチャーワークスペース"
+      spacing="0.875rem"
+      p="1.125rem"
+      useFlexGap
       onContextMenuCapture={handleWorkspaceContextMenuCapture}
       onPointerDownCapture={handleWorkspacePointerDownCapture}
       onPointerMoveCapture={handleWorkspacePointerMoveCapture}
@@ -164,52 +166,70 @@ export const ScreenModeWorkspacePanel: React.FC<
       onPointerCancelCapture={handleWorkspacePointerEndCapture}
     >
       <ZoomControlsRow>
-        <Badge tone="neutral">{`${screenZoomLevel}x`}</Badge>
-        <ToolButton
+        <Chip size="small" variant="outlined" label={`${screenZoomLevel}x`} />
+        <Button
           type="button"
+          size="small"
+          variant="outlined"
           aria-label="画面ズーム縮小"
           onClick={handleZoomOut}
         >
           -
-        </ToolButton>
-        <ToolButton
+        </Button>
+        <Button
           type="button"
+          size="small"
+          variant="outlined"
           aria-label="画面ズーム拡大"
           onClick={handleZoomIn}
         >
           +
-        </ToolButton>
-        <Badge tone="neutral">{`${screen.sprites.length} sprites`}</Badge>
-        <Badge tone="accent">{`${gestureSelectedSpriteCount} selected`}</Badge>
-        <Spacer />
+        </Button>
+        <Chip
+          size="small"
+          variant="outlined"
+          label={`${screen.sprites.length} sprites`}
+        />
+        <Chip
+          size="small"
+          color="primary"
+          label={`${gestureSelectedSpriteCount} selected`}
+        />
+        <Box flex="1 1 auto" minWidth="0.75rem" />
         <WorkspaceHeaderActionCluster>
-          <ToolButton
+          <Button
             type="button"
+            size="small"
+            variant="contained"
             aria-label="BGタイル追加"
             onClick={backgroundEditingState.openTilePicker}
           >
             BGタイル追加
-          </ToolButton>
-          <ToolButton
+          </Button>
+          <Button
             type="button"
-            active={isSpriteOutlineVisible}
+            size="small"
+            variant={isSpriteOutlineVisible === true ? "contained" : "outlined"}
             aria-label="スプライト外枠表示切り替え"
+            aria-pressed={isSpriteOutlineVisible}
             onClick={() =>
               setIsSpriteOutlineVisible((previous) => previous === false)
             }
           >
             外枠
-          </ToolButton>
-          <ToolButton
+          </Button>
+          <Button
             type="button"
-            active={isSpriteIndexVisible}
+            size="small"
+            variant={isSpriteIndexVisible === true ? "contained" : "outlined"}
             aria-label="スプライト番号表示切り替え"
+            aria-pressed={isSpriteIndexVisible}
             onClick={() =>
               setIsSpriteIndexVisible((previous) => previous === false)
             }
           >
             #表示
-          </ToolButton>
+          </Button>
         </WorkspaceHeaderActionCluster>
       </ZoomControlsRow>
 
@@ -231,15 +251,23 @@ export const ScreenModeWorkspacePanel: React.FC<
       {scanReport.ok === false ? (
         <WarningList>
           {scanReport.errors.map((error) => (
-            <DetailRow key={error}>
-              <DetailKey>警告</DetailKey>
-              <DetailValue>{error}</DetailValue>
-            </DetailRow>
+            <Stack
+              key={error}
+              direction="row"
+              alignItems="flex-start"
+              justifyContent="space-between"
+              spacing={1}
+            >
+              <Typography variant="body2" color="text.secondary">
+                警告
+              </Typography>
+              <Typography variant="body2">{error}</Typography>
+            </Stack>
           ))}
         </WarningList>
       ) : (
         <></>
       )}
-    </Panel>
+    </Stack>
   );
 };

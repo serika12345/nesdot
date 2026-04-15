@@ -1,9 +1,6 @@
+import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import React from "react";
-import {
-  CHARACTER_SIDEBAR_CLASS_NAME,
-  mergeClassNames,
-} from "../../../../../styleClassNames";
 import { CharacterModeSidebarLibrary } from "../CharacterModeSidebarLibrary";
 
 interface CharacterModeSidebarProps {
@@ -17,9 +14,10 @@ interface CharacterModeSidebarProps {
 export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   children,
 }) => {
+  const sidebarSections = React.Children.toArray(children);
+
   return (
     <Stack
-      className={mergeClassNames(CHARACTER_SIDEBAR_CLASS_NAME)}
       role="complementary"
       aria-label="キャラクター編集サイドバー"
       height="100%"
@@ -29,8 +27,14 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
       overflow="auto"
       pr="0.25rem"
     >
-      {children}
-      <CharacterModeSidebarLibrary />
+      {sidebarSections.map((child, index) => (
+        <Box key={`sidebar-section-${index}`} flexShrink={0} minWidth={0}>
+          {child}
+        </Box>
+      ))}
+      <Box flexShrink={0} minWidth={0}>
+        <CharacterModeSidebarLibrary />
+      </Box>
     </Stack>
   );
 };

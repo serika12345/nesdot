@@ -1,12 +1,11 @@
+import Button from "@mui/material/Button";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { ToolButton } from "../../../../../App.styles";
 import {
   useCharacterModeEditorModeSetting,
   useCharacterModeSetSelection,
 } from "../../core/CharacterModeStateProvider";
 import { SidebarToggleGrid } from "../../primitives/CharacterModePrimitives";
-import { fullWidthStyle } from "./styles";
 
 /**
  * 編集モード切り替えカードです。
@@ -18,26 +17,30 @@ export const CharacterModeSidebarEditorModeCard: React.FC = () => {
 
   return (
     <SidebarToggleGrid>
-      <ToolButton
+      <Button
         type="button"
         aria-label="編集モード 合成"
-        active={editorMode.editorMode === "compose"}
-        style={fullWidthStyle}
+        fullWidth
+        size="small"
         disabled={isDisabled}
+        variant={editorMode.editorMode === "compose" ? "contained" : "outlined"}
         onClick={() => editorMode.handleEditorModeChange("compose")}
       >
         合成
-      </ToolButton>
-      <ToolButton
+      </Button>
+      <Button
         type="button"
         aria-label="編集モード 分解"
-        active={editorMode.editorMode === "decompose"}
-        style={fullWidthStyle}
+        fullWidth
+        size="small"
         disabled={isDisabled}
+        variant={
+          editorMode.editorMode === "decompose" ? "contained" : "outlined"
+        }
         onClick={() => editorMode.handleEditorModeChange("decompose")}
       >
         分解
-      </ToolButton>
+      </Button>
     </SidebarToggleGrid>
   );
 };
