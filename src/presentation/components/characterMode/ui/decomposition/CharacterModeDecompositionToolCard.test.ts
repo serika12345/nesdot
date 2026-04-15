@@ -43,7 +43,7 @@ describe("CharacterModeDecompositionToolCard", () => {
     });
   });
 
-  it("renders decomposition controls without App.styles wrapper tokens", () => {
+  it("renders decomposition controls without legacy wrapper tokens", () => {
     const markup = renderToStaticMarkup(
       React.createElement(CharacterModeDecompositionToolCard),
     );

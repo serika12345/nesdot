@@ -12,7 +12,7 @@ The target state is:
 
 - MUI components are used directly for ordinary UI building blocks.
 - The theme is reduced to a thin Material configuration layer.
-- `App.styles.tsx`, `styleClassNames.ts`, and most class-based `MuiCssBaseline` skins are removed.
+- The legacy wrapper module is removed, and `styleClassNames.ts` plus most class-based `MuiCssBaseline` skins are reduced aggressively.
 - App-specific visuals remain only where MUI has no meaningful stock equivalent.
 
 ## Hard Constraints
@@ -52,17 +52,14 @@ The migration is not a redesign. The goal is to remove the custom design system 
 | File                                  | Role                                                                         |       Size |
 | ------------------------------------- | ---------------------------------------------------------------------------- | ---------: |
 | `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 1097 lines |
-| `src/presentation/App.styles.tsx`     | Wrapper primitives that attach classes and `data-*` states                   |  490 lines |
 | `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  167 lines |
 
 ### Spread of the Custom Layer
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `App.styles`                                |    22 |
 | Files importing `styleClassNames`                           |    18 |
 | `styles.ts` modules under `src/presentation/components`     |    19 |
-| `App.styles.tsx` exported symbols                           |    28 |
 | `styleClassNames.ts` exported constants                     |   106 |
 | Theme class selector lines in `theme.ts`                    |    89 |
 | Theme `data-*` selector lines in `theme.ts`                 |    44 |
@@ -107,7 +104,7 @@ This is the main custom design system layer to remove.
 
 ### 2. Wrapper Primitive Layer
 
-`src/presentation/App.styles.tsx` wraps MUI primitives and plain elements to attach:
+The removed legacy wrapper module used to wrap MUI primitives and plain elements to attach:
 
 - custom class names
 - repository-specific `data-*` states
@@ -147,7 +144,7 @@ These areas depend on the current class-based skin and should follow after the f
 | ------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | Screen mode primitives    | `src/presentation/components/screenMode/ui/primitives/ScreenModePrimitives/index.tsx`       | Depends on custom class tokens and theme selectors |
 | Character mode primitives | `src/presentation/components/characterMode/ui/primitives/CharacterModePrimitives/index.tsx` | Heavy custom state/class mapping                   |
-| App shell wrappers        | `src/presentation/App.tsx`, `src/presentation/App.styles.tsx`                               | Must collapse once direct MUI usage is in place    |
+| App shell wrappers        | `src/presentation/App.tsx`                                                                  | Continue collapsing remaining shared class tokens  |
 
 ### Keep Custom
 
@@ -161,13 +158,13 @@ These should stay custom even after the design system layer is removed.
 
 ## Existing Tests That Lock the Custom Layer
 
-The following tests assert custom wrappers, class tokens, and state attribute behavior:
+The following tests still assert custom class tokens, layout primitives, and state attribute behavior:
 
-- `src/presentation/App.styles.test.tsx`
 - `src/presentation/CharacterModePrimitives.styles.test.tsx`
 - `src/presentation/ScreenModeBackgroundPlacementMockOverlay.styles.test.tsx`
+- `src/presentation/components/screenMode/ui/primitives/ScreenModePrimitives.test.ts`
 
-These tests are expected to change or disappear as the repo moves away from custom wrapper primitives.
+These tests are expected to keep shrinking as the repo moves away from class-token plumbing.
 
 ## Implementation Order
 
@@ -182,10 +179,9 @@ Make the style engine decision explicit.
 
 Do not add new imports from:
 
-- `src/presentation/App.styles.tsx`
 - `src/presentation/styleClassNames.ts`
 
-New work should prefer direct MUI components unless the UI is editor-specific.
+New work should prefer direct MUI components unless the UI is editor-specific, and should not reintroduce wrapper abstractions.
 
 ### Phase 2: Convert Low-Risk Screens
 
@@ -199,10 +195,9 @@ Start with areas that are already near stock MUI:
 
 Once direct MUI usage is established in enough files:
 
-1. remove unused exports from `App.styles.tsx`
-2. delete corresponding class tokens from `styleClassNames.ts`
-3. remove matching selectors from `theme.ts`
-4. delete or rewrite tests that only assert wrapper/class plumbing
+1. delete corresponding class tokens from `styleClassNames.ts`
+2. remove matching selectors from `theme.ts`
+3. delete or rewrite tests that only assert wrapper/class plumbing
 
 ### Phase 4: Thin the Theme
 
@@ -218,7 +213,7 @@ Delete repo-specific class skin rules from `MuiCssBaseline.styleOverrides` as ea
 ## Ready-to-Implement Checklist
 
 - [ ] Style engine path is fixed and documented for the migration
-- [ ] No new feature code adds `App.styles` or `styleClassNames` dependencies
+- [ ] No new feature code adds `styleClassNames` dependencies or revives wrapper components
 - [ ] First-wave target files are selected
 - [ ] Custom-layer tests that will be rewritten are identified up front
 - [ ] Verification plan is agreed before the first code patch

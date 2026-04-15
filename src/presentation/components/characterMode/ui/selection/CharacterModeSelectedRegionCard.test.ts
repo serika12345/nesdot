@@ -87,7 +87,7 @@ describe("CharacterModeSelectedRegionCard", () => {
     });
   });
 
-  it("renders the selected-region inspector without App.styles wrapper tokens", () => {
+  it("renders the selected-region inspector without legacy wrapper tokens", () => {
     const markup = renderToStaticMarkup(
       React.createElement(CharacterModeSelectedRegionCard),
     );

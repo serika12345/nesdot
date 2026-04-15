@@ -45,7 +45,7 @@ describe("CharacterModeSidebarLibrary", () => {
     });
   });
 
-  it("renders the library without App.styles field or badge wrappers", () => {
+  it("renders the library without legacy field or badge wrappers", () => {
     const markup = renderToStaticMarkup(
       React.createElement(CharacterModeSidebarLibrary),
     );
