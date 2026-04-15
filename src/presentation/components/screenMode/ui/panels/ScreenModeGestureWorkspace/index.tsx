@@ -1,4 +1,5 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -7,13 +8,10 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
-  Badge,
-  CollapseToggle,
-  FieldLabel,
-  HelperText,
-  PanelHeaderRow,
-} from "../../../../../App.styles";
-import {
+  APP_FIELD_LABEL_CLASS_NAME,
+  APP_HELPER_TEXT_CLASS_NAME,
+  BADGE_CLASS_NAME,
+  COLLAPSE_TOGGLE_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
   SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
   SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME,
@@ -48,6 +46,10 @@ import {
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
+
+const toBadgeToneDataValue = (
+  value: "accent" | "neutral",
+): "accent" | "neutral" => value;
 
 const resolveMenuPosition = (
   menuClientX: number,
@@ -332,9 +334,9 @@ export const ScreenModeGestureWorkspace: React.FC<
 
   return (
     <>
-      <HelperText mt={0.25}>
+      <Box component="p" className={APP_HELPER_TEXT_CLASS_NAME} m={0} mt={0.25}>
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
-      </HelperText>
+      </Box>
 
       <Stack
         useFlexGap
@@ -368,12 +370,22 @@ export const ScreenModeGestureWorkspace: React.FC<
             role="region"
             aria-label="スクリーン配置スプライトライブラリ"
           >
-            <PanelHeaderRow alignItems="center">
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing="0.75rem"
+              flexWrap="wrap"
+              useFlexGap
+            >
               <Stack direction="row" spacing="0.75rem" alignItems="center">
-                <FieldLabel>スプライトプレビュー</FieldLabel>
-                <CollapseToggle
+                <Box component="span" className={APP_FIELD_LABEL_CLASS_NAME}>
+                  スプライトプレビュー
+                </Box>
+                <ButtonBase
                   type="button"
-                  open={isSpriteLibraryOpen}
+                  className={COLLAPSE_TOGGLE_CLASS_NAME}
+                  data-open={toBooleanDataValue(isSpriteLibraryOpen)}
                   aria-expanded={isSpriteLibraryOpen}
                   aria-controls={spriteLibraryContentId}
                   aria-label={
@@ -389,9 +401,9 @@ export const ScreenModeGestureWorkspace: React.FC<
                   <ExpandMoreRoundedIcon
                     style={collapseChevronStyle(isSpriteLibraryOpen)}
                   />
-                </CollapseToggle>
+                </ButtonBase>
               </Stack>
-            </PanelHeaderRow>
+            </Stack>
 
             <LibrarySectionContent
               id={spriteLibraryContentId}
@@ -433,7 +445,12 @@ export const ScreenModeGestureWorkspace: React.FC<
                         <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                           {`Sprite ${spriteIndex}`}
                         </span>
-                        <Badge tone="accent">{`${sprite.width}×${sprite.height}`}</Badge>
+                        <span
+                          className={BADGE_CLASS_NAME}
+                          data-tone={toBadgeToneDataValue("accent")}
+                        >
+                          {`${sprite.width}×${sprite.height}`}
+                        </span>
                       </Stack>
                     </ButtonBase>
                   ))}
@@ -443,6 +460,7 @@ export const ScreenModeGestureWorkspace: React.FC<
           </Stack>
 
           <Stack
+            className={SCREEN_LIBRARY_SECTION_CLASS_NAME}
             position="relative"
             flexShrink={0}
             overflow="hidden"
@@ -453,13 +471,28 @@ export const ScreenModeGestureWorkspace: React.FC<
             role="region"
             aria-label="スクリーン配置キャラクターライブラリ"
           >
-            <PanelHeaderRow alignItems="center">
-              <FieldLabel>キャラクタープレビュー</FieldLabel>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing="0.75rem"
+              flexWrap="wrap"
+              useFlexGap
+            >
+              <Box component="span" className={APP_FIELD_LABEL_CLASS_NAME}>
+                キャラクタープレビュー
+              </Box>
               <Stack direction="row" spacing="0.5rem" alignItems="center">
-                <Badge tone="neutral">{`${characterPreviewCards.length} sets`}</Badge>
-                <CollapseToggle
+                <span
+                  className={BADGE_CLASS_NAME}
+                  data-tone={toBadgeToneDataValue("neutral")}
+                >
+                  {`${characterPreviewCards.length} sets`}
+                </span>
+                <ButtonBase
                   type="button"
-                  open={isCharacterLibraryOpen}
+                  className={COLLAPSE_TOGGLE_CLASS_NAME}
+                  data-open={toBooleanDataValue(isCharacterLibraryOpen)}
                   aria-expanded={isCharacterLibraryOpen}
                   aria-controls={characterLibraryContentId}
                   aria-label={
@@ -475,9 +508,9 @@ export const ScreenModeGestureWorkspace: React.FC<
                   <ExpandMoreRoundedIcon
                     style={collapseChevronStyle(isCharacterLibraryOpen)}
                   />
-                </CollapseToggle>
+                </ButtonBase>
               </Stack>
-            </PanelHeaderRow>
+            </Stack>
 
             <LibrarySectionContent
               id={characterLibraryContentId}
@@ -530,16 +563,21 @@ export const ScreenModeGestureWorkspace: React.FC<
                           <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                             {characterCard.name}
                           </span>
-                          <Badge tone="accent">{`${characterCard.spriteCount} sprites`}</Badge>
+                          <span
+                            className={BADGE_CLASS_NAME}
+                            data-tone={toBadgeToneDataValue("accent")}
+                          >
+                            {`${characterCard.spriteCount} sprites`}
+                          </span>
                         </Stack>
                       </ButtonBase>
                     ))}
                   </CharacterLibraryGrid>
                 </div>
               ) : (
-                <HelperText>
+                <Box component="p" className={APP_HELPER_TEXT_CLASS_NAME} m={0}>
                   先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
-                </HelperText>
+                </Box>
               )}
             </LibrarySectionContent>
           </Stack>

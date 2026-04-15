@@ -1,5 +1,5 @@
+import Stack from "@mui/material/Stack";
 import React from "react";
-import { SplitLayout } from "../../../../../App.styles";
 import { type FileMenuState } from "../../../../common/logic/state/fileMenuState";
 import { SpriteModeCanvasPanel } from "../../panels/SpriteModeCanvasPanel";
 import { SpriteModeEditorPanel } from "../../panels/SpriteModeEditorPanel";
@@ -18,10 +18,17 @@ const SpriteModeComponent: React.FC<SpriteModeProps> = ({
 }) => {
   return (
     <SpriteModeStateProvider>
-      <SplitLayout flex={1} height="100%">
+      <Stack
+        useFlexGap
+        direction={{ xs: "column", lg: "row" }}
+        spacing="1rem"
+        minHeight={0}
+        flex={1}
+        height="100%"
+      >
         <SpriteModeEditorPanel />
         <SpriteModeCanvasPanel onFileMenuStateChange={onFileMenuStateChange} />
-      </SplitLayout>
+      </Stack>
     </SpriteModeStateProvider>
   );
 };

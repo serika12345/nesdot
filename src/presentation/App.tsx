@@ -1,3 +1,5 @@
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -11,30 +13,26 @@ import {
 } from "../application/state/undoHistory";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
-import {
-  Container,
-  LeftPane,
-  Panel,
-  PanelHeader,
-  PanelTitle,
-  RightPane,
-  ScrollArea,
-  WorkspaceGrid,
-} from "./App.styles";
 import { BgMode } from "./components/bgMode/ui/core/BgMode";
 import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
-import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
-import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
-import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
-import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
 } from "./components/common/logic/state/fileMenuState";
+import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
+import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
+import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
+import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
+import {
+  APP_CONTAINER_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
+  APP_PANEL_TITLE_CLASS_NAME,
+  APP_SCROLL_AREA_CLASS_NAME,
+} from "./styleClassNames";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -430,7 +428,13 @@ export const App: React.FC = () => {
         onUpdateNow={pwaUpdate.onUpdateNow}
       />
 
-      <Container spacing={{ xs: "0.75rem", md: "1rem" }}>
+      <Stack
+        component="div"
+        className={APP_CONTAINER_CLASS_NAME}
+        spacing={{ xs: "0.75rem", md: "1rem" }}
+        p={{ xs: "1rem", md: "1.5rem" }}
+        useFlexGap
+      >
         {isNativeMacMenu === true ? (
           <></>
         ) : (
@@ -443,21 +447,70 @@ export const App: React.FC = () => {
           />
         )}
 
-        <WorkspaceGrid flex={1} minHeight={0}>
-          <LeftPane>{mainPanel}</LeftPane>
+        <Stack
+          useFlexGap
+          direction={{ xs: "column", lg: "row" }}
+          spacing={{ xs: "1rem", xl: "1.25rem" }}
+          flex={1}
+          minHeight={0}
+          overflow={{ xs: "auto", lg: "visible" }}
+        >
+          <Stack
+            component="section"
+            flex={1}
+            height="100%"
+            minWidth={0}
+            minHeight={0}
+            overflow="hidden"
+            useFlexGap
+          >
+            {mainPanel}
+          </Stack>
 
-          <RightPane>
-            <Panel flex={1} minHeight={0}>
-              <PanelHeader>
-                <PanelTitle>NES パレット</PanelTitle>
-              </PanelHeader>
-              <ScrollArea flex={1} minHeight={0}>
+          <Stack
+            component="aside"
+            spacing="1rem"
+            width={{ xs: "100%", lg: "20rem", xl: "22.5rem" }}
+            flexShrink={0}
+            height="100%"
+            minHeight={{ xs: "auto", lg: 0 }}
+            overflow="hidden"
+            useFlexGap
+          >
+            <Stack
+              component="div"
+              className={APP_PANEL_CLASS_NAME}
+              spacing="0.875rem"
+              p="1.125rem"
+              flex={1}
+              minHeight={0}
+            >
+              <Stack
+                position="relative"
+                zIndex={1}
+                spacing="0.3125rem"
+                useFlexGap
+              >
+                <Box
+                  component="h2"
+                  className={APP_PANEL_TITLE_CLASS_NAME}
+                  m={0}
+                >
+                  NES パレット
+                </Box>
+              </Stack>
+              <Box
+                className={APP_SCROLL_AREA_CLASS_NAME}
+                flex={1}
+                minHeight={0}
+                overflow="auto"
+              >
                 <PalettePicker />
-              </ScrollArea>
-            </Panel>
-          </RightPane>
-        </WorkspaceGrid>
-      </Container>
+              </Box>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
     </>
   );
 };

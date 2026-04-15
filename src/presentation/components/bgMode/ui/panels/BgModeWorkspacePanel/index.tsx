@@ -1,19 +1,18 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
+import ButtonBase from "@mui/material/ButtonBase";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import React from "react";
 import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
 import {
-  CanvasViewport,
-  CollapseToggle,
-  Panel,
-  PanelHeader,
-  PanelTitle,
-  ScrollArea,
-  SplitLayout,
-  ToolButton,
-} from "../../../../../App.styles";
+  APP_CANVAS_VIEWPORT_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
+  APP_PANEL_TITLE_CLASS_NAME,
+  APP_SCROLL_AREA_CLASS_NAME,
+  COLLAPSE_TOGGLE_CLASS_NAME,
+  TOOL_BUTTON_CLASS_NAME,
+} from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -42,6 +41,46 @@ const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");
+
+const toBooleanDataValue = (value?: boolean): "true" | "false" =>
+  value === true ? "true" : "false";
+
+type BgModeToolButtonProps = React.ComponentProps<typeof ButtonBase> & {
+  active?: boolean;
+};
+
+const BgModeToolButton = React.forwardRef<
+  HTMLButtonElement,
+  BgModeToolButtonProps
+>(function BgModeToolButton({ active, className, ...props }, ref) {
+  return (
+    <ButtonBase
+      ref={ref}
+      {...props}
+      className={className}
+      data-active={toBooleanDataValue(active)}
+      data-tone="neutral"
+    />
+  );
+});
+
+type BgModeCollapseToggleProps = React.ComponentProps<typeof ButtonBase> & {
+  open?: boolean;
+};
+
+const BgModeCollapseToggle = React.forwardRef<
+  HTMLButtonElement,
+  BgModeCollapseToggleProps
+>(function BgModeCollapseToggle({ open, className, ...props }, ref) {
+  return (
+    <ButtonBase
+      ref={ref}
+      {...props}
+      className={className}
+      data-open={toBooleanDataValue(open)}
+    />
+  );
+});
 
 interface BgTileLibraryPreviewState {
   activePaletteIndex: BgPaletteIndex;
@@ -72,8 +111,9 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
     <Grid {...tileLibraryGridProps}>
       {tiles.map((tile, tileIndex) => (
         <Grid key={`bg-tile-preview-${tileIndex}`} size={1}>
-          <ToolButton
+          <BgModeToolButton
             type="button"
+            className={TOOL_BUTTON_CLASS_NAME}
             active={selectedTileIndex === tileIndex}
             aria-label={`#${formatTileNumber(tileIndex)}`}
             aria-pressed={selectedTileIndex === tileIndex}
@@ -94,7 +134,7 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
               />
               <span>{`#${formatTileNumber(tileIndex)}`}</span>
             </Stack>
-          </ToolButton>
+          </BgModeToolButton>
         </Grid>
       ))}
     </Grid>
@@ -161,41 +201,68 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
   }, [onFileMenuStateChange]);
 
   return (
-    <SplitLayout
+    <Stack
+      useFlexGap
+      direction={{ xs: "column", lg: "row" }}
+      spacing="1rem"
+      minHeight={0}
       flex={1}
       height="100%"
       role="region"
       aria-label="BG編集ワークスペース"
     >
-      <Panel
+      <Stack
+        component="div"
+        className={APP_PANEL_CLASS_NAME}
+        spacing="0.875rem"
+        p="1.125rem"
         role="region"
         aria-label="BGタイル一覧"
         flex="0 0 21rem"
         minHeight={0}
       >
-        <PanelHeader>
-          <PanelTitle>BG編集</PanelTitle>
-        </PanelHeader>
+        <Stack position="relative" zIndex={1} spacing="0.3125rem" useFlexGap>
+          <Box component="h2" className={APP_PANEL_TITLE_CLASS_NAME} m={0}>
+            BG編集
+          </Box>
+        </Stack>
 
-        <ScrollArea flex={1} minHeight={0}>
+        <Box
+          className={APP_SCROLL_AREA_CLASS_NAME}
+          flex={1}
+          minHeight={0}
+          overflow="auto"
+        >
           <BgTileLibrary
             onSelectTile={bgModeState.setSelectedTileIndex}
             previewState={tileLibraryPreviewState}
             selectedTileIndex={bgModeState.selectedTileIndex}
             tiles={deferredVisibleBackgroundTiles}
           />
-        </ScrollArea>
-      </Panel>
+        </Box>
+      </Stack>
 
-      <Panel aria-label="BGタイルエディター" flex={1} minHeight={0}>
-        <CanvasViewport
+      <Stack
+        component="div"
+        className={APP_PANEL_CLASS_NAME}
+        spacing="0.875rem"
+        p="1.125rem"
+        aria-label="BGタイルエディター"
+        flex={1}
+        minHeight={0}
+      >
+        <Box
+          className={APP_CANVAS_VIEWPORT_CLASS_NAME}
           flex={1}
           minHeight={0}
+          overflow="auto"
+          p="1.125rem"
           aria-label="BGタイル編集キャンバスビュー"
         >
           <Box {...canvasOverlayRootProps}>
-            <CollapseToggle
+            <BgModeCollapseToggle
               type="button"
+              className={COLLAPSE_TOGGLE_CLASS_NAME}
               open={bgModeState.isToolMenuOpen}
               aria-expanded={bgModeState.isToolMenuOpen}
               aria-controls="bg-mode-canvas-tool-menu"
@@ -213,13 +280,14 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
               <ExpandMoreRoundedIcon
                 style={chevronStyle(bgModeState.isToolMenuOpen)}
               />
-            </CollapseToggle>
+            </BgModeCollapseToggle>
 
             {bgModeState.isToolMenuOpen === true ? (
               <Stack {...canvasOverlayMenuProps} id="bg-mode-canvas-tool-menu">
                 <Stack {...mockToolbarProps}>
-                  <ToolButton
+                  <BgModeToolButton
                     type="button"
+                    className={TOOL_BUTTON_CLASS_NAME}
                     active={bgModeState.tool === "pen"}
                     aria-label="ペンツール"
                     aria-pressed={bgModeState.tool === "pen"}
@@ -228,9 +296,10 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                     }}
                   >
                     ペン
-                  </ToolButton>
-                  <ToolButton
+                  </BgModeToolButton>
+                  <BgModeToolButton
                     type="button"
+                    className={TOOL_BUTTON_CLASS_NAME}
                     active={bgModeState.tool === "eraser"}
                     aria-label="消しゴムツール"
                     aria-pressed={bgModeState.tool === "eraser"}
@@ -239,14 +308,15 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                     }}
                   >
                     消しゴム
-                  </ToolButton>
+                  </BgModeToolButton>
                 </Stack>
 
                 <Stack {...mockToolbarProps}>
                   {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-                    <ToolButton
+                    <BgModeToolButton
                       key={`bg-mode-palette-${paletteIndex}`}
                       type="button"
+                      className={TOOL_BUTTON_CLASS_NAME}
                       active={bgModeState.activePaletteIndex === paletteIndex}
                       aria-label={`BGパレット ${paletteIndex}`}
                       aria-pressed={
@@ -257,7 +327,7 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                       }}
                     >
                       {`Palette ${paletteIndex}`}
-                    </ToolButton>
+                    </BgModeToolButton>
                   ))}
                 </Stack>
               </Stack>
@@ -276,9 +346,9 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
               onPaintPixel={bgModeState.handlePaintPixel}
             />
           </Grid>
-        </CanvasViewport>
-      </Panel>
-    </SplitLayout>
+        </Box>
+      </Stack>
+    </Stack>
   );
 };
 

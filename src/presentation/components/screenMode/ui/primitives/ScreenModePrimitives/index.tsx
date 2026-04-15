@@ -6,11 +6,7 @@ import MaterialGrid, {
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
-  CanvasViewport,
-  DetailList,
-  PanelHeaderRow,
-} from "../../../../../App.styles";
-import {
+  APP_CANVAS_VIEWPORT_CLASS_NAME,
   SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
   SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
@@ -182,24 +178,28 @@ export const WorkspaceHeaderActionCluster = createStackLayout(
   },
 );
 
-export const ZoomControlsRow = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof PanelHeaderRow>
->(function ZoomControlsRow({ className, ...props }, ref) {
-  return (
-    <PanelHeaderRow
-      ref={ref}
-      {...props}
-      justifyContent="flex-start"
-      className={mergeClassNames(
-        SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
+export const ZoomControlsRow = React.forwardRef<HTMLDivElement, StackProps>(
+  function ZoomControlsRow({ className, ...props }, ref) {
+    return (
+      <Stack
+        ref={ref}
+        useFlexGap
+        {...props}
+        direction="row"
+        alignItems="center"
+        justifyContent="flex-start"
+        spacing="0.75rem"
+        flexWrap="wrap"
+        className={mergeClassNames(
+          SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
+          typeof className === "string" ? className : false,
+        )}
+      />
+    );
+  },
+);
 
-type PreviewViewportProps = React.ComponentProps<typeof CanvasViewport> & {
+type PreviewViewportProps = BoxProps & {
   active?: boolean;
 };
 
@@ -208,15 +208,17 @@ export const PreviewViewport = React.forwardRef<
   PreviewViewportProps
 >(function PreviewViewport({ active, className, ...props }, ref) {
   return (
-    <CanvasViewport
+    <Box
       ref={ref}
       data-active={active === true ? "true" : "false"}
       className={mergeClassNames(
+        APP_CANVAS_VIEWPORT_CLASS_NAME,
         SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       flex={1}
       minHeight={0}
+      overflow="auto"
       p="1.5rem"
       {...props}
     />
@@ -291,19 +293,22 @@ export const CharacterPreviewTiles = createStackLayout(
   },
 );
 
-export const WarningList = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<typeof DetailList>
->(function WarningList({ className, ...props }, ref) {
-  return (
-    <DetailList
-      ref={ref}
-      {...props}
-      flexShrink={0}
-      className={mergeClassNames(
-        SCREEN_WARNING_LIST_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
-    />
-  );
-});
+export const WarningList = React.forwardRef<HTMLDivElement, StackProps>(
+  function WarningList({ className, ...props }, ref) {
+    return (
+      <Stack
+        ref={ref}
+        useFlexGap
+        {...props}
+        flexShrink={0}
+        position="relative"
+        zIndex={1}
+        spacing="0.625rem"
+        className={mergeClassNames(
+          SCREEN_WARNING_LIST_CLASS_NAME,
+          typeof className === "string" ? className : false,
+        )}
+      />
+    );
+  },
+);

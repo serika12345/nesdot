@@ -1,16 +1,21 @@
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { CanvasViewport, Panel } from "../../../../../App.styles";
+import {
+  APP_CANVAS_VIEWPORT_CLASS_NAME,
+  APP_PANEL_CLASS_NAME,
+} from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
 } from "../../../../common/logic/state/fileMenuState";
 import { SpriteModeCanvasSurface } from "../../canvas/SpriteModeCanvasSurface";
-import { SpriteModePaletteSlots } from "../../forms/SpriteModePaletteSlots";
 import {
   useSpriteModePaletteSlots,
   useSpriteModeProjectActions,
 } from "../../core/SpriteModeStateProvider";
+import { SpriteModePaletteSlots } from "../../forms/SpriteModePaletteSlots";
 import { SpriteModeToolOverlay } from "../../overlay/SpriteModeToolOverlay";
 
 interface SpriteModeCanvasPanelProps {
@@ -49,7 +54,11 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
   }, [onFileMenuStateChange]);
 
   return (
-    <Panel
+    <Stack
+      component="div"
+      className={APP_PANEL_CLASS_NAME}
+      spacing="0.875rem"
+      p="1.125rem"
       role="region"
       aria-label="スプライトキャンバスパネル"
       flex={1}
@@ -62,10 +71,16 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
         onPaletteClick={paletteSlots.handlePaletteClick}
       />
 
-      <CanvasViewport flex={1} minHeight={0}>
+      <Box
+        className={APP_CANVAS_VIEWPORT_CLASS_NAME}
+        flex={1}
+        minHeight={0}
+        overflow="auto"
+        p="1.125rem"
+      >
         <SpriteModeToolOverlay />
         <SpriteModeCanvasSurface />
-      </CanvasViewport>
-    </Panel>
+      </Box>
+    </Stack>
   );
 };
