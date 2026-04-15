@@ -65,6 +65,10 @@ describe("security verification workflow", () => {
     expect(securityScript).toContain("freezePrototype");
     expect(securityScript).toContain("devCsp");
     expect(securityScript).toContain("no-eval");
+    expect(securityScript).toContain("style-src-elem");
+    expect(securityScript).toContain("style-src-attr");
+    expect(securityScript).toContain("checkInlineStyleAttributeBoundaries");
+    expect(securityScript).toContain("cssText");
 
     expect(tauriConfig).toContain('"freezePrototype": true');
     expect(tauriConfig).toContain('"csp": {');
@@ -72,7 +76,9 @@ describe("security verification workflow", () => {
     expect(tauriConfig).toContain('"default-src"');
     expect(tauriConfig).toContain('"connect-src"');
     expect(tauriConfig).toContain('"img-src"');
-    expect(tauriConfig).toContain('"style-src"');
+    expect(tauriConfig).toContain('"style-src": ["\'self\'"]');
+    expect(tauriConfig).toContain('"style-src-elem": ["\'self\'"]');
+    expect(tauriConfig).toContain('"style-src-attr": ["\'none\'"]');
     expect(tauriConfig).toContain('"X-Content-Type-Options": "nosniff"');
 
     expect(eslintConfig).toContain('"no-eval": "error"');

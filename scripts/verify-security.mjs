@@ -58,6 +58,25 @@ const requireDirectiveSources = (
   });
 };
 
+const forbidDirectiveSources = (
+  relativePath,
+  directives,
+  directiveName,
+  forbiddenSources,
+) => {
+  const availableSources = normalizeDirectiveSources(
+    directives?.[directiveName],
+  );
+
+  return forbiddenSources.flatMap((forbiddenSource) => {
+    return availableSources.includes(forbiddenSource)
+      ? [
+          `${relativePath} ${directiveName} must not include ${forbiddenSource}.`,
+        ]
+      : [];
+  });
+};
+
 const listFiles = (relativeDirectoryPath) => {
   return readdirSync(resolve(repoRoot, relativeDirectoryPath), {
     withFileTypes: true,
@@ -65,6 +84,12 @@ const listFiles = (relativeDirectoryPath) => {
     const relativePath = `${relativeDirectoryPath}/${entry.name}`;
 
     return entry.isDirectory() ? listFiles(relativePath) : [relativePath];
+  });
+};
+
+const listTypeScriptSourceFiles = () => {
+  return listFiles("src").filter((relativePath) => {
+    return relativePath.endsWith(".ts") || relativePath.endsWith(".tsx");
   });
 };
 
@@ -197,6 +222,20 @@ const checkTauriSecurityConfiguration = () => {
     .concat(
       requireDirectiveSources(relativePath, security.csp, "style-src", [
         "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "style-src-elem", [
+        "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.csp, "style-src-attr", [
+        "'none'",
+      ]),
+    )
+    .concat(
+      forbidDirectiveSources(relativePath, security.csp, "style-src", [
         "'unsafe-inline'",
       ]),
     )
@@ -217,6 +256,26 @@ const checkTauriSecurityConfiguration = () => {
     .concat(
       requireDirectiveSources(relativePath, security.csp, "object-src", [
         "'none'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.devCsp, "style-src", [
+        "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.devCsp, "style-src-elem", [
+        "'self'",
+      ]),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.devCsp, "style-src-attr", [
+        "'none'",
+      ]),
+    )
+    .concat(
+      forbidDirectiveSources(relativePath, security.devCsp, "style-src", [
+        "'unsafe-inline'",
       ]),
     )
     .concat(
@@ -290,10 +349,31 @@ const checkCveAuditIntegration = () => {
     );
 };
 
-const checkApplicationJsonBoundaries = () => {
-  const sourceFiles = listFiles("src").filter((relativePath) => {
-    return relativePath.endsWith(".ts") || relativePath.endsWith(".tsx");
+const checkInlineStyleAttributeBoundaries = () => {
+  const sourceFiles = listTypeScriptSourceFiles();
+  const forbiddenChecks = [
+    {
+      message:
+        "must not set style attributes directly while style-src-attr is disabled.",
+      pattern: /setAttribute\(\s*["']style["']/u,
+    },
+    {
+      message: "must not assign cssText while style-src-attr is disabled.",
+      pattern: /\.cssText\s*=/u,
+    },
+  ];
+
+  return sourceFiles.flatMap((relativePath) => {
+    const source = readTextFile(relativePath);
+
+    return forbiddenChecks.flatMap(({ message, pattern }) => {
+      return pattern.test(source) ? [`${relativePath} ${message}`] : [];
+    });
   });
+};
+
+const checkApplicationJsonBoundaries = () => {
+  const sourceFiles = listTypeScriptSourceFiles();
   const jsonParseFiles = sourceFiles.filter((relativePath) => {
     return readTextFile(relativePath).includes("JSON.parse(");
   });
@@ -336,6 +416,7 @@ const failures = checkSupplyChainPolicy().concat(
   checkUpdaterConfiguration(),
   checkTauriSecurityConfiguration(),
   checkDangerousApiLinting(),
+  checkInlineStyleAttributeBoundaries(),
   checkApplicationJsonBoundaries(),
   checkCveAuditIntegration(),
 );
