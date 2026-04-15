@@ -329,6 +329,14 @@ nix develop -c zsh -lc 'pnpm verify:system-libraries'
 nix develop -c zsh -lc 'pnpm verify:cve'
 ```
 
+CI 相当のフル検証をローカルで一発実行したい場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:ci'
+```
+
+このコマンドは `pnpm nix:check-pnpm-deps-hash`、`pnpm install --frozen-lockfile`、`pnpm verify`、`pnpm verify:licenses`、`pnpm verify:rust`、`pnpm e2e:install`、`pnpm verify:ui:console`、`pnpm verify:cve` を CI と同じ順序でまとめて実行します。
+
 UI 変更:
 
 ```sh
@@ -348,6 +356,7 @@ nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
 CI では通常の verify job に加えて `pnpm verify:licenses` と `pnpm verify:cve` を走らせ、新しい license 構成差分や advisory を pull request / push の段階で検出します。
+console E2E は `pnpm verify:ui` ではなく `pnpm verify:ui:console` を直接使い、base verify の二重実行を避けています。
 
 VS Code では `Terminal: Run Task` から `Verify Licenses`, `Verify Security`, `Verify System Libraries`, `Verify CVE`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
 `Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
