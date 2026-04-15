@@ -229,6 +229,22 @@ nix develop -c zsh -lc 'pnpm verify:security'
 
 この検証では、依存サプライチェーン設定、CI / release workflow の `--frozen-lockfile`、Tauri updater 設定、アプリ内の JSON 復元境界を機械的に確認します。
 
+### License Verification
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:licenses'
+```
+
+この license 検証では、Node / Rust dependency の GPL / LGPL / AGPL 系 license expression と、Linux 向け Tauri system library の reviewed baseline を独立に確認します。`verify:licenses` は `verify:security` に含めず、license 確認だけを分離して回せるようにしています。
+
+### System Library Verification
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:system-libraries'
+```
+
+この system library 確認では、`flake.nix` の `linuxBuildInputs` にある Linux 向け Tauri runtime / build 依存を対象に、lock された `nixpkgs` metadata から license を引いて reviewed baseline と照合します。現在の確認対象には `gtk3`、`libsoup_3`、`webkitgtk_4_1` などが含まれます。弱い copyleft を含む既知 system library は reviewed として一覧表示し、未審査 package の追加、license metadata の変更、強い copyleft の混入があれば失敗します。
+
 ### CVE Audit
 
 ```sh
@@ -295,6 +311,18 @@ nix develop -c zsh -lc 'pnpm verify'
 nix develop -c zsh -lc 'pnpm verify:security'
 ```
 
+依存ライセンス方針や Linux 向け Tauri の system library baseline を確認したい場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:licenses'
+```
+
+Linux 向け Tauri packaging / runtime の system library 構成を触った場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:system-libraries'
+```
+
 依存関係や toolchain の CVE 状況を確認したい場合:
 
 ```sh
@@ -319,9 +347,9 @@ nix develop -c zsh -lc 'pnpm verify:full'
 nix develop -c zsh -lc 'pnpm verify:rust'
 ```
 
-CI では通常の verify job に加えて `pnpm verify:cve` を走らせ、新しい advisory を pull request / push の段階で検出します。
+CI では通常の verify job に加えて `pnpm verify:licenses` と `pnpm verify:cve` を走らせ、新しい license 構成差分や advisory を pull request / push の段階で検出します。
 
-VS Code では `Terminal: Run Task` から `Verify Security`, `Verify CVE`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
+VS Code では `Terminal: Run Task` から `Verify Licenses`, `Verify Security`, `Verify System Libraries`, `Verify CVE`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
 `Run and Debug` では `Launch Frontend (Chrome, 1420)`、`Launch Tauri Desktop`、`Launch Tauri Desktop + Attach Frontend` を使い分けできます。
 Rust 側でブレークポイントを使う場合は、推奨拡張の `CodeLLDB` を入れたうえで `Launch Tauri Desktop` を使ってください。
 この起動は `Run Frontend Dev Server` と Rust デバッグ用ビルドを Nix dev shell 内で準備し、その後 VS Code から `src-tauri/target/debug/nesdot` を LLDB で起動します。

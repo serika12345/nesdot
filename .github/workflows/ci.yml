@@ -30,6 +30,9 @@ jobs:
       - name: Run base verification
         run: nix develop -c bash -lc 'pnpm install --frozen-lockfile && pnpm verify'
 
+      - name: Run license verification
+        run: nix develop -c bash -lc 'pnpm verify:licenses'
+
       - name: Run Rust verification
         run: nix develop -c bash -lc 'pnpm verify:rust'
 

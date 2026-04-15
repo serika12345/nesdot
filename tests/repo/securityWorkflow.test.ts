@@ -54,6 +54,8 @@ describe("security verification workflow", () => {
     expect(securityScript).toContain("blockExoticSubdeps: true");
     expect(securityScript).toContain("onlyBuiltDependencies:");
     expect(securityScript).toContain("pnpm install --frozen-lockfile");
+    expect(securityScript).not.toContain("pnpm licenses list --json");
+    expect(securityScript).not.toContain("cargo metadata");
     expect(securityScript).toContain(
       "src/infrastructure/browser/useImportImage.ts",
     );

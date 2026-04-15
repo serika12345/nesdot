@@ -45,6 +45,7 @@ describe("vscode tasks workflow", () => {
     const tasksJson = readTextFile("../../.vscode/tasks.json");
 
     expect(tasksJson).toContain('"Verify"');
+    expect(tasksJson).toContain('"Verify Licenses"');
     expect(tasksJson).toContain('"Verify UI"');
     expect(tasksJson).toContain('"Verify Full"');
     expect(tasksJson).toContain('"Verify Rust"');
@@ -53,6 +54,7 @@ describe("vscode tasks workflow", () => {
     expect(tasksJson).toContain('"Run Full E2E"');
     expect(tasksJson).toContain('"Format Check"');
     expect(tasksJson).toContain('"pnpm verify"');
+    expect(tasksJson).toContain('"pnpm verify:licenses"');
     expect(tasksJson).toContain('"pnpm verify:ui"');
     expect(tasksJson).toContain('"pnpm verify:full"');
     expect(tasksJson).toContain('"pnpm verify:rust"');
