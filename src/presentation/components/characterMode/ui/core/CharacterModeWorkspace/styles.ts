@@ -16,9 +16,10 @@ export const workspaceLockOverlayProps: BoxProps = {
   bottom: 0,
   left: 0,
   zIndex: 14,
-  display: "grid",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   style: {
-    placeItems: "center",
     borderRadius: "1.25rem",
     border: "0.0625rem solid rgba(148, 163, 184, 0.26)",
     background: "rgba(248, 250, 252, 0.76)",

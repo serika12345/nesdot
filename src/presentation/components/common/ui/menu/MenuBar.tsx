@@ -19,7 +19,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Stack from "@mui/material/Stack";
-import { useTheme } from "@mui/material/styles";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -48,7 +47,6 @@ import {
   MenuSubContentSurface,
   MenuSubTriggerAction,
   MenuTriggerAction,
-  menuRootStyle,
 } from "./styles";
 
 export type WorkMode = "screen" | "sprite" | "character" | "bg";
@@ -150,11 +148,6 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   onUndoSelect,
   onRedoSelect,
 }) => {
-  const theme = useTheme();
-  const menuRootInlineStyle = React.useMemo(
-    () => menuRootStyle(theme),
-    [theme],
-  );
   const appVersion = import.meta.env.VITE_APP_VERSION;
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const aboutDialogTitleId = React.useId();
@@ -206,11 +199,21 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   return (
-    <MenuBarSurface>
+    <MenuBarSurface
+      direction="row"
+      alignItems="center"
+      justifyContent="flex-start"
+    >
       <Stack minWidth={0}>
-        <Menubar.Root
+        <Stack
+          component={Menubar.Root}
+          direction="row"
+          alignItems="center"
+          spacing={0.25}
+          useFlexGap
+          width="max-content"
+          minWidth={0}
           aria-label="ファイル操作メニューバー"
-          style={menuRootInlineStyle}
         >
           <Menubar.Menu>
             <Menubar.Trigger asChild>
@@ -221,7 +224,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
             <Menubar.Portal>
               <Menubar.Content asChild align="start" sideOffset={6}>
-                <MenuContentSurface aria-label="作業モードメニュー">
+                <MenuContentSurface
+                  aria-label="作業モードメニュー"
+                  spacing={0.25}
+                  useFlexGap
+                >
                   {WORK_MODE_ITEMS.map((modeItem) => {
                     const isSelected = modeItem.value === editMode;
 
@@ -271,7 +278,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
             <Menubar.Portal>
               <Menubar.Content asChild align="start" sideOffset={6}>
-                <MenuContentSurface aria-label="編集メニュー">
+                <MenuContentSurface
+                  aria-label="編集メニュー"
+                  spacing={0.25}
+                  useFlexGap
+                >
                   <Menubar.Item asChild onSelect={onUndoSelect}>
                     <MenuItemAction>
                       <MenuItemContent>
@@ -321,7 +332,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
             <Menubar.Portal>
               <Menubar.Content asChild align="start" sideOffset={6}>
-                <MenuContentSurface aria-label="ファイルメニュー">
+                <MenuContentSurface
+                  aria-label="ファイルメニュー"
+                  spacing={0.25}
+                  useFlexGap
+                >
                   <Menubar.Sub>
                     <Menubar.SubTrigger
                       asChild
@@ -348,7 +363,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                         sideOffset={4}
                         alignOffset={-4}
                       >
-                        <MenuSubContentSurface aria-label="共有サブメニュー">
+                        <MenuSubContentSurface
+                          aria-label="共有サブメニュー"
+                          spacing={0.25}
+                          useFlexGap
+                        >
                           {fileMenuState.shareActions.map((action) => (
                             <Menubar.Item
                               key={action.id}
@@ -410,7 +429,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
             <Menubar.Portal>
               <Menubar.Content asChild align="start" sideOffset={6}>
-                <MenuContentSurface aria-label="ヘルプメニュー">
+                <MenuContentSurface
+                  aria-label="ヘルプメニュー"
+                  spacing={0.25}
+                  useFlexGap
+                >
                   <Menubar.Item
                     asChild
                     disabled={canCheckForUpdates === false}
@@ -448,7 +471,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
               </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
-        </Menubar.Root>
+        </Stack>
       </Stack>
 
       <Dialog

@@ -1,6 +1,5 @@
 import Stack from "@mui/material/Stack";
 import { alpha, styled, type Theme } from "@mui/material/styles";
-import type { CSSProperties } from "react";
 
 const getMenuRadius = (theme: Theme): string => `${theme.shape.borderRadius}px`;
 
@@ -24,19 +23,8 @@ export const MenuBarSurface = styled(Stack)(({ theme }) => ({
     0.72,
   )}, ${theme.shadows[3]}`,
   backdropFilter: "blur(1rem)",
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "flex-start",
   minWidth: 0,
 }));
-
-export const menuRootStyle = (theme: Theme): CSSProperties => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: theme.spacing(0.25),
-  width: "max-content",
-  minWidth: 0,
-});
 
 export const MenuTriggerAction = styled("button")(({ theme }) => ({
   border: `0.0625rem solid ${alpha(theme.palette.primary.main, 0)}`,
@@ -77,7 +65,7 @@ export const MenuTriggerAction = styled("button")(({ theme }) => ({
   },
 }));
 
-export const MenuContentSurface = styled("div")(({ theme }) => ({
+export const MenuContentSurface = styled(Stack)(({ theme }) => ({
   minWidth: "15rem",
   borderRadius: getMenuRadius(theme),
   border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
@@ -88,13 +76,10 @@ export const MenuContentSurface = styled("div")(({ theme }) => ({
   boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
   padding: theme.spacing(0.75),
   zIndex: theme.zIndex.modal + 1,
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(0.25),
   backdropFilter: "blur(1rem)",
 }));
 
-export const MenuSubContentSurface = styled("div")(({ theme }) => ({
+export const MenuSubContentSurface = styled(Stack)(({ theme }) => ({
   minWidth: "15rem",
   borderRadius: getMenuRadius(theme),
   border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
@@ -105,9 +90,6 @@ export const MenuSubContentSurface = styled("div")(({ theme }) => ({
   boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
   padding: theme.spacing(0.75),
   zIndex: theme.zIndex.modal + 1,
-  display: "flex",
-  flexDirection: "column",
-  gap: theme.spacing(0.25),
   backdropFilter: "blur(1rem)",
 }));
 
