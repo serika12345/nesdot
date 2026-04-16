@@ -238,6 +238,15 @@ export const ScreenModeWorkspacePanel: React.FC<
           >
             BGタイル追加
           </Button>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            aria-label="BGパレット変更"
+            onClick={backgroundEditingState.openPalettePicker}
+          >
+            BGパレット変更
+          </Button>
           <ScreenModeDisplaySwitch
             checked={isSpriteOutlineVisible}
             inputLabel="スプライト外枠表示切り替え"
@@ -262,7 +271,7 @@ export const ScreenModeWorkspacePanel: React.FC<
 
       <ScreenModeBackgroundTilePickerDialog
         activePaletteIndex={backgroundEditingState.activePaletteIndex}
-        open={backgroundEditingState.isTilePickerOpen}
+        pickerMode={backgroundEditingState.pickerDialogMode}
         onClose={backgroundEditingState.closeTilePicker}
         onPaletteSelect={backgroundEditingState.handleBackgroundPaletteSelect}
         onTileSelect={backgroundEditingState.handleBackgroundTileSelect}

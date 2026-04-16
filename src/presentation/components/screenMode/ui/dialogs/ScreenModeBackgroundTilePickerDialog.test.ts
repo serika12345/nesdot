@@ -1,4 +1,5 @@
 import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,6 +15,7 @@ interface MockProjectState {
 }
 
 type MockUseProjectState = <T>(selector: (state: MockProjectState) => T) => T;
+type PickerMode = "bgTile" | "bgPalette";
 
 const mockedProjectState = vi.hoisted(() => {
   return {
@@ -93,19 +95,45 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
     );
   });
 
-  it("renders picker mode actions without ToolButton wrapper tokens", () => {
+  it("renders the tile picker flow without legacy tab buttons", () => {
+    const pickerMode: O.Option<PickerMode> = O.some("bgTile");
+
     const markup = renderToStaticMarkup(
       React.createElement(ScreenModeBackgroundTilePickerDialog, {
         activePaletteIndex: 0,
-        open: true,
+        pickerMode,
         onClose: vi.fn(),
         onPaletteSelect: vi.fn(),
         onTileSelect: vi.fn(),
       }),
     );
 
-    expect(markup).toContain("BGタイル");
-    expect(markup).toContain("BG属性");
+    expect(markup).toContain("BGタイル追加");
+    expect(markup).toContain("BGタイルプレビュー 0");
+    expect(markup).not.toContain("BG属性");
+    expect(markup).not.toContain("BGパレット変更");
+    expect(markup).not.toContain("app-tool-button");
+    expect(markup).not.toMatch(/data-active=/);
+    expect(markup).not.toMatch(/data-tone=/);
+  });
+
+  it("renders the palette picker flow from the dedicated BG palette button", () => {
+    const pickerMode: O.Option<PickerMode> = O.some("bgPalette");
+
+    const markup = renderToStaticMarkup(
+      React.createElement(ScreenModeBackgroundTilePickerDialog, {
+        activePaletteIndex: 0,
+        pickerMode,
+        onClose: vi.fn(),
+        onPaletteSelect: vi.fn(),
+        onTileSelect: vi.fn(),
+      }),
+    );
+
+    expect(markup).toContain("BGパレット変更");
+    expect(markup).toContain("BGパレット 0");
+    expect(markup).toContain("変更する");
+    expect(markup).not.toContain("BG属性");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);

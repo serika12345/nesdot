@@ -11,6 +11,7 @@ import { getScreenBackgroundTilePlacementFromPixel } from "../../../../domain/sc
 import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../domain/screen/backgroundPalette";
 
 type ScreenModeBackgroundEditingTarget = "sprite" | "bgTile" | "bgPalette";
+type ScreenModeBackgroundPickerMode = "bgTile" | "bgPalette";
 
 interface BackgroundCursorOverlayState {
   height: number;
@@ -81,7 +82,9 @@ const resolvePaletteCursorOverlay = (
 export const useScreenModeWorkspaceBackgroundEditingState = () => {
   const [editingTarget, setEditingTarget] =
     React.useState<ScreenModeBackgroundEditingTarget>("sprite");
-  const [isTilePickerOpen, setIsTilePickerOpen] = React.useState(false);
+  const [pickerDialogMode, setPickerDialogMode] = React.useState<
+    O.Option<ScreenModeBackgroundPickerMode>
+  >(O.none);
   const [activePaletteIndex, setActivePaletteIndex] =
     React.useState<PaletteIndex>(0);
   const [grabbedTileIndex, setGrabbedTileIndex] = React.useState<
@@ -94,11 +97,15 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
     React.useState(false);
 
   const openTilePicker = React.useCallback((): void => {
-    setIsTilePickerOpen(true);
+    setPickerDialogMode(O.some("bgTile"));
+  }, []);
+
+  const openPalettePicker = React.useCallback((): void => {
+    setPickerDialogMode(O.some("bgPalette"));
   }, []);
 
   const closeTilePicker = React.useCallback((): void => {
-    setIsTilePickerOpen(false);
+    setPickerDialogMode(O.none);
   }, []);
 
   const handleBackgroundTileSelect = React.useCallback(
@@ -106,7 +113,7 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
       setGrabbedTileIndex(O.some(tileIndex));
       setEditingTarget("bgTile");
       setCursorOverlay(O.some(DEFAULT_TILE_CURSOR));
-      setIsTilePickerOpen(false);
+      setPickerDialogMode(O.none);
     },
     [],
   );
@@ -117,7 +124,7 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
       setEditingTarget("bgPalette");
       setCursorOverlay(O.some(DEFAULT_PALETTE_CURSOR));
       setIsPaletteStrokeActive(false);
-      setIsTilePickerOpen(false);
+      setPickerDialogMode(O.none);
     },
     [],
   );
@@ -258,7 +265,8 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
     handleStagePointerDown,
     handleStagePointerMove,
     handleStagePointerUp,
-    isTilePickerOpen,
+    openPalettePicker,
     openTilePicker,
+    pickerDialogMode,
   };
 };
