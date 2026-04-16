@@ -4,7 +4,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   beginGlobalUndoPointerInteraction,
   cancelGlobalUndoPointerInteraction,
@@ -13,21 +13,33 @@ import {
   redoLatestGlobalChange,
   undoLatestGlobalChange,
 } from "../application/state/undoHistory";
+import {
+  useWorkbenchState,
+  type WorkMode,
+} from "../application/state/workbenchStore";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
+import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileMenuState";
 import { BgMode } from "./components/bgMode/ui/core/BgMode";
 import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
+import { useCharacterModeProjectActions } from "./components/characterMode/ui/core/CharacterModeStateProvider";
 import {
+  emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
 } from "./components/common/logic/state/fileMenuState";
 import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
 import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
-import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
+import { MenuBar } from "./components/common/ui/menu/MenuBar";
 import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
+import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScreenModeFileMenuState";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
+import {
+  SpriteModeStateProvider,
+  useSpriteModeProjectActions,
+} from "./components/spriteMode/ui/core/SpriteModeStateProvider";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -225,11 +237,6 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
   );
 };
 
-interface AppModeRenderProps {
-  fileMenuState: FileMenuState;
-  panel: React.ReactNode;
-}
-
 interface NativeMenuBindingsProps {
   enabled: boolean;
   fileMenuState: FileMenuState;
@@ -352,13 +359,56 @@ const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
  * アプリ全体の編集モード切り替えと共通レイアウトを描画します。
  * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
  */
-export const App: React.FC = () => {
+const AppBody: React.FC = () => {
   const desktopAutoUpdate = useDesktopAutoUpdate();
   const pwaUpdate = usePwaUpdate();
   const handleDesktopAutoUpdateCheck = desktopAutoUpdate.onCheckNow;
-
-  const [editMode, setEditMode] = useState<WorkMode>("sprite");
+  const editMode = useWorkbenchState((state) => state.editMode);
+  const handleEditModeSelect = useWorkbenchState((state) => state.setEditMode);
   const isNativeMacMenu = useMemo(() => isMacNativeMenuRuntime(), []);
+  const spriteProjectActions = useSpriteModeProjectActions();
+  const { projectActions: characterProjectActions } =
+    useCharacterModeProjectActions();
+  const bgFileMenuState = useBgModeFileMenuState();
+  const screenFileMenuState = useScreenModeFileMenuState();
+
+  const spriteFileMenuState = useMemo<FileMenuState>(
+    () => ({
+      ...emptyFileMenuState,
+      shareActions: spriteProjectActions.projectActions,
+      restoreAction: O.some({
+        label: "復元",
+        onSelect: spriteProjectActions.handleImport,
+      }),
+    }),
+    [spriteProjectActions.handleImport, spriteProjectActions.projectActions],
+  );
+  const characterFileMenuState = useMemo<FileMenuState>(
+    () => ({
+      ...emptyFileMenuState,
+      shareActions: characterProjectActions,
+      restoreAction: O.none,
+    }),
+    [characterProjectActions],
+  );
+  const fileMenuState = useMemo<FileMenuState>(() => {
+    if (editMode === "sprite") {
+      return spriteFileMenuState;
+    }
+    if (editMode === "bg") {
+      return bgFileMenuState;
+    }
+    if (editMode === "character") {
+      return characterFileMenuState;
+    }
+    return screenFileMenuState;
+  }, [
+    bgFileMenuState,
+    characterFileMenuState,
+    editMode,
+    screenFileMenuState,
+    spriteFileMenuState,
+  ]);
 
   const handleUndoSelect = useCallback((): void => {
     undoLatestGlobalChange();
@@ -418,128 +468,17 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  const handleEditModeSelect = useCallback((nextEditMode: WorkMode): void => {
-    setEditMode(nextEditMode);
-  }, []);
-
-  const renderModeLayout = useCallback(
-    ({ fileMenuState, panel }: AppModeRenderProps): React.ReactNode => (
-      <>
-        <NativeMenuBindings
-          enabled={isNativeMacMenu}
-          fileMenuState={fileMenuState}
-          onEditModeSelect={handleEditModeSelect}
-          onRedoSelect={handleRedoSelect}
-          onUndoSelect={handleUndoSelect}
-          onUpdateCheck={handleDesktopAutoUpdateCheck}
-        />
-        <Stack
-          component="div"
-          spacing={{ xs: "0.75rem", md: "1rem" }}
-          p={{ xs: "1rem", md: "1.5rem" }}
-          position="relative"
-          zIndex={1}
-          height="100vh"
-          overflow="hidden"
-          useFlexGap
-        >
-          {isNativeMacMenu === true ? (
-            <></>
-          ) : (
-            <MenuBar
-              fileMenuState={fileMenuState}
-              editMode={editMode}
-              onEditModeSelect={handleEditModeSelect}
-              onUndoSelect={handleUndoSelect}
-              onRedoSelect={handleRedoSelect}
-            />
-          )}
-
-          <Stack
-            useFlexGap
-            direction={{ xs: "column", lg: "row" }}
-            spacing={{ xs: "1rem", xl: "1.25rem" }}
-            flex={1}
-            minHeight={0}
-            overflow={{ xs: "auto", lg: "visible" }}
-          >
-            <Stack
-              component="section"
-              flex={1}
-              height="100%"
-              minWidth={0}
-              minHeight={0}
-              overflow="hidden"
-              useFlexGap
-            >
-              {panel}
-            </Stack>
-
-            <Stack
-              component="aside"
-              spacing="1rem"
-              width={{ xs: "100%", lg: "20rem", xl: "22.5rem" }}
-              flexShrink={0}
-              height="100%"
-              minHeight={{ xs: "auto", lg: 0 }}
-              overflow="hidden"
-              useFlexGap
-            >
-              <Stack
-                component={Paper}
-                variant="outlined"
-                spacing="0.875rem"
-                p="1.125rem"
-                flex={1}
-                minHeight={0}
-              >
-                <Stack
-                  position="relative"
-                  zIndex={1}
-                  spacing="0.3125rem"
-                  useFlexGap
-                >
-                  <Typography component="h2" variant="h2" color="text.primary">
-                    NES パレット
-                  </Typography>
-                </Stack>
-                <Box
-                  flex={1}
-                  minHeight={0}
-                  overflow="auto"
-                  mr={-2.25}
-                  pr={2.25}
-                  style={{ scrollbarGutter: "stable" }}
-                >
-                  <PalettePicker />
-                </Box>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack>
-      </>
-    ),
-    [
-      editMode,
-      handleDesktopAutoUpdateCheck,
-      handleEditModeSelect,
-      handleRedoSelect,
-      handleUndoSelect,
-      isNativeMacMenu,
-    ],
-  );
-
-  const appBody = (() => {
+  const appPanel = (() => {
     if (editMode === "sprite") {
-      return <SpriteMode render={renderModeLayout} />;
+      return <SpriteMode />;
     }
     if (editMode === "bg") {
-      return <BgMode render={renderModeLayout} />;
+      return <BgMode />;
     }
     if (editMode === "character") {
-      return <CharacterMode render={renderModeLayout} />;
+      return <CharacterMode />;
     }
-    return <ScreenMode render={renderModeLayout} />;
+    return <ScreenMode />;
   })();
 
   return (
@@ -556,7 +495,106 @@ export const App: React.FC = () => {
         onDialogClose={pwaUpdate.onDialogClose}
         onUpdateNow={pwaUpdate.onUpdateNow}
       />
-      {appBody}
+      <NativeMenuBindings
+        enabled={isNativeMacMenu}
+        fileMenuState={fileMenuState}
+        onEditModeSelect={handleEditModeSelect}
+        onRedoSelect={handleRedoSelect}
+        onUndoSelect={handleUndoSelect}
+        onUpdateCheck={handleDesktopAutoUpdateCheck}
+      />
+      <Stack
+        component="div"
+        spacing={{ xs: "0.75rem", md: "1rem" }}
+        p={{ xs: "1rem", md: "1.5rem" }}
+        position="relative"
+        zIndex={1}
+        height="100vh"
+        overflow="hidden"
+        useFlexGap
+      >
+        {isNativeMacMenu === true ? (
+          <></>
+        ) : (
+          <MenuBar
+            fileMenuState={fileMenuState}
+            editMode={editMode}
+            onEditModeSelect={handleEditModeSelect}
+            onUndoSelect={handleUndoSelect}
+            onRedoSelect={handleRedoSelect}
+          />
+        )}
+
+        <Stack
+          useFlexGap
+          direction={{ xs: "column", lg: "row" }}
+          spacing={{ xs: "1rem", xl: "1.25rem" }}
+          flex={1}
+          minHeight={0}
+          overflow={{ xs: "auto", lg: "visible" }}
+        >
+          <Stack
+            component="section"
+            flex={1}
+            height="100%"
+            minWidth={0}
+            minHeight={0}
+            overflow="hidden"
+            useFlexGap
+          >
+            {appPanel}
+          </Stack>
+
+          <Stack
+            component="aside"
+            spacing="1rem"
+            width={{ xs: "100%", lg: "20rem", xl: "22.5rem" }}
+            flexShrink={0}
+            height="100%"
+            minHeight={{ xs: "auto", lg: 0 }}
+            overflow="hidden"
+            useFlexGap
+          >
+            <Stack
+              component={Paper}
+              variant="outlined"
+              spacing="0.875rem"
+              p="1.125rem"
+              flex={1}
+              minHeight={0}
+            >
+              <Stack
+                position="relative"
+                zIndex={1}
+                spacing="0.3125rem"
+                useFlexGap
+              >
+                <Typography component="h2" variant="h2" color="text.primary">
+                  NES パレット
+                </Typography>
+              </Stack>
+              <Box
+                flex={1}
+                minHeight={0}
+                overflow="auto"
+                mr={-2.25}
+                pr={2.25}
+                style={{ scrollbarGutter: "stable" }}
+              >
+                <PalettePicker />
+              </Box>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
     </>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <SpriteModeStateProvider>
+      <AppBody />
+    </SpriteModeStateProvider>
   );
 };

@@ -2,6 +2,7 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { useProjectState } from "../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import {
   decodeBackgroundTileAtIndex,
   replaceBackgroundTilePixel,
@@ -11,9 +12,6 @@ import {
   createEmptyBackgroundTile,
   type BackgroundTile,
 } from "../../../../domain/project/projectV2";
-
-type BgTool = "pen" | "eraser";
-type BgPaletteIndex = 0 | 1 | 2 | 3;
 
 const decodeVisibleBackgroundTile = (
   chrBytes: ReadonlyArray<number>,
@@ -46,11 +44,26 @@ export const useBgModeWorkspaceEditingState = () => {
   const universalBackgroundColor = useProjectState(
     (state) => state.nes.universalBackgroundColor,
   );
-  const [selectedTileIndex, setSelectedTileIndex] = React.useState(0);
-  const [tool, setTool] = React.useState<BgTool>("pen");
-  const [activePaletteIndex, setActivePaletteIndex] =
-    React.useState<BgPaletteIndex>(0);
-  const [isToolMenuOpen, setIsToolMenuOpen] = React.useState(false);
+  const selectedTileIndex = useWorkbenchState(
+    (state) => state.bgMode.selectedTileIndex,
+  );
+  const tool = useWorkbenchState((state) => state.bgMode.tool);
+  const activePaletteIndex = useWorkbenchState(
+    (state) => state.bgMode.activePaletteIndex,
+  );
+  const isToolMenuOpen = useWorkbenchState(
+    (state) => state.bgMode.isToolMenuOpen,
+  );
+  const setSelectedTileIndex = useWorkbenchState(
+    (state) => state.setBgModeSelectedTileIndex,
+  );
+  const setTool = useWorkbenchState((state) => state.setBgModeTool);
+  const setActivePaletteIndex = useWorkbenchState(
+    (state) => state.setBgModeActivePaletteIndex,
+  );
+  const setIsToolMenuOpen = useWorkbenchState(
+    (state) => state.setBgModeToolMenuOpen,
+  );
   const locallyEditedTileIndexRef = React.useRef<O.Option<number>>(O.none);
   const visibleBackgroundTilesCacheRef = React.useRef<
     ReadonlyArray<BackgroundTile>

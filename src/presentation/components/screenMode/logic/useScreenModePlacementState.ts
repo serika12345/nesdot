@@ -16,7 +16,7 @@ type ScreenModePlacementDependencies = Pick<
   | "setScreenAndSyncNes"
 > & {
   selectedSpriteIndex: O.Option<number>;
-  setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
+  setSelectedSpriteIndex: (nextSelectedSpriteIndex: O.Option<number>) => void;
 };
 
 interface ScreenModePlacementStateResult {

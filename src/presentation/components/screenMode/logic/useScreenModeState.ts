@@ -1,7 +1,6 @@
 import { useScreenModeGestureState } from "./useScreenModeGestureState";
 import { useScreenModeGroupMoveState } from "./useScreenModeGroupMoveState";
 import { useScreenModePlacementState } from "./useScreenModePlacementState";
-import { useScreenModeProjectActions } from "./useScreenModeProjectActions";
 import { useScreenModeProjectState } from "./useScreenModeProjectState";
 import { useScreenModeSelectionState } from "./useScreenModeSelectionState";
 import { useScreenModeViewportState } from "./useScreenModeViewportState";
@@ -52,11 +51,6 @@ export const useScreenModeState = () => {
     screenZoomLevel: viewportState.screenZoomLevel,
   });
 
-  const projectActionsState = useScreenModeProjectActions({
-    scan,
-    setSelectedSpriteIndex,
-  });
-
   return {
     screen: projectModel.screen,
     sprites: projectModel.sprites,
@@ -69,7 +63,6 @@ export const useScreenModeState = () => {
     ...selectionView,
     ...groupMoveState,
     ...viewportState,
-    ...projectActionsState,
     ...gestureState,
   };
 };

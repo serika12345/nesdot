@@ -23,6 +23,7 @@ import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { type WorkMode } from "../../../../../application/state/workbenchStore";
 import {
   canRequestAvailableUpdateCheck,
   requestAvailableUpdateCheck,
@@ -48,8 +49,6 @@ import {
   MenuSubTriggerAction,
   MenuTriggerAction,
 } from "./styles";
-
-export type WorkMode = "screen" | "sprite" | "character" | "bg";
 
 interface MenuBarProps {
   fileMenuState: FileMenuState;

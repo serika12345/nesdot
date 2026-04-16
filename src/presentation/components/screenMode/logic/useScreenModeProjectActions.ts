@@ -1,10 +1,5 @@
 import * as O from "fp-ts/Option";
-import {
-  useCallback,
-  useMemo,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useCallback, useMemo } from "react";
 import {
   getHexArrayForScreen,
   useProjectState,
@@ -29,7 +24,7 @@ type ScreenModeProjectActionsDependencies = Pick<
   ScreenModeProjectStateResult,
   "scan"
 > & {
-  setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
+  setSelectedSpriteIndex: (nextSelectedSpriteIndex: O.Option<number>) => void;
 };
 
 interface ScreenModeProjectActionsResult {

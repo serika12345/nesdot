@@ -1,11 +1,11 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo } from "react";
 import {
-  useProjectState,
   type SpriteInScreen,
   type SpritePriority,
 } from "../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 
 type ScreenModeSelectionDependencies = Pick<
@@ -15,9 +15,9 @@ type ScreenModeSelectionDependencies = Pick<
 
 interface ScreenModeSelectionStateResult {
   selectedSpriteIndex: O.Option<number>;
-  setSelectedSpriteIndex: Dispatch<SetStateAction<O.Option<number>>>;
+  setSelectedSpriteIndex: (nextSelectedSpriteIndex: O.Option<number>) => void;
   isSelectionOpen: boolean;
-  setIsSelectionOpen: Dispatch<SetStateAction<boolean>>;
+  setIsSelectionOpen: (nextIsSelectionOpen: boolean) => void;
   activeSprite: O.Option<SpriteInScreen>;
   handleSelectedSpriteListChange: (value: string | number) => void;
   handleSelectedSpriteXChange: (value: string) => void;
@@ -46,12 +46,18 @@ export const useScreenModeSelectionState = ({
   scan,
   setScreenAndSyncNes,
 }: ScreenModeSelectionDependencies): ScreenModeSelectionStateResult => {
-  const [selectedSpriteIndex, setSelectedSpriteIndex] = useState<
-    O.Option<number>
-  >(() =>
-    useProjectState.getState().screen.sprites.length > 0 ? O.some(0) : O.none,
+  const selectedSpriteIndex = useWorkbenchState(
+    (state) => state.screenMode.selectedSpriteIndex,
   );
-  const [isSelectionOpen, setIsSelectionOpen] = useState(false);
+  const setSelectedSpriteIndex = useWorkbenchState(
+    (state) => state.setScreenModeSelectedSpriteIndex,
+  );
+  const isSelectionOpen = useWorkbenchState(
+    (state) => state.screenMode.isSelectionOpen,
+  );
+  const setIsSelectionOpen = useWorkbenchState(
+    (state) => state.setScreenModeSelectionOpen,
+  );
 
   const activeSprite = useMemo(
     () => resolveSelectedSprite(selectedSpriteIndex, spritesOnScreen),

@@ -236,7 +236,9 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                 bgModeState.isToolMenuOpen === true ? "contained" : "outlined"
               }
               onClick={() => {
-                bgModeState.setIsToolMenuOpen((previous) => previous === false);
+                bgModeState.setIsToolMenuOpen(
+                  bgModeState.isToolMenuOpen === false,
+                );
               }}
             >
               {bgModeState.isToolMenuOpen ? "閉じる" : "開く"}

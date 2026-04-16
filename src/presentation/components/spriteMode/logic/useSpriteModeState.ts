@@ -1,9 +1,8 @@
 import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
-  type ColorIndexOfPalette,
   getHexArrayForSpriteTile,
   type PaletteIndex,
   type ProjectSpriteSize,
@@ -11,6 +10,7 @@ import {
   type SpriteTile,
   useProjectState,
 } from "../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import { makeTile } from "../../../../domain/tiles/utils";
 import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCanvas";
@@ -124,12 +124,36 @@ export const createSpriteModeProjectActions = ({
  * 共有状態と操作を provider 専用にまとめています。
  */
 export const useSpriteModeInternalState = () => {
-  const [tool, setTool] = useState<Tool>("pen");
-  const [isChangeOrderMode, setIsChangeOrderMode] = useState<boolean>(false);
-  const [activePalette, setActivePalette] = useState<PaletteIndex>(0);
-  const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
-  const [activeSprite, setActiveSprite] = useState<number>(0);
-  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const tool = useWorkbenchState((state) => state.spriteMode.tool);
+  const isChangeOrderMode = useWorkbenchState(
+    (state) => state.spriteMode.isChangeOrderMode,
+  );
+  const activePalette = useWorkbenchState(
+    (state) => state.spriteMode.activePalette,
+  );
+  const activeSlot = useWorkbenchState((state) => state.spriteMode.activeSlot);
+  const activeSprite = useWorkbenchState(
+    (state) => state.spriteMode.activeSprite,
+  );
+  const isToolsOpen = useWorkbenchState(
+    (state) => state.spriteMode.isToolsOpen,
+  );
+  const setTool = useWorkbenchState((state) => state.setSpriteModeTool);
+  const toggleIsChangeOrderMode = useWorkbenchState(
+    (state) => state.toggleSpriteModeChangeOrderMode,
+  );
+  const setActivePalette = useWorkbenchState(
+    (state) => state.setSpriteModeActivePalette,
+  );
+  const setActiveSlot = useWorkbenchState(
+    (state) => state.setSpriteModeActiveSlot,
+  );
+  const setActiveSprite = useWorkbenchState(
+    (state) => state.setSpriteModeActiveSprite,
+  );
+  const toggleIsToolsOpen = useWorkbenchState(
+    (state) => state.toggleSpriteModeToolsOpen,
+  );
   const projectSpriteSize = useProjectState((state) => state.spriteSize);
   const activeTile = useProjectState((state) =>
     pipe(
@@ -219,7 +243,7 @@ export const useSpriteModeInternalState = () => {
     } catch (error) {
       alert(`インポートに失敗しました: ${String(error)}`);
     }
-  }, [activeSprite, importJSON]);
+  }, [activeSprite, importJSON, setActivePalette]);
 
   const handleClearSprite = async () => {
     const message = "本当にクリアしますか？";
@@ -238,11 +262,11 @@ export const useSpriteModeInternalState = () => {
   };
 
   const handleToggleTools = () => {
-    setIsToolsOpen((previous) => !previous);
+    toggleIsToolsOpen();
   };
 
   const handleToggleChangeOrderMode = () => {
-    setIsChangeOrderMode((previous) => !previous);
+    toggleIsChangeOrderMode();
   };
 
   const handleToolChange = (nextTool: Tool) => {
