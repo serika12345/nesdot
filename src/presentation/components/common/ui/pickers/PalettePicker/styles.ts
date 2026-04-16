@@ -1,9 +1,7 @@
 import type { CSSProperties } from "react";
+import { createDisclosureChevronStyle } from "../../styleHelpers";
 
-export const disclosureChevronStyle = (open: boolean): CSSProperties => ({
-  transform: open ? "rotate(180deg)" : "rotate(0deg)",
-  transition: "transform 160ms ease",
-});
+export const disclosureChevronStyle = createDisclosureChevronStyle;
 
 export const transparentSwatchStyle: CSSProperties = {
   width: "2rem",

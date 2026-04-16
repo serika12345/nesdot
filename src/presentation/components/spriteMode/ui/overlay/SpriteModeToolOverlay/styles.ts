@@ -1,9 +1,7 @@
 import type { CSSProperties } from "react";
+import { createDisclosureChevronStyle } from "../../../../common/ui/styleHelpers";
 
-export const chevronStyle = (open: boolean): CSSProperties => ({
-  transform: open ? "rotate(180deg)" : "rotate(0deg)",
-  transition: "transform 160ms ease",
-});
+export const chevronStyle = createDisclosureChevronStyle;
 
 export const overlayRootStyle: CSSProperties = {
   position: "absolute",

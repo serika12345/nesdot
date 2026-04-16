@@ -1,5 +1,6 @@
 import { styled } from "@mui/material/styles";
 import type { CSSProperties } from "react";
+import { floatingOverlayPanelSurfaceStyle } from "../../../../common/ui/styleHelpers";
 
 type StageSurfaceStyle = CSSProperties & {
   "--stage-cell-size": string;
@@ -127,11 +128,7 @@ export const createPositionedActionMenuStyle = (
   top: menuTop,
   width: menuWidth,
   visibility: ready === true ? "visible" : "hidden",
-  borderRadius: "1.125rem",
-  background: "rgba(255, 255, 255, 0.98)",
-  border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-  boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
-  backdropFilter: "blur(1.125rem)",
+  ...floatingOverlayPanelSurfaceStyle,
 });
 
 export const createEmptyTilePreviewStyle = (

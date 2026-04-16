@@ -1,9 +1,7 @@
 import type { CSSProperties } from "react";
+import { createDisclosureChevronStyle } from "../../../../common/ui/styleHelpers";
 
-export const collapseChevronStyle = (open: boolean): CSSProperties => ({
-  transform: open ? "rotate(180deg)" : "rotate(0deg)",
-  transition: "transform 160ms ease",
-});
+export const collapseChevronStyle = createDisclosureChevronStyle;
 
 export const characterLibraryScrollAreaStyle: CSSProperties = {
   scrollbarGutter: "stable",

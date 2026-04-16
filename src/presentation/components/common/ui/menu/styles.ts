@@ -1,10 +1,55 @@
 import Stack from "@mui/material/Stack";
-import { alpha, styled, type Theme } from "@mui/material/styles";
+import {
+  alpha,
+  styled,
+  type CSSObject,
+  type Theme,
+} from "@mui/material/styles";
 
 const getMenuRadius = (theme: Theme): string => `${theme.shape.borderRadius}px`;
 
 const getMenuTransition = (theme: Theme): string =>
   `${theme.transitions.duration.shortest}ms`;
+
+const createMenuPopoverSurfaceStyle = (theme: Theme): CSSObject => ({
+  minWidth: "15rem",
+  borderRadius: getMenuRadius(theme),
+  border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
+  background: `linear-gradient(180deg, ${alpha(
+    theme.palette.background.paper,
+    0.98,
+  )} 0%, ${alpha(theme.palette.grey[50], 0.96)} 100%)`,
+  boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
+  padding: theme.spacing(0.75),
+  zIndex: theme.zIndex.modal + 1,
+  backdropFilter: "blur(1rem)",
+});
+
+const createMenuActionBaseStyle = (theme: Theme): CSSObject => ({
+  borderRadius: getMenuRadius(theme),
+  minHeight: theme.spacing(5),
+  padding: `${theme.spacing(0.75)} ${theme.spacing(1)}`,
+  fontSize: theme.typography.body2.fontSize,
+  lineHeight: theme.typography.body2.lineHeight,
+  color: theme.palette.text.primary,
+  outline: "none",
+  userSelect: "none",
+  cursor: "pointer",
+  transition: `background-color ${getMenuTransition(
+    theme,
+  )} ease, color ${getMenuTransition(theme)} ease`,
+});
+
+const createMenuActionHighlightStyle = (theme: Theme): CSSObject => ({
+  background: alpha(theme.palette.primary.main, 0.12),
+  color: theme.palette.primary.dark,
+});
+
+const createMenuActionDisabledStyle = (theme: Theme): CSSObject => ({
+  color: theme.palette.text.secondary,
+  opacity: 0.56,
+  cursor: "not-allowed",
+});
 
 export const MenuBarSurface = styled(Stack)(({ theme }) => ({
   width: "100%",
@@ -65,33 +110,13 @@ export const MenuTriggerAction = styled("button")(({ theme }) => ({
   },
 }));
 
-export const MenuContentSurface = styled(Stack)(({ theme }) => ({
-  minWidth: "15rem",
-  borderRadius: getMenuRadius(theme),
-  border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
-  background: `linear-gradient(180deg, ${alpha(
-    theme.palette.background.paper,
-    0.98,
-  )} 0%, ${alpha(theme.palette.grey[50], 0.96)} 100%)`,
-  boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
-  padding: theme.spacing(0.75),
-  zIndex: theme.zIndex.modal + 1,
-  backdropFilter: "blur(1rem)",
-}));
+export const MenuContentSurface = styled(Stack)(({ theme }) =>
+  createMenuPopoverSurfaceStyle(theme),
+);
 
-export const MenuSubContentSurface = styled(Stack)(({ theme }) => ({
-  minWidth: "15rem",
-  borderRadius: getMenuRadius(theme),
-  border: `0.0625rem solid ${alpha(theme.palette.divider, 0.95)}`,
-  background: `linear-gradient(180deg, ${alpha(
-    theme.palette.background.paper,
-    0.98,
-  )} 0%, ${alpha(theme.palette.grey[50], 0.96)} 100%)`,
-  boxShadow: `0 1.5rem 3rem ${alpha(theme.palette.common.black, 0.18)}`,
-  padding: theme.spacing(0.75),
-  zIndex: theme.zIndex.modal + 1,
-  backdropFilter: "blur(1rem)",
-}));
+export const MenuSubContentSurface = styled(Stack)(({ theme }) =>
+  createMenuPopoverSurfaceStyle(theme),
+);
 
 export const MenuSeparatorLine = styled("div")(({ theme }) => ({
   height: "0.0625rem",
@@ -100,51 +125,23 @@ export const MenuSeparatorLine = styled("div")(({ theme }) => ({
 }));
 
 export const MenuItemAction = styled("div")(({ theme }) => ({
-  borderRadius: getMenuRadius(theme),
-  minHeight: theme.spacing(5),
-  padding: `${theme.spacing(0.75)} ${theme.spacing(1)}`,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
-  color: theme.palette.text.primary,
-  outline: "none",
-  userSelect: "none",
-  cursor: "pointer",
-  transition: `background-color ${getMenuTransition(
-    theme,
-  )} ease, color ${getMenuTransition(theme)} ease`,
+  ...createMenuActionBaseStyle(theme),
   "&[data-highlighted]": {
-    background: alpha(theme.palette.primary.main, 0.12),
-    color: theme.palette.primary.dark,
+    ...createMenuActionHighlightStyle(theme),
   },
   "&[data-disabled]": {
-    color: theme.palette.text.secondary,
-    opacity: 0.56,
-    cursor: "not-allowed",
+    ...createMenuActionDisabledStyle(theme),
   },
 }));
 
 export const MenuSubTriggerAction = styled("div")(({ theme }) => ({
-  borderRadius: getMenuRadius(theme),
-  minHeight: theme.spacing(5),
-  padding: `${theme.spacing(0.75)} ${theme.spacing(1)}`,
-  fontSize: theme.typography.body2.fontSize,
-  lineHeight: theme.typography.body2.lineHeight,
-  color: theme.palette.text.primary,
-  outline: "none",
-  userSelect: "none",
-  cursor: "pointer",
-  transition: `background-color ${getMenuTransition(
-    theme,
-  )} ease, color ${getMenuTransition(theme)} ease`,
+  ...createMenuActionBaseStyle(theme),
   display: "block",
   "&[data-highlighted], &[data-state='open']": {
-    background: alpha(theme.palette.primary.main, 0.12),
-    color: theme.palette.primary.dark,
+    ...createMenuActionHighlightStyle(theme),
   },
   "&[data-disabled]": {
-    color: theme.palette.text.secondary,
-    opacity: 0.56,
-    cursor: "not-allowed",
+    ...createMenuActionDisabledStyle(theme),
   },
 }));
 

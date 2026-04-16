@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { createDisclosureChevronStyle } from "../../../../common/ui/styleHelpers";
 
 export const helperTextStyle: CSSProperties = {
   fontSize: "0.8125rem",
@@ -51,10 +52,7 @@ export const resolveBadgeStyle = (
   };
 };
 
-export const collapseChevronStyle = (open: boolean): CSSProperties => ({
-  transform: open ? "rotate(180deg)" : "rotate(0deg)",
-  transition: "transform 160ms ease",
-});
+export const collapseChevronStyle = createDisclosureChevronStyle;
 
 export const createFloatingDragPreviewStyle = (
   clientX: number,
