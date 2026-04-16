@@ -3,10 +3,7 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import {
-  APP_PANEL_CLASS_NAME,
-  APP_SCROLL_AREA_CLASS_NAME,
-} from "../../../../../styleClassNames";
+import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import { useSpriteModeProjectSpriteSize } from "../../core/SpriteModeStateProvider";
 import { SpriteModeEditorSelectionFields } from "../../forms/SpriteModeEditorSelectionFields";
 
@@ -34,10 +31,12 @@ export const SpriteModeEditorPanel: React.FC = () => {
       </Stack>
 
       <Box
-        className={APP_SCROLL_AREA_CLASS_NAME}
         flex={1}
         minHeight={0}
         overflow="auto"
+        mr={-2.25}
+        pr={2.25}
+        style={{ scrollbarGutter: "stable" }}
       >
         <Stack spacing={2} useFlexGap>
           <SpriteModeEditorSelectionFields />

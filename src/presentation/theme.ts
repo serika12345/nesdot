@@ -1,15 +1,10 @@
 import { alpha, createTheme, type Theme } from "@mui/material/styles";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
-  APP_ACTION_MENU_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
-  APP_FIELD_LABEL_CLASS_NAME,
-  APP_HELPER_TEXT_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
-  APP_SCROLL_AREA_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
-  BADGE_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
@@ -223,19 +218,6 @@ function getAppGlobalStyles(theme: Theme) {
         pointerEvents: "none",
       },
     },
-    [`.${APP_ACTION_MENU_CLASS_NAME}`]: {
-      borderRadius: "1.125rem",
-      background: "rgba(255, 255, 255, 0.98)",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-      boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
-      backdropFilter: "blur(1.125rem)",
-    },
-    [`.${APP_FIELD_LABEL_CLASS_NAME}`]: {
-      fontSize: "0.75rem",
-      fontWeight: 700,
-      letterSpacing: "0.08em",
-      color: "var(--ink-soft)",
-    },
     [`.${APP_CANVAS_VIEWPORT_CLASS_NAME}`]: {
       position: "relative",
       zIndex: 1,
@@ -245,16 +227,6 @@ function getAppGlobalStyles(theme: Theme) {
       border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
       boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.03)",
       scrollbarGutter: "stable both-edges",
-    },
-    [`.${APP_SCROLL_AREA_CLASS_NAME}`]: {
-      scrollbarGutter: "stable",
-      marginRight: "-1.125rem",
-      paddingRight: "1.125rem",
-    },
-    [`.${APP_HELPER_TEXT_CLASS_NAME}`]: {
-      fontSize: "0.8125rem",
-      lineHeight: 1.7,
-      color: "var(--ink-soft)",
     },
     [`.${APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME}`]: {
       display: "block",
@@ -514,29 +486,6 @@ function getAppGlobalStyles(theme: Theme) {
       transition: "background 160ms ease",
       "&:hover": {
         background: "rgba(15, 23, 42, 0.05)",
-      },
-    },
-    [`.${BADGE_CLASS_NAME}`]: {
-      width: "fit-content",
-      padding: "0.4375rem 0.75rem",
-      borderRadius: "62.4375rem",
-      fontSize: "0.75rem",
-      fontWeight: 700,
-      letterSpacing: "0.06em",
-      "&[data-tone='neutral']": {
-        color: "var(--ink-soft)",
-        background: "rgba(148, 163, 184, 0.12)",
-        border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-      },
-      "&[data-tone='accent']": {
-        color: "#0f766e",
-        background: "rgba(15, 118, 110, 0.12)",
-        border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
-      },
-      "&[data-tone='danger']": {
-        color: "#be123c",
-        background: "rgba(190, 24, 93, 0.1)",
-        border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
       },
     },
     [`.${SCREEN_EDITOR_CONTENT_CLASS_NAME}`]: {

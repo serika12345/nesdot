@@ -2,10 +2,7 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APP_FIELD_LABEL_CLASS_NAME,
-  TOOL_BUTTON_CLASS_NAME,
-} from "../../../../styleClassNames";
+import { TOOL_BUTTON_CLASS_NAME } from "../../../../styleClassNames";
 
 const mockedHooks = vi.hoisted(() => {
   return {
@@ -61,7 +58,7 @@ describe("CharacterMode set fields", () => {
     expect(markup).toContain("セットを作成");
     expect(markup).not.toContain("character-set-draft-action-container");
     expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
-    expect(markup).not.toContain(APP_FIELD_LABEL_CLASS_NAME);
+    expect(markup).not.toContain("app-field-label");
     expect(markup).not.toMatch(/data-tone=/);
   });
 
@@ -74,7 +71,7 @@ describe("CharacterMode set fields", () => {
     expect(markup).toContain("セットを削除");
     expect(markup).toContain("既存セット (0 sprites)");
     expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
-    expect(markup).not.toContain(APP_FIELD_LABEL_CLASS_NAME);
+    expect(markup).not.toContain("app-field-label");
     expect(markup).not.toMatch(/data-tone=/);
     expect(markup).not.toMatch(/data-active=/);
   });

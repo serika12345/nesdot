@@ -61,6 +61,11 @@ export const createPositionedActionMenuStyle = (
   left: menuLeft,
   top: menuTop,
   width: menuWidth,
+  borderRadius: "1.125rem",
+  background: "rgba(255, 255, 255, 0.98)",
+  border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
+  boxShadow: "0 1.375rem 2.5rem rgba(15, 23, 42, 0.16)",
+  backdropFilter: "blur(1.125rem)",
 });
 
 export const createEmptyTilePreviewStyle = (

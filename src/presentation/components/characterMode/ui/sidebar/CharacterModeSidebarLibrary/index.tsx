@@ -8,7 +8,6 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../../application/state/projectStore";
 import {
-  APP_SCROLL_AREA_CLASS_NAME,
   CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME,
@@ -54,10 +53,12 @@ const CharacterModeSidebarLibraryContent = React.memo(
     return (
       <Box
         id={id}
-        className={APP_SCROLL_AREA_CLASS_NAME}
         flex={1}
         minHeight={0}
         overflow="auto"
+        mr={-2.25}
+        pr={2.25}
+        style={{ scrollbarGutter: "stable" }}
       >
         <CharacterLibraryGrid>
           {sprites.map((spriteTile, spriteIndex) => (

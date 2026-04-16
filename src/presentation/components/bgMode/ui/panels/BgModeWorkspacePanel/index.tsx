@@ -9,7 +9,6 @@ import useExportImage from "../../../../../../infrastructure/browser/useExportIm
 import {
   APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
-  APP_SCROLL_AREA_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   TOOL_BUTTON_CLASS_NAME,
 } from "../../../../../styleClassNames";
@@ -228,10 +227,12 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
         </Stack>
 
         <Box
-          className={APP_SCROLL_AREA_CLASS_NAME}
           flex={1}
           minHeight={0}
           overflow="auto"
+          mr={-2.25}
+          pr={2.25}
+          style={{ scrollbarGutter: "stable" }}
         >
           <BgTileLibrary
             onSelectTile={bgModeState.setSelectedTileIndex}

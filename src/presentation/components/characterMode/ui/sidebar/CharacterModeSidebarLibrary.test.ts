@@ -1,10 +1,6 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APP_FIELD_LABEL_CLASS_NAME,
-  BADGE_CLASS_NAME,
-} from "../../../../styleClassNames";
 
 const mockedHooks = vi.hoisted(() => {
   return {
@@ -53,8 +49,8 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).toContain("スプライトライブラリ");
     expect(markup).toContain("スプライトライブラリを閉じる");
     expect(markup).toContain("8×8");
-    expect(markup).not.toContain(APP_FIELD_LABEL_CLASS_NAME);
-    expect(markup).not.toContain(BADGE_CLASS_NAME);
+    expect(markup).not.toContain("app-field-label");
+    expect(markup).not.toContain("app-badge");
     expect(markup).not.toContain("character-mode-editor-card");
     expect(markup).not.toContain("character-library-scroll-area");
     expect(markup).not.toMatch(/data-tone=/);

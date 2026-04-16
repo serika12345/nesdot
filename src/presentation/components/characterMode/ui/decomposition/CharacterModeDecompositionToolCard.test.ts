@@ -1,11 +1,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APP_FIELD_LABEL_CLASS_NAME,
-  BADGE_CLASS_NAME,
-  TOOL_BUTTON_CLASS_NAME,
-} from "../../../../styleClassNames";
+import { TOOL_BUTTON_CLASS_NAME } from "../../../../styleClassNames";
 
 const mockedHooks = vi.hoisted(() => {
   return {
@@ -52,8 +48,8 @@ describe("CharacterModeDecompositionToolCard", () => {
     expect(markup).toContain("分解ツール 切り取り");
     expect(markup).toContain("分解描画パレット");
     expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
-    expect(markup).not.toContain(BADGE_CLASS_NAME);
-    expect(markup).not.toContain(APP_FIELD_LABEL_CLASS_NAME);
+    expect(markup).not.toContain("app-badge");
+    expect(markup).not.toContain("app-field-label");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);
   });

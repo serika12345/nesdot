@@ -28,10 +28,7 @@ import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
 import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
-import {
-  APP_PANEL_CLASS_NAME,
-  APP_SCROLL_AREA_CLASS_NAME,
-} from "./styleClassNames";
+import { APP_PANEL_CLASS_NAME } from "./styleClassNames";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -498,10 +495,12 @@ export const App: React.FC = () => {
                 </Typography>
               </Stack>
               <Box
-                className={APP_SCROLL_AREA_CLASS_NAME}
                 flex={1}
                 minHeight={0}
                 overflow="auto"
+                mr={-2.25}
+                pr={2.25}
+                style={{ scrollbarGutter: "stable" }}
               >
                 <PalettePicker />
               </Box>

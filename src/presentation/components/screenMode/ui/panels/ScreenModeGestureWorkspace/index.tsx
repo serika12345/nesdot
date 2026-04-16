@@ -8,9 +8,6 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
-  APP_FIELD_LABEL_CLASS_NAME,
-  APP_HELPER_TEXT_CLASS_NAME,
-  BADGE_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
   SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
@@ -47,9 +44,56 @@ import {
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
 
-const toBadgeToneDataValue = (
-  value: "accent" | "neutral",
-): "accent" | "neutral" => value;
+const helperTextStyle: React.CSSProperties = {
+  fontSize: "0.8125rem",
+  lineHeight: 1.7,
+  color: "var(--ink-soft)",
+};
+
+const fieldLabelStyle: React.CSSProperties = {
+  fontSize: "0.75rem",
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  color: "var(--ink-soft)",
+};
+
+const badgeBaseStyle: React.CSSProperties = {
+  width: "fit-content",
+  padding: "0.4375rem 0.75rem",
+  borderRadius: "62.4375rem",
+  fontSize: "0.75rem",
+  fontWeight: 700,
+  letterSpacing: "0.06em",
+};
+
+const resolveBadgeStyle = (
+  tone: "neutral" | "accent" | "danger",
+): React.CSSProperties => {
+  if (tone === "neutral") {
+    return {
+      ...badgeBaseStyle,
+      color: "var(--ink-soft)",
+      background: "rgba(148, 163, 184, 0.12)",
+      border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
+    };
+  }
+
+  if (tone === "accent") {
+    return {
+      ...badgeBaseStyle,
+      color: "#0f766e",
+      background: "rgba(15, 118, 110, 0.12)",
+      border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
+    };
+  }
+
+  return {
+    ...badgeBaseStyle,
+    color: "#be123c",
+    background: "rgba(190, 24, 93, 0.1)",
+    border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
+  };
+};
 
 const resolveMenuPosition = (
   menuClientX: number,
@@ -334,7 +378,7 @@ export const ScreenModeGestureWorkspace: React.FC<
 
   return (
     <>
-      <Box component="p" className={APP_HELPER_TEXT_CLASS_NAME} m={0} mt={0.25}>
+      <Box component="p" m={0} mt={0.25} style={helperTextStyle}>
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
       </Box>
 
@@ -379,7 +423,7 @@ export const ScreenModeGestureWorkspace: React.FC<
               useFlexGap
             >
               <Stack direction="row" spacing="0.75rem" alignItems="center">
-                <Box component="span" className={APP_FIELD_LABEL_CLASS_NAME}>
+                <Box component="span" style={fieldLabelStyle}>
                   スプライトプレビュー
                 </Box>
                 <ButtonBase
@@ -445,10 +489,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                         <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                           {`Sprite ${spriteIndex}`}
                         </span>
-                        <span
-                          className={BADGE_CLASS_NAME}
-                          data-tone={toBadgeToneDataValue("accent")}
-                        >
+                        <span style={resolveBadgeStyle("accent")}>
                           {`${sprite.width}×${sprite.height}`}
                         </span>
                       </Stack>
@@ -479,14 +520,11 @@ export const ScreenModeGestureWorkspace: React.FC<
               flexWrap="wrap"
               useFlexGap
             >
-              <Box component="span" className={APP_FIELD_LABEL_CLASS_NAME}>
+              <Box component="span" style={fieldLabelStyle}>
                 キャラクタープレビュー
               </Box>
               <Stack direction="row" spacing="0.5rem" alignItems="center">
-                <span
-                  className={BADGE_CLASS_NAME}
-                  data-tone={toBadgeToneDataValue("neutral")}
-                >
+                <span style={resolveBadgeStyle("neutral")}>
                   {`${characterPreviewCards.length} sets`}
                 </span>
                 <ButtonBase
@@ -563,10 +601,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                           <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
                             {characterCard.name}
                           </span>
-                          <span
-                            className={BADGE_CLASS_NAME}
-                            data-tone={toBadgeToneDataValue("accent")}
-                          >
+                          <span style={resolveBadgeStyle("accent")}>
                             {`${characterCard.spriteCount} sprites`}
                           </span>
                         </Stack>
@@ -575,7 +610,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                   </CharacterLibraryGrid>
                 </div>
               ) : (
-                <Box component="p" className={APP_HELPER_TEXT_CLASS_NAME} m={0}>
+                <Box component="p" m={0} style={helperTextStyle}>
                   先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
                 </Box>
               )}

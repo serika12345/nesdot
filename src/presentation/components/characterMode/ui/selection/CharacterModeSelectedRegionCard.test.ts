@@ -2,11 +2,7 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  APP_FIELD_LABEL_CLASS_NAME,
-  BADGE_CLASS_NAME,
-  TOOL_BUTTON_CLASS_NAME,
-} from "../../../../styleClassNames";
+import { TOOL_BUTTON_CLASS_NAME } from "../../../../styleClassNames";
 
 const mockedHooks = vi.hoisted(() => {
   return {
@@ -95,8 +91,8 @@ describe("CharacterModeSelectedRegionCard", () => {
     expect(markup).toContain("選択中の領域");
     expect(markup).toContain("分解して現在のセットへ反映");
     expect(markup).toContain("valid");
-    expect(markup).not.toContain(APP_FIELD_LABEL_CLASS_NAME);
-    expect(markup).not.toContain(BADGE_CLASS_NAME);
+    expect(markup).not.toContain("app-field-label");
+    expect(markup).not.toContain("app-badge");
     expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
     expect(markup).not.toContain("character-mode-editor-card");
     expect(markup).not.toContain(

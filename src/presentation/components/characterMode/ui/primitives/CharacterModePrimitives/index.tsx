@@ -8,7 +8,6 @@ import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
-  APP_ACTION_MENU_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
@@ -577,7 +576,6 @@ export const PositionedActionMenu = React.forwardRef<
       {...props}
       data-ready={toBooleanDataValue(ready)}
       className={mergeClassNames(
-        APP_ACTION_MENU_CLASS_NAME,
         CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
