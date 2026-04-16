@@ -146,10 +146,7 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
     spriteLibrary.handleLibraryPointerDown,
   );
 
-  React.useEffect(() => {
-    handleLibraryPointerDownRef.current =
-      spriteLibrary.handleLibraryPointerDown;
-  }, [spriteLibrary.handleLibraryPointerDown]);
+  handleLibraryPointerDownRef.current = spriteLibrary.handleLibraryPointerDown;
 
   const handleStableLibraryPointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLButtonElement>, spriteIndex: number) => {

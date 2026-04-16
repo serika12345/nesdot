@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockedHooks = vi.hoisted(() => {
   return {
     useSpriteModePaletteSlots: vi.fn(),
-    useSpriteModeProjectActions: vi.fn(),
     useSpriteModeProjectSpriteSize: vi.fn(),
     useSpriteModeSelection: vi.fn(),
   };
@@ -14,7 +13,6 @@ const mockedHooks = vi.hoisted(() => {
 vi.mock("../core/SpriteModeStateProvider", () => {
   return {
     useSpriteModePaletteSlots: mockedHooks.useSpriteModePaletteSlots,
-    useSpriteModeProjectActions: mockedHooks.useSpriteModeProjectActions,
     useSpriteModeProjectSpriteSize: mockedHooks.useSpriteModeProjectSpriteSize,
     useSpriteModeSelection: mockedHooks.useSpriteModeSelection,
   };
@@ -72,10 +70,6 @@ describe("SpriteModePanels", () => {
       ],
       handlePaletteClick: vi.fn(),
     });
-    mockedHooks.useSpriteModeProjectActions.mockReturnValue({
-      handleImport: vi.fn(),
-      projectActions: [],
-    });
   });
 
   it("renders the editor panel without app panel shell classes", () => {
@@ -90,9 +84,7 @@ describe("SpriteModePanels", () => {
 
   it("renders the canvas panel without app panel or viewport shell classes", () => {
     const markup = renderToStaticMarkup(
-      React.createElement(SpriteModeCanvasPanel, {
-        onFileMenuStateChange: vi.fn(),
-      }),
+      React.createElement(SpriteModeCanvasPanel),
     );
 
     expect(markup).toContain("palette");

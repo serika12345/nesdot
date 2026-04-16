@@ -12,10 +12,6 @@ import React from "react";
 import { useProjectState } from "../../../../../../application/state/projectStore";
 import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
 import { createEmptyBackgroundTile } from "../../../../../../domain/project/projectV2";
-import {
-  emptyFileMenuState,
-  type FileMenuState,
-} from "../../../../common/logic/state/fileMenuState";
 import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
 import type { ScreenModeState } from "../../../logic/useScreenModeState";
 import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
@@ -29,7 +25,6 @@ import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace";
 
 interface ScreenModeWorkspacePanelProps {
   screenMode: ScreenModeState;
-  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
 }
 
 interface ScreenModeDisplaySwitchProps {
@@ -69,7 +64,7 @@ const ScreenModeDisplaySwitch: React.FC<ScreenModeDisplaySwitchProps> = ({
  */
 export const ScreenModeWorkspacePanel: React.FC<
   ScreenModeWorkspacePanelProps
-> = ({ screenMode, onFileMenuStateChange }) => {
+> = ({ screenMode }) => {
   const nes = useProjectState((state) => state.nes);
   const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
     React.useState(true);
@@ -77,8 +72,6 @@ export const ScreenModeWorkspacePanel: React.FC<
   const backgroundEditingState = useScreenModeWorkspaceBackgroundEditingState();
 
   const {
-    projectActions,
-    handleImport,
     screenZoomLevel,
     screen,
     scanReport,
@@ -89,27 +82,6 @@ export const ScreenModeWorkspacePanel: React.FC<
     handleWorkspacePointerMoveCapture,
     handleWorkspacePointerEndCapture,
   } = screenMode;
-
-  const fileMenuState = React.useMemo<FileMenuState>(
-    () => ({
-      shareActions: projectActions,
-      restoreAction: O.some({
-        label: "復元",
-        onSelect: handleImport,
-      }),
-    }),
-    [handleImport, projectActions],
-  );
-
-  React.useEffect(() => {
-    onFileMenuStateChange(fileMenuState);
-  }, [fileMenuState, onFileMenuStateChange]);
-
-  React.useEffect(() => {
-    return () => {
-      onFileMenuStateChange(emptyFileMenuState);
-    };
-  }, [onFileMenuStateChange]);
 
   const handleWorkspaceContextMenuCapture = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {

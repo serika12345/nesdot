@@ -1,30 +1,23 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 
 const mockedModules = vi.hoisted(() => {
   return {
     createBgModeWorkspaceProjectActions: vi.fn(),
-    useBgModeWorkspaceEditingState: vi.fn(),
-    useExportImage: vi.fn(),
   };
 });
 
-const createEmptyPixels = () =>
-  Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => 0));
+type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 
-vi.mock("../../../../../infrastructure/browser/useExportImage", () => {
-  return {
-    default: mockedModules.useExportImage,
-  };
-});
+const createEmptyPixelRow = (): ReadonlyArray<ColorIndexOfPalette> =>
+  Array.from({ length: 8 }, () => 0);
 
-vi.mock("../../logic/bgModeWorkspaceEditingState", () => {
-  return {
-    useBgModeWorkspaceEditingState:
-      mockedModules.useBgModeWorkspaceEditingState,
-  };
-});
+const createEmptyPixels = (): ReadonlyArray<
+  ReadonlyArray<ColorIndexOfPalette>
+> => Array.from({ length: 8 }, createEmptyPixelRow);
 
 vi.mock("../../logic/bgModeWorkspaceProjectActions", () => {
   return {
@@ -48,52 +41,46 @@ vi.mock("../canvas/BgModeTileEditorCanvas", () => {
 
 import { BgModeWorkspacePanel } from "./BgModeWorkspacePanel";
 
+const backgroundPalettes: NesBackgroundPalettes = [
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+];
+
+const createBackgroundTile = (): BackgroundTile => ({
+  width: 8,
+  height: 8,
+  pixels: createEmptyPixels(),
+});
+
 describe("BgModeWorkspacePanel", () => {
+  const bgModeState: React.ComponentProps<
+    typeof BgModeWorkspacePanel
+  >["bgModeState"] = {
+    activePaletteIndex: 0,
+    backgroundPalettes,
+    handlePaintPixel: vi.fn(),
+    isToolMenuOpen: true,
+    selectedTile: createBackgroundTile(),
+    selectedTileIndex: 5,
+    setActivePaletteIndex: vi.fn(),
+    setIsToolMenuOpen: vi.fn(),
+    setSelectedTileIndex: vi.fn(),
+    setTool: vi.fn(),
+    tool: "eraser",
+    universalBackgroundColor: 0,
+    visibleBackgroundTiles: [createBackgroundTile()],
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockedModules.useExportImage.mockReturnValue({
-      exportChr: vi.fn(),
-      exportPng: vi.fn(),
-      exportSvgSimple: vi.fn(),
-    });
-    mockedModules.createBgModeWorkspaceProjectActions.mockReturnValue([]);
-    mockedModules.useBgModeWorkspaceEditingState.mockReturnValue({
-      activePaletteIndex: 0,
-      backgroundPalettes: [
-        [0, 1, 2, 3],
-        [0, 1, 2, 3],
-        [0, 1, 2, 3],
-        [0, 1, 2, 3],
-      ],
-      handlePaintPixel: vi.fn(),
-      isToolMenuOpen: true,
-      selectedTile: {
-        width: 8,
-        height: 8,
-        pixels: createEmptyPixels(),
-      },
-      selectedTileIndex: 5,
-      setActivePaletteIndex: vi.fn(),
-      setIsToolMenuOpen: vi.fn(),
-      setSelectedTileIndex: vi.fn(),
-      setTool: vi.fn(),
-      tool: "eraser",
-      universalBackgroundColor: 0,
-      visibleBackgroundTiles: [
-        {
-          width: 8,
-          height: 8,
-          pixels: createEmptyPixels(),
-        },
-      ],
-    });
   });
 
   it("renders bg controls without the legacy tool-button wrapper class", () => {
     const markup = renderToStaticMarkup(
       React.createElement(BgModeWorkspacePanel, {
-        onFileMenuStateChange: vi.fn(),
+        bgModeState,
       }),
     );
 

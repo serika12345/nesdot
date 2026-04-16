@@ -6,14 +6,12 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
 import {
-  emptyFileMenuState,
-  type FileMenuState,
-} from "../../../../common/logic/state/fileMenuState";
+  type NesColorIndex,
+  type NesSubPalette,
+} from "../../../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../../../domain/project/projectV2";
 import { BackgroundTilePreview } from "../../../../common/ui/preview/BackgroundTilePreview";
-import { useBgModeWorkspaceEditingState } from "../../../logic/bgModeWorkspaceEditingState";
-import { createBgModeWorkspaceProjectActions } from "../../../logic/bgModeWorkspaceProjectActions";
 import { BgModeTileEditorCanvas } from "../../canvas/BgModeTileEditorCanvas";
 import {
   canvasOverlayMenuProps,
@@ -26,15 +24,40 @@ import {
   tileLibraryGridProps,
 } from "./styles";
 
-interface BgModeWorkspacePanelProps {
-  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
+type BgPaletteIndex = 0 | 1 | 2 | 3;
+type BgTool = "pen" | "eraser";
+
+interface BgModeWorkspacePanelState {
+  activePaletteIndex: BgPaletteIndex;
+  backgroundPalettes: ReadonlyArray<NesSubPalette>;
+  handlePaintPixel: (pixelX: number, pixelY: number) => void;
+  isToolMenuOpen: boolean;
+  selectedTile: BackgroundTile;
+  selectedTileIndex: number;
+  setActivePaletteIndex: React.Dispatch<React.SetStateAction<BgPaletteIndex>>;
+  setIsToolMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedTileIndex: React.Dispatch<React.SetStateAction<number>>;
+  setTool: React.Dispatch<React.SetStateAction<BgTool>>;
+  tool: BgTool;
+  universalBackgroundColor: NesColorIndex;
+  visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
 }
 
-type BgPaletteIndex = 0 | 1 | 2 | 3;
+interface BgModeWorkspacePanelProps {
+  bgModeState: BgModeWorkspacePanelState;
+}
+
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
+const DEFAULT_BG_PALETTE: NesSubPalette = [0, 0, 0, 0];
 
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");
+
+const resolveActivePalette = (
+  backgroundPalettes: ReadonlyArray<NesSubPalette>,
+  activePaletteIndex: BgPaletteIndex,
+): NesSubPalette =>
+  backgroundPalettes[activePaletteIndex] ?? DEFAULT_BG_PALETTE;
 
 type BgModeToolButtonProps = React.ComponentProps<typeof Button> & {
   active?: boolean;
@@ -56,21 +79,15 @@ const BgModeToolButton = React.forwardRef<
 
 interface BgTileLibraryPreviewState {
   activePaletteIndex: BgPaletteIndex;
-  backgroundPalettes: ReturnType<
-    typeof useBgModeWorkspaceEditingState
-  >["backgroundPalettes"];
-  universalBackgroundColor: ReturnType<
-    typeof useBgModeWorkspaceEditingState
-  >["universalBackgroundColor"];
+  backgroundPalettes: ReadonlyArray<NesSubPalette>;
+  universalBackgroundColor: NesColorIndex;
 }
 
 interface BgTileLibraryProps {
   onSelectTile: (tileIndex: number) => void;
   previewState: BgTileLibraryPreviewState;
   selectedTileIndex: number;
-  tiles: ReturnType<
-    typeof useBgModeWorkspaceEditingState
-  >["visibleBackgroundTiles"];
+  tiles: ReadonlyArray<BackgroundTile>;
 }
 
 const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
@@ -97,11 +114,10 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
               <BackgroundTilePreview
                 scale={6}
                 tile={tile}
-                palette={
-                  previewState.backgroundPalettes[
-                    previewState.activePaletteIndex
-                  ]
-                }
+                palette={resolveActivePalette(
+                  previewState.backgroundPalettes,
+                  previewState.activePaletteIndex,
+                )}
                 universalBackgroundColor={previewState.universalBackgroundColor}
               />
               <span>{`#${formatTileNumber(tileIndex)}`}</span>
@@ -116,10 +132,8 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
 const BgTileLibrary = React.memo(BgTileLibraryComponent);
 
 const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
-  onFileMenuStateChange,
+  bgModeState,
 }) => {
-  const bgModeState = useBgModeWorkspaceEditingState();
-  const { exportChr, exportPng, exportSvgSimple } = useExportImage();
   const deferredVisibleBackgroundTiles = React.useDeferredValue(
     bgModeState.visibleBackgroundTiles,
   );
@@ -135,43 +149,6 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
       bgModeState.universalBackgroundColor,
     ],
   );
-  const projectActions = React.useMemo(
-    () =>
-      createBgModeWorkspaceProjectActions({
-        exportChr,
-        exportPng,
-        exportSvgSimple,
-        getActivePaletteIndex: () => bgModeState.activePaletteIndex,
-        getSelectedTile: () => bgModeState.selectedTile,
-        getSelectedTileIndex: () => bgModeState.selectedTileIndex,
-      }),
-    [
-      bgModeState.activePaletteIndex,
-      bgModeState.selectedTile,
-      bgModeState.selectedTileIndex,
-      exportChr,
-      exportPng,
-      exportSvgSimple,
-    ],
-  );
-  const fileMenuState = React.useMemo<FileMenuState>(
-    () => ({
-      shareActions: projectActions,
-      restoreAction: emptyFileMenuState.restoreAction,
-    }),
-    [projectActions],
-  );
-
-  React.useEffect(() => {
-    onFileMenuStateChange(fileMenuState);
-  }, [fileMenuState, onFileMenuStateChange]);
-
-  React.useEffect(() => {
-    return () => {
-      onFileMenuStateChange(emptyFileMenuState);
-    };
-  }, [onFileMenuStateChange]);
-
   return (
     <Stack
       useFlexGap
@@ -322,9 +299,10 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
           <Grid {...centeredCanvasWrapProps}>
             <BgModeTileEditorCanvas
               tile={bgModeState.selectedTile}
-              palette={
-                bgModeState.backgroundPalettes[bgModeState.activePaletteIndex]
-              }
+              palette={resolveActivePalette(
+                bgModeState.backgroundPalettes,
+                bgModeState.activePaletteIndex,
+              )}
               universalBackgroundColor={bgModeState.universalBackgroundColor}
               onPaintPixel={bgModeState.handlePaintPixel}
             />

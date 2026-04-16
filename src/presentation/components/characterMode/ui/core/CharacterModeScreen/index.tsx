@@ -1,11 +1,6 @@
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  emptyFileMenuState,
-  type FileMenuState,
-} from "../../../../common/logic/state/fileMenuState";
 import { CharacterModeDecompositionRegionMenu } from "../../decomposition/CharacterModeDecompositionRegionMenu";
 import { CharacterModeSpriteMenu } from "../../menu/CharacterModeSpriteMenu";
 import { CharacterWorkspaceRoot } from "../../primitives/CharacterModePrimitives";
@@ -13,43 +8,15 @@ import { CharacterModeSetDraftFields } from "../../set/CharacterModeSetDraftFiel
 import { CharacterModeSetSelectionFields } from "../../set/CharacterModeSetSelectionFields";
 import { CharacterModeSidebarEditorModeCard } from "../../sidebar/CharacterModeSidebarEditorModeCard";
 import { CharacterModeSidebarSpriteSizeCard } from "../../sidebar/CharacterModeSidebarSpriteSizeCard";
-import {
-  useCharacterModeProjectActions,
-  useCharacterModeWorkspaceEvents,
-} from "../CharacterModeStateProvider";
+import { useCharacterModeWorkspaceEvents } from "../CharacterModeStateProvider";
 import { CharacterModeWorkspace } from "../CharacterModeWorkspace";
-
-interface CharacterModeScreenProps {
-  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
-}
 
 /**
  * キャラクター編集画面の shell を描画します。
  * 操作列、ワークスペース、コンテキストメニューの配置だけを担当します。
  */
-export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
-  onFileMenuStateChange,
-}) => {
-  const { projectActions } = useCharacterModeProjectActions();
+export const CharacterModeScreen: React.FC = () => {
   const workspaceEvents = useCharacterModeWorkspaceEvents();
-
-  const fileMenuState = React.useMemo<FileMenuState>(
-    () => ({
-      shareActions: projectActions,
-      restoreAction: O.none,
-    }),
-    [projectActions],
-  );
-
-  React.useEffect(() => {
-    onFileMenuStateChange(fileMenuState);
-  }, [fileMenuState, onFileMenuStateChange]);
-
-  React.useEffect(() => {
-    return () => {
-      onFileMenuStateChange(emptyFileMenuState);
-    };
-  }, [onFileMenuStateChange]);
 
   return (
     <Stack

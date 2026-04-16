@@ -1,54 +1,18 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  emptyFileMenuState,
-  type FileMenuState,
-} from "../../../../common/logic/state/fileMenuState";
 import { SpriteModeCanvasSurface } from "../../canvas/SpriteModeCanvasSurface";
-import {
-  useSpriteModePaletteSlots,
-  useSpriteModeProjectActions,
-} from "../../core/SpriteModeStateProvider";
+import { useSpriteModePaletteSlots } from "../../core/SpriteModeStateProvider";
 import { SpriteModePaletteSlots } from "../../forms/SpriteModePaletteSlots";
 import { SpriteModeToolOverlay } from "../../overlay/SpriteModeToolOverlay";
-
-interface SpriteModeCanvasPanelProps {
-  onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
-}
 
 /**
  * スプライト編集の右ペインです。
  * 色スロット、ツール、canvas を 1 つの編集面としてまとめます。
  */
-export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
-  onFileMenuStateChange,
-}) => {
-  const projectActions = useSpriteModeProjectActions();
+export const SpriteModeCanvasPanel: React.FC = () => {
   const paletteSlots = useSpriteModePaletteSlots();
-
-  const fileMenuState = React.useMemo<FileMenuState>(
-    () => ({
-      shareActions: projectActions.projectActions,
-      restoreAction: O.some({
-        label: "復元",
-        onSelect: projectActions.handleImport,
-      }),
-    }),
-    [projectActions.handleImport, projectActions.projectActions],
-  );
-
-  React.useEffect(() => {
-    onFileMenuStateChange(fileMenuState);
-  }, [fileMenuState, onFileMenuStateChange]);
-
-  React.useEffect(() => {
-    return () => {
-      onFileMenuStateChange(emptyFileMenuState);
-    };
-  }, [onFileMenuStateChange]);
 
   return (
     <Stack

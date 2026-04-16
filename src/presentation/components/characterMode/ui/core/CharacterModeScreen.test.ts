@@ -4,14 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockedHooks = vi.hoisted(() => {
   return {
-    useCharacterModeProjectActions: vi.fn(),
     useCharacterModeWorkspaceEvents: vi.fn(),
   };
 });
 
 vi.mock("./CharacterModeStateProvider", () => {
   return {
-    useCharacterModeProjectActions: mockedHooks.useCharacterModeProjectActions,
     useCharacterModeWorkspaceEvents:
       mockedHooks.useCharacterModeWorkspaceEvents,
   };
@@ -72,9 +70,6 @@ describe("CharacterModeScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockedHooks.useCharacterModeProjectActions.mockReturnValue({
-      projectActions: [],
-    });
     mockedHooks.useCharacterModeWorkspaceEvents.mockReturnValue({
       handleWorkspacePointerDownCapture: vi.fn(),
       handleWorkspacePointerMove: vi.fn(),
@@ -84,9 +79,7 @@ describe("CharacterModeScreen", () => {
 
   it("renders the outer screen shell without app-panel", () => {
     const markup = renderToStaticMarkup(
-      React.createElement(CharacterModeScreen, {
-        onFileMenuStateChange: vi.fn(),
-      }),
+      React.createElement(CharacterModeScreen),
     );
 
     expect(markup).toContain("character-workspace");

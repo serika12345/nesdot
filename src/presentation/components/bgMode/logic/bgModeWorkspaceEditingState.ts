@@ -147,3 +147,7 @@ export const useBgModeWorkspaceEditingState = () => {
     visibleBackgroundTiles,
   };
 };
+
+export type BgModeWorkspaceEditingState = ReturnType<
+  typeof useBgModeWorkspaceEditingState
+>;
