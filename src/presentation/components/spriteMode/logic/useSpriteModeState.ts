@@ -1,21 +1,13 @@
-import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { useCallback, useMemo } from "react";
 import {
   getHexArrayForSpriteTile,
   type PaletteIndex,
   type ProjectSpriteSize,
   type ProjectStoreState,
   type SpriteTile,
-  useProjectState,
 } from "../../../../application/state/projectStore";
-import { useWorkbenchState } from "../../../../application/state/workbenchStore";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import { makeTile } from "../../../../domain/tiles/utils";
-import { type Tool } from "../../../../infrastructure/browser/canvas/useSpriteCanvas";
-import useExportImage from "../../../../infrastructure/browser/useExportImage";
-import useImportImage from "../../../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
 import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 
@@ -26,12 +18,16 @@ function makeEmptyTile(
   return makeTile(height, paletteIndex, 0);
 }
 
-function toPaletteIndex(index: number): PaletteIndex | false {
-  if (index === 0 || index === 1 || index === 2 || index === 3) {
-    return index;
-  }
-  return false;
-}
+export const resolveSpriteModeTile = (
+  spriteSize: ProjectSpriteSize,
+  sprites: ReadonlyArray<SpriteTile>,
+  activeSprite: number,
+  activePalette: PaletteIndex,
+): SpriteTile =>
+  pipe(
+    getArrayItem(sprites, activeSprite),
+    O.getOrElse(() => makeEmptyTile(spriteSize, activePalette)),
+  );
 
 interface CreateSpriteModeProjectActionsDependencies {
   exportChr: (tile: SpriteTile, paletteIndex: PaletteIndex) => void;
@@ -42,16 +38,6 @@ interface CreateSpriteModeProjectActionsDependencies {
   getActiveSprite: () => number;
   getProjectState: () => ProjectStoreState;
 }
-
-const resolveSpriteTileForExport = (
-  projectState: ProjectStoreState,
-  activeSprite: number,
-  activePalette: PaletteIndex,
-): SpriteTile =>
-  pipe(
-    getArrayItem(projectState.sprites, activeSprite),
-    O.getOrElse(() => makeEmptyTile(projectState.spriteSize, activePalette)),
-  );
 
 export const createSpriteModeProjectActions = ({
   exportChr,
@@ -69,8 +55,9 @@ export const createSpriteModeProjectActions = ({
       const activePalette = getActivePalette();
       const activeSprite = getActiveSprite();
       const projectState = getProjectState();
-      const tile = resolveSpriteTileForExport(
-        projectState,
+      const tile = resolveSpriteModeTile(
+        projectState.spriteSize,
+        projectState.sprites,
         activeSprite,
         activePalette,
       );
@@ -85,8 +72,9 @@ export const createSpriteModeProjectActions = ({
       const activePalette = getActivePalette();
       const activeSprite = getActiveSprite();
       const projectState = getProjectState();
-      const tile = resolveSpriteTileForExport(
-        projectState,
+      const tile = resolveSpriteModeTile(
+        projectState.spriteSize,
+        projectState.sprites,
         activeSprite,
         activePalette,
       );
@@ -101,8 +89,9 @@ export const createSpriteModeProjectActions = ({
       const activePalette = getActivePalette();
       const activeSprite = getActiveSprite();
       const projectState = getProjectState();
-      const tile = resolveSpriteTileForExport(
-        projectState,
+      const tile = resolveSpriteModeTile(
+        projectState.spriteSize,
+        projectState.sprites,
         activeSprite,
         activePalette,
       );
@@ -118,202 +107,3 @@ export const createSpriteModeProjectActions = ({
     },
   },
 ];
-
-/**
- * スプライト編集画面の内部 state を組み立てます。
- * 共有状態と操作を provider 専用にまとめています。
- */
-export const useSpriteModeInternalState = () => {
-  const tool = useWorkbenchState((state) => state.spriteMode.tool);
-  const isChangeOrderMode = useWorkbenchState(
-    (state) => state.spriteMode.isChangeOrderMode,
-  );
-  const activePalette = useWorkbenchState(
-    (state) => state.spriteMode.activePalette,
-  );
-  const activeSlot = useWorkbenchState((state) => state.spriteMode.activeSlot);
-  const activeSprite = useWorkbenchState(
-    (state) => state.spriteMode.activeSprite,
-  );
-  const isToolsOpen = useWorkbenchState(
-    (state) => state.spriteMode.isToolsOpen,
-  );
-  const setTool = useWorkbenchState((state) => state.setSpriteModeTool);
-  const toggleIsChangeOrderMode = useWorkbenchState(
-    (state) => state.toggleSpriteModeChangeOrderMode,
-  );
-  const setActivePalette = useWorkbenchState(
-    (state) => state.setSpriteModeActivePalette,
-  );
-  const setActiveSlot = useWorkbenchState(
-    (state) => state.setSpriteModeActiveSlot,
-  );
-  const setActiveSprite = useWorkbenchState(
-    (state) => state.setSpriteModeActiveSprite,
-  );
-  const toggleIsToolsOpen = useWorkbenchState(
-    (state) => state.toggleSpriteModeToolsOpen,
-  );
-  const projectSpriteSize = useProjectState((state) => state.spriteSize);
-  const activeTile = useProjectState((state) =>
-    pipe(
-      getArrayItem(state.sprites, activeSprite),
-      O.getOrElse(() => makeEmptyTile(projectSpriteSize, activePalette)),
-    ),
-  );
-  const palettes = useProjectState((state) => state.nes.spritePalettes);
-  const sprites = useProjectState((state) => state.sprites);
-  const screen = useProjectState((state) => state.screen);
-  const { exportChr, exportPng, exportSvgSimple, exportJSON } =
-    useExportImage();
-  const { importJSON } = useImportImage();
-
-  const handleTileChange = (tile: SpriteTile, index: number) => {
-    const nextSprites = sprites.map((sprite, spriteIndex) =>
-      spriteIndex === index ? tile : sprite,
-    );
-    useProjectState.setState({ sprites: nextSprites });
-
-    const nextScreen = {
-      ...screen,
-      sprites: screen.sprites.map((screenSprite) =>
-        screenSprite.spriteIndex === index
-          ? { ...screenSprite, ...tile }
-          : screenSprite,
-      ),
-    };
-    const state = useProjectState.getState();
-    useProjectState.setState({
-      screen: nextScreen,
-      nes: mergeScreenIntoNesOam(state.nes, nextScreen),
-    });
-  };
-
-  const handlePaletteClick = (slot: number) => {
-    if (slot !== 0 && slot !== 1 && slot !== 2 && slot !== 3) {
-      return;
-    }
-    setActiveSlot(slot);
-  };
-
-  const handleSpriteChange = (index: string) => {
-    const nextIndex = Number.parseInt(index, 10);
-    if (nextIndex < 0 || nextIndex >= 64 || Number.isNaN(nextIndex)) {
-      return;
-    }
-
-    setActiveSprite(nextIndex);
-    const targetSpriteOption = getArrayItem(sprites, nextIndex);
-    if (O.isNone(targetSpriteOption)) {
-      return;
-    }
-
-    setActivePalette(targetSpriteOption.value.paletteIndex);
-  };
-
-  const handlePaletteChange = (index: string) => {
-    const nextIndex = Number.parseInt(index, 10);
-    const paletteIndex = toPaletteIndex(nextIndex);
-    if (paletteIndex === false) {
-      return;
-    }
-
-    setActivePalette(paletteIndex);
-    const nextTile: SpriteTile = { ...activeTile, paletteIndex };
-    handleTileChange(nextTile, activeSprite);
-  };
-
-  const handleImport = useCallback(async () => {
-    try {
-      await importJSON((data) => {
-        const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
-        useProjectState.setState({
-          ...data,
-          nes: syncedNes,
-        });
-        const nextPalette = pipe(
-          getArrayItem(data.sprites, activeSprite),
-          O.match(
-            (): PaletteIndex => 0,
-            (sprite): PaletteIndex => sprite.paletteIndex,
-          ),
-        );
-        setActivePalette(nextPalette);
-      });
-    } catch (error) {
-      alert(`インポートに失敗しました: ${String(error)}`);
-    }
-  }, [activeSprite, importJSON, setActivePalette]);
-
-  const handleClearSprite = async () => {
-    const message = "本当にクリアしますか？";
-    const shouldClear = await tauriConfirm(message, {
-      title: "スプライトをクリア",
-      okLabel: "クリア",
-      cancelLabel: "キャンセル",
-    }).catch(() => window.confirm(message));
-
-    if (shouldClear === true) {
-      handleTileChange(
-        makeEmptyTile(activeTile.height, activeTile.paletteIndex),
-        activeSprite,
-      );
-    }
-  };
-
-  const handleToggleTools = () => {
-    toggleIsToolsOpen();
-  };
-
-  const handleToggleChangeOrderMode = () => {
-    toggleIsChangeOrderMode();
-  };
-
-  const handleToolChange = (nextTool: Tool) => {
-    setTool(nextTool);
-  };
-
-  const projectActions = useMemo<ReadonlyArray<FileShareAction>>(
-    () =>
-      createSpriteModeProjectActions({
-        exportChr,
-        exportJSON,
-        exportPng,
-        exportSvgSimple,
-        getActivePalette: () => activePalette,
-        getActiveSprite: () => activeSprite,
-        getProjectState: useProjectState.getState,
-      }),
-    [
-      activePalette,
-      activeSprite,
-      exportChr,
-      exportJSON,
-      exportPng,
-      exportSvgSimple,
-    ],
-  );
-
-  return {
-    activePalette,
-    activeSlot,
-    activeSprite,
-    handleClearSprite,
-    handleImport,
-    handlePaletteChange,
-    handlePaletteClick,
-    handleSpriteChange,
-    handleTileChange,
-    handleToolChange,
-    handleToggleChangeOrderMode,
-    handleToggleTools,
-    isChangeOrderMode,
-    isToolsOpen,
-    palettes,
-    projectActions,
-    projectSpriteSize,
-    tool,
-  };
-};
-
-export type SpriteModeState = ReturnType<typeof useSpriteModeInternalState>;

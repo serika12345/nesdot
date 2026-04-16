@@ -1,5 +1,4 @@
 import React from "react";
-import { useBgModeWorkspaceEditingState } from "../../../logic/bgModeWorkspaceEditingState";
 import { BgModeWorkspacePanel } from "../../panels/BgModeWorkspacePanel";
 
 /**
@@ -7,9 +6,7 @@ import { BgModeWorkspacePanel } from "../../panels/BgModeWorkspacePanel";
  * domain 未接続の段階では、モック導線とレイアウト確認用の panel を束ねる責務だけを持ちます。
  */
 const BgModeComponent: React.FC = () => {
-  const bgModeState = useBgModeWorkspaceEditingState();
-
-  return <BgModeWorkspacePanel bgModeState={bgModeState} />;
+  return <BgModeWorkspacePanel />;
 };
 
 export const BgMode = React.memo(BgModeComponent);

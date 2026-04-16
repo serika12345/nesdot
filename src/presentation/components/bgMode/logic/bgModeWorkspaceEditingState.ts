@@ -36,34 +36,29 @@ const replaceVisibleBackgroundTileAtIndex = (
 ): ReadonlyArray<BackgroundTile> =>
   tiles.map((tile, index) => (index === tileIndex ? nextTile : tile));
 
-export const useBgModeWorkspaceEditingState = () => {
+export const useBgModeSelectedTile = (): BackgroundTile => {
   const chrBytes = useProjectState((state) => state.nes.chrBytes);
-  const backgroundPalettes = useProjectState(
-    (state) => state.nes.backgroundPalettes,
+  const selectedTileIndex = useWorkbenchState(
+    (state) => state.bgMode.selectedTileIndex,
   );
-  const universalBackgroundColor = useProjectState(
-    (state) => state.nes.universalBackgroundColor,
+
+  return React.useMemo(
+    () => decodeVisibleBackgroundTile(chrBytes, selectedTileIndex),
+    [chrBytes, selectedTileIndex],
   );
+};
+
+export const useBgModeTileEditorState = (): Readonly<{
+  handlePaintPixel: (pixelX: number, pixelY: number) => void;
+  selectedTile: BackgroundTile;
+  visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
+}> => {
+  const chrBytes = useProjectState((state) => state.nes.chrBytes);
   const selectedTileIndex = useWorkbenchState(
     (state) => state.bgMode.selectedTileIndex,
   );
   const tool = useWorkbenchState((state) => state.bgMode.tool);
-  const activePaletteIndex = useWorkbenchState(
-    (state) => state.bgMode.activePaletteIndex,
-  );
-  const isToolMenuOpen = useWorkbenchState(
-    (state) => state.bgMode.isToolMenuOpen,
-  );
-  const setSelectedTileIndex = useWorkbenchState(
-    (state) => state.setBgModeSelectedTileIndex,
-  );
-  const setTool = useWorkbenchState((state) => state.setBgModeTool);
-  const setActivePaletteIndex = useWorkbenchState(
-    (state) => state.setBgModeActivePaletteIndex,
-  );
-  const setIsToolMenuOpen = useWorkbenchState(
-    (state) => state.setBgModeToolMenuOpen,
-  );
+  const selectedTile = useBgModeSelectedTile();
   const locallyEditedTileIndexRef = React.useRef<O.Option<number>>(O.none);
   const visibleBackgroundTilesCacheRef = React.useRef<
     ReadonlyArray<BackgroundTile>
@@ -96,9 +91,6 @@ export const useBgModeWorkspaceEditingState = () => {
     cachedChrBytesRef.current = chrBytes;
     return nextTiles;
   }, [chrBytes]);
-
-  const selectedTile =
-    visibleBackgroundTiles[selectedTileIndex] ?? createEmptyBackgroundTile();
 
   const handlePaintPixel = React.useCallback(
     (pixelX: number, pixelY: number): void => {
@@ -145,22 +137,8 @@ export const useBgModeWorkspaceEditingState = () => {
   );
 
   return {
-    activePaletteIndex,
-    backgroundPalettes,
     handlePaintPixel,
-    isToolMenuOpen,
     selectedTile,
-    selectedTileIndex,
-    setActivePaletteIndex,
-    setIsToolMenuOpen,
-    setSelectedTileIndex,
-    setTool,
-    tool,
-    universalBackgroundColor,
     visibleBackgroundTiles,
   };
 };
-
-export type BgModeWorkspaceEditingState = ReturnType<
-  typeof useBgModeWorkspaceEditingState
->;

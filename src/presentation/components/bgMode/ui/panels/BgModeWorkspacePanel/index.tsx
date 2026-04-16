@@ -6,12 +6,15 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
+import { useProjectState } from "../../../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../../../application/state/workbenchStore";
 import {
   type NesColorIndex,
   type NesSubPalette,
 } from "../../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../../domain/project/projectV2";
 import { BackgroundTilePreview } from "../../../../common/ui/preview/BackgroundTilePreview";
+import { useBgModeTileEditorState } from "../../../logic/bgModeWorkspaceEditingState";
 import { BgModeTileEditorCanvas } from "../../canvas/BgModeTileEditorCanvas";
 import {
   canvasOverlayMenuProps,
@@ -25,27 +28,6 @@ import {
 } from "./styles";
 
 type BgPaletteIndex = 0 | 1 | 2 | 3;
-type BgTool = "pen" | "eraser";
-
-interface BgModeWorkspacePanelState {
-  activePaletteIndex: BgPaletteIndex;
-  backgroundPalettes: ReadonlyArray<NesSubPalette>;
-  handlePaintPixel: (pixelX: number, pixelY: number) => void;
-  isToolMenuOpen: boolean;
-  selectedTile: BackgroundTile;
-  selectedTileIndex: number;
-  setActivePaletteIndex: React.Dispatch<React.SetStateAction<BgPaletteIndex>>;
-  setIsToolMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedTileIndex: React.Dispatch<React.SetStateAction<number>>;
-  setTool: React.Dispatch<React.SetStateAction<BgTool>>;
-  tool: BgTool;
-  universalBackgroundColor: NesColorIndex;
-  visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
-}
-
-interface BgModeWorkspacePanelProps {
-  bgModeState: BgModeWorkspacePanelState;
-}
 
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 const DEFAULT_BG_PALETTE: NesSubPalette = [0, 0, 0, 0];
@@ -131,23 +113,45 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
 
 const BgTileLibrary = React.memo(BgTileLibraryComponent);
 
-const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
-  bgModeState,
-}) => {
+const BgModeWorkspacePanelComponent: React.FC = () => {
+  const activePaletteIndex = useWorkbenchState(
+    (state) => state.bgMode.activePaletteIndex,
+  );
+  const isToolMenuOpen = useWorkbenchState(
+    (state) => state.bgMode.isToolMenuOpen,
+  );
+  const selectedTileIndex = useWorkbenchState(
+    (state) => state.bgMode.selectedTileIndex,
+  );
+  const setActivePaletteIndex = useWorkbenchState(
+    (state) => state.setBgModeActivePaletteIndex,
+  );
+  const setIsToolMenuOpen = useWorkbenchState(
+    (state) => state.setBgModeToolMenuOpen,
+  );
+  const setSelectedTileIndex = useWorkbenchState(
+    (state) => state.setBgModeSelectedTileIndex,
+  );
+  const setTool = useWorkbenchState((state) => state.setBgModeTool);
+  const tool = useWorkbenchState((state) => state.bgMode.tool);
+  const backgroundPalettes = useProjectState(
+    (state) => state.nes.backgroundPalettes,
+  );
+  const universalBackgroundColor = useProjectState(
+    (state) => state.nes.universalBackgroundColor,
+  );
+  const { handlePaintPixel, selectedTile, visibleBackgroundTiles } =
+    useBgModeTileEditorState();
   const deferredVisibleBackgroundTiles = React.useDeferredValue(
-    bgModeState.visibleBackgroundTiles,
+    visibleBackgroundTiles,
   );
   const tileLibraryPreviewState = React.useMemo<BgTileLibraryPreviewState>(
     () => ({
-      activePaletteIndex: bgModeState.activePaletteIndex,
-      backgroundPalettes: bgModeState.backgroundPalettes,
-      universalBackgroundColor: bgModeState.universalBackgroundColor,
+      activePaletteIndex,
+      backgroundPalettes,
+      universalBackgroundColor,
     }),
-    [
-      bgModeState.activePaletteIndex,
-      bgModeState.backgroundPalettes,
-      bgModeState.universalBackgroundColor,
-    ],
+    [activePaletteIndex, backgroundPalettes, universalBackgroundColor],
   );
   return (
     <Stack
@@ -185,9 +189,9 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
           style={{ scrollbarGutter: "stable" }}
         >
           <BgTileLibrary
-            onSelectTile={bgModeState.setSelectedTileIndex}
+            onSelectTile={setSelectedTileIndex}
             previewState={tileLibraryPreviewState}
-            selectedTileIndex={bgModeState.selectedTileIndex}
+            selectedTileIndex={selectedTileIndex}
             tiles={deferredVisibleBackgroundTiles}
           />
         </Box>
@@ -215,58 +219,48 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
           <Box {...canvasOverlayRootProps}>
             <Button
               type="button"
-              aria-expanded={bgModeState.isToolMenuOpen}
+              aria-expanded={isToolMenuOpen}
               aria-controls="bg-mode-canvas-tool-menu"
               aria-label={
-                bgModeState.isToolMenuOpen
-                  ? "BGツールを閉じる"
-                  : "BGツールを開く"
+                isToolMenuOpen ? "BGツールを閉じる" : "BGツールを開く"
               }
-              color={
-                bgModeState.isToolMenuOpen === true ? "primary" : "inherit"
-              }
+              color={isToolMenuOpen === true ? "primary" : "inherit"}
               endIcon={
-                <ExpandMoreRoundedIcon
-                  style={chevronStyle(bgModeState.isToolMenuOpen)}
-                />
+                <ExpandMoreRoundedIcon style={chevronStyle(isToolMenuOpen)} />
               }
               size="small"
               style={overlayToggleButtonStyle}
-              variant={
-                bgModeState.isToolMenuOpen === true ? "contained" : "outlined"
-              }
+              variant={isToolMenuOpen === true ? "contained" : "outlined"}
               onClick={() => {
-                bgModeState.setIsToolMenuOpen(
-                  bgModeState.isToolMenuOpen === false,
-                );
+                setIsToolMenuOpen(isToolMenuOpen === false);
               }}
             >
-              {bgModeState.isToolMenuOpen ? "閉じる" : "開く"}
+              {isToolMenuOpen ? "閉じる" : "開く"}
             </Button>
 
-            {bgModeState.isToolMenuOpen === true ? (
+            {isToolMenuOpen === true ? (
               <Stack {...canvasOverlayMenuProps} id="bg-mode-canvas-tool-menu">
                 <Stack {...mockToolbarProps}>
                   <BgModeToolButton
                     type="button"
-                    active={bgModeState.tool === "pen"}
+                    active={tool === "pen"}
                     size="small"
                     aria-label="ペンツール"
-                    aria-pressed={bgModeState.tool === "pen"}
+                    aria-pressed={tool === "pen"}
                     onClick={() => {
-                      bgModeState.setTool("pen");
+                      setTool("pen");
                     }}
                   >
                     ペン
                   </BgModeToolButton>
                   <BgModeToolButton
                     type="button"
-                    active={bgModeState.tool === "eraser"}
+                    active={tool === "eraser"}
                     size="small"
                     aria-label="消しゴムツール"
-                    aria-pressed={bgModeState.tool === "eraser"}
+                    aria-pressed={tool === "eraser"}
                     onClick={() => {
-                      bgModeState.setTool("eraser");
+                      setTool("eraser");
                     }}
                   >
                     消しゴム
@@ -278,14 +272,12 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                     <BgModeToolButton
                       key={`bg-mode-palette-${paletteIndex}`}
                       type="button"
-                      active={bgModeState.activePaletteIndex === paletteIndex}
+                      active={activePaletteIndex === paletteIndex}
                       size="small"
                       aria-label={`BGパレット ${paletteIndex}`}
-                      aria-pressed={
-                        bgModeState.activePaletteIndex === paletteIndex
-                      }
+                      aria-pressed={activePaletteIndex === paletteIndex}
                       onClick={() => {
-                        bgModeState.setActivePaletteIndex(paletteIndex);
+                        setActivePaletteIndex(paletteIndex);
                       }}
                     >
                       {`Palette ${paletteIndex}`}
@@ -300,13 +292,13 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
 
           <Grid {...centeredCanvasWrapProps}>
             <BgModeTileEditorCanvas
-              tile={bgModeState.selectedTile}
+              tile={selectedTile}
               palette={resolveActivePalette(
-                bgModeState.backgroundPalettes,
-                bgModeState.activePaletteIndex,
+                backgroundPalettes,
+                activePaletteIndex,
               )}
-              universalBackgroundColor={bgModeState.universalBackgroundColor}
-              onPaintPixel={bgModeState.handlePaintPixel}
+              universalBackgroundColor={universalBackgroundColor}
+              onPaintPixel={handlePaintPixel}
             />
           </Grid>
         </Box>

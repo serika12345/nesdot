@@ -1,12 +1,14 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useProjectState } from "../../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../../application/state/workbenchStore";
 import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 
 const mockedModules = vi.hoisted(() => {
   return {
-    createBgModeWorkspaceProjectActions: vi.fn(),
+    useBgModeTileEditorState: vi.fn(),
   };
 });
 
@@ -19,10 +21,9 @@ const createEmptyPixels = (): ReadonlyArray<
   ReadonlyArray<ColorIndexOfPalette>
 > => Array.from({ length: 8 }, createEmptyPixelRow);
 
-vi.mock("../../logic/bgModeWorkspaceProjectActions", () => {
+vi.mock("../../logic/bgModeWorkspaceEditingState", () => {
   return {
-    createBgModeWorkspaceProjectActions:
-      mockedModules.createBgModeWorkspaceProjectActions,
+    useBgModeTileEditorState: mockedModules.useBgModeTileEditorState,
   };
 });
 
@@ -54,34 +55,43 @@ const createBackgroundTile = (): BackgroundTile => ({
   pixels: createEmptyPixels(),
 });
 
-describe("BgModeWorkspacePanel", () => {
-  const bgModeState: React.ComponentProps<
-    typeof BgModeWorkspacePanel
-  >["bgModeState"] = {
-    activePaletteIndex: 0,
-    backgroundPalettes,
-    handlePaintPixel: vi.fn(),
-    isToolMenuOpen: true,
-    selectedTile: createBackgroundTile(),
-    selectedTileIndex: 5,
-    setActivePaletteIndex: vi.fn(),
-    setIsToolMenuOpen: vi.fn(),
-    setSelectedTileIndex: vi.fn(),
-    setTool: vi.fn(),
-    tool: "eraser",
-    universalBackgroundColor: 0,
-    visibleBackgroundTiles: [createBackgroundTile()],
-  };
+const initialProjectState = useProjectState.getState();
+const initialWorkbenchState = useWorkbenchState.getState();
 
+describe("BgModeWorkspacePanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    useProjectState.setState({
+      ...initialProjectState,
+      nes: {
+        ...initialProjectState.nes,
+        backgroundPalettes,
+        universalBackgroundColor: 0,
+      },
+    });
+
+    useWorkbenchState.setState({
+      ...initialWorkbenchState,
+      bgMode: {
+        ...initialWorkbenchState.bgMode,
+        activePaletteIndex: 0,
+        isToolMenuOpen: true,
+        selectedTileIndex: 5,
+        tool: "eraser",
+      },
+    });
+
+    mockedModules.useBgModeTileEditorState.mockReturnValue({
+      handlePaintPixel: vi.fn(),
+      selectedTile: createBackgroundTile(),
+      visibleBackgroundTiles: [createBackgroundTile()],
+    });
   });
 
   it("renders bg controls without the legacy tool-button wrapper class", () => {
     const markup = renderToStaticMarkup(
-      React.createElement(BgModeWorkspacePanel, {
-        bgModeState,
-      }),
+      React.createElement(BgModeWorkspacePanel),
     );
 
     expect(markup).toContain("BG編集");

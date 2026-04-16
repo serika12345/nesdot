@@ -1,5 +1,4 @@
 import React from "react";
-import { useScreenModeState } from "../../../logic/useScreenModeState";
 import { ScreenModeWorkspacePanel } from "../../panels/ScreenModeWorkspacePanel";
 
 /**
@@ -7,9 +6,7 @@ import { ScreenModeWorkspacePanel } from "../../panels/ScreenModeWorkspacePanel"
  * 左カラム編集を廃止し、ジェスチャー中心ワークスペースへ集約します。
  */
 const ScreenModeComponent: React.FC = () => {
-  const screenMode = useScreenModeState();
-
-  return <ScreenModeWorkspacePanel screenMode={screenMode} />;
+  return <ScreenModeWorkspacePanel />;
 };
 
 export const ScreenMode = React.memo(ScreenModeComponent);

@@ -1,156 +1,22 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
-import * as E from "fp-ts/Either";
-import { pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
 import React from "react";
-import { useProjectState } from "../../../../../../application/state/projectStore";
-import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
-import { createEmptyBackgroundTile } from "../../../../../../domain/project/projectV2";
 import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
-import type { ScreenModeState } from "../../../logic/useScreenModeState";
+import { useScreenModeProjectState } from "../../../logic/useScreenModeProjectState";
+import { useScreenModeViewportState } from "../../../logic/useScreenModeViewportState";
 import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
-import { ScreenModeBackgroundPlacementMockOverlay } from "../../overlays/ScreenModeBackgroundPlacementMockOverlay";
-import {
-  WarningList,
-  WorkspaceHeaderActionCluster,
-  ZoomControlsRow,
-} from "../../primitives/ScreenModePrimitives";
-import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace";
-
-interface ScreenModeWorkspacePanelProps {
-  screenMode: ScreenModeState;
-}
-
-interface ScreenModeDisplaySwitchProps {
-  checked: boolean;
-  inputLabel: string;
-  label: string;
-  onChange: (checked: boolean) => void;
-}
-
-const ScreenModeDisplaySwitch: React.FC<ScreenModeDisplaySwitchProps> = ({
-  checked,
-  inputLabel,
-  label,
-  onChange,
-}) => (
-  <Stack component="label" direction="row" alignItems="center" spacing={0.5}>
-    <Typography component="span" variant="body2">
-      {label}
-    </Typography>
-    <Switch
-      size="small"
-      color="primary"
-      checked={checked}
-      slotProps={{
-        input: {
-          "aria-label": inputLabel,
-        },
-      }}
-      onChange={(_event, nextChecked) => onChange(nextChecked)}
-    />
-  </Stack>
-);
+import { WarningList } from "../../primitives/ScreenModePrimitives";
+import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace/index";
 
 /**
  * スクリーン配置モードのワークスペース全体を描画します。
  * ファイルメニュー状態連携と上部操作列のオーケストレーションを担当します。
  */
-export const ScreenModeWorkspacePanel: React.FC<
-  ScreenModeWorkspacePanelProps
-> = ({ screenMode }) => {
-  const nes = useProjectState((state) => state.nes);
-  const [isSpriteOutlineVisible, setIsSpriteOutlineVisible] =
-    React.useState(true);
-  const [isSpriteIndexVisible, setIsSpriteIndexVisible] = React.useState(false);
+export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
+  const projectState = useScreenModeProjectState();
+  const viewportState = useScreenModeViewportState();
   const backgroundEditingState = useScreenModeWorkspaceBackgroundEditingState();
-
-  const {
-    screenZoomLevel,
-    screen,
-    scanReport,
-    gestureSelectedSpriteCount,
-    handleZoomOut,
-    handleZoomIn,
-    handleWorkspacePointerDownCapture,
-    handleWorkspacePointerMoveCapture,
-    handleWorkspacePointerEndCapture,
-  } = screenMode;
-
-  const handleWorkspaceContextMenuCapture = React.useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      event.preventDefault();
-    },
-    [],
-  );
-
-  const grabbedBackgroundTile = React.useMemo(() => {
-    if (O.isNone(backgroundEditingState.grabbedTileIndex)) {
-      return O.none;
-    }
-
-    const decodedTile = decodeBackgroundTileAtIndex(
-      nes.chrBytes,
-      backgroundEditingState.grabbedTileIndex.value,
-    );
-
-    return O.some(
-      E.isRight(decodedTile) ? decodedTile.right : createEmptyBackgroundTile(),
-    );
-  }, [backgroundEditingState.grabbedTileIndex, nes.chrBytes]);
-
-  const grabbedTilePreview =
-    backgroundEditingState.editingTarget === "bgTile" &&
-    O.isSome(grabbedBackgroundTile)
-      ? O.some(grabbedBackgroundTile.value)
-      : O.none;
-
-  const backgroundPlacementMockOverlay = pipe(
-    backgroundEditingState.cursorOverlay,
-    O.match(
-      () => <></>,
-      (overlayState) =>
-        O.isSome(grabbedTilePreview) ? (
-          <ScreenModeBackgroundPlacementMockOverlay
-            placement={overlayState}
-            preview={{
-              kind: "tile",
-              palette:
-                nes.backgroundPalettes[
-                  backgroundEditingState.activePaletteIndex
-                ],
-              tile: grabbedTilePreview.value,
-              universalBackgroundColor: nes.universalBackgroundColor,
-            }}
-            screenZoomLevel={screenZoomLevel}
-          />
-        ) : (
-          <ScreenModeBackgroundPlacementMockOverlay
-            placement={overlayState}
-            preview={{ kind: "none" }}
-            screenZoomLevel={screenZoomLevel}
-          />
-        ),
-    ),
-  );
-  const backgroundEditingProps =
-    backgroundEditingState.editingTarget !== "sprite"
-      ? {
-          backgroundEditing: {
-            overlay: backgroundPlacementMockOverlay,
-            onClick: backgroundEditingState.handleStageClick,
-            onPointerDown: backgroundEditingState.handleStagePointerDown,
-            onPointerMove: backgroundEditingState.handleStagePointerMove,
-            onPointerUp: backgroundEditingState.handleStagePointerUp,
-          },
-        }
-      : {};
 
   return (
     <Stack
@@ -163,82 +29,11 @@ export const ScreenModeWorkspacePanel: React.FC<
       spacing="0.875rem"
       p="1.125rem"
       useFlexGap
-      onContextMenuCapture={handleWorkspaceContextMenuCapture}
-      onPointerDownCapture={handleWorkspacePointerDownCapture}
-      onPointerMoveCapture={handleWorkspacePointerMoveCapture}
-      onPointerUpCapture={handleWorkspacePointerEndCapture}
-      onPointerCancelCapture={handleWorkspacePointerEndCapture}
     >
-      <ZoomControlsRow>
-        <Chip size="small" variant="outlined" label={`${screenZoomLevel}x`} />
-        <Button
-          type="button"
-          size="small"
-          variant="outlined"
-          aria-label="画面ズーム縮小"
-          onClick={handleZoomOut}
-        >
-          -
-        </Button>
-        <Button
-          type="button"
-          size="small"
-          variant="outlined"
-          aria-label="画面ズーム拡大"
-          onClick={handleZoomIn}
-        >
-          +
-        </Button>
-        <Chip
-          size="small"
-          variant="outlined"
-          label={`${screen.sprites.length} sprites`}
-        />
-        <Chip
-          size="small"
-          color="primary"
-          label={`${gestureSelectedSpriteCount} selected`}
-        />
-        <Box flex="1 1 auto" minWidth="0.75rem" />
-        <WorkspaceHeaderActionCluster>
-          <Button
-            type="button"
-            size="small"
-            variant="contained"
-            aria-label="BGタイル追加"
-            onClick={backgroundEditingState.openTilePicker}
-          >
-            BGタイル追加
-          </Button>
-          <Button
-            type="button"
-            size="small"
-            variant="outlined"
-            aria-label="BGパレット変更"
-            onClick={backgroundEditingState.openPalettePicker}
-          >
-            BGパレット変更
-          </Button>
-          <ScreenModeDisplaySwitch
-            checked={isSpriteOutlineVisible}
-            inputLabel="スプライト外枠表示切り替え"
-            label="外枠"
-            onChange={setIsSpriteOutlineVisible}
-          />
-          <ScreenModeDisplaySwitch
-            checked={isSpriteIndexVisible}
-            inputLabel="スプライト番号表示切り替え"
-            label="#表示"
-            onChange={setIsSpriteIndexVisible}
-          />
-        </WorkspaceHeaderActionCluster>
-      </ZoomControlsRow>
-
       <ScreenModeGestureWorkspace
-        screenMode={screenMode}
-        isSpriteOutlineVisible={isSpriteOutlineVisible}
-        isSpriteIndexVisible={isSpriteIndexVisible}
-        {...backgroundEditingProps}
+        backgroundEditingState={backgroundEditingState}
+        projectState={projectState}
+        viewportState={viewportState}
       />
 
       <ScreenModeBackgroundTilePickerDialog
@@ -256,9 +51,9 @@ export const ScreenModeWorkspacePanel: React.FC<
         onTileSelect={backgroundEditingState.handleBackgroundTileSelect}
       />
 
-      {scanReport.ok === false ? (
+      {projectState.scanReport.ok === false ? (
         <WarningList>
-          {scanReport.errors.map((error) => (
+          {projectState.scanReport.errors.map((error) => (
             <Stack
               key={error}
               direction="row"

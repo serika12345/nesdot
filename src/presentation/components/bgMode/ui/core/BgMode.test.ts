@@ -1,19 +1,6 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const mockedModules = vi.hoisted(() => {
-  return {
-    useBgModeWorkspaceEditingState: vi.fn(),
-  };
-});
-
-vi.mock("../../logic/bgModeWorkspaceEditingState", () => {
-  return {
-    useBgModeWorkspaceEditingState:
-      mockedModules.useBgModeWorkspaceEditingState,
-  };
-});
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../panels/BgModeWorkspacePanel", () => {
   return {
@@ -24,12 +11,6 @@ vi.mock("../panels/BgModeWorkspacePanel", () => {
 import { BgMode } from "./BgMode";
 
 describe("BgMode", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    mockedModules.useBgModeWorkspaceEditingState.mockReturnValue({});
-  });
-
   it("renders the workspace panel", () => {
     const markup = renderToStaticMarkup(React.createElement(BgMode));
 

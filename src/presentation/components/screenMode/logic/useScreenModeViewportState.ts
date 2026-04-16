@@ -29,7 +29,7 @@ interface ViewportPanState {
   startScrollTop: number;
 }
 
-interface ScreenModeViewportStateResult {
+export interface ScreenModeViewportStateResult {
   screenZoomLevel: number;
   viewportPanState: O.Option<ViewportPanState>;
   setViewportRef: (element: HTMLDivElement | null) => void;

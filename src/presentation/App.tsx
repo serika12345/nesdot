@@ -36,10 +36,7 @@ import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScreenModeFileMenuState";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
-import {
-  SpriteModeStateProvider,
-  useSpriteModeProjectActions,
-} from "./components/spriteMode/ui/core/SpriteModeStateProvider";
+import { useSpriteModeProjectActions } from "./components/spriteMode/ui/core/SpriteModeStateProvider";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -366,7 +363,10 @@ const AppBody: React.FC = () => {
   const editMode = useWorkbenchState((state) => state.editMode);
   const handleEditModeSelect = useWorkbenchState((state) => state.setEditMode);
   const isNativeMacMenu = useMemo(() => isMacNativeMenuRuntime(), []);
-  const spriteProjectActions = useSpriteModeProjectActions();
+  const spriteProjectActions: Readonly<{
+    handleImport: () => Promise<void>;
+    projectActions: ReadonlyArray<FileShareAction>;
+  }> = useSpriteModeProjectActions();
   const { projectActions: characterProjectActions } =
     useCharacterModeProjectActions();
   const bgFileMenuState = useBgModeFileMenuState();
@@ -592,9 +592,5 @@ const AppBody: React.FC = () => {
 };
 
 export const App: React.FC = () => {
-  return (
-    <SpriteModeStateProvider>
-      <AppBody />
-    </SpriteModeStateProvider>
-  );
+  return <AppBody />;
 };
