@@ -3,10 +3,10 @@ import MaterialGrid, {
   type GridProps,
   type GridSize,
 } from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
-  APP_CANVAS_VIEWPORT_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
   SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
   mergeClassNames,
@@ -197,20 +197,26 @@ export const PreviewViewport = React.forwardRef<
   HTMLDivElement,
   PreviewViewportProps
 >(function PreviewViewport({ active, className, ...props }, ref) {
+  const { component, ...forwardedProps } = props;
+
+  void component;
+
   return (
     <Box
       ref={ref}
+      {...forwardedProps}
+      component={Paper}
+      variant="outlined"
       data-active={active === true ? "true" : "false"}
       className={mergeClassNames(
-        APP_CANVAS_VIEWPORT_CLASS_NAME,
         SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       flex={1}
       minHeight={0}
       overflow="auto"
+      position="relative"
       p="1.5rem"
-      {...props}
     />
   );
 });

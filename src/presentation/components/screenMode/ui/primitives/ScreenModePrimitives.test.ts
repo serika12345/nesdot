@@ -18,7 +18,9 @@ describe("ScreenModePrimitives", () => {
     );
 
     expect(markup).toContain('data-active="true"');
+    expect(markup).toContain("MuiPaper-outlined");
     expect(markup).toContain(SCREEN_PREVIEW_VIEWPORT_CLASS_NAME);
+    expect(markup).not.toContain("app-canvas-viewport");
     expect(markup).not.toMatch(/\sactive="/);
   });
 

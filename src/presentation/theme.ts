@@ -1,7 +1,6 @@
 import { alpha, createTheme, type Theme } from "@mui/material/styles";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
-  APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
@@ -196,16 +195,6 @@ function getAppGlobalStyles(theme: Theme) {
     "#root": {
       height: "100vh",
       overflow: "hidden",
-    },
-    [`.${APP_CANVAS_VIEWPORT_CLASS_NAME}`]: {
-      position: "relative",
-      zIndex: 1,
-      borderRadius: "1.5rem",
-      background:
-        "radial-gradient(circle at top, rgba(30, 41, 59, 0.3), transparent 40%), linear-gradient(180deg, var(--canvas-shell-alt), var(--canvas-shell))",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
-      boxShadow: "inset 0 0.0625rem 0 rgba(255, 255, 255, 0.03)",
-      scrollbarGutter: "stable both-edges",
     },
     [`.${APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME}`]: {
       display: "block",

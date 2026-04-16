@@ -8,7 +8,6 @@ import Typography from "@mui/material/Typography";
 import React from "react";
 import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
 import {
-  APP_CANVAS_VIEWPORT_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   TOOL_BUTTON_CLASS_NAME,
 } from "../../../../../styleClassNames";
@@ -253,10 +252,12 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
         minHeight={0}
       >
         <Box
-          className={APP_CANVAS_VIEWPORT_CLASS_NAME}
+          component={Paper}
+          variant="outlined"
           flex={1}
           minHeight={0}
           overflow="auto"
+          position="relative"
           p="1.125rem"
           aria-label="BGタイル編集キャンバスビュー"
         >

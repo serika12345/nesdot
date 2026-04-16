@@ -9,7 +9,6 @@ import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
-  APP_CANVAS_VIEWPORT_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
@@ -406,12 +405,18 @@ export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
   CharacterStageViewportProps
 >(function CharacterStageViewport({ dragging, className, ...props }, ref) {
+  const { component, ...forwardedProps } = props;
+
+  void component;
+
   return (
     <Box
       ref={ref}
+      {...forwardedProps}
+      component={Paper}
+      variant="outlined"
       data-dragging-state={toBooleanDataValue(dragging)}
       className={mergeClassNames(
-        APP_CANVAS_VIEWPORT_CLASS_NAME,
         CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
@@ -419,9 +424,10 @@ export const CharacterStageViewport = React.forwardRef<
       minHeight={0}
       minWidth={0}
       overflow="auto"
+      position="relative"
+      zIndex={1}
       p="1.5rem"
       borderRadius={0}
-      {...props}
     />
   );
 });
