@@ -1,6 +1,5 @@
 import { alpha, createTheme, type Theme } from "@mui/material/styles";
 import {
-  ACTION_MENU_BUTTON_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
@@ -13,14 +12,12 @@ import {
   CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME,
   CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
   CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
-  CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
   CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
   CHARACTER_STAGE_CANVAS_CLASS_NAME,
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
   CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
-  COLLAPSE_TOGGLE_CLASS_NAME,
   MENU_ABOUT_APP_NAME_CLASS_NAME,
   MENU_ABOUT_ICON_IMAGE_CLASS_NAME,
   MENU_ABOUT_VERSION_TEXT_CLASS_NAME,
@@ -52,7 +49,6 @@ import {
   SCREEN_STAGE_SPRITE_OUTLINE_CLASS_NAME,
   SCREEN_STAGE_SURFACE_CLASS_NAME,
   SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME,
-  TOOL_BUTTON_CLASS_NAME,
 } from "./styleClassNames";
 
 const canvasShell = "#081320";
@@ -372,90 +368,6 @@ function getAppGlobalStyles(theme: Theme) {
       lineHeight: "var(--menu-line-height-body2)",
       color: "var(--menu-color-text-secondary)",
     },
-    [`.MuiButtonBase-root.${TOOL_BUTTON_CLASS_NAME}`]: {
-      appearance: "none",
-      borderRadius: "1rem",
-      padding: "0.75rem 1rem",
-      fontSize: "0.875rem",
-      fontWeight: 700,
-      letterSpacing: "0.01em",
-      cursor: "pointer",
-      textAlign: "center",
-      transition:
-        "transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease",
-      "&[data-tone='neutral'][data-active='false']": {
-        color: "var(--ink-strong)",
-        background:
-          "linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.92))",
-        border: "0.0625rem solid rgba(148, 163, 184, 0.24)",
-        boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-      },
-      "&[data-tone='neutral'][data-active='true'], &[data-tone='primary']": {
-        color: "#f0fdfa",
-        background: "linear-gradient(135deg, #0f766e 0%, #155e75 100%)",
-        border: "0.0625rem solid rgba(21, 94, 117, 0.35)",
-        boxShadow: "0 0.875rem 1.625rem rgba(15, 118, 110, 0.22)",
-      },
-      "&[data-tone='danger']": {
-        color: "#fff1f2",
-        background: "linear-gradient(135deg, #be123c 0%, #9f1239 100%)",
-        border: "0.0625rem solid rgba(159, 18, 57, 0.4)",
-        boxShadow: "0 0.75rem 1.5rem rgba(190, 24, 93, 0.2)",
-      },
-      "&:hover:not(:disabled)": {
-        transform: "translateY(-0.0625rem)",
-      },
-      "&:disabled": {
-        opacity: 0.45,
-        cursor: "not-allowed",
-        transform: "none",
-        boxShadow: "none",
-      },
-    },
-    [`.MuiButtonBase-root.${COLLAPSE_TOGGLE_CLASS_NAME}`]: {
-      appearance: "none",
-      gap: "0.5rem",
-      borderRadius: "62.4375rem",
-      padding: "0.5625rem 0.75rem",
-      fontSize: "0.75rem",
-      fontWeight: 700,
-      letterSpacing: "0.06em",
-      cursor: "pointer",
-      transition:
-        "transform 160ms ease, background 160ms ease, border-color 160ms ease",
-      "&[data-open='false']": {
-        border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-        background: "rgba(248, 250, 252, 0.88)",
-        color: "var(--ink-soft)",
-      },
-      "&[data-open='true']": {
-        border: "0.0625rem solid rgba(15, 118, 110, 0.2)",
-        background: "rgba(15, 118, 110, 0.1)",
-        color: "#0f766e",
-      },
-      "&:hover": {
-        transform: "translateY(-0.0625rem)",
-      },
-    },
-    [`.MuiButtonBase-root.${ACTION_MENU_BUTTON_CLASS_NAME}`]: {
-      appearance: "none",
-      width: "100%",
-      justifyContent: "space-between",
-      gap: "0.75rem",
-      padding: "0.6875rem 0.75rem",
-      border: 0,
-      borderRadius: "0.75rem",
-      background: "transparent",
-      color: "var(--ink-strong)",
-      cursor: "pointer",
-      fontSize: "0.8125rem",
-      fontWeight: 700,
-      textAlign: "left",
-      transition: "background 160ms ease",
-      "&:hover": {
-        background: "rgba(15, 23, 42, 0.05)",
-      },
-    },
     [`.${SCREEN_EDITOR_CONTENT_CLASS_NAME}`]: {
       position: "relative",
       zIndex: 1,
@@ -731,17 +643,6 @@ function getAppGlobalStyles(theme: Theme) {
       inset: 0,
       zIndex: 320,
     },
-    [`.MuiButtonBase-root.${CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME}`]:
-      {
-        "&[data-danger='false']": {
-          color: "var(--ink-strong)",
-          background: "rgba(248, 250, 252, 0.96)",
-        },
-        "&[data-danger='true']": {
-          color: "rgb(190, 24, 93)",
-          background: "rgba(255, 241, 242, 0.96)",
-        },
-      },
     [`.${CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME}`]: {
       borderRadius: "0.5rem",
       background:

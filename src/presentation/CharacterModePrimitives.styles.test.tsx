@@ -16,7 +16,6 @@ import {
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
   CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
-  CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
   CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
@@ -53,9 +52,11 @@ describe("CharacterModePrimitives", () => {
     expect(menuMarkup).not.toMatch(/\smenuTop="/);
     expect(menuMarkup).not.toMatch(/\smenuWidth="/);
     expect(menuMarkup).not.toMatch(/\sready="/);
-    expect(buttonMarkup).toContain('data-danger="true"');
-    expect(buttonMarkup).toContain(
-      CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
+    expect(buttonMarkup).toContain("MuiButton-root");
+    expect(buttonMarkup).toContain("MuiButton-contained");
+    expect(buttonMarkup).not.toContain("app-action-menu-button");
+    expect(buttonMarkup).not.toContain(
+      "character-positioned-action-menu-button",
     );
     expect(buttonMarkup).not.toMatch(/\sdanger="/);
   });

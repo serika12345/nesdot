@@ -1,5 +1,6 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
@@ -12,7 +13,6 @@ import {
   CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME,
   CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME,
-  COLLAPSE_TOGGLE_CLASS_NAME,
 } from "../../../../../styleClassNames";
 import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../core/CharacterModeStateProvider";
@@ -140,10 +140,8 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
     >
       <Stack direction="row" spacing="0.75rem" alignItems="center">
         <Typography variant="body2">スプライトライブラリ</Typography>
-        <ButtonBase
+        <Button
           type="button"
-          className={COLLAPSE_TOGGLE_CLASS_NAME}
-          data-open={toBooleanDataValue(isLibraryOpen)}
           aria-expanded={isLibraryOpen}
           aria-controls={libraryContentId}
           aria-label={
@@ -151,11 +149,18 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
               ? "スプライトライブラリを閉じる"
               : "スプライトライブラリを開く"
           }
+          color={isLibraryOpen === true ? "primary" : "inherit"}
+          endIcon={
+            <ExpandMoreRoundedIcon
+              style={collapseChevronStyle(isLibraryOpen)}
+            />
+          }
+          size="small"
+          variant={isLibraryOpen === true ? "contained" : "outlined"}
           onClick={() => setIsLibraryOpen((previous) => !previous)}
         >
           {isLibraryOpen ? "閉じる" : "開く"}
-          <ExpandMoreRoundedIcon style={collapseChevronStyle(isLibraryOpen)} />
-        </ButtonBase>
+        </Button>
       </Stack>
 
       <Box

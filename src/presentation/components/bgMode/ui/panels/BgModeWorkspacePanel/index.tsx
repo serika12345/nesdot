@@ -1,16 +1,12 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
-import ButtonBase from "@mui/material/ButtonBase";
+import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
-import {
-  COLLAPSE_TOGGLE_CLASS_NAME,
-  TOOL_BUTTON_CLASS_NAME,
-} from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -40,42 +36,20 @@ const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 const formatTileNumber = (tileIndex: number): string =>
   String(tileIndex).padStart(3, "0");
 
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
-
-type BgModeToolButtonProps = React.ComponentProps<typeof ButtonBase> & {
+type BgModeToolButtonProps = React.ComponentProps<typeof Button> & {
   active?: boolean;
 };
 
 const BgModeToolButton = React.forwardRef<
   HTMLButtonElement,
   BgModeToolButtonProps
->(function BgModeToolButton({ active, className, ...props }, ref) {
+>(function BgModeToolButton({ active, ...props }, ref) {
   return (
-    <ButtonBase
+    <Button
       ref={ref}
       {...props}
-      className={className}
-      data-active={toBooleanDataValue(active)}
-      data-tone="neutral"
-    />
-  );
-});
-
-type BgModeCollapseToggleProps = React.ComponentProps<typeof ButtonBase> & {
-  open?: boolean;
-};
-
-const BgModeCollapseToggle = React.forwardRef<
-  HTMLButtonElement,
-  BgModeCollapseToggleProps
->(function BgModeCollapseToggle({ open, className, ...props }, ref) {
-  return (
-    <ButtonBase
-      ref={ref}
-      {...props}
-      className={className}
-      data-open={toBooleanDataValue(open)}
+      color={active === true ? "primary" : "inherit"}
+      variant={active === true ? "contained" : "outlined"}
     />
   );
 });
@@ -111,8 +85,8 @@ const BgTileLibraryComponent: React.FC<BgTileLibraryProps> = ({
         <Grid key={`bg-tile-preview-${tileIndex}`} size={1}>
           <BgModeToolButton
             type="button"
-            className={TOOL_BUTTON_CLASS_NAME}
             active={selectedTileIndex === tileIndex}
+            fullWidth
             aria-label={`#${formatTileNumber(tileIndex)}`}
             aria-pressed={selectedTileIndex === tileIndex}
             onClick={() => {
@@ -262,10 +236,8 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
           aria-label="BGタイル編集キャンバスビュー"
         >
           <Box {...canvasOverlayRootProps}>
-            <BgModeCollapseToggle
+            <Button
               type="button"
-              className={COLLAPSE_TOGGLE_CLASS_NAME}
-              open={bgModeState.isToolMenuOpen}
               aria-expanded={bgModeState.isToolMenuOpen}
               aria-controls="bg-mode-canvas-tool-menu"
               aria-label={
@@ -273,24 +245,33 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                   ? "BGツールを閉じる"
                   : "BGツールを開く"
               }
+              color={
+                bgModeState.isToolMenuOpen === true ? "primary" : "inherit"
+              }
+              endIcon={
+                <ExpandMoreRoundedIcon
+                  style={chevronStyle(bgModeState.isToolMenuOpen)}
+                />
+              }
+              size="small"
               style={overlayToggleButtonStyle}
+              variant={
+                bgModeState.isToolMenuOpen === true ? "contained" : "outlined"
+              }
               onClick={() => {
                 bgModeState.setIsToolMenuOpen((previous) => previous === false);
               }}
             >
               {bgModeState.isToolMenuOpen ? "閉じる" : "開く"}
-              <ExpandMoreRoundedIcon
-                style={chevronStyle(bgModeState.isToolMenuOpen)}
-              />
-            </BgModeCollapseToggle>
+            </Button>
 
             {bgModeState.isToolMenuOpen === true ? (
               <Stack {...canvasOverlayMenuProps} id="bg-mode-canvas-tool-menu">
                 <Stack {...mockToolbarProps}>
                   <BgModeToolButton
                     type="button"
-                    className={TOOL_BUTTON_CLASS_NAME}
                     active={bgModeState.tool === "pen"}
+                    size="small"
                     aria-label="ペンツール"
                     aria-pressed={bgModeState.tool === "pen"}
                     onClick={() => {
@@ -301,8 +282,8 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                   </BgModeToolButton>
                   <BgModeToolButton
                     type="button"
-                    className={TOOL_BUTTON_CLASS_NAME}
                     active={bgModeState.tool === "eraser"}
+                    size="small"
                     aria-label="消しゴムツール"
                     aria-pressed={bgModeState.tool === "eraser"}
                     onClick={() => {
@@ -318,8 +299,8 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
                     <BgModeToolButton
                       key={`bg-mode-palette-${paletteIndex}`}
                       type="button"
-                      className={TOOL_BUTTON_CLASS_NAME}
                       active={bgModeState.activePaletteIndex === paletteIndex}
+                      size="small"
                       aria-label={`BGパレット ${paletteIndex}`}
                       aria-pressed={
                         bgModeState.activePaletteIndex === paletteIndex

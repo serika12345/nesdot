@@ -1,4 +1,5 @@
 import Box, { type BoxProps } from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import MaterialGrid, {
   type GridProps,
@@ -8,14 +9,12 @@ import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
-  ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
   CHARACTER_LIBRARY_GRID_CLASS_NAME,
   CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
   CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
-  CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
   CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
   CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
   CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
@@ -73,9 +72,7 @@ type PositionedActionMenuProps = StackProps & {
   ready: boolean;
 };
 
-type PositionedActionMenuButtonProps = React.ComponentProps<
-  typeof ButtonBase
-> & {
+type PositionedActionMenuButtonProps = React.ComponentProps<typeof Button> & {
   danger?: boolean;
 };
 
@@ -615,15 +612,14 @@ export const PositionedActionMenuButton = React.forwardRef<
   PositionedActionMenuButtonProps
 >(function PositionedActionMenuButton({ className, danger, ...props }, ref) {
   return (
-    <ButtonBase
+    <Button
       ref={ref}
       {...props}
-      data-danger={toBooleanDataValue(danger)}
-      className={mergeClassNames(
-        ACTION_MENU_BUTTON_CLASS_NAME,
-        CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
+      className={className}
+      color={danger === true ? "error" : "inherit"}
+      fullWidth
+      size="small"
+      variant={danger === true ? "contained" : "outlined"}
     />
   );
 });

@@ -1,9 +1,6 @@
 const isDefinedClassName = (value: false | string): value is string =>
   value !== false && value !== "";
 
-export const COLLAPSE_TOGGLE_CLASS_NAME = "app-collapse-toggle";
-export const TOOL_BUTTON_CLASS_NAME = "app-tool-button";
-export const ACTION_MENU_BUTTON_CLASS_NAME = "app-action-menu-button";
 export const APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME =
   "app-interactive-pixel-canvas";
 
@@ -84,8 +81,6 @@ export const CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME =
   "character-region-overlay-button";
 export const CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME =
   "character-positioned-action-menu";
-export const CHARACTER_POSITIONED_ACTION_MENU_BUTTON_CLASS_NAME =
-  "character-positioned-action-menu-button";
 
 export const mergeClassNames = (
   ...classNames: ReadonlyArray<false | string>

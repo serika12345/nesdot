@@ -51,19 +51,19 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 | File                                  | Role                                                                         |      Size |
 | ------------------------------------- | ---------------------------------------------------------------------------- | --------: |
-| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 813 lines |
-| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  96 lines |
+| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 714 lines |
+| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  91 lines |
 
 ### Spread of the Custom Layer
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                           |    15 |
+| Files importing `styleClassNames`                           |    13 |
 | `styles.ts` modules under `src/presentation/components`     |    19 |
-| `styleClassNames.ts` exported constants                     |    57 |
+| `styleClassNames.ts` exported constants                     |    53 |
 | Theme class selector lines in `theme.ts`                    |    45 |
-| Theme `data-*` selector lines in `theme.ts`                 |    39 |
-| `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     8 |
+| Theme `data-*` selector lines in `theme.ts`                 |    32 |
+| `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     4 |
 
 ### Main MUI Usage Today
 
@@ -73,7 +73,7 @@ Current import counts show the repo already leans heavily on MUI primitives:
 | --------------- | ----: |
 | `Stack`         |    26 |
 | `Box`           |    16 |
-| `Button`        |     9 |
+| `Button`        |    22 |
 | `Dialog`        |     7 |
 | `DialogActions` |     7 |
 | `DialogContent` |     7 |
@@ -81,7 +81,7 @@ Current import counts show the repo already leans heavily on MUI primitives:
 | `Typography`    |     6 |
 | `OutlinedInput` |     6 |
 | `Grid`          |     6 |
-| `ButtonBase`    |     6 |
+| `ButtonBase`    |     5 |
 
 This makes “plain MUI” a reduction of the custom layer, not a framework migration.
 

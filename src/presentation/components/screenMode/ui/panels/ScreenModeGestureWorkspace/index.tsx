@@ -1,5 +1,6 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -8,7 +9,6 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
-  COLLAPSE_TOGGLE_CLASS_NAME,
   SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
   SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
   SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME,
@@ -426,10 +426,8 @@ export const ScreenModeGestureWorkspace: React.FC<
                 <Box component="span" style={fieldLabelStyle}>
                   スプライトプレビュー
                 </Box>
-                <ButtonBase
+                <Button
                   type="button"
-                  className={COLLAPSE_TOGGLE_CLASS_NAME}
-                  data-open={toBooleanDataValue(isSpriteLibraryOpen)}
                   aria-expanded={isSpriteLibraryOpen}
                   aria-controls={spriteLibraryContentId}
                   aria-label={
@@ -437,15 +435,22 @@ export const ScreenModeGestureWorkspace: React.FC<
                       ? "スプライトプレビューを閉じる"
                       : "スプライトプレビューを開く"
                   }
+                  color={isSpriteLibraryOpen === true ? "primary" : "inherit"}
+                  endIcon={
+                    <ExpandMoreRoundedIcon
+                      style={collapseChevronStyle(isSpriteLibraryOpen)}
+                    />
+                  }
+                  size="small"
+                  variant={
+                    isSpriteLibraryOpen === true ? "contained" : "outlined"
+                  }
                   onClick={() =>
                     setIsSpriteLibraryOpen((previous) => previous === false)
                   }
                 >
                   {isSpriteLibraryOpen ? "閉じる" : "開く"}
-                  <ExpandMoreRoundedIcon
-                    style={collapseChevronStyle(isSpriteLibraryOpen)}
-                  />
-                </ButtonBase>
+                </Button>
               </Stack>
             </Stack>
 
@@ -527,10 +532,8 @@ export const ScreenModeGestureWorkspace: React.FC<
                 <span style={resolveBadgeStyle("neutral")}>
                   {`${characterPreviewCards.length} sets`}
                 </span>
-                <ButtonBase
+                <Button
                   type="button"
-                  className={COLLAPSE_TOGGLE_CLASS_NAME}
-                  data-open={toBooleanDataValue(isCharacterLibraryOpen)}
                   aria-expanded={isCharacterLibraryOpen}
                   aria-controls={characterLibraryContentId}
                   aria-label={
@@ -538,15 +541,24 @@ export const ScreenModeGestureWorkspace: React.FC<
                       ? "キャラクタープレビューを閉じる"
                       : "キャラクタープレビューを開く"
                   }
+                  color={
+                    isCharacterLibraryOpen === true ? "primary" : "inherit"
+                  }
+                  endIcon={
+                    <ExpandMoreRoundedIcon
+                      style={collapseChevronStyle(isCharacterLibraryOpen)}
+                    />
+                  }
+                  size="small"
+                  variant={
+                    isCharacterLibraryOpen === true ? "contained" : "outlined"
+                  }
                   onClick={() =>
                     setIsCharacterLibraryOpen((previous) => previous === false)
                   }
                 >
                   {isCharacterLibraryOpen ? "閉じる" : "開く"}
-                  <ExpandMoreRoundedIcon
-                    style={collapseChevronStyle(isCharacterLibraryOpen)}
-                  />
-                </ButtonBase>
+                </Button>
               </Stack>
             </Stack>
 
