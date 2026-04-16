@@ -4,12 +4,12 @@ import MaterialGrid, {
   type GridProps,
   type GridSize,
 } from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   ACTION_MENU_BUTTON_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
-  APP_PANEL_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
   CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
@@ -334,19 +334,29 @@ export const CharacterWorkspaceRoot = createStackLayout(
   },
 );
 
-const EditorCard = createStackLayout("EditorCard", {
-  component: "div",
-  className: APP_PANEL_CLASS_NAME,
-  minHeight: 0,
-  spacing: "0.875rem",
-  p: "1rem",
-});
-
-export const StageEditorCard = React.forwardRef<HTMLDivElement, StackProps>(
-  function StageEditorCard(props, ref) {
-    return <EditorCard ref={ref} {...props} />;
+const EditorCard = React.forwardRef<HTMLDivElement, StackProps<typeof Paper>>(
+  function EditorCard(props, ref) {
+    return (
+      <Stack
+        ref={ref}
+        component={Paper}
+        variant="outlined"
+        minHeight={0}
+        spacing="0.875rem"
+        p="1rem"
+        useFlexGap
+        {...props}
+      />
+    );
   },
 );
+
+export const StageEditorCard = React.forwardRef<
+  HTMLDivElement,
+  StackProps<typeof Paper>
+>(function StageEditorCard(props, ref) {
+  return <EditorCard ref={ref} {...props} />;
+});
 
 export const PaletteControlRow = createStackLayout("PaletteControlRow", {
   direction: "row",

@@ -1,7 +1,7 @@
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -53,8 +53,8 @@ export const CharacterModeScreen: React.FC<CharacterModeScreenProps> = ({
 
   return (
     <Stack
-      component="div"
-      className={APP_PANEL_CLASS_NAME}
+      component={Paper}
+      variant="outlined"
       flex={1}
       minHeight={0}
       height="100%"

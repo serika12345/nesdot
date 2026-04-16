@@ -4,7 +4,6 @@ const isDefinedClassName = (value: false | string): value is string =>
 export const COLLAPSE_TOGGLE_CLASS_NAME = "app-collapse-toggle";
 export const TOOL_BUTTON_CLASS_NAME = "app-tool-button";
 export const ACTION_MENU_BUTTON_CLASS_NAME = "app-action-menu-button";
-export const APP_PANEL_CLASS_NAME = "app-panel";
 export const APP_CANVAS_VIEWPORT_CLASS_NAME = "app-canvas-viewport";
 export const APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME =
   "app-interactive-pixel-canvas";

@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import * as E from "fp-ts/Either";
@@ -10,7 +11,6 @@ import React from "react";
 import { useProjectState } from "../../../../../../application/state/projectStore";
 import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
 import { createEmptyBackgroundTile } from "../../../../../../domain/project/projectV2";
-import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -150,8 +150,8 @@ export const ScreenModeWorkspacePanel: React.FC<
 
   return (
     <Stack
-      component="div"
-      className={APP_PANEL_CLASS_NAME}
+      component={Paper}
+      variant="outlined"
       flex={1}
       minHeight={0}
       role="region"

@@ -2,13 +2,13 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
 import {
   APP_CANVAS_VIEWPORT_CLASS_NAME,
-  APP_PANEL_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   TOOL_BUTTON_CLASS_NAME,
 } from "../../../../../styleClassNames";
@@ -211,8 +211,8 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
       aria-label="BG編集ワークスペース"
     >
       <Stack
-        component="div"
-        className={APP_PANEL_CLASS_NAME}
+        component={Paper}
+        variant="outlined"
         spacing="0.875rem"
         p="1.125rem"
         role="region"
@@ -244,8 +244,8 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
       </Stack>
 
       <Stack
-        component="div"
-        className={APP_PANEL_CLASS_NAME}
+        component={Paper}
+        variant="outlined"
         spacing="0.875rem"
         p="1.125rem"
         aria-label="BGタイルエディター"

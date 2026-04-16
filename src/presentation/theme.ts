@@ -3,7 +3,6 @@ import {
   ACTION_MENU_BUTTON_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
-  APP_PANEL_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
   CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME,
@@ -197,26 +196,6 @@ function getAppGlobalStyles(theme: Theme) {
     "#root": {
       height: "100vh",
       overflow: "hidden",
-    },
-    [`.${APP_PANEL_CLASS_NAME}`]: {
-      position: "relative",
-      overflow: "hidden",
-      borderRadius: "1.5rem",
-      background:
-        "linear-gradient(180deg, var(--panel-surface-strong), var(--panel-surface))",
-      border: "0.0625rem solid var(--panel-border)",
-      boxShadow: "var(--panel-shadow)",
-      backdropFilter: "blur(1.125rem)",
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        inset: "0 auto auto 0",
-        width: "11.25rem",
-        height: "11.25rem",
-        background:
-          "radial-gradient(circle, rgba(45, 212, 191, 0.09) 0%, transparent 70%)",
-        pointerEvents: "none",
-      },
     },
     [`.${APP_CANVAS_VIEWPORT_CLASS_NAME}`]: {
       position: "relative",

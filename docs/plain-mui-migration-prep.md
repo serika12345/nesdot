@@ -51,17 +51,17 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 | File                                  | Role                                                                         |      Size |
 | ------------------------------------- | ---------------------------------------------------------------------------- | --------: |
-| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 845 lines |
-| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  98 lines |
+| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 824 lines |
+| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  97 lines |
 
 ### Spread of the Custom Layer
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                           |    17 |
+| Files importing `styleClassNames`                           |    15 |
 | `styles.ts` modules under `src/presentation/components`     |    19 |
-| `styleClassNames.ts` exported constants                     |    59 |
-| Theme class selector lines in `theme.ts`                    |    47 |
+| `styleClassNames.ts` exported constants                     |    58 |
+| Theme class selector lines in `theme.ts`                    |    46 |
 | Theme `data-*` selector lines in `theme.ts`                 |    39 |
 | `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     8 |
 
