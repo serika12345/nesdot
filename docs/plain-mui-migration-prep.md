@@ -17,12 +17,12 @@ The target state is:
 
 ## Current Status
 
-- The screen-mode and character-mode local class-token layer has been removed from the central registry and global theme.
-- `styleClassNames.ts` now contains only menu-bar constants plus shared canvas helpers.
-- `theme.ts` now contains only app-shell, menu, and shared canvas global styling. Screen/character editor-specific selectors are gone.
+- The screen-mode, character-mode, and menu-bar local class-token layers have been removed from the central registry and global theme.
+- `styleClassNames.ts` now contains only shared canvas helper class names plus `mergeClassNames`.
+- `theme.ts` now contains only app-shell globals and shared canvas global styling. Menu, screen, and character editor-specific selectors are gone.
 - Local editor-specific styles now live beside their owning TSX files in feature `styles.ts` modules.
 - Full verification is green: format, lint, type safety, security, unit tests, console E2E, and full E2E all pass.
-- There is no remaining implementation blocker for this migration under the current scope. A future menu-bar migration would be a separate task if requirements change.
+- There is no remaining implementation blocker for this migration under the current scope.
 
 ## Hard Constraints
 
@@ -58,20 +58,20 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 ### Core Custom Styling Files
 
-| File                                  | Role                                                     |      Size |
-| ------------------------------------- | -------------------------------------------------------- | --------: |
-| `src/presentation/theme.ts`           | Theme, app shell, menu, and shared canvas global styling | 344 lines |
-| `src/presentation/styleClassNames.ts` | Menu-bar constants plus shared canvas helper class names |  35 lines |
+| File                                  | Role                                       |      Size |
+| ------------------------------------- | ------------------------------------------ | --------: |
+| `src/presentation/theme.ts`           | App shell and shared canvas global styling | 164 lines |
+| `src/presentation/styleClassNames.ts` | Shared canvas helper class names           |  16 lines |
 
 ### Spread of the Custom Layer
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                           |     8 |
-| `styles.ts` modules under `src/presentation/components`     |    17 |
-| `styleClassNames.ts` exported constants                     |    19 |
-| Theme class selector lines in `theme.ts`                    |    36 |
-| Theme `data-*` selector lines in `theme.ts`                 |     5 |
+| Files importing `styleClassNames`                           |     7 |
+| `styles.ts` modules under `src/presentation/components`     |    18 |
+| `styleClassNames.ts` exported constants                     |     2 |
+| Theme class selector lines in `theme.ts`                    |     2 |
+| Theme `data-*` selector lines in `theme.ts`                 |     0 |
 | `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     0 |
 
 ### Main MUI Usage Today
@@ -104,10 +104,9 @@ It currently owns only:
 
 - app-wide CSS variables for colors, surfaces, and effects
 - background gradients and texture
-- menu-bar styling
 - shared canvas helpers
 
-Screen-mode and character-mode editor-specific selector blocks have already been removed.
+Menu-bar, screen-mode, and character-mode editor-specific selector blocks have already been removed.
 
 ### 2. Wrapper Primitive Layer
 
@@ -149,13 +148,14 @@ These areas already use mostly stock MUI components and should be migrated first
 
 These areas no longer depend on the old central class-based skin and now own their local styling beside the component.
 
-| Area                      | Representative files                                                                                      | Notes                                                 |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Screen mode primitives    | `src/presentation/components/screenMode/ui/primitives/ScreenModePrimitives/index.tsx`                     | Localized viewport styling and removed central tokens |
-| Screen mode workspace     | `src/presentation/components/screenMode/ui/panels/ScreenModeGestureWorkspace/index.tsx`                   | Library, drag preview, and stage visuals localized    |
-| Character mode primitives | `src/presentation/components/characterMode/ui/primitives/CharacterModePrimitives/index.tsx`               | Localized stage, overlay, and preview styling         |
-| Character mode sidebar    | `src/presentation/components/characterMode/ui/sidebar/CharacterModeSidebarLibrary/index.tsx`              | Library card/button styling localized                 |
-| Character decomposition   | `src/presentation/components/characterMode/ui/decomposition/CharacterModeDecompositionToolCard/index.tsx` | Palette slot styling localized                        |
+| Area                      | Representative files                                                                                      | Notes                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Common menu bar           | `src/presentation/components/common/ui/menu/MenuBar.tsx`                                                  | Radix/MUI menu styling is localized in adjacent styles |
+| Screen mode primitives    | `src/presentation/components/screenMode/ui/primitives/ScreenModePrimitives/index.tsx`                     | Localized viewport styling and removed central tokens  |
+| Screen mode workspace     | `src/presentation/components/screenMode/ui/panels/ScreenModeGestureWorkspace/index.tsx`                   | Library, drag preview, and stage visuals localized     |
+| Character mode primitives | `src/presentation/components/characterMode/ui/primitives/CharacterModePrimitives/index.tsx`               | Localized stage, overlay, and preview styling          |
+| Character mode sidebar    | `src/presentation/components/characterMode/ui/sidebar/CharacterModeSidebarLibrary/index.tsx`              | Library card/button styling localized                  |
+| Character decomposition   | `src/presentation/components/characterMode/ui/decomposition/CharacterModeDecompositionToolCard/index.tsx` | Palette slot styling localized                         |
 
 ### Keep Custom
 
@@ -182,6 +182,7 @@ Representative files:
 - `src/presentation/CharacterModePrimitives.styles.test.tsx`
 - `src/presentation/ScreenModeBackgroundPlacementMockOverlay.styles.test.tsx`
 - `src/presentation/components/screenMode/ui/primitives/ScreenModePrimitives.test.ts`
+- `e2e/console.spec.ts`
 
 ## Implementation Order
 
@@ -216,7 +217,7 @@ Once direct MUI usage is established in enough files:
 2. remove matching selectors from `theme.ts`
 3. delete or rewrite tests that only assert wrapper/class plumbing
 
-This phase is complete for screen-mode and character-mode local tokens. The central registry and global theme now keep only menu-bar and shared-canvas concerns.
+This phase is complete. The central registry and global theme now keep only shared-canvas concerns.
 
 ### Phase 4: Thin the Theme
 
@@ -229,12 +230,12 @@ Reduce `src/presentation/theme.ts` to:
 
 Delete repo-specific class skin rules from `MuiCssBaseline.styleOverrides` as each area is migrated.
 
-This phase is largely complete under the current scope. The remaining global layer is intentional: menu-bar styling and shared canvas helpers still live centrally.
+This phase is complete under the current scope. The remaining global layer is intentional: app-shell globals and shared canvas helpers still live centrally.
 
 ## Ready-to-Implement Checklist
 
 - [x] Style engine path is fixed and documented for the migration
-- [x] No new feature code adds `styleClassNames` dependencies except for menu/shared-canvas concerns and `mergeClassNames`
+- [x] No new feature code adds `styleClassNames` dependencies except for shared-canvas concerns and `mergeClassNames`
 - [x] First-wave target files are selected and migrated
 - [x] Custom-layer tests were rewritten away from removed screen/character local class tokens
 - [x] Verification plan was executed and is green
