@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
 
+export const workspaceLockOverlayStyle: CSSProperties = {
+  backdropFilter: "blur(1.5px)",
+};
+
 export const workspaceLockMessageStyle: CSSProperties = {
   borderRadius: "999px",
   padding: "0.625rem 0.875rem",

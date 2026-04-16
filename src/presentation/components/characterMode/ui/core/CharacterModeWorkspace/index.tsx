@@ -18,7 +18,7 @@ import {
   useCharacterModeLibraryDragPreview,
   useCharacterModeSetSelection,
 } from "../CharacterModeStateProvider";
-import { workspaceLockMessageStyle } from "./styles";
+import { workspaceLockMessageStyle, workspaceLockOverlayStyle } from "./styles";
 
 /**
  * 現在の編集モードに応じてワークスペース本体を切り替えます。
@@ -73,7 +73,7 @@ export const CharacterModeWorkspace: React.FC = () => {
             borderRadius="1.25rem"
             border="0.0625rem solid rgba(148, 163, 184, 0.26)"
             bgcolor="rgba(248, 250, 252, 0.76)"
-            style={{ backdropFilter: "blur(1.5px)" }}
+            style={workspaceLockOverlayStyle}
           >
             <Box component="div" style={workspaceLockMessageStyle}>
               セットを作成すると編集できます
