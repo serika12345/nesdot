@@ -3,12 +3,12 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import React from "react";
 import useExportImage from "../../../../../../infrastructure/browser/useExportImage";
 import {
   APP_CANVAS_VIEWPORT_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
-  APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
   TOOL_BUTTON_CLASS_NAME,
@@ -222,9 +222,9 @@ const BgModeWorkspacePanelComponent: React.FC<BgModeWorkspacePanelProps> = ({
         minHeight={0}
       >
         <Stack position="relative" zIndex={1} spacing="0.3125rem" useFlexGap>
-          <Box component="h2" className={APP_PANEL_TITLE_CLASS_NAME} m={0}>
+          <Typography component="h2" variant="h2" color="text.primary">
             BG編集
-          </Box>
+          </Typography>
         </Stack>
 
         <Box

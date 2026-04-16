@@ -1,10 +1,10 @@
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import React from "react";
 import {
   APP_PANEL_CLASS_NAME,
-  APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
 } from "../../../../../styleClassNames";
 import { useSpriteModeProjectSpriteSize } from "../../core/SpriteModeStateProvider";
@@ -28,9 +28,9 @@ export const SpriteModeEditorPanel: React.FC = () => {
       minHeight={0}
     >
       <Stack position="relative" zIndex={1} spacing="0.3125rem" useFlexGap>
-        <Box component="h2" className={APP_PANEL_TITLE_CLASS_NAME} m={0}>
+        <Typography component="h2" variant="h2" color="text.primary">
           スプライト編集
-        </Box>
+        </Typography>
       </Stack>
 
       <Box

@@ -6,7 +6,6 @@ export const COLLAPSE_TOGGLE_CLASS_NAME = "app-collapse-toggle";
 export const ACTION_MENU_BUTTON_CLASS_NAME = "app-action-menu-button";
 export const BADGE_CLASS_NAME = "app-badge";
 export const APP_PANEL_CLASS_NAME = "app-panel";
-export const APP_PANEL_TITLE_CLASS_NAME = "app-panel-title";
 export const APP_ACTION_MENU_CLASS_NAME = "app-action-menu";
 export const APP_FIELD_LABEL_CLASS_NAME = "app-field-label";
 export const APP_CANVAS_VIEWPORT_CLASS_NAME = "app-canvas-viewport";

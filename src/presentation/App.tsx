@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -29,7 +30,6 @@ import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
 import {
   APP_PANEL_CLASS_NAME,
-  APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
 } from "./styleClassNames";
 
@@ -493,13 +493,9 @@ export const App: React.FC = () => {
                 spacing="0.3125rem"
                 useFlexGap
               >
-                <Box
-                  component="h2"
-                  className={APP_PANEL_TITLE_CLASS_NAME}
-                  m={0}
-                >
+                <Typography component="h2" variant="h2" color="text.primary">
                   NES パレット
-                </Box>
+                </Typography>
               </Stack>
               <Box
                 className={APP_SCROLL_AREA_CLASS_NAME}

@@ -7,7 +7,6 @@ import {
   APP_HELPER_TEXT_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
-  APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
   BADGE_CLASS_NAME,
@@ -223,13 +222,6 @@ function getAppGlobalStyles(theme: Theme) {
           "radial-gradient(circle, rgba(45, 212, 191, 0.09) 0%, transparent 70%)",
         pointerEvents: "none",
       },
-    },
-    [`.${APP_PANEL_TITLE_CLASS_NAME}`]: {
-      margin: 0,
-      fontSize: "1.5rem",
-      lineHeight: 1.1,
-      letterSpacing: "-0.03em",
-      color: "var(--ink-strong)",
     },
     [`.${APP_ACTION_MENU_CLASS_NAME}`]: {
       borderRadius: "1.125rem",

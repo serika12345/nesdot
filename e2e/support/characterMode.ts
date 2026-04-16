@@ -78,7 +78,17 @@ export const clickComposeCanvasAtPosition = async (
 ): Promise<void> => {
   const fabricCanvas = locator.locator('[data-fabric="top"]');
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
-  const point = await getLocatorPoint(locator, stageX, stageY);
+  const point = await getLocatorPoint(target, stageX, stageY);
+
+  await target.dispatchEvent("pointermove", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: -1,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
 
   await target.dispatchEvent("pointerdown", {
     pointerId,
@@ -108,10 +118,20 @@ export const openComposeCanvasSpriteContextMenu = async (
   const fabricCanvas = locator.locator('[data-fabric="top"]');
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(
-    locator,
+    target,
     (sprite.x + 4) * scale,
     (sprite.y + 4) * scale,
   );
+
+  await target.dispatchEvent("pointermove", {
+    pointerId: 101,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: -1,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
 
   await target.dispatchEvent("pointerdown", {
     pointerId: 101,
