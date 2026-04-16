@@ -270,10 +270,17 @@ export const ScreenModeWorkspacePanel: React.FC<
       />
 
       <ScreenModeBackgroundTilePickerDialog
-        activePaletteIndex={backgroundEditingState.activePaletteIndex}
-        pickerMode={backgroundEditingState.pickerDialogMode}
+        dialog={{
+          activePaletteIndex: backgroundEditingState.activePaletteIndex,
+          isOpen: backgroundEditingState.isPickerDialogOpen,
+          pendingPaletteIndex: backgroundEditingState.pickerPaletteIndex,
+          pickerMode: backgroundEditingState.pickerDialogMode,
+        }}
+        onApplyPaletteSelection={
+          backgroundEditingState.handleBackgroundPaletteSelect
+        }
         onClose={backgroundEditingState.closeTilePicker}
-        onPaletteSelect={backgroundEditingState.handleBackgroundPaletteSelect}
+        onPaletteSelect={backgroundEditingState.handlePickerPaletteIndexChange}
         onTileSelect={backgroundEditingState.handleBackgroundTileSelect}
       />
 

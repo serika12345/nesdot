@@ -13,6 +13,11 @@ import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../domain
 type ScreenModeBackgroundEditingTarget = "sprite" | "bgTile" | "bgPalette";
 type ScreenModeBackgroundPickerMode = "bgTile" | "bgPalette";
 
+interface ScreenModeBackgroundPickerDialogState {
+  mode: ScreenModeBackgroundPickerMode;
+  open: boolean;
+}
+
 interface BackgroundCursorOverlayState {
   height: number;
   width: number;
@@ -82,10 +87,14 @@ const resolvePaletteCursorOverlay = (
 export const useScreenModeWorkspaceBackgroundEditingState = () => {
   const [editingTarget, setEditingTarget] =
     React.useState<ScreenModeBackgroundEditingTarget>("sprite");
-  const [pickerDialogMode, setPickerDialogMode] = React.useState<
-    O.Option<ScreenModeBackgroundPickerMode>
-  >(O.none);
+  const [pickerDialogState, setPickerDialogState] =
+    React.useState<ScreenModeBackgroundPickerDialogState>({
+      mode: "bgTile",
+      open: false,
+    });
   const [activePaletteIndex, setActivePaletteIndex] =
+    React.useState<PaletteIndex>(0);
+  const [pickerPaletteIndex, setPickerPaletteIndex] =
     React.useState<PaletteIndex>(0);
   const [grabbedTileIndex, setGrabbedTileIndex] = React.useState<
     O.Option<number>
@@ -97,37 +106,57 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
     React.useState(false);
 
   const openTilePicker = React.useCallback((): void => {
-    setPickerDialogMode(O.some("bgTile"));
+    setPickerDialogState({
+      mode: "bgTile",
+      open: true,
+    });
   }, []);
 
   const openPalettePicker = React.useCallback((): void => {
-    setPickerDialogMode(O.some("bgPalette"));
-  }, []);
+    setPickerPaletteIndex(activePaletteIndex);
+    setPickerDialogState({
+      mode: "bgPalette",
+      open: true,
+    });
+  }, [activePaletteIndex]);
 
   const closeTilePicker = React.useCallback((): void => {
-    setPickerDialogMode(O.none);
+    setPickerDialogState((current) => ({
+      ...current,
+      open: false,
+    }));
   }, []);
+
+  const handlePickerPaletteIndexChange = React.useCallback(
+    (paletteIndex: PaletteIndex): void => {
+      setPickerPaletteIndex(paletteIndex);
+    },
+    [],
+  );
 
   const handleBackgroundTileSelect = React.useCallback(
     (tileIndex: number): void => {
       setGrabbedTileIndex(O.some(tileIndex));
       setEditingTarget("bgTile");
       setCursorOverlay(O.some(DEFAULT_TILE_CURSOR));
-      setPickerDialogMode(O.none);
+      setPickerDialogState((current) => ({
+        ...current,
+        open: false,
+      }));
     },
     [],
   );
 
-  const handleBackgroundPaletteSelect = React.useCallback(
-    (paletteIndex: PaletteIndex): void => {
-      setActivePaletteIndex(paletteIndex);
-      setEditingTarget("bgPalette");
-      setCursorOverlay(O.some(DEFAULT_PALETTE_CURSOR));
-      setIsPaletteStrokeActive(false);
-      setPickerDialogMode(O.none);
-    },
-    [],
-  );
+  const handleBackgroundPaletteSelect = React.useCallback((): void => {
+    setActivePaletteIndex(pickerPaletteIndex);
+    setEditingTarget("bgPalette");
+    setCursorOverlay(O.some(DEFAULT_PALETTE_CURSOR));
+    setIsPaletteStrokeActive(false);
+    setPickerDialogState((current) => ({
+      ...current,
+      open: false,
+    }));
+  }, [pickerPaletteIndex]);
 
   const placeGrabbedBackgroundTile = React.useCallback((): void => {
     if (editingTarget !== "bgTile") {
@@ -259,14 +288,17 @@ export const useScreenModeWorkspaceBackgroundEditingState = () => {
     cursorOverlay,
     editingTarget,
     grabbedTileIndex,
+    handlePickerPaletteIndexChange,
     handleBackgroundPaletteSelect,
     handleBackgroundTileSelect,
     handleStageClick,
     handleStagePointerDown,
     handleStagePointerMove,
     handleStagePointerUp,
+    isPickerDialogOpen: pickerDialogState.open,
     openPalettePicker,
     openTilePicker,
-    pickerDialogMode,
+    pickerDialogMode: pickerDialogState.mode,
+    pickerPaletteIndex,
   };
 };

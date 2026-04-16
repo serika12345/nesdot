@@ -7,7 +7,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import React from "react";
 import { useProjectState } from "../../../../../../application/state/projectStore";
 import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
@@ -21,9 +20,16 @@ import { previewButtonStyle } from "./styles";
 type BgPickerMode = "bgTile" | "bgPalette";
 type BgPaletteIndex = 0 | 1 | 2 | 3;
 
-interface ScreenModeBackgroundTilePickerDialogProps {
+interface ScreenModeBackgroundTilePickerDialogState {
   activePaletteIndex: BgPaletteIndex;
-  pickerMode: O.Option<BgPickerMode>;
+  isOpen: boolean;
+  pendingPaletteIndex: BgPaletteIndex;
+  pickerMode: BgPickerMode;
+}
+
+interface ScreenModeBackgroundTilePickerDialogProps {
+  dialog: ScreenModeBackgroundTilePickerDialogState;
+  onApplyPaletteSelection: () => void;
   onClose: () => void;
   onPaletteSelect: (paletteIndex: BgPaletteIndex) => void;
   onTileSelect: (tileIndex: number) => void;
@@ -49,20 +55,20 @@ const resolveDialogTitle = (pickerMode: BgPickerMode): string => {
 
 /**
  * BG タイル配置導線の picker dialog を描画します。
- * 既存 UI を増やさず、実プロジェクト状態の BG タイル preview を選択に使います。
+ * 実プロジェクト状態の BG preview を描画しつつ、見た目状態は親の hook から controlled に受け取ります。
  */
 export const ScreenModeBackgroundTilePickerDialog: React.FC<
   ScreenModeBackgroundTilePickerDialogProps
 > = ({
-  activePaletteIndex,
-  pickerMode,
+  dialog,
+  onApplyPaletteSelection,
   onClose,
   onPaletteSelect,
   onTileSelect,
 }) => {
+  const { activePaletteIndex, isOpen, pendingPaletteIndex, pickerMode } =
+    dialog;
   const nes = useProjectState((state) => state.nes);
-  const [pendingPaletteIndex, setPendingPaletteIndex] =
-    React.useState<BgPaletteIndex>(activePaletteIndex);
 
   const visibleBackgroundTiles = React.useMemo(
     () =>
@@ -74,111 +80,83 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
     [nes.chrBytes],
   );
 
-  React.useEffect(() => {
-    if (O.isSome(pickerMode) && pickerMode.value === "bgPalette") {
-      setPendingPaletteIndex(activePaletteIndex);
-    }
-  }, [activePaletteIndex, pickerMode]);
-
-  const handleApplyPaletteSelection = React.useCallback((): void => {
-    onPaletteSelect(pendingPaletteIndex);
-  }, [onPaletteSelect, pendingPaletteIndex]);
-
   return (
     <Dialog
-      open={O.isSome(pickerMode)}
+      open={isOpen}
       onClose={onClose}
       fullWidth
-      maxWidth={
-        O.isSome(pickerMode) ? resolveDialogMaxWidth(pickerMode.value) : "sm"
-      }
+      maxWidth={resolveDialogMaxWidth(pickerMode)}
     >
-      <DialogTitle>
-        {O.isSome(pickerMode) ? resolveDialogTitle(pickerMode.value) : ""}
-      </DialogTitle>
+      <DialogTitle>{resolveDialogTitle(pickerMode)}</DialogTitle>
       <DialogContent>
-        {O.match(
-          () => <></>,
-          (mode: BgPickerMode) => {
-            if (mode === "bgTile") {
-              return (
-                <Grid
-                  container
-                  columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-                  spacing={1.75}
+        {pickerMode === "bgTile" ? (
+          <Grid
+            container
+            columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+            spacing={1.75}
+          >
+            {visibleBackgroundTiles.map((tile, tileIndex) => (
+              <Grid key={`screen-mode-bg-dialog-tile-${tileIndex}`} size={1}>
+                <ButtonBase
+                  type="button"
+                  aria-label={`BGタイルプレビュー ${tileIndex}`}
+                  style={previewButtonStyle}
+                  onClick={() => {
+                    onTileSelect(tileIndex);
+                  }}
                 >
-                  {visibleBackgroundTiles.map((tile, tileIndex) => (
-                    <Grid
-                      key={`screen-mode-bg-dialog-tile-${tileIndex}`}
-                      size={1}
-                    >
-                      <ButtonBase
-                        type="button"
-                        aria-label={`BGタイルプレビュー ${tileIndex}`}
-                        style={previewButtonStyle}
-                        onClick={() => {
-                          onTileSelect(tileIndex);
-                        }}
-                      >
-                        <Stack
-                          useFlexGap
-                          width="100%"
-                          alignItems="flex-start"
-                          spacing="0.625rem"
-                        >
-                          <BackgroundTilePreview
-                            scale={8}
-                            tile={tile}
-                            palette={nes.backgroundPalettes[activePaletteIndex]}
-                            universalBackgroundColor={
-                              nes.universalBackgroundColor
-                            }
-                          />
-                          <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
-                        </Stack>
-                      </ButtonBase>
-                    </Grid>
-                  ))}
-                </Grid>
-              );
-            }
-
-            return (
-              <Stack
-                direction="row"
-                flexWrap="wrap"
-                alignItems="center"
-                spacing="0.625rem"
-                useFlexGap
-              >
-                {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-                  <Button
-                    key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
-                    type="button"
-                    size="small"
-                    variant={
-                      pendingPaletteIndex === paletteIndex
-                        ? "contained"
-                        : "outlined"
-                    }
-                    aria-label={`BGパレット ${paletteIndex}`}
-                    aria-pressed={pendingPaletteIndex === paletteIndex}
-                    onClick={() => {
-                      setPendingPaletteIndex(paletteIndex);
-                    }}
+                  <Stack
+                    useFlexGap
+                    width="100%"
+                    alignItems="flex-start"
+                    spacing="0.625rem"
                   >
-                    {`Palette ${paletteIndex}`}
-                  </Button>
-                ))}
-              </Stack>
-            );
-          },
-        )(pickerMode)}
+                    <BackgroundTilePreview
+                      scale={8}
+                      tile={tile}
+                      palette={nes.backgroundPalettes[activePaletteIndex]}
+                      universalBackgroundColor={nes.universalBackgroundColor}
+                    />
+                    <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
+                  </Stack>
+                </ButtonBase>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            alignItems="center"
+            spacing="0.625rem"
+            useFlexGap
+          >
+            {BG_PALETTE_OPTIONS.map((paletteIndex) => (
+              <Button
+                key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
+                type="button"
+                size="small"
+                variant={
+                  pendingPaletteIndex === paletteIndex
+                    ? "contained"
+                    : "outlined"
+                }
+                aria-label={`BGパレット ${paletteIndex}`}
+                aria-pressed={pendingPaletteIndex === paletteIndex}
+                onClick={() => {
+                  onPaletteSelect(paletteIndex);
+                }}
+              >
+                {`Palette ${paletteIndex}`}
+              </Button>
+            ))}
+          </Stack>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>閉じる</Button>
-        {O.isSome(pickerMode) && pickerMode.value === "bgPalette" ? (
-          <Button variant="contained" onClick={handleApplyPaletteSelection}>
+        {pickerMode === "bgPalette" ? (
+          <Button variant="contained" onClick={onApplyPaletteSelection}>
             変更する
           </Button>
         ) : (

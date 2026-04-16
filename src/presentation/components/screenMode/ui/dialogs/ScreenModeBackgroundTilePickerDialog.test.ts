@@ -1,5 +1,4 @@
 import * as E from "fp-ts/Either";
-import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -96,12 +95,17 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
   });
 
   it("renders the tile picker flow without legacy tab buttons", () => {
-    const pickerMode: O.Option<PickerMode> = O.some("bgTile");
+    const pickerMode: PickerMode = "bgTile";
 
     const markup = renderToStaticMarkup(
       React.createElement(ScreenModeBackgroundTilePickerDialog, {
-        activePaletteIndex: 0,
-        pickerMode,
+        dialog: {
+          activePaletteIndex: 0,
+          isOpen: true,
+          pendingPaletteIndex: 0,
+          pickerMode,
+        },
+        onApplyPaletteSelection: vi.fn(),
         onClose: vi.fn(),
         onPaletteSelect: vi.fn(),
         onTileSelect: vi.fn(),
@@ -118,12 +122,17 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
   });
 
   it("renders the palette picker flow from the dedicated BG palette button", () => {
-    const pickerMode: O.Option<PickerMode> = O.some("bgPalette");
+    const pickerMode: PickerMode = "bgPalette";
 
     const markup = renderToStaticMarkup(
       React.createElement(ScreenModeBackgroundTilePickerDialog, {
-        activePaletteIndex: 0,
-        pickerMode,
+        dialog: {
+          activePaletteIndex: 0,
+          isOpen: true,
+          pendingPaletteIndex: 0,
+          pickerMode,
+        },
+        onApplyPaletteSelection: vi.fn(),
         onClose: vi.fn(),
         onPaletteSelect: vi.fn(),
         onTileSelect: vi.fn(),
