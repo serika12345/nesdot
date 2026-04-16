@@ -51,6 +51,23 @@ const createCharacterSet = async (
   await expect(createDialog).toHaveCount(0);
 };
 
+const expectDialogTextboxTopGap = async (
+  dialog: Locator,
+  title: string,
+  textboxName: string,
+): Promise<void> => {
+  const titleRect = await getLocatorRect(
+    dialog.getByText(title, { exact: true }),
+  );
+  const textboxRect = await getLocatorRect(
+    dialog.getByRole("textbox", { name: textboxName }),
+  );
+  const titleBottom = titleRect.clientY + titleRect.height;
+  const gap = textboxRect.clientY - titleBottom;
+
+  expect(gap).toBeGreaterThanOrEqual(12);
+};
+
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
   const feedbackDialog = page.getByRole("dialog", {
     name: "現在のセットへ反映しました",
@@ -343,6 +360,46 @@ test("character mode renames set from dialog", async ({ page }) => {
 
   await expect(renameDialog).toHaveCount(0);
   await expect(activeSetSelect).toContainText("Renamed Hero (0 sprites)");
+});
+
+test("character mode keeps room for dialog text-field labels", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const createSetButton = page.getByRole("button", { name: "セットを作成" });
+  await createSetButton.click();
+
+  const createDialog = page.getByRole("dialog", {
+    name: "キャラクターセットを作成",
+  });
+  await expect(createDialog).toBeVisible();
+  await expectDialogTextboxTopGap(
+    createDialog,
+    "キャラクターセットを作成",
+    "新規セット名",
+  );
+
+  await createDialog.getByRole("button", { name: "キャンセル" }).click();
+  await expect(createDialog).toHaveCount(0);
+
+  await createCharacterSet(page, "Dialog Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const renameSetButton = page.getByRole("button", { name: "セット名変更" });
+  await renameSetButton.click();
+
+  const renameDialog = page.getByRole("dialog", { name: "セット名を変更" });
+  await expect(renameDialog).toBeVisible();
+  await expectDialogTextboxTopGap(
+    renameDialog,
+    "セット名を変更",
+    "変更後のセット名",
+  );
+
+  await renameDialog.getByRole("button", { name: "キャンセル" }).click();
+  await expect(renameDialog).toHaveCount(0);
 });
 
 test("character mode locks workspace interactions until a set is created", async ({

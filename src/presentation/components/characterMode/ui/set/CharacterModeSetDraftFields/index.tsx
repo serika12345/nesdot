@@ -57,19 +57,21 @@ export const CharacterModeSetDraftFields: React.FC = () => {
           </DialogTitle>
 
           <DialogContent>
-            <TextField
-              fullWidth
-              type="text"
-              label="新規セット名"
-              value={setDraft.newName}
-              autoFocus
-              inputProps={{
-                "aria-label": "新規セット名",
-              }}
-              onChange={(event) =>
-                setDraft.handleNewNameChange(event.target.value)
-              }
-            />
+            <Box pt={1.5}>
+              <TextField
+                fullWidth
+                type="text"
+                label="新規セット名"
+                value={setDraft.newName}
+                autoFocus
+                inputProps={{
+                  "aria-label": "新規セット名",
+                }}
+                onChange={(event) =>
+                  setDraft.handleNewNameChange(event.target.value)
+                }
+              />
+            </Box>
           </DialogContent>
 
           <DialogActions>

@@ -130,17 +130,19 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
           <DialogTitle id={renameDialogTitleId}>セット名を変更</DialogTitle>
 
           <DialogContent>
-            <TextField
-              fullWidth
-              type="text"
-              label="変更後のセット名"
-              value={renameDraftName}
-              autoFocus
-              inputProps={{
-                "aria-label": "変更後のセット名",
-              }}
-              onChange={(event) => setRenameDraftName(event.target.value)}
-            />
+            <Box pt={1.5}>
+              <TextField
+                fullWidth
+                type="text"
+                label="変更後のセット名"
+                value={renameDraftName}
+                autoFocus
+                inputProps={{
+                  "aria-label": "変更後のセット名",
+                }}
+                onChange={(event) => setRenameDraftName(event.target.value)}
+              />
+            </Box>
           </DialogContent>
 
           <DialogActions>
