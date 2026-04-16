@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
-  SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
   SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
 } from "../../../../styleClassNames";
 import {
@@ -41,7 +40,6 @@ describe("ScreenModePrimitives", () => {
 
     expect(editorContentMarkup).toContain(SCREEN_EDITOR_CONTENT_CLASS_NAME);
     expect(editorContentMarkup).toContain("custom-editor-content");
-    expect(previewWrapMarkup).toContain(SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME);
     expect(previewWrapMarkup).toContain("custom-preview-wrap");
   });
 });

@@ -3,12 +3,10 @@ import {
   ACTION_MENU_BUTTON_CLASS_NAME,
   APP_ACTION_MENU_CLASS_NAME,
   APP_CANVAS_VIEWPORT_CLASS_NAME,
-  APP_DETAIL_ROW_CLASS_NAME,
   APP_FIELD_LABEL_CLASS_NAME,
   APP_HELPER_TEXT_CLASS_NAME,
   APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
-  APP_PANEL_DESCRIPTION_CLASS_NAME,
   APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
   BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME,
@@ -31,7 +29,6 @@ import {
   CHARACTER_STAGE_SURFACE_CLASS_NAME,
   CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
   COLLAPSE_TOGGLE_CLASS_NAME,
-  ICON_ACTION_BUTTON_CLASS_NAME,
   MENU_ABOUT_APP_NAME_CLASS_NAME,
   MENU_ABOUT_ICON_IMAGE_CLASS_NAME,
   MENU_ABOUT_VERSION_TEXT_CLASS_NAME,
@@ -234,12 +231,6 @@ function getAppGlobalStyles(theme: Theme) {
       letterSpacing: "-0.03em",
       color: "var(--ink-strong)",
     },
-    [`.${APP_PANEL_DESCRIPTION_CLASS_NAME}`]: {
-      margin: 0,
-      fontSize: "0.875rem",
-      lineHeight: 1.6,
-      color: "var(--ink-soft)",
-    },
     [`.${APP_ACTION_MENU_CLASS_NAME}`]: {
       borderRadius: "1.125rem",
       background: "rgba(255, 255, 255, 0.98)",
@@ -267,11 +258,6 @@ function getAppGlobalStyles(theme: Theme) {
       scrollbarGutter: "stable",
       marginRight: "-1.125rem",
       paddingRight: "1.125rem",
-    },
-    [`.${APP_DETAIL_ROW_CLASS_NAME}`]: {
-      borderRadius: "1.125rem",
-      background: "rgba(248, 250, 252, 0.84)",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.16)",
     },
     [`.${APP_HELPER_TEXT_CLASS_NAME}`]: {
       fontSize: "0.8125rem",
@@ -513,36 +499,6 @@ function getAppGlobalStyles(theme: Theme) {
       "&[data-open='true']": {
         border: "0.0625rem solid rgba(15, 118, 110, 0.2)",
         background: "rgba(15, 118, 110, 0.1)",
-        color: "#0f766e",
-      },
-      "&:hover": {
-        transform: "translateY(-0.0625rem)",
-      },
-    },
-    [`.MuiButtonBase-root.${ICON_ACTION_BUTTON_CLASS_NAME}`]: {
-      appearance: "none",
-      gap: "0.625rem",
-      minHeight: "2.625rem",
-      padding: "0.625rem 0.875rem",
-      borderRadius: "1rem",
-      whiteSpace: "nowrap",
-      boxShadow: "0 0.625rem 1.25rem rgba(15, 23, 42, 0.08)",
-      cursor: "pointer",
-      fontSize: "0.8125rem",
-      fontWeight: 700,
-      letterSpacing: "0.01em",
-      transition:
-        "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
-      "&[data-active='false']": {
-        border: "0.0625rem solid rgba(148, 163, 184, 0.2)",
-        background:
-          "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92))",
-        color: "var(--ink-strong)",
-      },
-      "&[data-active='true']": {
-        border: "0.0625rem solid rgba(15, 118, 110, 0.22)",
-        background:
-          "linear-gradient(180deg, rgba(240, 253, 250, 0.98), rgba(236, 253, 245, 0.9))",
         color: "#0f766e",
       },
       "&:hover": {

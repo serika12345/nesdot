@@ -7,16 +7,8 @@ import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import {
   APP_CANVAS_VIEWPORT_CLASS_NAME,
-  SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
   SCREEN_EDITOR_CONTENT_CLASS_NAME,
-  SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME,
-  SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
   SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
-  SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME,
-  SCREEN_WARNING_LIST_CLASS_NAME,
-  SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME,
-  SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
   mergeClassNames,
 } from "../../../../../styleClassNames";
 
@@ -170,7 +162,6 @@ export const ScreenModeEditorContent = createStackLayout(
 export const WorkspaceHeaderActionCluster = createStackLayout(
   "WorkspaceHeaderActionCluster",
   {
-    className: SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME,
     direction: "row",
     alignItems: "center",
     flexWrap: "nowrap",
@@ -191,7 +182,6 @@ export const ZoomControlsRow = React.forwardRef<HTMLDivElement, StackProps>(
         spacing="0.75rem"
         flexWrap="wrap"
         className={mergeClassNames(
-          SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME,
           typeof className === "string" ? className : false,
         )}
       />
@@ -228,7 +218,6 @@ export const PreviewViewport = React.forwardRef<
 export const PreviewCanvasWrap = createGridContainerLayout(
   "PreviewCanvasWrap",
   {
-    className: SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME,
     wrap: "nowrap",
     justifyContent: "center",
     alignItems: "center",
@@ -251,7 +240,6 @@ export const LibrarySectionContent = React.forwardRef<
       minHeight={0}
       data-open-state={open === true ? "true" : "false"}
       className={mergeClassNames(
-        SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
     />
@@ -263,9 +251,6 @@ export const SpriteLibraryGrid = createUniformGridLayout(
   2,
   1,
   1.25,
-  {
-    className: SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME,
-  },
 );
 
 export const CharacterLibraryGrid = createUniformGridLayout(
@@ -273,16 +258,12 @@ export const CharacterLibraryGrid = createUniformGridLayout(
   1,
   1,
   1.25,
-  {
-    className: SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  },
 );
 
 export const CharacterPreviewTiles = createStackLayout(
   "CharacterPreviewTiles",
   {
     component: "div",
-    className: SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME,
     direction: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -305,7 +286,6 @@ export const WarningList = React.forwardRef<HTMLDivElement, StackProps>(
         zIndex={1}
         spacing="0.625rem"
         className={mergeClassNames(
-          SCREEN_WARNING_LIST_CLASS_NAME,
           typeof className === "string" ? className : false,
         )}
       />

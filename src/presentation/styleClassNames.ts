@@ -3,17 +3,14 @@ const isDefinedClassName = (value: false | string): value is string =>
 
 export const TOOL_BUTTON_CLASS_NAME = "app-tool-button";
 export const COLLAPSE_TOGGLE_CLASS_NAME = "app-collapse-toggle";
-export const ICON_ACTION_BUTTON_CLASS_NAME = "app-icon-action-button";
 export const ACTION_MENU_BUTTON_CLASS_NAME = "app-action-menu-button";
 export const BADGE_CLASS_NAME = "app-badge";
 export const APP_PANEL_CLASS_NAME = "app-panel";
 export const APP_PANEL_TITLE_CLASS_NAME = "app-panel-title";
-export const APP_PANEL_DESCRIPTION_CLASS_NAME = "app-panel-description";
 export const APP_ACTION_MENU_CLASS_NAME = "app-action-menu";
 export const APP_FIELD_LABEL_CLASS_NAME = "app-field-label";
 export const APP_CANVAS_VIEWPORT_CLASS_NAME = "app-canvas-viewport";
 export const APP_SCROLL_AREA_CLASS_NAME = "app-scroll-area";
-export const APP_DETAIL_ROW_CLASS_NAME = "app-detail-row";
 export const APP_HELPER_TEXT_CLASS_NAME = "app-helper-text";
 export const APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME =
   "app-interactive-pixel-canvas";
@@ -41,19 +38,10 @@ export const MENU_ABOUT_APP_NAME_CLASS_NAME = "menu-about-app-name";
 export const MENU_ABOUT_VERSION_TEXT_CLASS_NAME = "menu-about-version-text";
 
 export const SCREEN_EDITOR_CONTENT_CLASS_NAME = "screen-mode-editor-content";
-export const SCREEN_PREVIEW_CANVAS_WRAP_CLASS_NAME =
-  "screen-mode-preview-canvas-wrap";
-export const SCREEN_ZOOM_CONTROLS_ROW_CLASS_NAME =
-  "screen-mode-zoom-controls-row";
 export const SCREEN_PREVIEW_VIEWPORT_CLASS_NAME =
   "screen-mode-preview-viewport";
-export const SCREEN_WARNING_LIST_CLASS_NAME = "screen-mode-warning-list";
-export const SCREEN_SUMMARY_METRIC_GRID_CLASS_NAME =
-  "screen-summary-metric-grid";
 export const SCREEN_SUMMARY_METRIC_CARD_CLASS_NAME =
   "screen-summary-metric-card";
-export const SCREEN_WORKSPACE_HEADER_ACTION_CLUSTER_CLASS_NAME =
-  "screen-workspace-header-action-cluster";
 export const SCREEN_STAGE_SURFACE_CLASS_NAME = "screen-stage-surface";
 export const SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME =
   "screen-stage-interaction-layer";
@@ -63,21 +51,13 @@ export const SCREEN_STAGE_SPRITE_INDEX_CLASS_NAME = "screen-stage-sprite-index";
 export const SCREEN_STAGE_MARQUEE_CLASS_NAME = "screen-stage-marquee";
 export const SCREEN_STAGE_GUIDE_CLASS_NAME = "screen-stage-guide";
 export const SCREEN_LIBRARY_SECTION_CLASS_NAME = "screen-library-section";
-export const SCREEN_LIBRARY_SECTION_CONTENT_CLASS_NAME =
-  "screen-library-section-content";
 export const SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME =
   "screen-library-scroll-area";
 export const SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME =
   "screen-sprite-library-scroll-area";
-export const SCREEN_SPRITE_LIBRARY_GRID_CLASS_NAME =
-  "screen-sprite-library-grid";
-export const SCREEN_CHARACTER_LIBRARY_GRID_CLASS_NAME =
-  "screen-character-library-grid";
 export const SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME =
   "screen-library-preview-button";
 export const SCREEN_PREVIEW_LABEL_CLASS_NAME = "screen-preview-label";
-export const SCREEN_CHARACTER_PREVIEW_TILES_CLASS_NAME =
-  "screen-character-preview-tiles";
 export const SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME =
   "screen-floating-drag-preview";
 
