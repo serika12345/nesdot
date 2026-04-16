@@ -564,12 +564,10 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     name: "BGタイル追加",
     exact: true,
   });
-  const outlineToggle = page.getByRole("button", {
-    name: "スプライト外枠表示切り替え",
+  const outlineToggle = page.getByLabel("スプライト外枠表示切り替え", {
     exact: true,
   });
-  const indexToggle = page.getByRole("button", {
-    name: "スプライト番号表示切り替え",
+  const indexToggle = page.getByLabel("スプライト番号表示切り替え", {
     exact: true,
   });
 
@@ -578,6 +576,20 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
   await expect(bgAddButton).toBeVisible();
   await expect(outlineToggle).toBeVisible();
   await expect(indexToggle).toBeVisible();
+  await expect(outlineToggle).toBeChecked();
+  await expect(indexToggle).not.toBeChecked();
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト外枠表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト番号表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
 
   const [bgAddButtonRect, outlineToggleRect, indexToggleRect] =
     await Promise.all([
@@ -608,6 +620,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .toBe("solid");
 
   await outlineToggle.click();
+  await expect(outlineToggle).not.toBeChecked();
 
   await expect
     .poll(async () =>
@@ -618,6 +631,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .toBe("none");
 
   await outlineToggle.click();
+  await expect(outlineToggle).toBeChecked();
 
   await expect
     .poll(async () =>
@@ -639,14 +653,20 @@ test("screen mode toggles sprite index labels from the zoom row", async ({
     name: "スクリーンライブラリスプライト 0",
     exact: true,
   });
-  const indexToggle = page.getByRole("button", {
-    name: "スプライト番号表示切り替え",
+  const indexToggle = page.getByLabel("スプライト番号表示切り替え", {
     exact: true,
   });
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
   await expect(indexToggle).toBeVisible();
+  await expect(indexToggle).not.toBeChecked();
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト番号表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
 
   await dragLibraryItemToStage(spritePreview, stage, 21, { x: 112, y: 96 });
 
@@ -657,9 +677,11 @@ test("screen mode toggles sprite index labels from the zoom row", async ({
   await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
 
   await indexToggle.click();
+  await expect(indexToggle).toBeChecked();
   await expect(stage.getByText("#0", { exact: true })).toBeVisible();
 
   await indexToggle.click();
+  await expect(indexToggle).not.toBeChecked();
   await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
 });
 

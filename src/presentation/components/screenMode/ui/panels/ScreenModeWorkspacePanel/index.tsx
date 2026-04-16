@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
@@ -30,6 +31,37 @@ interface ScreenModeWorkspacePanelProps {
   screenMode: ScreenModeState;
   onFileMenuStateChange: (fileMenuState: FileMenuState) => void;
 }
+
+interface ScreenModeDisplaySwitchProps {
+  checked: boolean;
+  inputLabel: string;
+  label: string;
+  onChange: (checked: boolean) => void;
+}
+
+const ScreenModeDisplaySwitch: React.FC<ScreenModeDisplaySwitchProps> = ({
+  checked,
+  inputLabel,
+  label,
+  onChange,
+}) => (
+  <Stack component="label" direction="row" alignItems="center" spacing={0.5}>
+    <Typography component="span" variant="body2">
+      {label}
+    </Typography>
+    <Switch
+      size="small"
+      color="primary"
+      checked={checked}
+      slotProps={{
+        input: {
+          "aria-label": inputLabel,
+        },
+      }}
+      onChange={(_event, nextChecked) => onChange(nextChecked)}
+    />
+  </Stack>
+);
 
 /**
  * スクリーン配置モードのワークスペース全体を描画します。
@@ -206,30 +238,18 @@ export const ScreenModeWorkspacePanel: React.FC<
           >
             BGタイル追加
           </Button>
-          <Button
-            type="button"
-            size="small"
-            variant={isSpriteOutlineVisible === true ? "contained" : "outlined"}
-            aria-label="スプライト外枠表示切り替え"
-            aria-pressed={isSpriteOutlineVisible}
-            onClick={() =>
-              setIsSpriteOutlineVisible((previous) => previous === false)
-            }
-          >
-            外枠
-          </Button>
-          <Button
-            type="button"
-            size="small"
-            variant={isSpriteIndexVisible === true ? "contained" : "outlined"}
-            aria-label="スプライト番号表示切り替え"
-            aria-pressed={isSpriteIndexVisible}
-            onClick={() =>
-              setIsSpriteIndexVisible((previous) => previous === false)
-            }
-          >
-            #表示
-          </Button>
+          <ScreenModeDisplaySwitch
+            checked={isSpriteOutlineVisible}
+            inputLabel="スプライト外枠表示切り替え"
+            label="外枠"
+            onChange={setIsSpriteOutlineVisible}
+          />
+          <ScreenModeDisplaySwitch
+            checked={isSpriteIndexVisible}
+            inputLabel="スプライト番号表示切り替え"
+            label="#表示"
+            onChange={setIsSpriteIndexVisible}
+          />
         </WorkspaceHeaderActionCluster>
       </ZoomControlsRow>
 
