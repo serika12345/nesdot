@@ -1,9 +1,9 @@
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import { APP_PANEL_CLASS_NAME } from "../../../../../styleClassNames";
 import { useSpriteModeProjectSpriteSize } from "../../core/SpriteModeStateProvider";
 import { SpriteModeEditorSelectionFields } from "../../forms/SpriteModeEditorSelectionFields";
 
@@ -16,8 +16,8 @@ export const SpriteModeEditorPanel: React.FC = () => {
 
   return (
     <Stack
-      component="div"
-      className={APP_PANEL_CLASS_NAME}
+      component={Paper}
+      variant="outlined"
       spacing="0.875rem"
       p="1.125rem"
       role="region"

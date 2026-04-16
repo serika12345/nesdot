@@ -49,6 +49,8 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).toContain("スプライトライブラリ");
     expect(markup).toContain("スプライトライブラリを閉じる");
     expect(markup).toContain("8×8");
+    expect(markup).toContain("MuiPaper-outlined");
+    expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-field-label");
     expect(markup).not.toContain("app-badge");
     expect(markup).not.toContain("character-mode-editor-card");

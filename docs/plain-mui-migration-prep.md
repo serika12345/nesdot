@@ -58,11 +58,11 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                           |    26 |
+| Files importing `styleClassNames`                           |    17 |
 | `styles.ts` modules under `src/presentation/components`     |    19 |
 | `styleClassNames.ts` exported constants                     |    59 |
 | Theme class selector lines in `theme.ts`                    |    47 |
-| Theme `data-*` selector lines in `theme.ts`                 |    44 |
+| Theme `data-*` selector lines in `theme.ts`                 |    39 |
 | `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     8 |
 
 ### Main MUI Usage Today

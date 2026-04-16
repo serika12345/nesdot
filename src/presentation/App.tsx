@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
@@ -28,7 +29,6 @@ import { MenuBar, type WorkMode } from "./components/common/ui/menu/MenuBar";
 import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
-import { APP_PANEL_CLASS_NAME } from "./styleClassNames";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -477,8 +477,8 @@ export const App: React.FC = () => {
             useFlexGap
           >
             <Stack
-              component="div"
-              className={APP_PANEL_CLASS_NAME}
+              component={Paper}
+              variant="outlined"
               spacing="0.875rem"
               p="1.125rem"
               flex={1}

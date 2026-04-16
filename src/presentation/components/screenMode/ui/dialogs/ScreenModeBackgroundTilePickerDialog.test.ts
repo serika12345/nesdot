@@ -2,7 +2,6 @@ import * as E from "fp-ts/Either";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TOOL_BUTTON_CLASS_NAME } from "../../../../styleClassNames";
 
 interface MockProjectState {
   nes: {
@@ -107,7 +106,7 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
 
     expect(markup).toContain("BGタイル");
     expect(markup).toContain("BG属性");
-    expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
+    expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);
   });

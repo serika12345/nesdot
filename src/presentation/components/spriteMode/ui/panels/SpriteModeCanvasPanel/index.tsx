@@ -1,11 +1,8 @@
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  APP_CANVAS_VIEWPORT_CLASS_NAME,
-  APP_PANEL_CLASS_NAME,
-} from "../../../../../styleClassNames";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -55,8 +52,8 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
 
   return (
     <Stack
-      component="div"
-      className={APP_PANEL_CLASS_NAME}
+      component={Paper}
+      variant="outlined"
       spacing="0.875rem"
       p="1.125rem"
       role="region"
@@ -72,10 +69,12 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
       />
 
       <Box
-        className={APP_CANVAS_VIEWPORT_CLASS_NAME}
+        component={Paper}
+        variant="outlined"
         flex={1}
         minHeight={0}
         overflow="auto"
+        position="relative"
         p="1.125rem"
       >
         <SpriteModeToolOverlay />

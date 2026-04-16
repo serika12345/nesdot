@@ -2,7 +2,6 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TOOL_BUTTON_CLASS_NAME } from "../../../../styleClassNames";
 
 const mockedHooks = vi.hoisted(() => {
   return {
@@ -52,7 +51,7 @@ describe("CharacterMode sidebar cards", () => {
 
     expect(markup).toContain("編集モード 合成");
     expect(markup).toContain("編集モード 分解");
-    expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
+    expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);
   });
@@ -64,7 +63,7 @@ describe("CharacterMode sidebar cards", () => {
 
     expect(markup).toContain("プロジェクトスプライトサイズ 8x8");
     expect(markup).toContain("プロジェクトスプライトサイズ 8x16");
-    expect(markup).not.toContain(TOOL_BUTTON_CLASS_NAME);
+    expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);
   });

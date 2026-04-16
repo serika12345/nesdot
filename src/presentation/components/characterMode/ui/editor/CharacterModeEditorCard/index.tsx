@@ -1,9 +1,6 @@
+import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
-import {
-  APP_PANEL_CLASS_NAME,
-  mergeClassNames,
-} from "../../../../../styleClassNames";
 
 /**
  * キャラクター編集画面で繰り返し使うカード枠です。
@@ -11,16 +8,15 @@ import {
  */
 export const CharacterModeEditorCard = React.forwardRef<
   HTMLDivElement,
-  StackProps
+  StackProps<typeof Paper>
 >(function CharacterModeEditorCard({ className, ...props }, ref) {
   return (
     <Stack
       ref={ref}
+      component={Paper}
+      variant="outlined"
       {...props}
-      className={mergeClassNames(
-        APP_PANEL_CLASS_NAME,
-        typeof className === "string" ? className : false,
-      )}
+      className={className}
     />
   );
 });
