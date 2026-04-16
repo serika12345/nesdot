@@ -54,7 +54,10 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).not.toContain("app-field-label");
     expect(markup).not.toContain("app-badge");
     expect(markup).not.toContain("character-mode-editor-card");
-    expect(markup).not.toContain("character-library-scroll-area");
+    expect(markup).not.toContain("character-library-sprite-button");
+    expect(markup).not.toContain("character-library-sprite-title");
+    expect(markup).not.toContain("character-library-sprite-preview-frame");
+    expect(markup).not.toContain("character-library-interaction-root");
     expect(markup).not.toMatch(/data-tone=/);
   });
 });

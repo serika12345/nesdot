@@ -2,10 +2,6 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
-  SCREEN_EDITOR_CONTENT_CLASS_NAME,
-  SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
-} from "../../../../styleClassNames";
-import {
   PreviewCanvasWrap,
   PreviewViewport,
   ScreenModeEditorContent,
@@ -18,8 +14,8 @@ describe("ScreenModePrimitives", () => {
     );
 
     expect(markup).toContain('data-active="true"');
-    expect(markup).toContain("MuiPaper-outlined");
-    expect(markup).toContain(SCREEN_PREVIEW_VIEWPORT_CLASS_NAME);
+    expect(markup).toContain("cursor:grabbing");
+    expect(markup).not.toContain("screen-mode-preview-viewport");
     expect(markup).not.toContain("app-canvas-viewport");
     expect(markup).not.toMatch(/\sactive="/);
   });
@@ -40,8 +36,8 @@ describe("ScreenModePrimitives", () => {
       ),
     );
 
-    expect(editorContentMarkup).toContain(SCREEN_EDITOR_CONTENT_CLASS_NAME);
     expect(editorContentMarkup).toContain("custom-editor-content");
+    expect(editorContentMarkup).not.toContain("screen-mode-editor-content");
     expect(previewWrapMarkup).toContain("custom-preview-wrap");
   });
 });

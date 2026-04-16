@@ -6,11 +6,8 @@ import MaterialGrid, {
 import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
-import {
-  SCREEN_EDITOR_CONTENT_CLASS_NAME,
-  SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
-  mergeClassNames,
-} from "../../../../../styleClassNames";
+import { mergeClassNames } from "../../../../../styleClassNames";
+import { screenModePreviewViewportStyle } from "./styles";
 
 export { collapseChevronStyle } from "./styles";
 
@@ -155,7 +152,9 @@ export const ScreenModeEditorContent = createStackLayout(
   "ScreenModeEditorContent",
   {
     component: "div",
-    className: SCREEN_EDITOR_CONTENT_CLASS_NAME,
+    position: "relative",
+    zIndex: 1,
+    spacing: "1rem",
   },
 );
 
@@ -197,7 +196,7 @@ export const PreviewViewport = React.forwardRef<
   HTMLDivElement,
   PreviewViewportProps
 >(function PreviewViewport({ active, className, ...props }, ref) {
-  const { component, ...forwardedProps } = props;
+  const { component, style, ...forwardedProps } = props;
 
   void component;
 
@@ -209,7 +208,6 @@ export const PreviewViewport = React.forwardRef<
       variant="outlined"
       data-active={active === true ? "true" : "false"}
       className={mergeClassNames(
-        SCREEN_PREVIEW_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       flex={1}
@@ -217,6 +215,7 @@ export const PreviewViewport = React.forwardRef<
       overflow="auto"
       position="relative"
       p="1.5rem"
+      style={screenModePreviewViewportStyle(style ?? {}, active === true)}
     />
   );
 });

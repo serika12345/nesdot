@@ -1,26 +1,13 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ButtonBase from "@mui/material/ButtonBase";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME,
-  SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME,
-  SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME,
-  SCREEN_LIBRARY_SECTION_CLASS_NAME,
-  SCREEN_PREVIEW_LABEL_CLASS_NAME,
-  SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME,
-  SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME,
-  SCREEN_STAGE_MARQUEE_CLASS_NAME,
-  SCREEN_STAGE_SPRITE_INDEX_CLASS_NAME,
-  SCREEN_STAGE_SPRITE_OUTLINE_CLASS_NAME,
-  SCREEN_STAGE_SURFACE_CLASS_NAME,
-} from "../../../../../styleClassNames";
 import { CharacterModeTilePreview } from "../../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { ScreenCanvas } from "../../../../common/ui/canvas/ScreenCanvas";
 import type { ScreenModeState } from "../../../logic/useScreenModeState";
@@ -35,65 +22,23 @@ import {
 } from "../../primitives/ScreenModePrimitives";
 import {
   collapseChevronStyle,
-  createScaledRectStyle,
-  floatingDragPreviewStyle,
+  createFloatingDragPreviewStyle,
+  createScreenLibraryPreviewButtonStyle,
+  createScreenLibraryScrollAreaStyle,
+  createSpriteOutlineStyle,
+  createStageMarqueeStyle,
+  createStageSurfaceStyle,
+  fieldLabelStyle,
+  helperTextStyle,
+  resolveBadgeStyle,
+  screenPreviewLabelStyle,
   sidebarScrollStyle,
-  stageSurfaceStyle,
+  stageInteractionLayerStyle,
+  stageSpriteIndexStyle,
 } from "./styles";
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
-
-const helperTextStyle: React.CSSProperties = {
-  fontSize: "0.8125rem",
-  lineHeight: 1.7,
-  color: "var(--ink-soft)",
-};
-
-const fieldLabelStyle: React.CSSProperties = {
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  color: "var(--ink-soft)",
-};
-
-const badgeBaseStyle: React.CSSProperties = {
-  width: "fit-content",
-  padding: "0.4375rem 0.75rem",
-  borderRadius: "62.4375rem",
-  fontSize: "0.75rem",
-  fontWeight: 700,
-  letterSpacing: "0.06em",
-};
-
-const resolveBadgeStyle = (
-  tone: "neutral" | "accent" | "danger",
-): React.CSSProperties => {
-  if (tone === "neutral") {
-    return {
-      ...badgeBaseStyle,
-      color: "var(--ink-soft)",
-      background: "rgba(148, 163, 184, 0.12)",
-      border: "0.0625rem solid rgba(148, 163, 184, 0.18)",
-    };
-  }
-
-  if (tone === "accent") {
-    return {
-      ...badgeBaseStyle,
-      color: "#0f766e",
-      background: "rgba(15, 118, 110, 0.12)",
-      border: "0.0625rem solid rgba(15, 118, 110, 0.18)",
-    };
-  }
-
-  return {
-    ...badgeBaseStyle,
-    color: "#be123c",
-    background: "rgba(190, 24, 93, 0.1)",
-    border: "0.0625rem solid rgba(190, 24, 93, 0.16)",
-  };
-};
 
 const resolveMenuPosition = (
   menuClientX: number,
@@ -136,6 +81,26 @@ const isCharacterDragState = (
       (drag) => drag.kind === "character" && drag.characterId === characterId,
     ),
   );
+
+type ScreenLibraryPreviewButtonProps = React.ComponentProps<typeof Button> & {
+  dragging?: boolean;
+};
+
+const ScreenLibraryPreviewButton = React.forwardRef<
+  HTMLButtonElement,
+  ScreenLibraryPreviewButtonProps
+>(function ScreenLibraryPreviewButton({ dragging, ...props }, ref) {
+  return (
+    <Button
+      ref={ref}
+      {...props}
+      color={dragging === true ? "primary" : "inherit"}
+      fullWidth
+      style={createScreenLibraryPreviewButtonStyle(dragging === true)}
+      variant={dragging === true ? "contained" : "outlined"}
+    />
+  );
+});
 
 interface ScreenModeGestureWorkspaceProps {
   screenMode: ScreenModeState;
@@ -336,9 +301,10 @@ export const ScreenModeGestureWorkspace: React.FC<
         );
 
         return (
-          <div
-            className={SCREEN_FLOATING_DRAG_PREVIEW_CLASS_NAME}
-            style={floatingDragPreviewStyle(
+          <Box
+            component={Paper}
+            variant="outlined"
+            style={createFloatingDragPreviewStyle(
               dragState.clientX,
               dragState.clientY,
             )}
@@ -364,13 +330,13 @@ export const ScreenModeGestureWorkspace: React.FC<
                   />
                 </CharacterPreviewTiles>
               )}
-              <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
+              <Box component="span" style={screenPreviewLabelStyle}>
                 {dragState.kind === "sprite"
                   ? `Sprite ${dragState.spriteIndex}`
                   : characterPreviewName}
-              </span>
+              </Box>
             </Stack>
-          </div>
+          </Box>
         );
       },
     ),
@@ -403,7 +369,8 @@ export const ScreenModeGestureWorkspace: React.FC<
           aria-label="スクリーン配置サイドバー"
         >
           <Stack
-            className={SCREEN_LIBRARY_SECTION_CLASS_NAME}
+            component={Paper}
+            variant="outlined"
             position="relative"
             flexShrink={0}
             overflow="hidden"
@@ -459,16 +426,17 @@ export const ScreenModeGestureWorkspace: React.FC<
               open={isSpriteLibraryOpen}
               aria-hidden={isSpriteLibraryOpen === false}
             >
-              <div
-                className={`${SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME} ${SCREEN_SPRITE_LIBRARY_SCROLL_AREA_CLASS_NAME}`}
-              >
+              <Box style={createScreenLibraryScrollAreaStyle("13.5rem")}>
                 <SpriteLibraryGrid>
                   {sprites.map((sprite, spriteIndex) => (
-                    <ButtonBase
+                    <ScreenLibraryPreviewButton
                       key={`screen-library-sprite-${spriteIndex}`}
-                      className={SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME}
                       type="button"
                       aria-label={`スクリーンライブラリスプライト ${spriteIndex}`}
+                      dragging={isSpriteDragState(
+                        gestureLibraryDragState,
+                        spriteIndex,
+                      )}
                       data-dragging-state={toBooleanDataValue(
                         isSpriteDragState(gestureLibraryDragState, spriteIndex),
                       )}
@@ -491,22 +459,23 @@ export const ScreenModeGestureWorkspace: React.FC<
                           scale={3}
                           tileOption={O.some(sprite)}
                         />
-                        <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
+                        <Box component="span" style={screenPreviewLabelStyle}>
                           {`Sprite ${spriteIndex}`}
-                        </span>
+                        </Box>
                         <span style={resolveBadgeStyle("accent")}>
                           {`${sprite.width}×${sprite.height}`}
                         </span>
                       </Stack>
-                    </ButtonBase>
+                    </ScreenLibraryPreviewButton>
                   ))}
                 </SpriteLibraryGrid>
-              </div>
+              </Box>
             </LibrarySectionContent>
           </Stack>
 
           <Stack
-            className={SCREEN_LIBRARY_SECTION_CLASS_NAME}
+            component={Paper}
+            variant="outlined"
             position="relative"
             flexShrink={0}
             overflow="hidden"
@@ -568,14 +537,17 @@ export const ScreenModeGestureWorkspace: React.FC<
               aria-hidden={isCharacterLibraryOpen === false}
             >
               {characterPreviewCards.length > 0 ? (
-                <div className={SCREEN_LIBRARY_SCROLL_AREA_CLASS_NAME}>
+                <Box style={createScreenLibraryScrollAreaStyle("15.5rem")}>
                   <CharacterLibraryGrid>
                     {characterPreviewCards.map((characterCard) => (
-                      <ButtonBase
+                      <ScreenLibraryPreviewButton
                         key={`screen-library-character-${characterCard.id}`}
-                        className={SCREEN_LIBRARY_PREVIEW_BUTTON_CLASS_NAME}
                         type="button"
                         aria-label={`スクリーンキャラクタープレビュー ${characterCard.name}`}
+                        dragging={isCharacterDragState(
+                          gestureLibraryDragState,
+                          characterCard.id,
+                        )}
                         data-dragging-state={toBooleanDataValue(
                           isCharacterDragState(
                             gestureLibraryDragState,
@@ -610,17 +582,17 @@ export const ScreenModeGestureWorkspace: React.FC<
                               previewGrid={characterCard.previewGrid}
                             />
                           </CharacterPreviewTiles>
-                          <span className={SCREEN_PREVIEW_LABEL_CLASS_NAME}>
+                          <Box component="span" style={screenPreviewLabelStyle}>
                             {characterCard.name}
-                          </span>
+                          </Box>
                           <span style={resolveBadgeStyle("accent")}>
                             {`${characterCard.spriteCount} sprites`}
                           </span>
                         </Stack>
-                      </ButtonBase>
+                      </ScreenLibraryPreviewButton>
                     ))}
                   </CharacterLibraryGrid>
-                </div>
+                </Box>
               ) : (
                 <Box component="p" m={0} style={helperTextStyle}>
                   先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
@@ -648,7 +620,6 @@ export const ScreenModeGestureWorkspace: React.FC<
           >
             <PreviewCanvasWrap>
               <div
-                className={SCREEN_STAGE_SURFACE_CLASS_NAME}
                 ref={setStageRef}
                 aria-label="スクリーン配置ステージ"
                 data-dragging-state={toBooleanDataValue(isStageDragging)}
@@ -663,7 +634,11 @@ export const ScreenModeGestureWorkspace: React.FC<
                 data-stage-sprite-count={screen.sprites.length}
                 data-selected-sprite-count={gestureSelectedSpriteCount}
                 data-stage-sprite-layout={gestureStageSpriteLayout}
-                style={stageSurfaceStyle(stageWidth, stageHeight)}
+                style={createStageSurfaceStyle(
+                  stageWidth,
+                  stageHeight,
+                  isStageDragging,
+                )}
               >
                 <ScreenCanvas
                   ariaLabel="画面プレビューキャンバス"
@@ -671,14 +646,10 @@ export const ScreenModeGestureWorkspace: React.FC<
                   showGrid={true}
                 />
 
-                <div
-                  className={SCREEN_STAGE_INTERACTION_LAYER_CLASS_NAME}
-                  aria-hidden="true"
-                >
+                <div aria-hidden="true" style={stageInteractionLayerStyle}>
                   {screen.sprites.map((sprite, index) => (
                     <div
                       key={`screen-stage-sprite-outline-${index}`}
-                      className={SCREEN_STAGE_SPRITE_OUTLINE_CLASS_NAME}
                       data-outline-visible-state={toBooleanDataValue(
                         isSpriteOutlineVisible,
                       )}
@@ -686,18 +657,18 @@ export const ScreenModeGestureWorkspace: React.FC<
                         gestureSelectedSpriteIndices.has(index),
                       )}
                       data-stage-sprite-outline="true"
-                      style={createScaledRectStyle(
+                      style={createSpriteOutlineStyle(
                         sprite.x,
                         sprite.y,
                         sprite.width,
                         sprite.height,
                         screenZoomLevel,
+                        isSpriteOutlineVisible,
+                        gestureSelectedSpriteIndices.has(index),
                       )}
                     >
                       {isSpriteIndexVisible === true ? (
-                        <span className={SCREEN_STAGE_SPRITE_INDEX_CLASS_NAME}>
-                          {`#${index}`}
-                        </span>
+                        <span style={stageSpriteIndexStyle}>{`#${index}`}</span>
                       ) : (
                         <></>
                       )}
@@ -710,8 +681,7 @@ export const ScreenModeGestureWorkspace: React.FC<
                       () => <></>,
                       (rect) => (
                         <div
-                          className={SCREEN_STAGE_MARQUEE_CLASS_NAME}
-                          style={createScaledRectStyle(
+                          style={createStageMarqueeStyle(
                             rect.x,
                             rect.y,
                             rect.width,

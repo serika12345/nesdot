@@ -51,6 +51,7 @@ describe("CharacterModeDecompositionToolCard", () => {
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toContain("app-badge");
     expect(markup).not.toContain("app-field-label");
+    expect(markup).not.toContain("character-decomposition-palette-slot-button");
     expect(markup).not.toMatch(/data-active=/);
     expect(markup).not.toMatch(/data-tone=/);
   });

@@ -1,25 +1,26 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ButtonBase from "@mui/material/ButtonBase";
 import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../../application/state/projectStore";
-import {
-  CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME,
-  CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME,
-  CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME,
-  CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME,
-} from "../../../../../styleClassNames";
 import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../core/CharacterModeStateProvider";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { CharacterLibraryGrid } from "../../primitives/CharacterModePrimitives";
-import { collapseChevronStyle } from "./styles";
+import {
+  characterLibraryPreviewFrameStyle,
+  characterLibraryScrollAreaStyle,
+  characterLibrarySpriteTitleStyle,
+  collapseChevronStyle,
+  createCharacterLibraryInteractionRootStyle,
+  createCharacterLibraryPreviewButtonStyle,
+} from "./styles";
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
@@ -43,6 +44,28 @@ const areSameLibraryContentProps = (
   previous.id === next.id &&
   previous.sprites === next.sprites;
 
+type CharacterLibraryPreviewButtonProps = React.ComponentProps<
+  typeof Button
+> & {
+  dragging?: boolean;
+};
+
+const CharacterLibraryPreviewButton = React.forwardRef<
+  HTMLButtonElement,
+  CharacterLibraryPreviewButtonProps
+>(function CharacterLibraryPreviewButton({ dragging, ...props }, ref) {
+  return (
+    <Button
+      ref={ref}
+      {...props}
+      color={dragging === true ? "primary" : "inherit"}
+      fullWidth
+      style={createCharacterLibraryPreviewButtonStyle(dragging === true)}
+      variant={dragging === true ? "contained" : "outlined"}
+    />
+  );
+});
+
 const CharacterModeSidebarLibraryContent = React.memo(
   function CharacterModeSidebarLibraryContent({
     handleLibraryPointerDown,
@@ -58,14 +81,14 @@ const CharacterModeSidebarLibraryContent = React.memo(
         overflow="auto"
         mr={-2.25}
         pr={2.25}
-        style={{ scrollbarGutter: "stable" }}
+        style={characterLibraryScrollAreaStyle}
       >
         <CharacterLibraryGrid>
           {sprites.map((spriteTile, spriteIndex) => (
-            <ButtonBase
+            <CharacterLibraryPreviewButton
               key={`library-sprite-${spriteIndex}`}
-              className={CHARACTER_LIBRARY_SPRITE_BUTTON_CLASS_NAME}
               type="button"
+              dragging={draggingSpriteIndex === spriteIndex}
               data-dragging-state={toBooleanDataValue(
                 draggingSpriteIndex === spriteIndex,
               )}
@@ -77,16 +100,20 @@ const CharacterModeSidebarLibraryContent = React.memo(
               }
             >
               <Stack alignItems="center" spacing="0.625rem" width="100%">
-                <span className={CHARACTER_LIBRARY_SPRITE_TITLE_CLASS_NAME}>
+                <Typography
+                  component="span"
+                  variant="caption"
+                  style={characterLibrarySpriteTitleStyle}
+                >
                   {`Sprite ${spriteIndex}`}
-                </span>
+                </Typography>
                 <Stack
-                  className={CHARACTER_LIBRARY_SPRITE_PREVIEW_FRAME_CLASS_NAME}
+                  component={Paper}
+                  variant="outlined"
                   alignItems="center"
                   justifyContent="center"
                   spacing={0}
-                  width="5.5rem"
-                  minHeight="4rem"
+                  style={characterLibraryPreviewFrameStyle}
                 >
                   <CharacterModeTilePreview
                     scale={LIBRARY_PREVIEW_SCALE}
@@ -99,7 +126,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
                   label={`${spriteTile.width}×${spriteTile.height}`}
                 />
               </Stack>
-            </ButtonBase>
+            </CharacterLibraryPreviewButton>
           ))}
         </CharacterLibraryGrid>
       </Box>
@@ -170,9 +197,11 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
         display={isLibraryOpen === true ? "block" : "none"}
         minHeight={0}
       >
-        <div
-          className={CHARACTER_LIBRARY_INTERACTION_ROOT_CLASS_NAME}
+        <Box
           data-interactive-state={toBooleanDataValue(
+            spriteLibrary.isLibraryDraggable,
+          )}
+          style={createCharacterLibraryInteractionRootStyle(
             spriteLibrary.isLibraryDraggable,
           )}
         >
@@ -182,7 +211,7 @@ export const CharacterModeSidebarLibrary: React.FC = () => {
             id={`${libraryContentId}-scroll`}
             sprites={spriteLibrary.sprites}
           />
-        </div>
+        </Box>
       </Box>
     </CharacterModeEditorCard>
   );

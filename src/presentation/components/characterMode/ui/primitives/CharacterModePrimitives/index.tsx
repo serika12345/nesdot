@@ -8,27 +8,16 @@ import MaterialGrid, {
 import Paper from "@mui/material/Paper";
 import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
+import { mergeClassNames } from "../../../../../styleClassNames";
 import {
-  CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
-  CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
-  CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
-  CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
-  CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
-  CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
-  CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
-  CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
-  CHARACTER_STAGE_CANVAS_CLASS_NAME,
-  CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
-  CHARACTER_STAGE_SURFACE_CLASS_NAME,
-  CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
-  mergeClassNames,
-} from "../../../../../styleClassNames";
-import {
+  CharacterStageSurfaceRoot,
+  characterStageCanvasStyle,
+  createCharacterStageViewportStyle,
   createDecompositionCanvasStyle,
   createEmptyTilePreviewStyle,
   createFloatingLibraryPreviewStyle,
   createPixelPreviewCellStyle,
+  createPortalOverlayStyle,
   createPositionedActionMenuStyle,
   createRegionOverlayButtonStyle,
   createStageDragPreviewStyle,
@@ -383,9 +372,6 @@ export const CharacterLibraryGrid = createUniformGridLayout(
   2,
   1,
   2.5,
-  {
-    className: CHARACTER_LIBRARY_GRID_CLASS_NAME,
-  },
 );
 
 export const SelectedRegionFieldGrid = createUniformGridLayout(
@@ -393,16 +379,13 @@ export const SelectedRegionFieldGrid = createUniformGridLayout(
   2,
   1,
   3,
-  {
-    className: CHARACTER_SELECTED_REGION_FIELD_GRID_CLASS_NAME,
-  },
 );
 
 export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
   CharacterStageViewportProps
 >(function CharacterStageViewport({ dragging, className, ...props }, ref) {
-  const { component, ...forwardedProps } = props;
+  const { component, style, ...forwardedProps } = props;
 
   void component;
 
@@ -414,7 +397,6 @@ export const CharacterStageViewport = React.forwardRef<
       variant="outlined"
       data-dragging-state={toBooleanDataValue(dragging)}
       className={mergeClassNames(
-        CHARACTER_STAGE_VIEWPORT_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       flex="1 1 0"
@@ -425,6 +407,7 @@ export const CharacterStageViewport = React.forwardRef<
       zIndex={1}
       p="1.5rem"
       borderRadius={0}
+      style={createCharacterStageViewportStyle(style ?? {}, dragging === true)}
     />
   );
 });
@@ -451,7 +434,7 @@ export const ComposeCanvasMount = React.memo(function ComposeCanvasMount({
     <canvas
       ref={onCanvasRef}
       aria-hidden="true"
-      className={CHARACTER_STAGE_CANVAS_CLASS_NAME}
+      style={characterStageCanvasStyle}
     />
   );
 });
@@ -468,8 +451,6 @@ export const DecompositionCanvasElement = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_STAGE_CANVAS_CLASS_NAME,
-        CHARACTER_DECOMPOSITION_CANVAS_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       style={createDecompositionCanvasStyle(style ?? {}, cursorStyle)}
@@ -486,7 +467,6 @@ export const StageDragPreview = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_STAGE_DRAG_PREVIEW_CLASS_NAME,
         typeof props.className === "string" ? props.className : false,
       )}
       style={createStageDragPreviewStyle(style ?? {}, previewLeft, previewTop)}
@@ -520,7 +500,6 @@ export const RegionOverlayButton = React.forwardRef<
       data-selected-state={toBooleanDataValue(selectedState)}
       data-tool-mode={toolMode}
       className={mergeClassNames(
-        CHARACTER_REGION_OVERLAY_BUTTON_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       style={createRegionOverlayButtonStyle(
@@ -529,6 +508,9 @@ export const RegionOverlayButton = React.forwardRef<
         regionTop,
         regionScale,
         regionHeightPx,
+        issueState === true,
+        selectedState === true,
+        toolMode,
       )}
     />
   );
@@ -546,7 +528,6 @@ export const FloatingLibraryPreview = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_FLOATING_LIBRARY_PREVIEW_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       style={createFloatingLibraryPreviewStyle(
@@ -561,15 +542,15 @@ export const FloatingLibraryPreview = React.forwardRef<
 export const PortalOverlay = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(function PortalOverlay({ className, ...props }, ref) {
+>(function PortalOverlay({ className, style, ...props }, ref) {
   return (
     <div
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_PORTAL_OVERLAY_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
+      style={createPortalOverlayStyle(style ?? {})}
     />
   );
 });
@@ -589,7 +570,6 @@ export const PositionedActionMenu = React.forwardRef<
       {...props}
       data-ready={toBooleanDataValue(ready)}
       className={mergeClassNames(
-        CHARACTER_POSITIONED_ACTION_MENU_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       minWidth="13.75rem"
@@ -602,6 +582,7 @@ export const PositionedActionMenu = React.forwardRef<
         menuLeft,
         menuTop,
         menuWidth,
+        ready,
       )}
     />
   );
@@ -636,7 +617,6 @@ export const EmptyTilePreview = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_EMPTY_TILE_PREVIEW_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       style={createEmptyTilePreviewStyle(
@@ -660,7 +640,6 @@ export const PixelPreviewCell = React.forwardRef<
       ref={ref}
       {...props}
       className={mergeClassNames(
-        CHARACTER_PIXEL_PREVIEW_CELL_CLASS_NAME,
         typeof className === "string" ? className : false,
       )}
       style={createPixelPreviewCellStyle(style ?? {}, pixelSize, colorHex)}
@@ -672,6 +651,7 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
   function StageSurface(
     {
       activeDrop,
+      children,
       className,
       stageHeightPx,
       stageScale,
@@ -682,12 +662,12 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
     ref,
   ) {
     return (
-      <div
+      <CharacterStageSurfaceRoot
         ref={ref}
         {...props}
+        activeDropState={activeDrop === true}
         data-active-drop={toBooleanDataValue(activeDrop)}
         className={mergeClassNames(
-          CHARACTER_STAGE_SURFACE_CLASS_NAME,
           typeof className === "string" ? className : false,
         )}
         style={createStageSurfaceStyle(
@@ -696,7 +676,9 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
           stageHeightPx,
           stageScale,
         )}
-      />
+      >
+        {children}
+      </CharacterStageSurfaceRoot>
     );
   },
 );

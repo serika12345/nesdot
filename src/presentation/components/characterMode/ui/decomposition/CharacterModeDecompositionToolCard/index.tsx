@@ -7,7 +7,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../../domain/nes/palette";
-import { CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME } from "../../../../../styleClassNames";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
@@ -27,8 +26,6 @@ type PaletteSlotButtonProps = React.ComponentProps<typeof ButtonBase> & {
   selectedState?: boolean;
 };
 
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
 const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
   colorHex,
   selectedState,
@@ -38,9 +35,12 @@ const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
   return (
     <ButtonBase
       {...props}
-      className={CHARACTER_DECOMPOSITION_PALETTE_SLOT_BUTTON_CLASS_NAME}
-      data-selected-state={toBooleanDataValue(selectedState)}
-      style={createPaletteSlotButtonStyle(style ?? {}, colorHex)}
+      data-selected-state={selectedState === true ? "true" : "false"}
+      style={createPaletteSlotButtonStyle(
+        style ?? {},
+        colorHex,
+        selectedState === true,
+      )}
     />
   );
 };
