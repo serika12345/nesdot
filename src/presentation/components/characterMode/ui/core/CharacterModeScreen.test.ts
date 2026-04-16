@@ -1,38 +1,11 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-const mockedHooks = vi.hoisted(() => {
+vi.mock("./CharacterModeGestureWorkspace", () => {
   return {
-    useCharacterModeWorkspaceEvents: vi.fn(),
-  };
-});
-
-vi.mock("./CharacterModeStateProvider", () => {
-  return {
-    useCharacterModeWorkspaceEvents:
-      mockedHooks.useCharacterModeWorkspaceEvents,
-  };
-});
-
-vi.mock("../decomposition/CharacterModeDecompositionRegionMenu", () => {
-  return {
-    CharacterModeDecompositionRegionMenu: () =>
-      React.createElement("div", {}, "decomposition-region-menu"),
-  };
-});
-
-vi.mock("../menu/CharacterModeSpriteMenu", () => {
-  return {
-    CharacterModeSpriteMenu: () =>
-      React.createElement("div", {}, "sprite-menu"),
-  };
-});
-
-vi.mock("./CharacterModeWorkspace", () => {
-  return {
-    CharacterModeWorkspace: () =>
-      React.createElement("div", {}, "character-workspace"),
+    CharacterModeGestureWorkspace: () =>
+      React.createElement("div", {}, "character-gesture-workspace"),
   };
 });
 
@@ -67,22 +40,12 @@ vi.mock("../sidebar/CharacterModeSidebarSpriteSizeCard", () => {
 import { CharacterModeScreen } from "./CharacterModeScreen";
 
 describe("CharacterModeScreen", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    mockedHooks.useCharacterModeWorkspaceEvents.mockReturnValue({
-      handleWorkspacePointerDownCapture: vi.fn(),
-      handleWorkspacePointerMove: vi.fn(),
-      handleWorkspacePointerEnd: vi.fn(),
-    });
-  });
-
   it("renders the outer screen shell without app-panel", () => {
     const markup = renderToStaticMarkup(
       React.createElement(CharacterModeScreen),
     );
 
-    expect(markup).toContain("character-workspace");
+    expect(markup).toContain("character-gesture-workspace");
     expect(markup).toContain("editor-mode-card");
     expect(markup).toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");

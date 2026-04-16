@@ -12,7 +12,9 @@ import {
 import { useCharacterState } from "../../../../application/state/characterStore";
 import { useProjectState } from "../../../../application/state/projectStore";
 import { selectActiveSet } from "./characterModeSelectors";
-import { useCharacterModeStore } from "./characterModeStore";
+import { useCharacterModeComposeStore } from "./characterModeComposeStore";
+import { useCharacterModeProjectStore } from "./characterModeProjectStore";
+import { useCharacterModeStageStore } from "./characterModeStageStore";
 import {
   createComposeSpriteSource,
   findComposeObjectEntry,
@@ -63,7 +65,7 @@ const resolveLibraryDragState = (
   getStageRect: () => O.Option<DOMRect>,
 ): LibraryDragState => {
   const { stageWidth, stageHeight, stageZoomLevel } =
-    useCharacterModeStore.getState();
+    useCharacterModeStageStore.getState();
   const stageScale = resolveCharacterStageScale(
     stageWidth,
     stageHeight,
@@ -137,7 +139,7 @@ const resolveLibraryDragState = (
 
 /**
  * Fabric.js キャンバスのライフサイクルと合成モードのイベントハンドラを管理するブリッジフック。
- * 状態は zustand store 経由で読み書きし、DOM 操作のみこのフック内に保持します。
+ * focused store 群を参照しつつ、DOM 操作のみこのフック内に保持します。
  */
 export const useCharacterModeComposeBridge = (
   focusStageElement: () => void,
@@ -164,11 +166,11 @@ export const useCharacterModeComposeBridge = (
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
   const sprites = useProjectState((s) => s.sprites);
   const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
-  const stageWidth = useCharacterModeStore((s) => s.stageWidth);
-  const stageHeight = useCharacterModeStore((s) => s.stageHeight);
-  const stageZoomLevel = useCharacterModeStore((s) => s.stageZoomLevel);
-  const editorMode = useCharacterModeStore((s) => s.editorMode);
-  const selectedSpriteEditorIndex = useCharacterModeStore(
+  const stageWidth = useCharacterModeStageStore((s) => s.stageWidth);
+  const stageHeight = useCharacterModeStageStore((s) => s.stageHeight);
+  const stageZoomLevel = useCharacterModeStageStore((s) => s.stageZoomLevel);
+  const editorMode = useCharacterModeProjectStore((s) => s.editorMode);
+  const selectedSpriteEditorIndex = useCharacterModeComposeStore(
     (s) => s.selectedSpriteEditorIndex,
   );
 
@@ -396,7 +398,7 @@ export const useCharacterModeComposeBridge = (
     const composeCanvas = composeFabricCanvasRef.current.value;
 
     const handleMouseDown = (event: CanvasEvents["mouse:down"]) => {
-      const store = useCharacterModeStore.getState();
+      const composeStore = useCharacterModeComposeStore.getState();
       const charState = useCharacterState.getState();
       const currentActiveSet = selectActiveSet(
         charState.characterSets,
@@ -406,14 +408,14 @@ export const useCharacterModeComposeBridge = (
         currentActiveSet,
         O.chain((cs) =>
           ensureSelectedCharacterSpriteIndex(
-            store.selectedSpriteEditorIndex,
+            composeStore.selectedSpriteEditorIndex,
             cs.sprites.length,
           ),
         ),
       );
 
       focusStageElement();
-      store.setSpriteContextMenuState(O.none);
+      composeStore.setSpriteContextMenuState(O.none);
 
       if (isMouseLikeCanvasEvent(event.e) === false) {
         return;
@@ -440,12 +442,12 @@ export const useCharacterModeComposeBridge = (
                 O.some(spriteEditorIndex),
               ) === false
             ) {
-              useCharacterModeStore
+              useCharacterModeComposeStore
                 .getState()
                 .setSelectedSpriteEditorIndex(O.some(spriteEditorIndex));
             }
             focusStageElement();
-            useCharacterModeStore.getState().setSpriteContextMenuState(
+            useCharacterModeComposeStore.getState().setSpriteContextMenuState(
               O.some({
                 clientX: pointerEvent.clientX,
                 clientY: pointerEvent.clientY,
@@ -469,7 +471,7 @@ export const useCharacterModeComposeBridge = (
         O.match(
           () => {
             if (isSameOptionalNumber(currentSelectedIndex, O.none) === false) {
-              useCharacterModeStore
+              useCharacterModeComposeStore
                 .getState()
                 .setSelectedSpriteEditorIndex(O.none);
             }
@@ -481,7 +483,7 @@ export const useCharacterModeComposeBridge = (
                 O.some(entry.index),
               ) === false
             ) {
-              useCharacterModeStore
+              useCharacterModeComposeStore
                 .getState()
                 .setSelectedSpriteEditorIndex(O.some(entry.index));
             }
@@ -495,7 +497,7 @@ export const useCharacterModeComposeBridge = (
         stageWidth: sw,
         stageHeight: sh,
         stageZoomLevel: szl,
-      } = useCharacterModeStore.getState();
+      } = useCharacterModeStageStore.getState();
       const ss = resolveCharacterStageScale(sw, sh, szl);
 
       const currentLeft = event.target.left;
@@ -529,7 +531,7 @@ export const useCharacterModeComposeBridge = (
         stageWidth: sw,
         stageHeight: sh,
         stageZoomLevel: szl,
-      } = useCharacterModeStore.getState();
+      } = useCharacterModeStageStore.getState();
       const ss = resolveCharacterStageScale(sw, sh, szl);
 
       const currentLeft = event.target.left;
@@ -592,7 +594,7 @@ export const useCharacterModeComposeBridge = (
   const handleComposeContextMenu = useCallback<
     React.MouseEventHandler<HTMLElement>
   >((event) => {
-    if (useCharacterModeStore.getState().editorMode !== "compose") {
+    if (useCharacterModeProjectStore.getState().editorMode !== "compose") {
       return;
     }
     event.preventDefault();
@@ -601,14 +603,16 @@ export const useCharacterModeComposeBridge = (
   const handleStageKeyDown = useCallback<
     React.KeyboardEventHandler<HTMLDivElement>
   >((event) => {
-    const store = useCharacterModeStore.getState();
-    if (store.editorMode !== "compose") {
+    const composeStore = useCharacterModeComposeStore.getState();
+    const projectStore = useCharacterModeProjectStore.getState();
+
+    if (projectStore.editorMode !== "compose") {
       return;
     }
 
     if (event.key === "Escape") {
       event.preventDefault();
-      store.closeSpriteContextMenu();
+      composeStore.closeSpriteContextMenu();
       return;
     }
 
@@ -621,7 +625,7 @@ export const useCharacterModeComposeBridge = (
       currentActiveSet,
       O.chain((cs) =>
         ensureSelectedCharacterSpriteIndex(
-          store.selectedSpriteEditorIndex,
+          composeStore.selectedSpriteEditorIndex,
           cs.sprites.length,
         ),
       ),
@@ -634,37 +638,40 @@ export const useCharacterModeComposeBridge = (
 
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      useCharacterModeStore.getState().handleNudgeSelectedSprite("left");
+      useCharacterModeComposeStore.getState().handleNudgeSelectedSprite("left");
       return;
     }
 
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      useCharacterModeStore.getState().handleNudgeSelectedSprite("right");
+      useCharacterModeComposeStore
+        .getState()
+        .handleNudgeSelectedSprite("right");
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      useCharacterModeStore.getState().handleNudgeSelectedSprite("up");
+      useCharacterModeComposeStore.getState().handleNudgeSelectedSprite("up");
       return;
     }
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      useCharacterModeStore.getState().handleNudgeSelectedSprite("down");
+      useCharacterModeComposeStore.getState().handleNudgeSelectedSprite("down");
       return;
     }
 
     if (event.key === "Backspace" || event.key === "Delete") {
       event.preventDefault();
-      useCharacterModeStore.getState().handleDeleteSelectedSprite();
+      useCharacterModeComposeStore.getState().handleDeleteSelectedSprite();
     }
   }, []);
 
   const handleLibraryPointerDown = useCallback(
     (event: React.PointerEvent<HTMLButtonElement>, spriteIndex: number) => {
-      const store = useCharacterModeStore.getState();
+      const composeStore = useCharacterModeComposeStore.getState();
+      const projectStore = useCharacterModeProjectStore.getState();
       const charState = useCharacterState.getState();
       const currentActiveSet = selectActiveSet(
         charState.characterSets,
@@ -674,13 +681,13 @@ export const useCharacterModeComposeBridge = (
       if (
         event.button !== 0 ||
         O.isNone(currentActiveSet) ||
-        store.editorMode !== "compose"
+        projectStore.editorMode !== "compose"
       ) {
         return;
       }
 
       event.preventDefault();
-      store.setLibraryDragState(
+      composeStore.setLibraryDragState(
         O.some(
           resolveLibraryDragState(
             spriteIndex,
@@ -698,7 +705,7 @@ export const useCharacterModeComposeBridge = (
 
   const handleComposeWorkspacePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>): boolean => {
-      const { libraryDragState } = useCharacterModeStore.getState();
+      const { libraryDragState } = useCharacterModeComposeStore.getState();
 
       if (O.isNone(libraryDragState)) {
         return false;
@@ -708,7 +715,7 @@ export const useCharacterModeComposeBridge = (
         return false;
       }
 
-      useCharacterModeStore
+      useCharacterModeComposeStore
         .getState()
         .setLibraryDragState(
           O.some(
@@ -728,7 +735,7 @@ export const useCharacterModeComposeBridge = (
 
   const handleComposeWorkspacePointerEnd = useCallback(
     (event: React.PointerEvent<HTMLDivElement>): boolean => {
-      const { libraryDragState } = useCharacterModeStore.getState();
+      const { libraryDragState } = useCharacterModeComposeStore.getState();
 
       if (O.isNone(libraryDragState)) {
         return false;
@@ -747,7 +754,7 @@ export const useCharacterModeComposeBridge = (
       );
 
       if (completedDrag.isOverStage === true) {
-        useCharacterModeStore
+        useCharacterModeComposeStore
           .getState()
           .handleDropSpriteOnStage(
             completedDrag.spriteIndex,
@@ -756,7 +763,7 @@ export const useCharacterModeComposeBridge = (
           );
       }
 
-      useCharacterModeStore.getState().setLibraryDragState(O.none);
+      useCharacterModeComposeStore.getState().setLibraryDragState(O.none);
       return true;
     },
     [getStageRect],

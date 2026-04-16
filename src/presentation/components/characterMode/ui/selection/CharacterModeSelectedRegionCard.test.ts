@@ -10,7 +10,7 @@ const mockedHooks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../core/CharacterModeStateProvider", () => {
+vi.mock("../../logic/characterModeDecompositionState", () => {
   return {
     useCharacterModeDecompositionOverview:
       mockedHooks.useCharacterModeDecompositionOverview,

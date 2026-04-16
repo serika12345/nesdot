@@ -5,6 +5,10 @@ import { CharacterModeSidebarLibrary } from "../CharacterModeSidebarLibrary";
 
 interface CharacterModeSidebarProps {
   children?: React.ReactNode;
+  handleLibraryPointerDown: (
+    event: React.PointerEvent<HTMLButtonElement>,
+    spriteIndex: number,
+  ) => void;
 }
 
 /**
@@ -13,6 +17,7 @@ interface CharacterModeSidebarProps {
  */
 export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   children,
+  handleLibraryPointerDown,
 }) => {
   const sidebarSections = React.Children.toArray(children);
 
@@ -33,7 +38,9 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
         </Box>
       ))}
       <Box flexShrink={0} minWidth={0}>
-        <CharacterModeSidebarLibrary />
+        <CharacterModeSidebarLibrary
+          handleLibraryPointerDown={handleLibraryPointerDown}
+        />
       </Box>
     </Stack>
   );

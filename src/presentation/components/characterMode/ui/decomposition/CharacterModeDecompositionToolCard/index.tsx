@@ -11,7 +11,7 @@ import { DECOMPOSITION_COLOR_SLOTS } from "../../../logic/characterModeConstants
 import {
   useCharacterModeDecompositionPalette,
   useCharacterModeDecompositionTool,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeDecompositionState";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import {
   DecompositionToolGrid,

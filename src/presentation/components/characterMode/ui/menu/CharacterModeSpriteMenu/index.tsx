@@ -9,17 +9,24 @@ import {
 import {
   useCharacterModeSpriteMenuActions,
   useCharacterModeSpriteMenuState,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeEditorState";
 import {
   PortalOverlay,
   PositionedActionMenu,
   PositionedActionMenuButton,
 } from "../../primitives/CharacterModePrimitives";
 
+interface CharacterModeSpriteMenuProps {
+  focusStageElement: () => void;
+  handleComposeContextMenu: React.MouseEventHandler<HTMLElement>;
+}
+
 /**
  * 合成ステージ上のスプライト用コンテキストメニューです。
  */
-export const CharacterModeSpriteMenu: React.FC = () => {
+export const CharacterModeSpriteMenu: React.FC<
+  CharacterModeSpriteMenuProps
+> = ({ focusStageElement, handleComposeContextMenu }) => {
   const menuState = useCharacterModeSpriteMenuState();
   const menuActions = useCharacterModeSpriteMenuActions();
 
@@ -81,7 +88,7 @@ export const CharacterModeSpriteMenu: React.FC = () => {
             return createPortal(
               <PortalOverlay
                 data-sprite-context-menu-root="true"
-                onContextMenu={menuState.handleComposeContextMenu}
+                onContextMenu={handleComposeContextMenu}
                 onPointerDown={menuState.closeSpriteContextMenu}
               >
                 <PositionedActionMenu
@@ -101,7 +108,7 @@ export const CharacterModeSpriteMenu: React.FC = () => {
                         event.preventDefault();
                         event.stopPropagation();
                         action.onSelect();
-                        menuActions.focusStageElement();
+                        focusStageElement();
                       }}
                       danger={action.tone === "danger"}
                     >

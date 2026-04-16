@@ -8,7 +8,7 @@ const mockedHooks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../core/CharacterModeStateProvider", () => {
+vi.mock("../../logic/characterModeEditorState", () => {
   return {
     useCharacterModeSpriteLibrary: mockedHooks.useCharacterModeSpriteLibrary,
   };
@@ -28,7 +28,6 @@ describe("CharacterModeSidebarLibrary", () => {
 
     mockedHooks.useCharacterModeSpriteLibrary.mockReturnValue({
       draggingSpriteIndex: -1,
-      handleLibraryPointerDown: vi.fn(),
       isLibraryDraggable: true,
       sprites: [
         {
@@ -43,7 +42,9 @@ describe("CharacterModeSidebarLibrary", () => {
 
   it("renders the library without legacy field or badge wrappers", () => {
     const markup = renderToStaticMarkup(
-      React.createElement(CharacterModeSidebarLibrary),
+      React.createElement(CharacterModeSidebarLibrary, {
+        handleLibraryPointerDown: vi.fn(),
+      }),
     );
 
     expect(markup).toContain("スプライトライブラリ");

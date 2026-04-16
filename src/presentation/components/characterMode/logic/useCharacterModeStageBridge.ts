@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
-import { useCharacterModeStore } from "./characterModeStore";
+import { useCharacterModeStageStore } from "./characterModeStageStore";
 import { clamp } from "./geometry/characterModeBounds";
 import { trySetPointerCapture } from "./input/pointerCapture";
 import {
@@ -68,7 +68,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
   const resolveStagePoint = useCallback(
     (args: ResolveStagePointArgs): O.Option<{ x: number; y: number }> => {
       const { stageWidth, stageHeight, stageZoomLevel } =
-        useCharacterModeStore.getState();
+        useCharacterModeStageStore.getState();
       const stageScale = resolveCharacterStageScale(
         stageWidth,
         stageHeight,
@@ -105,7 +105,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
     }
 
     event.preventDefault();
-    useCharacterModeStore.getState().setViewportPanState(
+    useCharacterModeStageStore.getState().setViewportPanState(
       O.some({
         pointerId: event.pointerId,
         startClientX: event.clientX,
@@ -120,7 +120,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
   const handleViewportPointerMove = useCallback<
     React.PointerEventHandler<HTMLDivElement>
   >((event) => {
-    const { viewportPanState } = useCharacterModeStore.getState();
+    const { viewportPanState } = useCharacterModeStageStore.getState();
 
     if (O.isNone(viewportPanState)) {
       return;
@@ -141,7 +141,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
   const handleViewportPointerEnd = useCallback<
     React.PointerEventHandler<HTMLDivElement>
   >((event) => {
-    const { viewportPanState } = useCharacterModeStore.getState();
+    const { viewportPanState } = useCharacterModeStageStore.getState();
 
     if (O.isNone(viewportPanState)) {
       return;
@@ -151,7 +151,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
       return;
     }
 
-    useCharacterModeStore.getState().setViewportPanState(O.none);
+    useCharacterModeStageStore.getState().setViewportPanState(O.none);
   }, []);
 
   const handleViewportWheel = useCallback<
@@ -164,7 +164,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
     event.preventDefault();
 
     const { stageWidth, stageHeight, stageZoomLevel } =
-      useCharacterModeStore.getState();
+      useCharacterModeStageStore.getState();
     const nextZoomLevel =
       event.deltaY < 0 ? stageZoomLevel + 1 : stageZoomLevel - 1;
     const clampedZoomLevel = clamp(
@@ -177,7 +177,7 @@ export const useCharacterModeStageBridge = (): CharacterModeStageBridge => {
       return;
     }
 
-    useCharacterModeStore.getState().setStageZoomLevel(clampedZoomLevel);
+    useCharacterModeStageStore.getState().setStageZoomLevel(clampedZoomLevel);
 
     pipe(
       viewportElementRef.current,

@@ -4,7 +4,7 @@ import React from "react";
 import {
   useCharacterModeSetSelection,
   useCharacterModeSpriteSize,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeEditorState";
 import { SidebarToggleGrid } from "../../primitives/CharacterModePrimitives";
 
 /**

@@ -9,7 +9,7 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../../application/state/projectStore";
 import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
-import { useCharacterModeSpriteLibrary } from "../../core/CharacterModeStateProvider";
+import { useCharacterModeSpriteLibrary } from "../../../logic/characterModeEditorState";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { CharacterLibraryGrid } from "../../primitives/CharacterModePrimitives";
@@ -135,18 +135,25 @@ const CharacterModeSidebarLibraryContent = React.memo(
   areSameLibraryContentProps,
 );
 
+interface CharacterModeSidebarLibraryProps {
+  handleLibraryPointerDown: (
+    event: React.PointerEvent<HTMLButtonElement>,
+    spriteIndex: number,
+  ) => void;
+}
+
 /**
  * スプライトライブラリ表示カードです。
  */
-export const CharacterModeSidebarLibrary: React.FC = () => {
+export const CharacterModeSidebarLibrary: React.FC<
+  CharacterModeSidebarLibraryProps
+> = ({ handleLibraryPointerDown }) => {
   const spriteLibrary = useCharacterModeSpriteLibrary();
   const [isLibraryOpen, setIsLibraryOpen] = React.useState(true);
   const libraryContentId = React.useId();
-  const handleLibraryPointerDownRef = React.useRef(
-    spriteLibrary.handleLibraryPointerDown,
-  );
+  const handleLibraryPointerDownRef = React.useRef(handleLibraryPointerDown);
 
-  handleLibraryPointerDownRef.current = spriteLibrary.handleLibraryPointerDown;
+  handleLibraryPointerDownRef.current = handleLibraryPointerDown;
 
   const handleStableLibraryPointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLButtonElement>, spriteIndex: number) => {

@@ -2,13 +2,6 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("./CharacterModeStateProvider", () => {
-  return {
-    CharacterModeStateProvider: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(React.Fragment, {}, children),
-  };
-});
-
 vi.mock("./CharacterModeScreen", () => {
   return {
     CharacterModeScreen: () =>

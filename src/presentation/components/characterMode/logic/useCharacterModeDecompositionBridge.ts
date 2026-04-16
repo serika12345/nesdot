@@ -3,7 +3,9 @@ import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useState } from "react";
 import { useProjectState } from "../../../../application/state/projectStore";
 import type { CharacterDecompositionRegion } from "../../../../domain/characters/characterDecomposition";
-import { useCharacterModeStore } from "./characterModeStore";
+import { useCharacterModeDecompositionStore } from "./characterModeDecompositionStore";
+import { useCharacterModeProjectStore } from "./characterModeProjectStore";
+import { useCharacterModeStageStore } from "./characterModeStageStore";
 import { createDecompositionCanvasRgba } from "./decomposition/decompositionCanvas";
 import { trySetPointerCapture } from "./input/pointerCapture";
 import { resolveCharacterStageScale } from "./model/characterEditorModel";
@@ -47,7 +49,7 @@ const resolveDecompositionPoint = (
   maxY: number,
 ): O.Option<{ x: number; y: number }> => {
   const { stageWidth, stageHeight, stageZoomLevel } =
-    useCharacterModeStore.getState();
+    useCharacterModeStageStore.getState();
   const stageScale = resolveCharacterStageScale(
     stageWidth,
     stageHeight,
@@ -73,7 +75,7 @@ const resolveDecompositionPoint = (
 
 /**
  * 分解モードの Canvas2D 描画と DOM イベントハンドラを管理するブリッジフック。
- * 状態は zustand store 経由で読み書きし、Canvas 要素の ref のみこのフック内に保持します。
+ * focused store 群を参照しつつ、Canvas 要素の ref のみこのフック内に保持します。
  */
 export const useCharacterModeDecompositionBridge = (
   getStageRect: () => O.Option<DOMRect>,
@@ -90,7 +92,7 @@ export const useCharacterModeDecompositionBridge = (
   // Reactive subscriptions (drive canvas rendering effect)
   // ---------------------------------------------------------------------------
 
-  const decompositionCanvas = useCharacterModeStore(
+  const decompositionCanvas = useCharacterModeDecompositionStore(
     (s) => s.decompositionCanvas,
   );
   const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
@@ -142,10 +144,12 @@ export const useCharacterModeDecompositionBridge = (
         return;
       }
 
-      const store = useCharacterModeStore.getState();
-      store.closeDecompositionRegionContextMenu();
+      const stageStore = useCharacterModeStageStore.getState();
+      const decompositionStore = useCharacterModeDecompositionStore.getState();
+      decompositionStore.closeDecompositionRegionContextMenu();
 
-      const { stageWidth, stageHeight, decompositionTool } = store;
+      const { stageWidth, stageHeight } = stageStore;
+      const { decompositionTool } = decompositionStore;
       const projectSpriteSize = useProjectState.getState().spriteSize;
 
       const maxX =
@@ -172,7 +176,7 @@ export const useCharacterModeDecompositionBridge = (
       event.preventDefault();
 
       if (decompositionTool === "region") {
-        useCharacterModeStore
+        useCharacterModeDecompositionStore
           .getState()
           .handlePlaceDecompositionRegion(
             pointOption.value.x,
@@ -181,13 +185,13 @@ export const useCharacterModeDecompositionBridge = (
         return;
       }
 
-      useCharacterModeStore
+      useCharacterModeDecompositionStore
         .getState()
         .handlePaintDecompositionPixel(
           pointOption.value.x,
           pointOption.value.y,
         );
-      useCharacterModeStore
+      useCharacterModeDecompositionStore
         .getState()
         .setDecompositionDrawState(O.some({ pointerId: event.pointerId }));
       trySetPointerCapture(event.currentTarget, event.pointerId);
@@ -200,15 +204,15 @@ export const useCharacterModeDecompositionBridge = (
       event: React.MouseEvent<HTMLButtonElement>,
       region: CharacterDecompositionRegion,
     ) => {
-      if (useCharacterModeStore.getState().editorMode !== "decompose") {
+      if (useCharacterModeProjectStore.getState().editorMode !== "decompose") {
         return;
       }
 
       event.preventDefault();
       event.stopPropagation();
-      const store = useCharacterModeStore.getState();
-      store.setSelectedRegionId(O.some(region.id));
-      store.setDecompositionRegionContextMenuState(
+      const decompositionStore = useCharacterModeDecompositionStore.getState();
+      decompositionStore.setSelectedRegionId(O.some(region.id));
+      decompositionStore.setDecompositionRegionContextMenuState(
         O.some({
           clientX: event.clientX,
           clientY: event.clientY,
@@ -224,7 +228,8 @@ export const useCharacterModeDecompositionBridge = (
       event: React.PointerEvent<HTMLButtonElement>,
       region: CharacterDecompositionRegion,
     ) => {
-      const { decompositionTool } = useCharacterModeStore.getState();
+      const { decompositionTool } =
+        useCharacterModeDecompositionStore.getState();
 
       if (decompositionTool !== "region" || event.button !== 0) {
         return;
@@ -236,7 +241,7 @@ export const useCharacterModeDecompositionBridge = (
       }
 
       const { stageWidth, stageHeight, stageZoomLevel } =
-        useCharacterModeStore.getState();
+        useCharacterModeStageStore.getState();
       const stageScale = resolveCharacterStageScale(
         stageWidth,
         stageHeight,
@@ -244,10 +249,10 @@ export const useCharacterModeDecompositionBridge = (
       );
 
       event.preventDefault();
-      const store = useCharacterModeStore.getState();
-      store.closeDecompositionRegionContextMenu();
-      store.setSelectedRegionId(O.some(region.id));
-      store.setDecompositionRegionDragState(
+      const decompositionStore = useCharacterModeDecompositionStore.getState();
+      decompositionStore.closeDecompositionRegionContextMenu();
+      decompositionStore.setSelectedRegionId(O.some(region.id));
+      decompositionStore.setDecompositionRegionDragState(
         O.some({
           regionId: region.id,
           pointerId: event.pointerId,
@@ -265,17 +270,22 @@ export const useCharacterModeDecompositionBridge = (
 
   const handleDecompositionWorkspacePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>): boolean => {
-      const store = useCharacterModeStore.getState();
+      const projectStore = useCharacterModeProjectStore.getState();
+      const decompositionStore = useCharacterModeDecompositionStore.getState();
+      const stageStore = useCharacterModeStageStore.getState();
 
       if (
-        store.editorMode === "decompose" &&
-        O.isSome(store.decompositionDrawState)
+        projectStore.editorMode === "decompose" &&
+        O.isSome(decompositionStore.decompositionDrawState)
       ) {
-        if (store.decompositionDrawState.value.pointerId !== event.pointerId) {
+        if (
+          decompositionStore.decompositionDrawState.value.pointerId !==
+          event.pointerId
+        ) {
           return false;
         }
 
-        const { stageWidth, stageHeight } = store;
+        const { stageWidth, stageHeight } = stageStore;
         const pointOption = resolveDecompositionPoint(
           event.clientX,
           event.clientY,
@@ -289,7 +299,7 @@ export const useCharacterModeDecompositionBridge = (
           return false;
         }
 
-        useCharacterModeStore
+        useCharacterModeDecompositionStore
           .getState()
           .handlePaintDecompositionPixel(
             pointOption.value.x,
@@ -299,23 +309,24 @@ export const useCharacterModeDecompositionBridge = (
       }
 
       if (
-        store.editorMode === "decompose" &&
-        O.isSome(store.decompositionRegionDragState)
+        projectStore.editorMode === "decompose" &&
+        O.isSome(decompositionStore.decompositionRegionDragState)
       ) {
         if (
-          store.decompositionRegionDragState.value.pointerId !== event.pointerId
+          decompositionStore.decompositionRegionDragState.value.pointerId !==
+          event.pointerId
         ) {
           return false;
         }
 
         const projectSpriteSize = useProjectState.getState().spriteSize;
-        const { stageWidth, stageHeight } = store;
+        const { stageWidth, stageHeight } = stageStore;
         const pointOption = resolveDecompositionPoint(
           event.clientX,
           event.clientY,
           getStageRect,
-          store.decompositionRegionDragState.value.offsetX,
-          store.decompositionRegionDragState.value.offsetY,
+          decompositionStore.decompositionRegionDragState.value.offsetX,
+          decompositionStore.decompositionRegionDragState.value.offsetY,
           stageWidth - 8,
           stageHeight - projectSpriteSize,
         );
@@ -323,10 +334,10 @@ export const useCharacterModeDecompositionBridge = (
           return false;
         }
 
-        useCharacterModeStore
+        useCharacterModeDecompositionStore
           .getState()
           .handleMoveDecompositionRegion(
-            store.decompositionRegionDragState.value.regionId,
+            decompositionStore.decompositionRegionDragState.value.regionId,
             pointOption.value.x,
             pointOption.value.y,
           );
@@ -340,25 +351,31 @@ export const useCharacterModeDecompositionBridge = (
 
   const handleDecompositionWorkspacePointerEnd = useCallback(
     (event: React.PointerEvent<HTMLDivElement>): boolean => {
-      const store = useCharacterModeStore.getState();
+      const decompositionStore = useCharacterModeDecompositionStore.getState();
 
-      if (O.isSome(store.decompositionDrawState)) {
-        if (store.decompositionDrawState.value.pointerId !== event.pointerId) {
-          return false;
-        }
-
-        useCharacterModeStore.getState().setDecompositionDrawState(O.none);
-        return true;
-      }
-
-      if (O.isSome(store.decompositionRegionDragState)) {
+      if (O.isSome(decompositionStore.decompositionDrawState)) {
         if (
-          store.decompositionRegionDragState.value.pointerId !== event.pointerId
+          decompositionStore.decompositionDrawState.value.pointerId !==
+          event.pointerId
         ) {
           return false;
         }
 
-        useCharacterModeStore
+        useCharacterModeDecompositionStore
+          .getState()
+          .setDecompositionDrawState(O.none);
+        return true;
+      }
+
+      if (O.isSome(decompositionStore.decompositionRegionDragState)) {
+        if (
+          decompositionStore.decompositionRegionDragState.value.pointerId !==
+          event.pointerId
+        ) {
+          return false;
+        }
+
+        useCharacterModeDecompositionStore
           .getState()
           .setDecompositionRegionDragState(O.none);
         return true;

@@ -14,7 +14,7 @@ import React from "react";
 import {
   useCharacterModeSetName,
   useCharacterModeSetSelection,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeEditorState";
 
 /**
  * 編集対象セットの選択、名前変更、削除を扱う入力欄です。

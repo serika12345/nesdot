@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import {
   useCharacterModeDecompositionRegionMenuActions,
   useCharacterModeDecompositionRegionMenuState,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeDecompositionState";
 import {
   DECOMPOSITION_REGION_CONTEXT_MENU_HEIGHT,
   DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH,
@@ -16,10 +16,16 @@ import {
   PositionedActionMenuButton,
 } from "../../primitives/CharacterModePrimitives";
 
+interface CharacterModeDecompositionRegionMenuProps {
+  focusStageElement: () => void;
+}
+
 /**
  * 分解ステージ上の切り取り領域用コンテキストメニューです。
  */
-export const CharacterModeDecompositionRegionMenu: React.FC = () => {
+export const CharacterModeDecompositionRegionMenu: React.FC<
+  CharacterModeDecompositionRegionMenuProps
+> = ({ focusStageElement }) => {
   const menuState = useCharacterModeDecompositionRegionMenuState();
   const menuActions = useCharacterModeDecompositionRegionMenuActions();
 
@@ -70,7 +76,7 @@ export const CharacterModeDecompositionRegionMenu: React.FC = () => {
                       event.preventDefault();
                       event.stopPropagation();
                       menuActions.handleDeleteContextMenuRegion(menu.regionId);
-                      menuActions.focusStageElement();
+                      focusStageElement();
                     }}
                   >
                     選択中領域を削除

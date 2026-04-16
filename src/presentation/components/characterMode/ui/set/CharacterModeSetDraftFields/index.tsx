@@ -7,7 +7,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import React from "react";
-import { useCharacterModeSetDraft } from "../../core/CharacterModeStateProvider";
+import { useCharacterModeSetDraft } from "../../../logic/characterModeEditorState";
 
 /**
  * 新規キャラクターセット作成用の入力欄と実行ボタンです。

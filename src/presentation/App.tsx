@@ -21,8 +21,8 @@ import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUp
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
 import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileMenuState";
 import { BgMode } from "./components/bgMode/ui/core/BgMode";
+import { useCharacterModeProjectActions } from "./components/characterMode/logic/characterModeProjectActions";
 import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
-import { useCharacterModeProjectActions } from "./components/characterMode/ui/core/CharacterModeStateProvider";
 import {
   emptyFileMenuState,
   type FileMenuState,

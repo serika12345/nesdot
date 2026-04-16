@@ -11,7 +11,7 @@ const mockedHooks = vi.hoisted(() => {
   };
 });
 
-vi.mock("../core/CharacterModeStateProvider", () => {
+vi.mock("../../logic/characterModeEditorState", () => {
   return {
     useCharacterModeSetDraft: mockedHooks.useCharacterModeSetDraft,
     useCharacterModeSetName: mockedHooks.useCharacterModeSetName,

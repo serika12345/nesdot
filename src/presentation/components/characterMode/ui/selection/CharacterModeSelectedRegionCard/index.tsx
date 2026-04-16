@@ -19,7 +19,7 @@ import {
 import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeDecompositionState";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../../primitives/CharacterModePrimitives";

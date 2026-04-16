@@ -6,16 +6,14 @@ import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import {
-  useCharacterModeComposeCanvas,
   useCharacterModeLibraryDragPreview,
   useCharacterModeStageDisplay,
   useCharacterModeStageSize,
-  useCharacterModeStageViewport,
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
-} from "../../core/CharacterModeStateProvider";
+} from "../../../logic/characterModeEditorState";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import {
   CharacterStageViewport,
@@ -29,17 +27,37 @@ import {
   ViewportCenterWrap,
 } from "../../primitives/CharacterModePrimitives";
 
+interface CharacterModeComposeCanvasHandlers {
+  handleComposeCanvasRef: (element: HTMLCanvasElement | null) => void;
+  handleComposeContextMenu: React.MouseEventHandler<HTMLElement>;
+  handleStageKeyDown: React.KeyboardEventHandler<HTMLDivElement>;
+}
+
+interface CharacterModeComposeStageHandlers {
+  handleStageRef: (element: HTMLDivElement | null) => void;
+  handleViewportPointerDown: React.PointerEventHandler<HTMLDivElement>;
+  handleViewportPointerEnd: React.PointerEventHandler<HTMLDivElement>;
+  handleViewportPointerMove: React.PointerEventHandler<HTMLDivElement>;
+  handleViewportRef: (element: HTMLDivElement | null) => void;
+  handleViewportWheel: React.WheelEventHandler<HTMLDivElement>;
+}
+
+interface CharacterModeComposePreviewCanvasProps {
+  composeHandlers: CharacterModeComposeCanvasHandlers;
+  stageHandlers: CharacterModeComposeStageHandlers;
+}
+
 /**
  * 合成モードのプレビューキャンバス全体を描画します。
  * ヘッダー操作、ズーム、ビューポート、ステージ上ドラッグプレビューをまとめて扱います。
  */
-export const CharacterModeComposePreviewCanvas: React.FC = () => {
+export const CharacterModeComposePreviewCanvas: React.FC<
+  CharacterModeComposePreviewCanvasProps
+> = ({ composeHandlers, stageHandlers }) => {
   const stageDisplay = useCharacterModeStageDisplay();
   const stageSize = useCharacterModeStageSize();
   const stageZoom = useCharacterModeStageZoom();
-  const viewport = useCharacterModeStageViewport();
   const viewportPan = useCharacterModeViewportPan();
-  const composeCanvas = useCharacterModeComposeCanvas();
   const dragPreview = useCharacterModeLibraryDragPreview();
 
   return (
@@ -117,13 +135,13 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
       </PreviewHeaderLayout>
 
       <CharacterStageViewport
-        ref={viewport.handleViewportRef}
+        ref={stageHandlers.handleViewportRef}
         aria-label="プレビューキャンバスビュー"
-        onWheel={viewport.handleViewportWheel}
-        onPointerDown={viewport.handleViewportPointerDown}
-        onPointerMove={viewport.handleViewportPointerMove}
-        onPointerUp={viewport.handleViewportPointerEnd}
-        onPointerCancel={viewport.handleViewportPointerEnd}
+        onWheel={stageHandlers.handleViewportWheel}
+        onPointerDown={stageHandlers.handleViewportPointerDown}
+        onPointerMove={stageHandlers.handleViewportPointerMove}
+        onPointerUp={stageHandlers.handleViewportPointerEnd}
+        onPointerCancel={stageHandlers.handleViewportPointerEnd}
         onMouseDown={(event) => {
           if (event.button === 1) {
             event.preventDefault();
@@ -133,7 +151,7 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
       >
         <ViewportCenterWrap>
           <StageSurface
-            ref={composeCanvas.handleStageRef}
+            ref={stageHandlers.handleStageRef}
             aria-label="キャラクターステージ"
             data-active-set-name={stageDisplay.activeSetName}
             data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
@@ -146,15 +164,15 @@ export const CharacterModeComposePreviewCanvas: React.FC = () => {
             data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
             data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
             tabIndex={0}
-            onContextMenu={composeCanvas.handleComposeContextMenu}
-            onKeyDown={composeCanvas.handleStageKeyDown}
+            onContextMenu={composeHandlers.handleComposeContextMenu}
+            onKeyDown={composeHandlers.handleStageKeyDown}
             activeDrop={stageDisplay.isStageDropActive}
             stageWidthPx={stageSize.stageWidth * stageSize.stageScale}
             stageHeightPx={stageSize.stageHeight * stageSize.stageScale}
             stageScale={stageSize.stageScale}
           >
             <ComposeCanvasMount
-              onCanvasRef={composeCanvas.handleComposeCanvasRef}
+              onCanvasRef={composeHandlers.handleComposeCanvasRef}
             />
 
             {pipe(
