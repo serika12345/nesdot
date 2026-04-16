@@ -28,7 +28,6 @@ import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
 import {
-  APP_CONTAINER_CLASS_NAME,
   APP_PANEL_CLASS_NAME,
   APP_PANEL_TITLE_CLASS_NAME,
   APP_SCROLL_AREA_CLASS_NAME,
@@ -430,9 +429,12 @@ export const App: React.FC = () => {
 
       <Stack
         component="div"
-        className={APP_CONTAINER_CLASS_NAME}
         spacing={{ xs: "0.75rem", md: "1rem" }}
         p={{ xs: "1rem", md: "1.5rem" }}
+        position="relative"
+        zIndex={1}
+        height="100vh"
+        overflow="hidden"
         useFlexGap
       >
         {isNativeMacMenu === true ? (

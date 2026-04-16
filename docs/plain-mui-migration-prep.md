@@ -49,21 +49,21 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 ### Core Custom Styling Files
 
-| File                                  | Role                                                                         |       Size |
-| ------------------------------------- | ---------------------------------------------------------------------------- | ---------: |
-| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 1097 lines |
-| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            |  167 lines |
+| File                                  | Role                                                                         |      Size |
+| ------------------------------------- | ---------------------------------------------------------------------------- | --------: |
+| `src/presentation/theme.ts`           | Global tokens + global custom skin layer via `MuiCssBaseline.styleOverrides` | 948 lines |
+| `src/presentation/styleClassNames.ts` | Class token registry for the custom styling layer                            | 124 lines |
 
 ### Spread of the Custom Layer
 
 | Metric                                                      | Count |
 | ----------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                           |    18 |
+| Files importing `styleClassNames`                           |    26 |
 | `styles.ts` modules under `src/presentation/components`     |    19 |
-| `styleClassNames.ts` exported constants                     |   106 |
-| Theme class selector lines in `theme.ts`                    |    89 |
+| `styleClassNames.ts` exported constants                     |    77 |
+| Theme class selector lines in `theme.ts`                    |    55 |
 | Theme `data-*` selector lines in `theme.ts`                 |    44 |
-| `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |    10 |
+| `.MuiButtonBase-root.*` custom selector lines in `theme.ts` |     9 |
 
 ### Main MUI Usage Today
 
@@ -198,6 +198,8 @@ Once direct MUI usage is established in enough files:
 1. delete corresponding class tokens from `styleClassNames.ts`
 2. remove matching selectors from `theme.ts`
 3. delete or rewrite tests that only assert wrapper/class plumbing
+
+This phase is now active: the legacy wrapper module is already gone, and dead app-level tokens are being removed incrementally from the shared registry and global theme.
 
 ### Phase 4: Thin the Theme
 
