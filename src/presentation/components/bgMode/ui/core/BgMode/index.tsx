@@ -1,12 +1,12 @@
 import React from "react";
-import { BgModeWorkspacePanel } from "../../panels/BgModeWorkspacePanel";
+import { BgModeScreen } from "../BgModeScreen";
 
 /**
  * BG 編集モード全体の UI shell を描画します。
- * domain 未接続の段階では、モック導線とレイアウト確認用の panel を束ねる責務だけを持ちます。
+ * 画面 shell の接続だけを担当します。
  */
 const BgModeComponent: React.FC = () => {
-  return <BgModeWorkspacePanel />;
+  return <BgModeScreen />;
 };
 
 export const BgMode = React.memo(BgModeComponent);

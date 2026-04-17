@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 import {
   createDisclosureChevronStyle,
   floatingOverlayPanelSurfaceStyle,
-} from "../../../../common/ui/styleHelpers";
+} from "../../../common/ui/styleHelpers";
 
 export const chevronStyle = createDisclosureChevronStyle;
 

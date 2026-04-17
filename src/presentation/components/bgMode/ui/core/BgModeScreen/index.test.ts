@@ -1,10 +1,10 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useProjectState } from "../../../../../application/state/projectStore";
-import { useWorkbenchState } from "../../../../../application/state/workbenchStore";
-import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { useProjectState } from "../../../../../../application/state/projectStore";
+import { useWorkbenchState } from "../../../../../../application/state/workbenchStore";
+import { type NesBackgroundPalettes } from "../../../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../../../domain/project/projectV2";
 
 const mockedModules = vi.hoisted(() => {
   return {
@@ -21,26 +21,26 @@ const createEmptyPixels = (): ReadonlyArray<
   ReadonlyArray<ColorIndexOfPalette>
 > => Array.from({ length: 8 }, createEmptyPixelRow);
 
-vi.mock("../../logic/bgModeWorkspaceEditingState", () => {
+vi.mock("../../../logic/bgModeWorkspaceEditingState", () => {
   return {
     useBgModeTileEditorState: mockedModules.useBgModeTileEditorState,
   };
 });
 
-vi.mock("../../../common/ui/preview/BackgroundTilePreview", () => {
+vi.mock("../../panels/BgModeLibraryPanel", () => {
   return {
-    BackgroundTilePreview: () => React.createElement("div", {}, "preview"),
+    BgModeLibraryPanel: () =>
+      React.createElement("div", {}, "bg-library-panel"),
   };
 });
 
-vi.mock("../canvas/BgModeTileEditorCanvas", () => {
+vi.mock("../../panels/BgModeEditorPanel", () => {
   return {
-    BgModeTileEditorCanvas: () =>
-      React.createElement("canvas", { "aria-label": "BGタイル編集キャンバス" }),
+    BgModeEditorPanel: () => React.createElement("div", {}, "bg-editor-panel"),
   };
 });
 
-import { BgModeWorkspacePanel } from "./BgModeWorkspacePanel";
+import { BgModeScreen } from ".";
 
 const backgroundPalettes: NesBackgroundPalettes = [
   [0, 1, 2, 3],
@@ -58,7 +58,7 @@ const createBackgroundTile = (): BackgroundTile => ({
 const initialProjectState = useProjectState.getState();
 const initialWorkbenchState = useWorkbenchState.getState();
 
-describe("BgModeWorkspacePanel", () => {
+describe("BgModeScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -76,9 +76,9 @@ describe("BgModeWorkspacePanel", () => {
       bgMode: {
         ...initialWorkbenchState.bgMode,
         activePaletteIndex: 0,
-        isToolMenuOpen: true,
+        isToolMenuOpen: false,
         selectedTileIndex: 5,
-        tool: "eraser",
+        tool: "pen",
       },
     });
 
@@ -89,18 +89,10 @@ describe("BgModeWorkspacePanel", () => {
     });
   });
 
-  it("renders bg controls without the legacy tool-button wrapper class", () => {
-    const markup = renderToStaticMarkup(
-      React.createElement(BgModeWorkspacePanel),
-    );
+  it("renders the bg mode panels through the screen boundary", () => {
+    const markup = renderToStaticMarkup(React.createElement(BgModeScreen));
 
-    expect(markup).toContain("BG編集");
-    expect(markup).toContain("MuiButton-outlined");
-    expect(markup).toContain("MuiButton-contained");
-    expect(markup).not.toContain("app-collapse-toggle");
-    expect(markup).not.toContain("app-tool-button");
-    expect(markup).not.toMatch(/data-open=/);
-    expect(markup).not.toMatch(/data-active=/);
-    expect(markup).not.toMatch(/data-tone=/);
+    expect(markup).toContain("bg-library-panel");
+    expect(markup).toContain("bg-editor-panel");
   });
 });

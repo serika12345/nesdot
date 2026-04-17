@@ -2,18 +2,18 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../panels/BgModeWorkspacePanel", () => {
+vi.mock("./BgModeScreen", () => {
   return {
-    BgModeWorkspacePanel: () => React.createElement("div", {}, "bg-panel"),
+    BgModeScreen: () => React.createElement("div", {}, "bg-screen"),
   };
 });
 
 import { BgMode } from "./BgMode";
 
 describe("BgMode", () => {
-  it("renders the workspace panel", () => {
+  it("renders the bg mode screen", () => {
     const markup = renderToStaticMarkup(React.createElement(BgMode));
 
-    expect(markup).toContain("bg-panel");
+    expect(markup).toContain("bg-screen");
   });
 });
