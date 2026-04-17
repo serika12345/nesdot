@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { bumpSemver } from "./release-semver.mjs";
 
 const RELEASE_FILES = Object.freeze({
+  flakeNix: "flake.nix",
   packageJson: "package.json",
   tauriConfig: "src-tauri/tauri.conf.json",
   cargoToml: "src-tauri/Cargo.toml",
@@ -245,6 +246,10 @@ const formatVersionFiles = (run) => {
   run(["pnpm", "exec", "prettier", "--write", ...filePaths]);
 };
 
+const syncPnpmDepsHash = (run) => {
+  run(["pnpm", "nix:sync-pnpm-deps-hash"]);
+};
+
 const runVerification = ({ run, skipChecks, skipE2EConsole }) => {
   if (skipChecks === true) {
     console.info("[release-automation] skip checks (--skip-checks)");
@@ -319,6 +324,7 @@ const release = ({
 
   writeVersionFiles({ repoRoot, nextVersion, dryRun });
   formatVersionFiles(run);
+  syncPnpmDepsHash(run);
 
   runVerification({ run, skipChecks, skipE2EConsole });
 
@@ -328,6 +334,7 @@ const release = ({
   run([
     "git",
     "add",
+    RELEASE_FILES.flakeNix,
     RELEASE_FILES.packageJson,
     RELEASE_FILES.tauriConfig,
     RELEASE_FILES.cargoToml,
