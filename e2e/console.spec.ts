@@ -42,6 +42,15 @@ const openHelpMenu = async (page: Page): Promise<void> => {
   await getMenuTrigger(page, "ヘルプ").click();
 };
 
+const emulateTauriRuntime = async (page: Page): Promise<void> => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "__TAURI_INTERNALS__", {
+      configurable: true,
+      value: {},
+    });
+  });
+};
+
 test("captures browser console and page errors", async ({ page }) => {
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
@@ -205,10 +214,15 @@ test("shows global app menu controls", async ({ page }) => {
   await page.keyboard.press("Escape");
 
   await getMenuTrigger(page, "ヘルプ").click();
-  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "更新を確認" })).toHaveCount(
+    0,
+  );
   await getVisibleMenuItem(page, "About").click();
   const aboutDialog = page.getByRole("dialog", { name: "About" });
   await expect(aboutDialog).toBeVisible();
+  await expect(
+    aboutDialog.getByRole("button", { name: "更新を確認" }),
+  ).toHaveCount(0);
   const aboutIcon = page.getByRole("img", { name: "nesdot icon" });
   await expect(aboutIcon).toBeVisible();
 
@@ -243,7 +257,7 @@ test("clicking the same menu trigger closes it without keeping the open styling"
   const helpTrigger = getMenuTrigger(page, "ヘルプ");
 
   await helpTrigger.click();
-  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+  await expect(getVisibleMenuItem(page, "About")).toBeVisible();
 
   await helpTrigger.click();
   await expect(page.getByRole("menu", { name: "ヘルプメニュー" })).toHaveCount(
@@ -267,6 +281,22 @@ test("clicking the same menu trigger closes it without keeping the open styling"
       backgroundImage: "none",
       boxShadow: "none",
     });
+});
+
+test("shows update checks inside tauri runtime", async ({ page }) => {
+  await emulateTauriRuntime(page);
+  await gotoApp(page);
+
+  await openHelpMenu(page);
+  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+
+  await getVisibleMenuItem(page, "About").click();
+  const aboutDialog = page.getByRole("dialog", { name: "About" });
+
+  await expect(aboutDialog).toBeVisible();
+  await expect(
+    aboutDialog.getByRole("button", { name: "更新を確認" }),
+  ).toBeVisible();
 });
 
 test("includes pwa manifest and app icons", async ({ page }) => {

@@ -433,26 +433,28 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   spacing={0.25}
                   useFlexGap
                 >
-                  <Menubar.Item
-                    asChild
-                    disabled={canCheckForUpdates === false}
-                    onSelect={handleUpdateCheckSelect}
-                  >
-                    <MenuItemAction>
-                      <MenuItemContent>
-                        <MenuItemLabel>
-                          <MenuItemIconSlot>
-                            <UpdateRoundedIcon fontSize="small" />
-                          </MenuItemIconSlot>
-                          <MenuItemTextLabel>更新を確認</MenuItemTextLabel>
-                        </MenuItemLabel>
-                      </MenuItemContent>
-                    </MenuItemAction>
-                  </Menubar.Item>
+                  {canCheckForUpdates === true ? (
+                    <>
+                      <Menubar.Item asChild onSelect={handleUpdateCheckSelect}>
+                        <MenuItemAction>
+                          <MenuItemContent>
+                            <MenuItemLabel>
+                              <MenuItemIconSlot>
+                                <UpdateRoundedIcon fontSize="small" />
+                              </MenuItemIconSlot>
+                              <MenuItemTextLabel>更新を確認</MenuItemTextLabel>
+                            </MenuItemLabel>
+                          </MenuItemContent>
+                        </MenuItemAction>
+                      </Menubar.Item>
 
-                  <Menubar.Separator asChild>
-                    <MenuSeparatorLine />
-                  </Menubar.Separator>
+                      <Menubar.Separator asChild>
+                        <MenuSeparatorLine />
+                      </Menubar.Separator>
+                    </>
+                  ) : (
+                    <></>
+                  )}
 
                   <Menubar.Item asChild onSelect={handleAboutSelect}>
                     <MenuItemAction>
@@ -496,12 +498,11 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button
-            disabled={canCheckForUpdates === false}
-            onClick={handleUpdateCheckSelect}
-          >
-            更新を確認
-          </Button>
+          {canCheckForUpdates === true ? (
+            <Button onClick={handleUpdateCheckSelect}>更新を確認</Button>
+          ) : (
+            <></>
+          )}
           <Button onClick={handleAboutClose} autoFocus>
             閉じる
           </Button>

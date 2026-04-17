@@ -32,6 +32,7 @@ const createAvailabilityFlags = (
 ): UpdateCheckAvailabilityFlags => {
   return {
     hasTauriRuntime: false,
+    isPwaRuntime: false,
     isProduction: true,
     hasWindow: true,
     hasDocument: true,
@@ -52,16 +53,27 @@ describe("resolveUpdateCheckTargetFromFlags", () => {
     ).toEqual(O.some("desktop"));
   });
 
-  test("enables pwa update checks on production web", () => {
+  test("enables pwa update checks inside standalone pwa runtime", () => {
+    expect(
+      resolveUpdateCheckTargetFromFlags(
+        createAvailabilityFlags({
+          isPwaRuntime: true,
+        }),
+      ),
+    ).toEqual(O.some("pwa"));
+  });
+
+  test("keeps update checks unavailable on general production web", () => {
     expect(
       resolveUpdateCheckTargetFromFlags(createAvailabilityFlags()),
-    ).toEqual(O.some("pwa"));
+    ).toEqual(O.none);
   });
 
   test("keeps update checks unavailable when service workers cannot be used", () => {
     expect(
       resolveUpdateCheckTargetFromFlags(
         createAvailabilityFlags({
+          isPwaRuntime: true,
           hasServiceWorker: false,
         }),
       ),

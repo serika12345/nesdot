@@ -1,5 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { resolveIsStandalonePwaRuntime } from "./pwaRuntime";
 import {
   createPwaUpdateCheck,
   type PwaServiceWorkerLike,
@@ -10,6 +11,7 @@ type UpdateCheckTarget = "desktop" | "pwa";
 
 export interface UpdateCheckAvailabilityFlags {
   readonly hasTauriRuntime: boolean;
+  readonly isPwaRuntime: boolean;
   readonly isProduction: boolean;
   readonly hasWindow: boolean;
   readonly hasDocument: boolean;
@@ -25,6 +27,7 @@ export const resolveUpdateCheckTargetFromFlags = (
   }
 
   if (
+    flags.isPwaRuntime === true &&
     flags.isProduction === true &&
     flags.hasWindow === true &&
     flags.hasDocument === true &&
@@ -56,6 +59,7 @@ const resolveNavigatorServiceWorker = (): O.Option<PwaServiceWorkerLike> => {
 const resolveUpdateCheckTarget = (): O.Option<UpdateCheckTarget> => {
   return resolveUpdateCheckTargetFromFlags({
     hasTauriRuntime: resolveHasTauriRuntime(),
+    isPwaRuntime: resolveIsStandalonePwaRuntime(),
     isProduction: import.meta.env.PROD,
     hasWindow: "window" in globalThis,
     hasDocument: "document" in globalThis,
