@@ -2,32 +2,31 @@ import Stack from "@mui/material/Stack";
 import React from "react";
 import { useSpriteCanvas } from "../../../../../../infrastructure/browser/canvas/useSpriteCanvas";
 import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../../../styleClassNames";
-import {
-  useSpriteModeCanvasPaint,
-  useSpriteModeCanvasTarget,
-  useSpriteModeChangeOrder,
-} from "../../core/SpriteModeStateProvider";
+import { type SpriteModeCanvasSurfaceState } from "../../../logic/spriteModeCanvasState";
+
+interface SpriteModeCanvasSurfaceProps {
+  canvasSurface: SpriteModeCanvasSurfaceState;
+}
 
 /**
  * スプライト編集用 canvas 本体です。
- * SpriteMode 専用 context から編集状態を読み取り、canvas フックへ接続します。
+ * spriteMode 専用の編集状態を受け取り、canvas フックへ接続します。
  */
-export const SpriteModeCanvasSurface: React.FC = () => {
-  const canvasTarget = useSpriteModeCanvasTarget();
-  const canvasPaint = useSpriteModeCanvasPaint();
-  const changeOrder = useSpriteModeChangeOrder();
+export const SpriteModeCanvasSurface: React.FC<
+  SpriteModeCanvasSurfaceProps
+> = ({ canvasSurface }) => {
   const { canvasProps } = useSpriteCanvas({
     display: {
       scale: 24,
       showGrid: true,
-      target: canvasTarget.activeSprite,
+      target: canvasSurface.activeSprite,
     },
     interaction: {
-      activeColorIndex: canvasPaint.activeSlot,
-      currentSelectPalette: canvasPaint.activePalette,
-      isChangeOrderMode: changeOrder.isChangeOrderMode,
-      onChange: canvasPaint.handleTileChange,
-      tool: canvasPaint.tool,
+      activeColorIndex: canvasSurface.activeSlot,
+      currentSelectPalette: canvasSurface.activePalette,
+      isChangeOrderMode: canvasSurface.isChangeOrderMode,
+      onChange: canvasSurface.handleTileChange,
+      tool: canvasSurface.tool,
     },
   });
 

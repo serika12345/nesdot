@@ -2,18 +2,22 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import React from "react";
+import { type SpriteModeCanvasPanelState } from "../../../logic/spriteModeCanvasState";
 import { SpriteModeCanvasSurface } from "../../canvas/SpriteModeCanvasSurface";
-import { useSpriteModePaletteSlots } from "../../core/SpriteModeStateProvider";
 import { SpriteModePaletteSlots } from "../../forms/SpriteModePaletteSlots";
 import { SpriteModeToolOverlay } from "../../overlay/SpriteModeToolOverlay";
+
+interface SpriteModeCanvasPanelProps {
+  canvasPanelState: SpriteModeCanvasPanelState;
+}
 
 /**
  * スプライト編集の右ペインです。
  * 色スロット、ツール、canvas を 1 つの編集面としてまとめます。
  */
-export const SpriteModeCanvasPanel: React.FC = () => {
-  const paletteSlots = useSpriteModePaletteSlots();
-
+export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
+  canvasPanelState,
+}) => {
   return (
     <Stack
       component={Paper}
@@ -26,10 +30,10 @@ export const SpriteModeCanvasPanel: React.FC = () => {
       minHeight={0}
     >
       <SpriteModePaletteSlots
-        activePalette={paletteSlots.activePalette}
-        activeSlot={paletteSlots.activeSlot}
-        palettes={paletteSlots.palettes}
-        onPaletteClick={paletteSlots.handlePaletteClick}
+        activePalette={canvasPanelState.paletteSlots.activePalette}
+        activeSlot={canvasPanelState.paletteSlots.activeSlot}
+        palettes={canvasPanelState.paletteSlots.palettes}
+        onPaletteClick={canvasPanelState.paletteSlots.handlePaletteClick}
       />
 
       <Box
@@ -41,8 +45,10 @@ export const SpriteModeCanvasPanel: React.FC = () => {
         position="relative"
         p="1.125rem"
       >
-        <SpriteModeToolOverlay />
-        <SpriteModeCanvasSurface />
+        <SpriteModeToolOverlay toolOverlay={canvasPanelState.toolOverlay} />
+        <SpriteModeCanvasSurface
+          canvasSurface={canvasPanelState.canvasSurface}
+        />
       </Box>
     </Stack>
   );

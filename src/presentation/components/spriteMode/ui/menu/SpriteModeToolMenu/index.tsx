@@ -3,54 +3,54 @@ import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import React from "react";
-import {
-  useSpriteModeChangeOrder,
-  useSpriteModeToolActions,
-} from "../../core/SpriteModeStateProvider";
+import { type SpriteModeToolMenuState } from "../../../logic/spriteModeCanvasState";
 import { toolMenuPaperStyle, toolMenuRootStyle } from "./styles";
+
+interface SpriteModeToolMenuProps {
+  toolMenu: SpriteModeToolMenuState;
+}
 
 /**
  * スプライトキャンバスのツールメニューです。
  */
-export const SpriteModeToolMenu: React.FC = () => {
-  const toolActions = useSpriteModeToolActions();
-  const changeOrder = useSpriteModeChangeOrder();
-
+export const SpriteModeToolMenu: React.FC<SpriteModeToolMenuProps> = ({
+  toolMenu,
+}) => {
   return (
     <Box style={toolMenuRootStyle}>
       <Paper variant="outlined" style={toolMenuPaperStyle}>
         <Stack spacing={1}>
           <Button
             type="button"
-            variant={toolActions.tool === "pen" ? "contained" : "outlined"}
-            disabled={changeOrder.isChangeOrderMode}
-            onClick={() => toolActions.handleToolChange("pen")}
+            variant={toolMenu.tool === "pen" ? "contained" : "outlined"}
+            disabled={toolMenu.isChangeOrderMode}
+            onClick={() => toolMenu.handleToolChange("pen")}
           >
             ペン
           </Button>
           <Button
             type="button"
-            variant={toolActions.tool === "eraser" ? "contained" : "outlined"}
-            disabled={changeOrder.isChangeOrderMode}
-            onClick={() => toolActions.handleToolChange("eraser")}
+            variant={toolMenu.tool === "eraser" ? "contained" : "outlined"}
+            disabled={toolMenu.isChangeOrderMode}
+            onClick={() => toolMenu.handleToolChange("eraser")}
           >
             消しゴム
           </Button>
           <Button
             type="button"
             variant="outlined"
-            disabled={changeOrder.isChangeOrderMode}
-            onClick={toolActions.handleClearSprite}
+            disabled={toolMenu.isChangeOrderMode}
+            onClick={toolMenu.handleClearSprite}
           >
             クリア
           </Button>
           <Button
             type="button"
-            variant={changeOrder.isChangeOrderMode ? "contained" : "outlined"}
-            color={changeOrder.isChangeOrderMode ? "primary" : "inherit"}
-            onClick={changeOrder.handleToggleChangeOrderMode}
+            variant={toolMenu.isChangeOrderMode ? "contained" : "outlined"}
+            color={toolMenu.isChangeOrderMode ? "primary" : "inherit"}
+            onClick={toolMenu.handleToggleChangeOrderMode}
           >
-            {changeOrder.isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
+            {toolMenu.isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
           </Button>
         </Stack>
       </Paper>

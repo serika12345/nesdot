@@ -35,8 +35,8 @@ import { MenuBar } from "./components/common/ui/menu/MenuBar";
 import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScreenModeFileMenuState";
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
+import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
-import { useSpriteModeProjectActions } from "./components/spriteMode/ui/core/SpriteModeStateProvider";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;

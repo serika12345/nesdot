@@ -7,7 +7,7 @@ import {
 } from "../../../../application/state/projectStore";
 import { createDefaultProjectState } from "../../../../domain/project/project";
 import { makeTile } from "../../../../domain/tiles/utils";
-import { createSpriteModeProjectActions } from "./useSpriteModeState";
+import { createSpriteModeProjectActions } from "./spriteModeProjectActions";
 
 const createProjectStateWithSprite = (
   spriteIndex: number,

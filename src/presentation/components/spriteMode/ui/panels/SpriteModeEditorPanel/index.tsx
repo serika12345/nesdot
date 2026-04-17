@@ -4,16 +4,20 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import { useSpriteModeProjectSpriteSize } from "../../core/SpriteModeStateProvider";
+import { type SpriteModeEditorPanelState } from "../../../logic/spriteModeEditorState";
 import { SpriteModeEditorSelectionFields } from "../../forms/SpriteModeEditorSelectionFields";
+
+interface SpriteModeEditorPanelProps {
+  editorPanelState: SpriteModeEditorPanelState;
+}
 
 /**
  * スプライト番号とパレットを切り替える編集サイドパネルです。
  * 現在操作中の対象を明示し、キャンバス編集前の基本設定をまとめて扱えるようにします。
  */
-export const SpriteModeEditorPanel: React.FC = () => {
-  const spriteSize = useSpriteModeProjectSpriteSize();
-
+export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
+  editorPanelState,
+}) => {
   return (
     <Stack
       component={Paper}
@@ -39,13 +43,15 @@ export const SpriteModeEditorPanel: React.FC = () => {
         style={{ scrollbarGutter: "stable" }}
       >
         <Stack spacing={2} useFlexGap>
-          <SpriteModeEditorSelectionFields />
+          <SpriteModeEditorSelectionFields
+            selectionFields={editorPanelState.selectionFields}
+          />
 
           <Chip
             color="primary"
             variant="outlined"
             label={
-              spriteSize.projectSpriteSize === 8
+              editorPanelState.projectSpriteSize === 8
                 ? "Project Sprite Size 8x8"
                 : "Project Sprite Size 8x16"
             }
