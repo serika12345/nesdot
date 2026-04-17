@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../../application/state/projectStore";
+import { type NesSpritePalettes } from "../../../../../../domain/nes/nesProject";
 import { LIBRARY_PREVIEW_SCALE } from "../../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../../logic/characterModeEditorState";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
@@ -26,12 +27,13 @@ const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
 
 interface CharacterModeSidebarLibraryContentProps {
+  draggingSpriteIndex: number;
   handleLibraryPointerDown: (
     event: React.PointerEvent<HTMLButtonElement>,
     spriteIndex: number,
   ) => void;
-  draggingSpriteIndex: number;
   id: string;
+  spritePalettes: NesSpritePalettes;
   sprites: ReadonlyArray<SpriteTile>;
 }
 
@@ -42,6 +44,7 @@ const areSameLibraryContentProps = (
   previous.handleLibraryPointerDown === next.handleLibraryPointerDown &&
   previous.draggingSpriteIndex === next.draggingSpriteIndex &&
   previous.id === next.id &&
+  previous.spritePalettes === next.spritePalettes &&
   previous.sprites === next.sprites;
 
 type CharacterLibraryPreviewButtonProps = React.ComponentProps<
@@ -71,6 +74,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
     handleLibraryPointerDown,
     draggingSpriteIndex,
     id,
+    spritePalettes,
     sprites,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
@@ -117,6 +121,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
                 >
                   <CharacterModeTilePreview
                     scale={LIBRARY_PREVIEW_SCALE}
+                    spritePalettes={spritePalettes}
                     tileOption={O.some(spriteTile)}
                   />
                 </Stack>
@@ -213,6 +218,7 @@ export const CharacterModeSidebarLibrary: React.FC<
             draggingSpriteIndex={spriteLibrary.draggingSpriteIndex}
             handleLibraryPointerDown={handleStableLibraryPointerDown}
             id={`${libraryContentId}-scroll`}
+            spritePalettes={spriteLibrary.spritePalettes}
             sprites={spriteLibrary.sprites}
           />
         </Box>

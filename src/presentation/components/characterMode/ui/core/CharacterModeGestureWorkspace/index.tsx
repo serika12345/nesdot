@@ -188,6 +188,7 @@ export const CharacterModeGestureWorkspace: React.FC = () => {
                 >
                   <CharacterModeTilePreview
                     scale={LIBRARY_PREVIEW_SCALE}
+                    spritePalettes={dragPreview.spritePalettes}
                     tileOption={dragPreview.getSpriteTile(drag.spriteIndex)}
                   />
                 </Stack>

@@ -1,42 +1,10 @@
-import * as E from "fp-ts/Either";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
+import { createEmptyBackgroundTile } from "../../../../../domain/project/projectV2";
 
-interface MockProjectState {
-  nes: {
-    backgroundPalettes: ReadonlyArray<
-      readonly [number, number, number, number]
-    >;
-    chrBytes: Uint8Array;
-    universalBackgroundColor: number;
-  };
-}
-
-type MockUseProjectState = <T>(selector: (state: MockProjectState) => T) => T;
 type PickerMode = "bgTile" | "bgPalette";
-
-const mockedProjectState = vi.hoisted(() => {
-  return {
-    useProjectState: vi.fn<MockUseProjectState>(),
-  };
-});
-
-vi.mock("../../../../../../application/state/projectStore", () => {
-  return {
-    useProjectState: mockedProjectState.useProjectState,
-  };
-});
-
-vi.mock("../../../../../../domain/nes/backgroundEditing", () => {
-  return {
-    decodeBackgroundTileAtIndex: () =>
-      E.right({
-        paletteIndex: 0,
-        pixels: [[0]],
-      }),
-  };
-});
 
 vi.mock("@mui/material/Dialog", () => {
   return {
@@ -74,41 +42,36 @@ vi.mock("../../../../common/ui/preview/BackgroundTilePreview", () => {
 
 import { ScreenModeBackgroundTilePickerDialog } from "./ScreenModeBackgroundTilePickerDialog";
 
+const backgroundPalettes: NesBackgroundPalettes = [
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+  [0, 1, 2, 3],
+];
+
 describe("ScreenModeBackgroundTilePickerDialog", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    mockedProjectState.useProjectState.mockImplementation((selector) =>
-      selector({
-        nes: {
-          backgroundPalettes: [
-            [0, 1, 2, 3],
-            [0, 1, 2, 3],
-            [0, 1, 2, 3],
-            [0, 1, 2, 3],
-          ],
-          chrBytes: new Uint8Array(),
-          universalBackgroundColor: 0,
-        },
-      }),
-    );
-  });
-
   it("renders the tile picker flow without legacy tab buttons", () => {
     const pickerMode: PickerMode = "bgTile";
 
     const markup = renderToStaticMarkup(
       React.createElement(ScreenModeBackgroundTilePickerDialog, {
+        actions: {
+          onApplyPaletteSelection: vi.fn(),
+          onClose: vi.fn(),
+          onPaletteSelect: vi.fn(),
+          onTileSelect: vi.fn(),
+        },
         dialog: {
           activePaletteIndex: 0,
           isOpen: true,
           pendingPaletteIndex: 0,
           pickerMode,
         },
-        onApplyPaletteSelection: vi.fn(),
-        onClose: vi.fn(),
-        onPaletteSelect: vi.fn(),
-        onTileSelect: vi.fn(),
+        preview: {
+          backgroundPalettes,
+          universalBackgroundColor: 0,
+          visibleBackgroundTiles: [createEmptyBackgroundTile()],
+        },
       }),
     );
 
@@ -126,16 +89,23 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
 
     const markup = renderToStaticMarkup(
       React.createElement(ScreenModeBackgroundTilePickerDialog, {
+        actions: {
+          onApplyPaletteSelection: vi.fn(),
+          onClose: vi.fn(),
+          onPaletteSelect: vi.fn(),
+          onTileSelect: vi.fn(),
+        },
         dialog: {
           activePaletteIndex: 0,
           isOpen: true,
           pendingPaletteIndex: 0,
           pickerMode,
         },
-        onApplyPaletteSelection: vi.fn(),
-        onClose: vi.fn(),
-        onPaletteSelect: vi.fn(),
-        onTileSelect: vi.fn(),
+        preview: {
+          backgroundPalettes,
+          universalBackgroundColor: 0,
+          visibleBackgroundTiles: [createEmptyBackgroundTile()],
+        },
       }),
     );
 

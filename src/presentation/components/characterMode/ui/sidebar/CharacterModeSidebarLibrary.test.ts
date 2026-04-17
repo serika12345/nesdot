@@ -29,6 +29,12 @@ describe("CharacterModeSidebarLibrary", () => {
     mockedHooks.useCharacterModeSpriteLibrary.mockReturnValue({
       draggingSpriteIndex: -1,
       isLibraryDraggable: true,
+      spritePalettes: [
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+      ],
       sprites: [
         {
           height: 8,

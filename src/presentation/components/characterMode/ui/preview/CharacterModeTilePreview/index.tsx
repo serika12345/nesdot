@@ -1,9 +1,7 @@
 import * as O from "fp-ts/Option";
 import React from "react";
-import {
-  type SpriteTile,
-  useProjectState,
-} from "../../../../../../application/state/projectStore";
+import { type SpriteTile } from "../../../../../../application/state/projectStore";
+import { type NesSpritePalettes } from "../../../../../../domain/nes/nesProject";
 import { renderSpriteTileToHexArray } from "../../../../../../domain/nes/rendering";
 import { EmptyTilePreview } from "../../primitives/CharacterModePrimitives";
 import { tilePreviewCanvasStyle } from "./styles";
@@ -12,6 +10,7 @@ const PREVIEW_TRANSPARENT_HEX = "#00000000";
 
 interface CharacterModeTilePreviewProps {
   scale: number;
+  spritePalettes: NesSpritePalettes;
   tileOption: O.Option<SpriteTile>;
 }
 
@@ -35,6 +34,7 @@ const areSameTilePreviewProps = (
   next: CharacterModeTilePreviewProps,
 ): boolean =>
   previous.scale === next.scale &&
+  previous.spritePalettes === next.spritePalettes &&
   isSameTileOption(previous.tileOption, next.tileOption);
 
 const drawTilePreview = (
@@ -68,8 +68,7 @@ const drawTilePreview = (
  */
 const CharacterModeTilePreviewComponent: React.FC<
   CharacterModeTilePreviewProps
-> = ({ scale, tileOption }) => {
-  const spritePalettes = useProjectState((state) => state.nes.spritePalettes);
+> = ({ scale, spritePalettes, tileOption }) => {
   const canvasElementRef = React.useRef<O.Option<HTMLCanvasElement>>(O.none);
 
   const previewSize = React.useMemo(

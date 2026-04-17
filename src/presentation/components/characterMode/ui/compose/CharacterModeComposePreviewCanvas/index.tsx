@@ -192,6 +192,7 @@ export const CharacterModeComposePreviewCanvas: React.FC<
                     >
                       <CharacterModeTilePreview
                         scale={dragPreview.stageScale}
+                        spritePalettes={dragPreview.spritePalettes}
                         tileOption={dragPreview.getSpriteTile(drag.spriteIndex)}
                       />
                     </StageDragPreview>

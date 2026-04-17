@@ -17,11 +17,12 @@ import {
 interface ScreenModeFloatingPreviewProps {
   libraryState: ScreenModeLibraryPresentationState;
   sprites: ScreenModeProjectStateResult["sprites"];
+  spritePalettes: ScreenModeProjectStateResult["nes"]["spritePalettes"];
 }
 
 export const ScreenModeFloatingPreview: React.FC<
   ScreenModeFloatingPreviewProps
-> = ({ libraryState, sprites }) =>
+> = ({ libraryState, spritePalettes, sprites }) =>
   pipe(
     libraryState.dragState,
     O.match(
@@ -67,6 +68,7 @@ export const ScreenModeFloatingPreview: React.FC<
               {dragState.kind === "sprite" ? (
                 <CharacterModeTilePreview
                   scale={3}
+                  spritePalettes={spritePalettes}
                   tileOption={O.fromNullable(sprites[dragState.spriteIndex])}
                 />
               ) : (

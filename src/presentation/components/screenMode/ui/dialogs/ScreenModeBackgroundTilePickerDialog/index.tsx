@@ -6,14 +6,12 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
-import * as E from "fp-ts/Either";
 import React from "react";
-import { useProjectState } from "../../../../../../application/state/projectStore";
-import { decodeBackgroundTileAtIndex } from "../../../../../../domain/nes/backgroundEditing";
 import {
-  PROJECT_BACKGROUND_TILE_COUNT,
-  createEmptyBackgroundTile,
-} from "../../../../../../domain/project/projectV2";
+  type NesBackgroundPalettes,
+  type NesColorIndex,
+} from "../../../../../../domain/nes/nesProject";
+import { type BackgroundTile } from "../../../../../../domain/project/projectV2";
 import { BackgroundTilePreview } from "../../../../common/ui/preview/BackgroundTilePreview";
 import { previewButtonStyle } from "./styles";
 
@@ -29,10 +27,17 @@ interface ScreenModeBackgroundTilePickerDialogState {
 
 interface ScreenModeBackgroundTilePickerDialogProps {
   dialog: ScreenModeBackgroundTilePickerDialogState;
-  onApplyPaletteSelection: () => void;
-  onClose: () => void;
-  onPaletteSelect: (paletteIndex: BgPaletteIndex) => void;
-  onTileSelect: (tileIndex: number) => void;
+  actions: Readonly<{
+    onApplyPaletteSelection: () => void;
+    onClose: () => void;
+    onPaletteSelect: (paletteIndex: BgPaletteIndex) => void;
+    onTileSelect: (tileIndex: number) => void;
+  }>;
+  preview: Readonly<{
+    backgroundPalettes: NesBackgroundPalettes;
+    universalBackgroundColor: NesColorIndex;
+    visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
+  }>;
 }
 
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
@@ -55,35 +60,18 @@ const resolveDialogTitle = (pickerMode: BgPickerMode): string => {
 
 /**
  * BG タイル配置導線の picker dialog を描画します。
- * 実プロジェクト状態の BG preview を描画しつつ、見た目状態は親の hook から controlled に受け取ります。
+ * 見た目に必要な BG preview data は親から受け取り、component 自体は表示だけに保ちます。
  */
 export const ScreenModeBackgroundTilePickerDialog: React.FC<
   ScreenModeBackgroundTilePickerDialogProps
-> = ({
-  dialog,
-  onApplyPaletteSelection,
-  onClose,
-  onPaletteSelect,
-  onTileSelect,
-}) => {
+> = ({ actions, dialog, preview }) => {
   const { activePaletteIndex, isOpen, pendingPaletteIndex, pickerMode } =
     dialog;
-  const nes = useProjectState((state) => state.nes);
-
-  const visibleBackgroundTiles = React.useMemo(
-    () =>
-      Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) => {
-        const tile = decodeBackgroundTileAtIndex(nes.chrBytes, tileIndex);
-
-        return E.isRight(tile) ? tile.right : createEmptyBackgroundTile();
-      }),
-    [nes.chrBytes],
-  );
 
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={actions.onClose}
       fullWidth
       maxWidth={resolveDialogMaxWidth(pickerMode)}
     >
@@ -95,14 +83,14 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
             columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
             spacing={1.75}
           >
-            {visibleBackgroundTiles.map((tile, tileIndex) => (
+            {preview.visibleBackgroundTiles.map((tile, tileIndex) => (
               <Grid key={`screen-mode-bg-dialog-tile-${tileIndex}`} size={1}>
                 <ButtonBase
                   type="button"
                   aria-label={`BGタイルプレビュー ${tileIndex}`}
                   style={previewButtonStyle}
                   onClick={() => {
-                    onTileSelect(tileIndex);
+                    actions.onTileSelect(tileIndex);
                   }}
                 >
                   <Stack
@@ -114,8 +102,10 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                     <BackgroundTilePreview
                       scale={8}
                       tile={tile}
-                      palette={nes.backgroundPalettes[activePaletteIndex]}
-                      universalBackgroundColor={nes.universalBackgroundColor}
+                      palette={preview.backgroundPalettes[activePaletteIndex]}
+                      universalBackgroundColor={
+                        preview.universalBackgroundColor
+                      }
                     />
                     <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
                   </Stack>
@@ -144,7 +134,7 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
                 aria-label={`BGパレット ${paletteIndex}`}
                 aria-pressed={pendingPaletteIndex === paletteIndex}
                 onClick={() => {
-                  onPaletteSelect(paletteIndex);
+                  actions.onPaletteSelect(paletteIndex);
                 }}
               >
                 {`Palette ${paletteIndex}`}
@@ -154,9 +144,9 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>閉じる</Button>
+        <Button onClick={actions.onClose}>閉じる</Button>
         {pickerMode === "bgPalette" ? (
-          <Button variant="contained" onClick={onApplyPaletteSelection}>
+          <Button variant="contained" onClick={actions.onApplyPaletteSelection}>
             変更する
           </Button>
         ) : (

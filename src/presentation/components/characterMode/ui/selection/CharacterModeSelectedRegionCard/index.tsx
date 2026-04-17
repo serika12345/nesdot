@@ -20,6 +20,7 @@ import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
 } from "../../../logic/characterModeDecompositionState";
+import { useCharacterModeSpritePalettes } from "../../../logic/characterModeShared";
 import { CharacterModeEditorCard } from "../../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../../primitives/CharacterModePrimitives";
@@ -30,6 +31,7 @@ import { SelectedRegionFieldGrid } from "../../primitives/CharacterModePrimitive
 export const CharacterModeSelectedRegionCard: React.FC = () => {
   const decompositionOverview = useCharacterModeDecompositionOverview();
   const selectedRegion = useCharacterModeSelectedRegion();
+  const spritePalettes = useCharacterModeSpritePalettes();
   const [isApplyFeedbackDialogOpen, setIsApplyFeedbackDialogOpen] =
     React.useState(false);
   const applyFeedbackDialogTitleId = React.useId();
@@ -62,6 +64,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           >
             <CharacterModeTilePreview
               scale={INSPECTOR_PREVIEW_SCALE}
+              spritePalettes={spritePalettes}
               tileOption={pipe(
                 selectedRegion.selectedRegionAnalysis,
                 O.chain((regionAnalysis) => regionAnalysis.tile),

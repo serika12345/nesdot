@@ -245,6 +245,7 @@ export const ScreenModeGestureWorkspace: React.FC<
         >
           <ScreenModeSpriteLibraryPanel
             libraryState={libraryController.libraryState}
+            spritePalettes={projectState.nes.spritePalettes}
             sprites={projectState.sprites}
           />
           <ScreenModeCharacterLibraryPanel
@@ -267,6 +268,7 @@ export const ScreenModeGestureWorkspace: React.FC<
       <ScreenModeGestureContextMenu contextMenuState={contextMenuState} />
       <ScreenModeFloatingPreview
         libraryState={libraryController.libraryState}
+        spritePalettes={projectState.nes.spritePalettes}
         sprites={projectState.sprites}
       />
     </Stack>

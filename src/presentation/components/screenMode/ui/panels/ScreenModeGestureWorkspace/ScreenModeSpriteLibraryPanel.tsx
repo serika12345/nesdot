@@ -28,11 +28,12 @@ import {
 interface ScreenModeSpriteLibraryPanelProps {
   libraryState: ScreenModeLibraryPresentationState;
   sprites: ScreenModeProjectStateResult["sprites"];
+  spritePalettes: ScreenModeProjectStateResult["nes"]["spritePalettes"];
 }
 
 export const ScreenModeSpriteLibraryPanel: React.FC<
   ScreenModeSpriteLibraryPanelProps
-> = ({ libraryState, sprites }) => {
+> = ({ libraryState, spritePalettes, sprites }) => {
   const [isOpen, setIsOpen] = React.useState(true);
 
   return (
@@ -119,6 +120,7 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
                 >
                   <CharacterModeTilePreview
                     scale={3}
+                    spritePalettes={spritePalettes}
                     tileOption={O.some(sprite)}
                   />
                   <Box component="span" style={screenPreviewLabelStyle}>

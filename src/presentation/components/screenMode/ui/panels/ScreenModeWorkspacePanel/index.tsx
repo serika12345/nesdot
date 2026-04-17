@@ -3,7 +3,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import { useScreenModeWorkspaceBackgroundEditingState } from "../../../logic/screenModeWorkspaceBackgroundEditingState";
-import { useScreenModeProjectState } from "../../../logic/useScreenModeProjectState";
+import {
+  useScreenModeBackgroundTilePickerState,
+  useScreenModeProjectState,
+} from "../../../logic/useScreenModeProjectState";
 import { useScreenModeViewportState } from "../../../logic/useScreenModeViewportState";
 import { ScreenModeBackgroundTilePickerDialog } from "../../dialogs/ScreenModeBackgroundTilePickerDialog";
 import { WarningList } from "../../primitives/ScreenModePrimitives";
@@ -15,6 +18,7 @@ import { ScreenModeGestureWorkspace } from "../ScreenModeGestureWorkspace/index"
  */
 export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
   const projectState = useScreenModeProjectState();
+  const backgroundTilePickerState = useScreenModeBackgroundTilePickerState();
   const viewportState = useScreenModeViewportState();
   const backgroundEditingState = useScreenModeWorkspaceBackgroundEditingState();
 
@@ -37,18 +41,27 @@ export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
       />
 
       <ScreenModeBackgroundTilePickerDialog
+        actions={{
+          onApplyPaletteSelection:
+            backgroundEditingState.handleBackgroundPaletteSelect,
+          onClose: backgroundEditingState.closeTilePicker,
+          onPaletteSelect:
+            backgroundEditingState.handlePickerPaletteIndexChange,
+          onTileSelect: backgroundEditingState.handleBackgroundTileSelect,
+        }}
         dialog={{
           activePaletteIndex: backgroundEditingState.activePaletteIndex,
           isOpen: backgroundEditingState.isPickerDialogOpen,
           pendingPaletteIndex: backgroundEditingState.pickerPaletteIndex,
           pickerMode: backgroundEditingState.pickerDialogMode,
         }}
-        onApplyPaletteSelection={
-          backgroundEditingState.handleBackgroundPaletteSelect
-        }
-        onClose={backgroundEditingState.closeTilePicker}
-        onPaletteSelect={backgroundEditingState.handlePickerPaletteIndexChange}
-        onTileSelect={backgroundEditingState.handleBackgroundTileSelect}
+        preview={{
+          backgroundPalettes: backgroundTilePickerState.backgroundPalettes,
+          universalBackgroundColor:
+            backgroundTilePickerState.universalBackgroundColor,
+          visibleBackgroundTiles:
+            backgroundTilePickerState.visibleBackgroundTiles,
+        }}
       />
 
       {projectState.scanReport.ok === false ? (

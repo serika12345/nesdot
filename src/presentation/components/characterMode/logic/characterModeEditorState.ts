@@ -193,8 +193,10 @@ export const useCharacterModeSpriteLibrary = (): Readonly<{
   draggingSpriteIndex: number;
   isLibraryDraggable: boolean;
   sprites: ProjectState["sprites"];
+  spritePalettes: ProjectState["nes"]["spritePalettes"];
 }> => {
   const sprites = useProjectState((s) => s.sprites);
+  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
   const libraryDragState = useCharacterModeComposeStore(
     (s) => s.libraryDragState,
   );
@@ -213,6 +215,7 @@ export const useCharacterModeSpriteLibrary = (): Readonly<{
     draggingSpriteIndex,
     isLibraryDraggable: selectIsLibraryDraggable(editorMode, activeSet),
     sprites,
+    spritePalettes,
   };
 };
 
@@ -353,9 +356,11 @@ export const useCharacterModeLibraryDragPreview = (): Readonly<{
     stageX: number;
     stageY: number;
   }>;
+  spritePalettes: ProjectState["nes"]["spritePalettes"];
   stageScale: number;
 }> => {
   const sprites = useProjectState((s) => s.sprites);
+  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
   const libraryDragState = useCharacterModeComposeStore(
     (s) => s.libraryDragState,
   );
@@ -373,7 +378,7 @@ export const useCharacterModeLibraryDragPreview = (): Readonly<{
     [stageHeight, stageWidth, stageZoomLevel],
   );
 
-  return { getSpriteTile, libraryDragState, stageScale };
+  return { getSpriteTile, libraryDragState, spritePalettes, stageScale };
 };
 
 const selectActiveSet = (

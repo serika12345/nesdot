@@ -20,6 +20,9 @@ export const useActiveSet = (): import("fp-ts/Option").Option<CharacterSet> => {
   );
 };
 
+export const useCharacterModeSpritePalettes = () =>
+  useProjectState((state) => state.nes.spritePalettes);
+
 export const useDecompositionAnalysisDerived =
   (): CharacterDecompositionAnalysis => {
     const editorMode = useCharacterModeProjectStore((s) => s.editorMode);
