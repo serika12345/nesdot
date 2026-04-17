@@ -1,7 +1,10 @@
-import { GlobalStyles } from "@mui/material";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   beginGlobalUndoPointerInteraction,
   cancelGlobalUndoPointerInteraction,
@@ -10,36 +13,31 @@ import {
   redoLatestGlobalChange,
   undoLatestGlobalChange,
 } from "../application/state/undoHistory";
+import {
+  useWorkbenchState,
+  type WorkMode,
+} from "../application/state/workbenchStore";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
-import {
-  Container,
-  LeftPane,
-  Panel,
-  PanelHeader,
-  PanelTitle,
-  RightPane,
-  ScrollArea,
-  WorkspaceGrid,
-} from "./App.styles";
-import { BgMode } from "./components/bgMode/core/BgMode";
-import { CharacterMode } from "./components/characterMode/core/CharacterMode";
-import { DesktopAutoUpdateDialog } from "./components/common/dialogs/DesktopAutoUpdateDialog";
-import { PwaUpdateDialog } from "./components/common/dialogs/PwaUpdateDialog";
-import {
-  FileMenuBar,
-  type WorkMode,
-} from "./components/common/menu/FileMenuBar";
-import { PalettePicker } from "./components/common/pickers/PalettePicker";
+import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileMenuState";
+import { BgMode } from "./components/bgMode/ui/core/BgMode";
+import { useCharacterModeProjectActions } from "./components/characterMode/logic/characterModeProjectActions";
+import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
+import { usePalettePickerState } from "./components/common/logic/palettePickerState";
 import {
   emptyFileMenuState,
   type FileMenuState,
   type FileShareAction,
   type FileShareActionId,
-} from "./components/common/state/fileMenuState";
-import { ScreenMode } from "./components/screenMode/core/ScreenMode";
-import { SpriteMode } from "./components/spriteMode/core/SpriteMode";
-import { getAppGlobalStyles } from "./theme";
+} from "./components/common/logic/state/fileMenuState";
+import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
+import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
+import { MenuBar } from "./components/common/ui/menu/MenuBar";
+import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
+import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScreenModeFileMenuState";
+import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
+import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
+import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -237,19 +235,182 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
   );
 };
 
+interface NativeMenuBindingsProps {
+  enabled: boolean;
+  fileMenuState: FileMenuState;
+  onEditModeSelect: (nextEditMode: WorkMode) => void;
+  onRedoSelect: () => void;
+  onUndoSelect: () => void;
+  onUpdateCheck: () => void;
+}
+
+const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
+  enabled,
+  fileMenuState,
+  onEditModeSelect,
+  onRedoSelect,
+  onUndoSelect,
+  onUpdateCheck,
+}) => {
+  const runtimeRef = React.useRef({
+    fileMenuState,
+    onEditModeSelect,
+    onRedoSelect,
+    onUndoSelect,
+    onUpdateCheck,
+  });
+
+  runtimeRef.current = {
+    fileMenuState,
+    onEditModeSelect,
+    onRedoSelect,
+    onUndoSelect,
+    onUpdateCheck,
+  };
+
+  useEffect(() => {
+    if (enabled !== true) {
+      return;
+    }
+
+    const registerNativeMenuListeners = async (): Promise<
+      ReadonlyArray<() => void>
+    > => {
+      try {
+        const eventModule = await import("@tauri-apps/api/event");
+        const shareUnlistenCallbacks = await Promise.all(
+          NATIVE_SHARE_EVENT_BINDINGS.map(({ eventName, actionId }) =>
+            eventModule.listen(eventName, () => {
+              runShareActionById(
+                runtimeRef.current.fileMenuState.shareActions,
+                actionId,
+              );
+            }),
+          ),
+        );
+        const modeUnlistenCallbacks = await Promise.all(
+          NATIVE_MODE_EVENT_BINDINGS.map(({ eventName, mode }) =>
+            eventModule.listen(eventName, () => {
+              runtimeRef.current.onEditModeSelect(mode);
+            }),
+          ),
+        );
+
+        const restoreUnlistenCallback = await eventModule.listen(
+          NATIVE_RESTORE_EVENT_NAME,
+          () => {
+            runRestoreAction(runtimeRef.current.fileMenuState);
+          },
+        );
+
+        const undoUnlistenCallback = await eventModule.listen(
+          NATIVE_UNDO_EVENT_NAME,
+          () => {
+            runtimeRef.current.onUndoSelect();
+          },
+        );
+
+        const redoUnlistenCallback = await eventModule.listen(
+          NATIVE_REDO_EVENT_NAME,
+          () => {
+            runtimeRef.current.onRedoSelect();
+          },
+        );
+
+        const updateCheckUnlistenCallback = await eventModule.listen(
+          NATIVE_UPDATE_CHECK_EVENT_NAME,
+          () => {
+            runtimeRef.current.onUpdateCheck();
+          },
+        );
+
+        return [
+          ...shareUnlistenCallbacks,
+          ...modeUnlistenCallbacks,
+          restoreUnlistenCallback,
+          undoUnlistenCallback,
+          redoUnlistenCallback,
+          updateCheckUnlistenCallback,
+        ];
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.info(`[menu] native menu listener skipped: ${message}`);
+        return [];
+      }
+    };
+
+    const unlistenCallbacksPromise = registerNativeMenuListeners();
+
+    return () => {
+      void unlistenCallbacksPromise.then((unlistenCallbacks) => {
+        unlistenCallbacks.forEach((unlisten) => {
+          unlisten();
+        });
+      });
+    };
+  }, [enabled]);
+
+  return <></>;
+};
+
 /**
  * アプリ全体の編集モード切り替えと共通レイアウトを描画します。
  * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
  */
-export const App: React.FC = () => {
+const AppBody: React.FC = () => {
   const desktopAutoUpdate = useDesktopAutoUpdate();
   const pwaUpdate = usePwaUpdate();
   const handleDesktopAutoUpdateCheck = desktopAutoUpdate.onCheckNow;
-
-  const [editMode, setEditMode] = useState<WorkMode>("sprite");
-  const [fileMenuState, setFileMenuState] =
-    useState<FileMenuState>(emptyFileMenuState);
+  const editMode = useWorkbenchState((state) => state.editMode);
+  const handleEditModeSelect = useWorkbenchState((state) => state.setEditMode);
   const isNativeMacMenu = useMemo(() => isMacNativeMenuRuntime(), []);
+  const spriteProjectActions: Readonly<{
+    handleImport: () => Promise<void>;
+    projectActions: ReadonlyArray<FileShareAction>;
+  }> = useSpriteModeProjectActions();
+  const { projectActions: characterProjectActions } =
+    useCharacterModeProjectActions();
+  const bgFileMenuState = useBgModeFileMenuState();
+  const palettePickerState = usePalettePickerState();
+  const screenFileMenuState = useScreenModeFileMenuState();
+
+  const spriteFileMenuState = useMemo<FileMenuState>(
+    () => ({
+      ...emptyFileMenuState,
+      shareActions: spriteProjectActions.projectActions,
+      restoreAction: O.some({
+        label: "復元",
+        onSelect: spriteProjectActions.handleImport,
+      }),
+    }),
+    [spriteProjectActions.handleImport, spriteProjectActions.projectActions],
+  );
+  const characterFileMenuState = useMemo<FileMenuState>(
+    () => ({
+      ...emptyFileMenuState,
+      shareActions: characterProjectActions,
+      restoreAction: O.none,
+    }),
+    [characterProjectActions],
+  );
+  const fileMenuState = useMemo<FileMenuState>(() => {
+    if (editMode === "sprite") {
+      return spriteFileMenuState;
+    }
+    if (editMode === "bg") {
+      return bgFileMenuState;
+    }
+    if (editMode === "character") {
+      return characterFileMenuState;
+    }
+    return screenFileMenuState;
+  }, [
+    bgFileMenuState,
+    characterFileMenuState,
+    editMode,
+    screenFileMenuState,
+    spriteFileMenuState,
+  ]);
 
   const handleUndoSelect = useCallback((): void => {
     undoLatestGlobalChange();
@@ -309,120 +470,21 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (isNativeMacMenu !== true) {
-      return;
-    }
-
-    const registerNativeMenuListeners = async (): Promise<
-      ReadonlyArray<() => void>
-    > => {
-      try {
-        const eventModule = await import("@tauri-apps/api/event");
-        const shareUnlistenCallbacks = await Promise.all(
-          NATIVE_SHARE_EVENT_BINDINGS.map(({ eventName, actionId }) =>
-            eventModule.listen(eventName, () => {
-              runShareActionById(fileMenuState.shareActions, actionId);
-            }),
-          ),
-        );
-        const modeUnlistenCallbacks = await Promise.all(
-          NATIVE_MODE_EVENT_BINDINGS.map(({ eventName, mode }) =>
-            eventModule.listen(eventName, () => {
-              setEditMode(mode);
-            }),
-          ),
-        );
-
-        const restoreUnlistenCallback = await eventModule.listen(
-          NATIVE_RESTORE_EVENT_NAME,
-          () => {
-            runRestoreAction(fileMenuState);
-          },
-        );
-
-        const undoUnlistenCallback = await eventModule.listen(
-          NATIVE_UNDO_EVENT_NAME,
-          () => {
-            handleUndoSelect();
-          },
-        );
-
-        const redoUnlistenCallback = await eventModule.listen(
-          NATIVE_REDO_EVENT_NAME,
-          () => {
-            handleRedoSelect();
-          },
-        );
-
-        const updateCheckUnlistenCallback = await eventModule.listen(
-          NATIVE_UPDATE_CHECK_EVENT_NAME,
-          () => {
-            handleDesktopAutoUpdateCheck();
-          },
-        );
-
-        return [
-          ...shareUnlistenCallbacks,
-          ...modeUnlistenCallbacks,
-          restoreUnlistenCallback,
-          undoUnlistenCallback,
-          redoUnlistenCallback,
-          updateCheckUnlistenCallback,
-        ];
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.info(`[menu] native menu listener skipped: ${message}`);
-        return [];
-      }
-    };
-
-    const unlistenCallbacksPromise = registerNativeMenuListeners();
-
-    return () => {
-      void unlistenCallbacksPromise.then((unlistenCallbacks) => {
-        unlistenCallbacks.forEach((unlisten) => {
-          unlisten();
-        });
-      });
-    };
-  }, [
-    fileMenuState,
-    handleDesktopAutoUpdateCheck,
-    handleRedoSelect,
-    handleUndoSelect,
-    isNativeMacMenu,
-  ]);
-
-  const handleFileMenuStateChange = useCallback(
-    (nextFileMenuState: FileMenuState): void => {
-      setFileMenuState(nextFileMenuState);
-    },
-    [],
-  );
-
-  const handleEditModeSelect = useCallback((nextEditMode: WorkMode): void => {
-    setEditMode(nextEditMode);
-  }, []);
-
-  const mainPanel = (() => {
+  const appPanel = (() => {
     if (editMode === "sprite") {
-      return <SpriteMode onFileMenuStateChange={handleFileMenuStateChange} />;
+      return <SpriteMode />;
     }
     if (editMode === "bg") {
-      return <BgMode onFileMenuStateChange={handleFileMenuStateChange} />;
+      return <BgMode />;
     }
     if (editMode === "character") {
-      return (
-        <CharacterMode onFileMenuStateChange={handleFileMenuStateChange} />
-      );
+      return <CharacterMode />;
     }
-    return <ScreenMode onFileMenuStateChange={handleFileMenuStateChange} />;
+    return <ScreenMode />;
   })();
 
   return (
     <>
-      <GlobalStyles styles={getAppGlobalStyles} />
       <DesktopAutoUpdateDialog
         state={desktopAutoUpdate.dialogState}
         progressPercent={desktopAutoUpdate.progressPercent}
@@ -435,12 +497,28 @@ export const App: React.FC = () => {
         onDialogClose={pwaUpdate.onDialogClose}
         onUpdateNow={pwaUpdate.onUpdateNow}
       />
-
-      <Container spacing={{ xs: "0.75rem", md: "1rem" }}>
+      <NativeMenuBindings
+        enabled={isNativeMacMenu}
+        fileMenuState={fileMenuState}
+        onEditModeSelect={handleEditModeSelect}
+        onRedoSelect={handleRedoSelect}
+        onUndoSelect={handleUndoSelect}
+        onUpdateCheck={handleDesktopAutoUpdateCheck}
+      />
+      <Stack
+        component="div"
+        spacing={{ xs: "0.75rem", md: "1rem" }}
+        p={{ xs: "1rem", md: "1.5rem" }}
+        position="relative"
+        zIndex={1}
+        height="100vh"
+        overflow="hidden"
+        useFlexGap
+      >
         {isNativeMacMenu === true ? (
           <></>
         ) : (
-          <FileMenuBar
+          <MenuBar
             fileMenuState={fileMenuState}
             editMode={editMode}
             onEditModeSelect={handleEditModeSelect}
@@ -449,21 +527,72 @@ export const App: React.FC = () => {
           />
         )}
 
-        <WorkspaceGrid flex={1} minHeight={0}>
-          <LeftPane>{mainPanel}</LeftPane>
+        <Stack
+          useFlexGap
+          direction={{ xs: "column", lg: "row" }}
+          spacing={{ xs: "1rem", xl: "1.25rem" }}
+          flex={1}
+          minHeight={0}
+          overflow={{ xs: "auto", lg: "visible" }}
+        >
+          <Stack
+            component="section"
+            flex={1}
+            height="100%"
+            minWidth={0}
+            minHeight={0}
+            overflow="hidden"
+            useFlexGap
+          >
+            {appPanel}
+          </Stack>
 
-          <RightPane>
-            <Panel flex={1} minHeight={0}>
-              <PanelHeader>
-                <PanelTitle>NES パレット</PanelTitle>
-              </PanelHeader>
-              <ScrollArea flex={1} minHeight={0}>
-                <PalettePicker />
-              </ScrollArea>
-            </Panel>
-          </RightPane>
-        </WorkspaceGrid>
-      </Container>
+          <Stack
+            component="aside"
+            spacing="1rem"
+            width={{ xs: "100%", lg: "20rem", xl: "22.5rem" }}
+            flexShrink={0}
+            height="100%"
+            minHeight={{ xs: "auto", lg: 0 }}
+            overflow="hidden"
+            useFlexGap
+          >
+            <Stack
+              component={Paper}
+              variant="outlined"
+              spacing="0.875rem"
+              p="1.125rem"
+              flex={1}
+              minHeight={0}
+            >
+              <Stack
+                position="relative"
+                zIndex={1}
+                spacing="0.3125rem"
+                useFlexGap
+              >
+                <Typography component="h2" variant="h2" color="text.primary">
+                  NES パレット
+                </Typography>
+              </Stack>
+              <Box
+                flex={1}
+                minHeight={0}
+                overflow="auto"
+                mr={-2.25}
+                pr={2.25}
+                style={{ scrollbarGutter: "stable" }}
+              >
+                <PalettePicker palettePickerState={palettePickerState} />
+              </Box>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
     </>
   );
+};
+
+export const App: React.FC = () => {
+  return <AppBody />;
 };

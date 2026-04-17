@@ -349,6 +349,9 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "BG属性", exact: true }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "BGパレット変更", exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);
   await expect(page.getByText("未選択", { exact: true })).toHaveCount(0);
 
@@ -359,16 +362,16 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
   await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
 
   const pickerDialog = page.getByRole("dialog", {
-    name: "BG編集",
+    name: "BGタイル追加",
   });
 
   await expect(pickerDialog).toBeVisible();
   await expect(
     pickerDialog.getByRole("button", { name: "BGタイル", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(
     pickerDialog.getByRole("button", { name: "BG属性", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   const bgTile255Preview = pickerDialog.getByRole("button", {
     name: "BGタイルプレビュー 255",
     exact: true,
@@ -475,13 +478,32 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
     "data-render-signature",
   );
 
-  await page.getByRole("button", { name: "BGタイル追加", exact: true }).click();
-  await pickerDialog
-    .getByRole("button", { name: "BG属性", exact: true })
+  await page
+    .getByRole("button", { name: "BGパレット変更", exact: true })
     .click();
-  await pickerDialog
-    .getByRole("button", { name: "BG属性パレット 1", exact: true })
+
+  const bgPaletteDialog = page.getByRole("dialog", {
+    name: "BGパレット変更",
+  });
+
+  await expect(bgPaletteDialog).toBeVisible();
+  await expect(
+    bgPaletteDialog.getByRole("button", {
+      name: "BGタイルプレビュー 5",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  const applyPaletteButton = bgPaletteDialog.getByRole("button", {
+    name: "変更する",
+    exact: true,
+  });
+  await expect(applyPaletteButton).toBeVisible();
+  await bgPaletteDialog
+    .getByRole("button", { name: "BGパレット 1", exact: true })
     .click();
+  await expect(bgPaletteDialog).toBeVisible();
+  await applyPaletteButton.click();
+  await expect(bgPaletteDialog).toHaveCount(0);
 
   await dispatchPointerClickAtOffset(stage, 403, { x: 84, y: 60 });
 
@@ -564,29 +586,53 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     name: "BGタイル追加",
     exact: true,
   });
-  const outlineToggle = page.getByRole("button", {
-    name: "スプライト外枠表示切り替え",
+  const bgPaletteButton = page.getByRole("button", {
+    name: "BGパレット変更",
     exact: true,
   });
-  const indexToggle = page.getByRole("button", {
-    name: "スプライト番号表示切り替え",
+  const outlineToggle = page.getByLabel("スプライト外枠表示切り替え", {
+    exact: true,
+  });
+  const indexToggle = page.getByLabel("スプライト番号表示切り替え", {
     exact: true,
   });
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
   await expect(bgAddButton).toBeVisible();
+  await expect(bgPaletteButton).toBeVisible();
   await expect(outlineToggle).toBeVisible();
   await expect(indexToggle).toBeVisible();
+  await expect(outlineToggle).toBeChecked();
+  await expect(indexToggle).not.toBeChecked();
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト外枠表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト番号表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
 
-  const [bgAddButtonRect, outlineToggleRect, indexToggleRect] =
-    await Promise.all([
-      getLocatorRect(bgAddButton),
-      getLocatorRect(outlineToggle),
-      getLocatorRect(indexToggle),
-    ]);
+  const [
+    bgAddButtonRect,
+    bgPaletteButtonRect,
+    outlineToggleRect,
+    indexToggleRect,
+  ] = await Promise.all([
+    getLocatorRect(bgAddButton),
+    getLocatorRect(bgPaletteButton),
+    getLocatorRect(outlineToggle),
+    getLocatorRect(indexToggle),
+  ]);
 
   expect(bgAddButtonRect.clientX).toBeLessThan(outlineToggleRect.clientX);
+  expect(bgAddButtonRect.clientX).toBeLessThan(bgPaletteButtonRect.clientX);
+  expect(bgPaletteButtonRect.clientX).toBeLessThan(outlineToggleRect.clientX);
   expect(outlineToggleRect.clientX).toBeLessThan(indexToggleRect.clientX);
 
   await dragLibraryItemToStage(spritePreview, stage, 19, { x: 120, y: 104 });
@@ -608,6 +654,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .toBe("solid");
 
   await outlineToggle.click();
+  await expect(outlineToggle).not.toBeChecked();
 
   await expect
     .poll(async () =>
@@ -618,6 +665,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .toBe("none");
 
   await outlineToggle.click();
+  await expect(outlineToggle).toBeChecked();
 
   await expect
     .poll(async () =>
@@ -639,14 +687,20 @@ test("screen mode toggles sprite index labels from the zoom row", async ({
     name: "スクリーンライブラリスプライト 0",
     exact: true,
   });
-  const indexToggle = page.getByRole("button", {
-    name: "スプライト番号表示切り替え",
+  const indexToggle = page.getByLabel("スプライト番号表示切り替え", {
     exact: true,
   });
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
   await expect(indexToggle).toBeVisible();
+  await expect(indexToggle).not.toBeChecked();
+  await expect(
+    page.getByRole("button", {
+      name: "スプライト番号表示切り替え",
+      exact: true,
+    }),
+  ).toHaveCount(0);
 
   await dragLibraryItemToStage(spritePreview, stage, 21, { x: 112, y: 96 });
 
@@ -657,9 +711,11 @@ test("screen mode toggles sprite index labels from the zoom row", async ({
   await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
 
   await indexToggle.click();
+  await expect(indexToggle).toBeChecked();
   await expect(stage.getByText("#0", { exact: true })).toBeVisible();
 
   await indexToggle.click();
+  await expect(indexToggle).not.toBeChecked();
   await expect(stage.getByText("#0", { exact: true })).toHaveCount(0);
 });
 

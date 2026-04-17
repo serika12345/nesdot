@@ -4,7 +4,7 @@ import {
   type PaletteIndex,
 } from "../project/project";
 import { type BackgroundTile } from "../project/projectV2";
-import { decodeBackgroundTile, encodeBackgroundTile } from "./chr";
+import { decodeBackgroundTile } from "./chr";
 import {
   getAttributeByteIndex,
   getNameTableLinearIndex,
@@ -69,31 +69,6 @@ export const decodeBackgroundTileAtIndex = (
       chrSliceStart.right,
       chrSliceStart.right + CHR_BYTES_PER_TILE,
     ),
-  );
-};
-
-export const replaceBackgroundTileAtIndex = (
-  chrBytes: ReadonlyArray<number>,
-  tileIndex: number,
-  tile: BackgroundTile,
-): E.Either<string, number[]> => {
-  const chrSliceStart = resolveChrSliceStart(tileIndex);
-
-  if (E.isLeft(chrSliceStart)) {
-    return chrSliceStart;
-  }
-
-  const encodedTile = Array.from(encodeBackgroundTile(tile));
-
-  return E.right(
-    chrBytes.map((value, index) => {
-      const tileByteOffset = index - chrSliceStart.right;
-      const replacementByte = encodedTile[tileByteOffset];
-
-      return tileByteOffset >= 0 && tileByteOffset < CHR_BYTES_PER_TILE
-        ? (replacementByte ?? value)
-        : value;
-    }),
   );
 };
 

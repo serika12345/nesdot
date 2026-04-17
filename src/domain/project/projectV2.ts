@@ -39,7 +39,7 @@ export interface ScreenBackground {
   paletteIndices: ReadonlyArray<PaletteIndex>;
 }
 
-export interface ProjectPalettes {
+interface ProjectPalettes {
   universalBackgroundColor: NesColorIndex;
   background: NesBackgroundPalettes;
   sprite: NesSpritePalettes;

@@ -1,4 +1,5 @@
-import { CssBaseline } from "@mui/material";
+import "@mui/material-pigment-css/styles.css";
+import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
 import { createRoot } from "react-dom/client";

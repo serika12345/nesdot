@@ -71,7 +71,7 @@ interface CharacterDecompositionPlan {
   plannedTiles: PlannedSpriteTile[];
 }
 
-export interface ApplyCharacterDecompositionResult {
+interface ApplyCharacterDecompositionResult {
   sprites: SpriteTile[];
   characterSprites: CharacterSprite[];
   analysis: CharacterDecompositionAnalysis;

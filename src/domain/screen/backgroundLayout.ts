@@ -12,12 +12,12 @@ const SCREEN_BACKGROUND_WIDTH_PIXELS =
 const SCREEN_BACKGROUND_HEIGHT_PIXELS =
   SCREEN_BACKGROUND_HEIGHT_TILES * SCREEN_BACKGROUND_TILE_SIZE;
 
-export interface ScreenBackgroundTileCoordinate {
+interface ScreenBackgroundTileCoordinate {
   tileX: number;
   tileY: number;
 }
 
-export interface ScreenBackgroundTilePlacement extends ScreenBackgroundTileCoordinate {
+interface ScreenBackgroundTilePlacement extends ScreenBackgroundTileCoordinate {
   snappedPixelX: number;
   snappedPixelY: number;
   linearIndex: number;

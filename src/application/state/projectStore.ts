@@ -9,22 +9,25 @@ import {
   StateStorage,
 } from "zustand/middleware";
 import {
+  renderBackgroundTileToHexArray,
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "../../domain/nes/rendering";
 import {
+  createDefaultProjectState,
+  PaletteIndex,
   ProjectState,
   Screen,
   SpriteTile,
-  createDefaultProjectState,
 } from "../../domain/project/project";
+import { type BackgroundTile } from "../../domain/project/projectV2";
 
 export type {
   Backing,
   ColorIndexOfPalette,
   PaletteIndex,
-  ProjectState,
   ProjectSpriteSize,
+  ProjectState,
   Screen,
   SpriteInScreen,
   SpritePriority,
@@ -107,6 +110,23 @@ export const useProjectState = create<ProjectStoreState>()(
 export const getHexArrayForSpriteTile = (tile: SpriteTile): string[][] => {
   const state = useProjectState.getState();
   return renderSpriteTileToHexArray(tile, state.nes.spritePalettes);
+};
+
+/**
+ * 指定背景タイルを現在の NES 背景パレットで色付きグリッドへ変換します。
+ * BG 編集画面が選択中パレットの見た目そのままで書き出せるよう、universal background color もここで反映します。
+ */
+export const getHexArrayForBackgroundTile = (
+  tile: BackgroundTile,
+  paletteIndex: PaletteIndex,
+): string[][] => {
+  const state = useProjectState.getState();
+
+  return renderBackgroundTileToHexArray(
+    tile,
+    state.nes.backgroundPalettes[paletteIndex],
+    state.nes.universalBackgroundColor,
+  );
 };
 
 /**

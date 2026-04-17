@@ -2,7 +2,7 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import type { Screen, SpritePriority, SpriteTile } from "../project/project";
-import type { ProjectStateV2 } from "../project/projectV2";
+import type { BackgroundTile, ProjectStateV2 } from "../project/projectV2";
 import {
   getNameTableLinearIndex,
   NES_EMPTY_BACKGROUND_TILE_INDEX,
@@ -21,7 +21,10 @@ const getHexAt = (index: number): string =>
     O.getOrElse(() => FALLBACK_HEX),
   );
 
-const getPaletteHex = (palette: number[], colorIndex: number): string =>
+const getPaletteHex = (
+  palette: ReadonlyArray<number>,
+  colorIndex: number,
+): string =>
   pipe(
     O.fromNullable(palette[colorIndex]),
     O.map((nesColorIndex) => getHexAt(nesColorIndex)),
@@ -59,6 +62,24 @@ export function renderSpriteTileToHexArray(
     row.map((colorIndexOfPalette) =>
       colorIndexOfPalette === 0
         ? getHexAt(0)
+        : getPaletteHex(palette, colorIndexOfPalette),
+    ),
+  );
+}
+
+/**
+ * 背景タイルを表示用の 16 進カラー配列へ変換します。
+ * 背景の色番号 0 は常に universal background color として扱い、他の色だけ選択中パレットを参照します。
+ */
+export function renderBackgroundTileToHexArray(
+  tile: BackgroundTile,
+  palette: ReadonlyArray<number>,
+  universalBackgroundColor: number,
+): string[][] {
+  return tile.pixels.map((row) =>
+    row.map((colorIndexOfPalette) =>
+      colorIndexOfPalette === 0
+        ? getHexAt(universalBackgroundColor)
         : getPaletteHex(palette, colorIndexOfPalette),
     ),
   );

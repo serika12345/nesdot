@@ -4,9 +4,9 @@ import * as O from "fp-ts/Option";
 
 const SEMVER_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/u;
 
-export type SemverBumpPart = "patch" | "minor" | "major";
+type SemverBumpPart = "patch" | "minor" | "major";
 
-export interface Semver {
+interface Semver {
   readonly major: number;
   readonly minor: number;
   readonly patch: number;
@@ -39,7 +39,7 @@ const parseSegment = (
   );
 };
 
-export const parseSemver = (version: string): E.Either<string, Semver> => {
+const parseSemver = (version: string): E.Either<string, Semver> => {
   return pipe(
     O.fromNullable(version.match(SEMVER_PATTERN)),
     E.fromOption(() => `Invalid semver version: ${version}`),

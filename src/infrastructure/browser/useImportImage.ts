@@ -374,7 +374,7 @@ export default function useImportImage() {
       const input = document.createElement("input");
       input.setAttribute("type", "file");
       input.setAttribute("accept", ".json,application/json");
-      input.setAttribute("style", "display:none");
+      input.hidden = true;
       document.body.appendChild(input);
 
       const onChange = async () => {

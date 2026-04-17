@@ -1,7 +1,20 @@
 import { type Locator, type Page } from "@playwright/test";
 import { getLocatorPoint } from "./pointer";
 
-export interface StageDebugState {
+/**
+ * Playwright の .click() は React 18 の createPortal で body に描画された要素では
+ * React のイベントハンドラを呼び出さない場合があるため、
+ * ネイティブ DOM の el.click() を使って回避します。
+ */
+export const clickPortalButton = async (locator: Locator): Promise<void> => {
+  await locator.evaluate((el) => {
+    if (el instanceof HTMLElement) {
+      el.click();
+    }
+  });
+};
+
+interface StageDebugState {
   activeSetName: string;
   selectedSpriteIndex: string;
   selectedSpriteLayer: string;
@@ -65,7 +78,17 @@ export const clickComposeCanvasAtPosition = async (
 ): Promise<void> => {
   const fabricCanvas = locator.locator('[data-fabric="top"]');
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
-  const point = await getLocatorPoint(locator, stageX, stageY);
+  const point = await getLocatorPoint(target, stageX, stageY);
+
+  await target.dispatchEvent("pointermove", {
+    pointerId,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: -1,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
 
   await target.dispatchEvent("pointerdown", {
     pointerId,
@@ -95,10 +118,20 @@ export const openComposeCanvasSpriteContextMenu = async (
   const fabricCanvas = locator.locator('[data-fabric="top"]');
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(
-    locator,
+    target,
     (sprite.x + 4) * scale,
     (sprite.y + 4) * scale,
   );
+
+  await target.dispatchEvent("pointermove", {
+    pointerId: 101,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: -1,
+    buttons: 0,
+    clientX: point.clientX,
+    clientY: point.clientY,
+  });
 
   await target.dispatchEvent("pointerdown", {
     pointerId: 101,

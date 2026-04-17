@@ -10,6 +10,7 @@ import {
 import {
   clickCanvasPixel,
   clickComposeCanvasAtPosition,
+  clickPortalButton,
   getStageDebugState,
   getStageGridState,
   openComposeCanvasSpriteContextMenu,
@@ -48,6 +49,23 @@ const createCharacterSet = async (
   await createDialog.getByRole("button", { name: "作成する" }).click();
 
   await expect(createDialog).toHaveCount(0);
+};
+
+const expectDialogTextboxTopGap = async (
+  dialog: Locator,
+  title: string,
+  textboxName: string,
+): Promise<void> => {
+  const titleRect = await getLocatorRect(
+    dialog.getByText(title, { exact: true }),
+  );
+  const textboxRect = await getLocatorRect(
+    dialog.getByRole("textbox", { name: textboxName }),
+  );
+  const titleBottom = titleRect.clientY + titleRect.height;
+  const gap = textboxRect.clientY - titleBottom;
+
+  expect(gap).toBeGreaterThanOrEqual(12);
 };
 
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
@@ -342,6 +360,46 @@ test("character mode renames set from dialog", async ({ page }) => {
 
   await expect(renameDialog).toHaveCount(0);
   await expect(activeSetSelect).toContainText("Renamed Hero (0 sprites)");
+});
+
+test("character mode keeps room for dialog text-field labels", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await openMode(page, "キャラクター編集");
+
+  const createSetButton = page.getByRole("button", { name: "セットを作成" });
+  await createSetButton.click();
+
+  const createDialog = page.getByRole("dialog", {
+    name: "キャラクターセットを作成",
+  });
+  await expect(createDialog).toBeVisible();
+  await expectDialogTextboxTopGap(
+    createDialog,
+    "キャラクターセットを作成",
+    "新規セット名",
+  );
+
+  await createDialog.getByRole("button", { name: "キャンセル" }).click();
+  await expect(createDialog).toHaveCount(0);
+
+  await createCharacterSet(page, "Dialog Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const renameSetButton = page.getByRole("button", { name: "セット名変更" });
+  await renameSetButton.click();
+
+  const renameDialog = page.getByRole("dialog", { name: "セット名を変更" });
+  await expect(renameDialog).toBeVisible();
+  await expectDialogTextboxTopGap(
+    renameDialog,
+    "セット名を変更",
+    "変更後のセット名",
+  );
+
+  await renameDialog.getByRole("button", { name: "キャンセル" }).click();
+  await expect(renameDialog).toHaveCount(0);
 });
 
 test("character mode locks workspace interactions until a set is created", async ({
@@ -839,7 +897,9 @@ test("character mode supports drag and drop placement and stage movement", async
   };
   const currentLayer = Number(layeredStageState.selectedSpriteLayer);
   await openComposeCanvasSpriteContextMenu(composeCanvas, layeredSprite, 3);
-  await page.getByRole("button", { name: "レイヤーを上げる" }).click();
+  await clickPortalButton(
+    page.getByRole("button", { name: "レイヤーを上げる" }),
+  );
 
   await expect
     .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
@@ -858,7 +918,9 @@ test("character mode supports drag and drop placement and stage movement", async
     y: Number(deleteStageState.selectedSpriteY),
   };
   await openComposeCanvasSpriteContextMenu(composeCanvas, spriteToDelete, 3);
-  await page.getByRole("button", { name: "削除", exact: true }).click();
+  await clickPortalButton(
+    page.getByRole("button", { name: "削除", exact: true }),
+  );
   await expect
     .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
     .toBe("1");
@@ -887,7 +949,19 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   const closeDecompositionToolMenuButton = page.getByRole("button", {
     name: "分解ツールを閉じる",
   });
+  const viewport = page.getByLabel("プレビューキャンバスビュー");
+
   await expect(openDecompositionToolMenuButton).toBeVisible();
+  await expect(viewport).toBeVisible();
+
+  const [openDecompositionToolMenuButtonBox, viewportBox] = await Promise.all([
+    getLocatorRect(openDecompositionToolMenuButton),
+    getLocatorRect(viewport),
+  ]);
+
+  expect(
+    openDecompositionToolMenuButtonBox.clientX - viewportBox.clientX,
+  ).toBeLessThan(80);
   await expect(closeDecompositionToolMenuButton).toHaveCount(0);
   await openDecompositionToolMenuButton.click();
   await expect(closeDecompositionToolMenuButton).toBeVisible();
@@ -902,7 +976,6 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
   const sidebar = page.getByRole("complementary", {
     name: "キャラクター編集サイドバー",
   });
-  const viewport = page.getByLabel("プレビューキャンバスビュー");
   const regionToolButton = page.getByRole("button", {
     name: "分解ツール 切り取り",
   });
@@ -925,14 +998,12 @@ test("character decomposition keeps tools in the canvas menu and preserves previ
 
   const [
     sidebarBox,
-    viewportBox,
     regionToolButtonBox,
     decomposeStageBox,
     selectedRegionLabelBox,
     spriteLibraryLabelBox,
   ] = await Promise.all([
     getLocatorRect(sidebar),
-    getLocatorRect(viewport),
     getLocatorRect(regionToolButton),
     getLocatorRect(decomposeStage),
     getLocatorRect(selectedRegionLabel),
@@ -1019,7 +1090,9 @@ test("character decomposition deletes selected regions from context menu", async
   await expect(
     page.getByRole("menu", { name: "切り取り領域メニュー" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "選択中領域を削除" }).click();
+  await clickPortalButton(
+    page.getByRole("button", { name: "選択中領域を削除" }),
+  );
   await expect(firstRegionOverlay).toHaveCount(0);
 });
 
@@ -1142,4 +1215,408 @@ test("character decomposition respects project level 8x16 sprite size", async ({
           .stageSpriteCount,
     )
     .toBe("1");
+});
+
+test("character compose mode deletes selected sprite with Delete key", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Delete Key Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 40, { x: 160, y: 140 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 160, 140, 41);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  await stage.focus();
+  await page.keyboard.press("Delete");
+
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("0");
+});
+
+test("character compose mode deletes selected sprite with Backspace key", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Backspace Key Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 50, { x: 200, y: 200 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 200, 200, 51);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  await stage.focus();
+  await page.keyboard.press("Backspace");
+
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("0");
+});
+
+test("character compose mode nudges selected sprite in all four directions", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Nudge Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 60, { x: 160, y: 160 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 160, 160, 61);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  const baseState = await getStageDebugState(stage);
+  const baseX = Number(baseState.selectedSpriteX);
+  const baseY = Number(baseState.selectedSpriteY);
+
+  await stage.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteX)
+    .toBe(`${baseX - 1}`);
+
+  await page.keyboard.press("ArrowUp");
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteY)
+    .toBe(`${baseY - 1}`);
+
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteX)
+    .toBe(`${baseX}`);
+
+  await page.keyboard.press("ArrowDown");
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteY)
+    .toBe(`${baseY}`);
+});
+
+test("character compose mode closes sprite context menu with Escape key", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Escape Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 70, { x: 160, y: 140 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 160, 140, 71);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  const spriteState = await getStageDebugState(stage);
+  const sprite = {
+    x: Number(spriteState.selectedSpriteX),
+    y: Number(spriteState.selectedSpriteY),
+  };
+  await openComposeCanvasSpriteContextMenu(composeCanvas, sprite, 32);
+  await expect(
+    page.getByRole("menu", { name: "スプライトメニュー" }),
+  ).toBeVisible();
+
+  await stage.focus();
+  await page.keyboard.press("Escape");
+
+  await expect(
+    page.getByRole("menu", { name: "スプライトメニュー" }),
+  ).toHaveCount(0);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+});
+
+test("character compose mode shifts sprite layer down via context menu", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1800, height: 640 });
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Layer Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 80, { x: 160, y: 140 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 160, 140, 82);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  const spriteState = await getStageDebugState(stage);
+  const sprite = {
+    x: Number(spriteState.selectedSpriteX),
+    y: Number(spriteState.selectedSpriteY),
+  };
+  const layerBefore = Number(spriteState.selectedSpriteLayer);
+
+  await openComposeCanvasSpriteContextMenu(composeCanvas, sprite, 32);
+  await expect(
+    page.getByRole("menu", { name: "スプライトメニュー" }),
+  ).toBeVisible();
+
+  await clickPortalButton(
+    page.getByRole("button", { name: "レイヤーを上げる" }),
+  );
+
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
+    .toBe(`${layerBefore + 1}`);
+
+  await openComposeCanvasSpriteContextMenu(composeCanvas, sprite, 32);
+  await expect(
+    page.getByRole("menu", { name: "スプライトメニュー" }),
+  ).toBeVisible();
+
+  await clickPortalButton(
+    page.getByRole("button", { name: "レイヤーを下げる" }),
+  );
+
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
+    .toBe(`${layerBefore}`);
+});
+
+test("character compose mode auto-selects next sprite after keyboard deletion", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await seedDiagonalSprite(page);
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Auto Select Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const stage = page.getByLabel("キャラクターステージ");
+  const composeCanvas = page.locator(
+    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
+  );
+
+  await dragLibrarySpriteToStage(page, 0, 90, { x: 160, y: 140 });
+  await dragLibrarySpriteToStage(page, 0, 91, { x: 250, y: 250 });
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("2");
+
+  await clickComposeCanvasAtPosition(composeCanvas, 160, 140, 92);
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+
+  await stage.focus();
+  await page.keyboard.press("Delete");
+
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).stageSpriteCount)
+    .toBe("1");
+  await expect
+    .poll(async () => (await getStageDebugState(stage)).selectedSpriteIndex)
+    .not.toBe("");
+});
+
+test("character decomposition selects a region and shows inspector details", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await page.setViewportSize({ width: 1800, height: 1200 });
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Region Select Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+
+  const regionOverlay = page.getByLabel("切り取り領域 0");
+  await expect(regionOverlay).toBeVisible();
+
+  await regionOverlay.click();
+
+  const selectedRegionLabel = page.getByText("選択中の領域", { exact: true });
+  await expect(selectedRegionLabel).toBeVisible();
+
+  const regionXInput = page.getByLabel("選択中領域X座標");
+  const regionYInput = page.getByLabel("選択中領域Y座標");
+  await expect(regionXInput).toBeVisible();
+  await expect(regionYInput).toBeVisible();
+  await expect(regionXInput).toHaveValue("0");
+  await expect(regionYInput).toHaveValue("0");
+});
+
+test("character decomposition moves a region by dragging with the cut tool", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await page.setViewportSize({ width: 1800, height: 1200 });
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Region Drag Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+
+  const regionOverlay = page.getByLabel("切り取り領域 0");
+  await expect(regionOverlay).toBeVisible();
+  await regionOverlay.click();
+
+  const regionXInput = page.getByLabel("選択中領域X座標");
+  const regionYInput = page.getByLabel("選択中領域Y座標");
+  await expect(regionXInput).toHaveValue("0");
+  await expect(regionYInput).toHaveValue("0");
+
+  const stage = page.getByLabel("キャラクターステージ");
+  await expect(stage).toBeVisible();
+  const regionRect = await getLocatorRect(regionOverlay);
+
+  const startClientX = regionRect.clientX + regionRect.width / 2;
+  const startClientY = regionRect.clientY + regionRect.height / 2;
+  const dragDistancePx = 24;
+
+  await regionOverlay.dispatchEvent("pointerdown", {
+    pointerId: 200,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: startClientX,
+    clientY: startClientY,
+  });
+
+  const workspace = page.getByLabel("キャラクター編集ワークスペース", {
+    exact: true,
+  });
+  await workspace.dispatchEvent("pointermove", {
+    pointerId: 200,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 1,
+    clientX: startClientX + dragDistancePx,
+    clientY: startClientY + dragDistancePx,
+  });
+  await workspace.dispatchEvent("pointerup", {
+    pointerId: 200,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    clientX: startClientX + dragDistancePx,
+    clientY: startClientY + dragDistancePx,
+  });
+
+  await expect
+    .poll(async () => Number(await regionXInput.inputValue()))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => Number(await regionYInput.inputValue()))
+    .toBeGreaterThan(0);
+});
+
+test("character decomposition creates multiple regions and selects between them", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await page.setViewportSize({ width: 1800, height: 1200 });
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Multi Region Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+  await page.getByRole("button", { name: "編集モード 分解" }).click();
+  await page.getByRole("button", { name: "分解ツールを開く" }).click();
+
+  const decompositionCanvas = page.getByLabel("分解描画キャンバス");
+  await clickCanvasPixel(decompositionCanvas, 1, 1);
+  await clickCanvasPixel(decompositionCanvas, 10, 1);
+
+  await page.getByRole("button", { name: "分解ツール 切り取り" }).click();
+  await clickCanvasPixel(decompositionCanvas, 0, 0);
+  await clickCanvasPixel(decompositionCanvas, 8, 0);
+
+  const firstRegion = page.getByLabel("切り取り領域 0");
+  const secondRegion = page.getByLabel("切り取り領域 1");
+  await expect(firstRegion).toBeVisible();
+  await expect(secondRegion).toBeVisible();
+
+  await firstRegion.click();
+
+  const regionXInput = page.getByLabel("選択中領域X座標");
+  await expect(regionXInput).toBeVisible();
+  await expect(regionXInput).toHaveValue("0");
+
+  await secondRegion.click();
+  await expect(regionXInput).toHaveValue("8");
 });

@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 
-export type ViteCommand = "build" | "serve";
+type ViteCommand = "build" | "serve";
 type ViteEnvironment = NodeJS.ProcessEnv;
 
 const ROOT_BASE_PATH = "/";

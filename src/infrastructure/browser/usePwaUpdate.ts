@@ -2,6 +2,7 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { registerSW } from "virtual:pwa-register";
+import { resolveIsStandalonePwaRuntime } from "./pwaRuntime";
 import {
   createHiddenPwaUpdateDialogState,
   installPwaUpdateMonitor,
@@ -12,7 +13,7 @@ import {
 
 type UpdateServiceWorker = (reloadPage?: boolean) => Promise<void>;
 
-export interface PwaUpdateController {
+interface PwaUpdateController {
   readonly dialogState: PwaUpdateDialogState;
   readonly onDialogClose: () => void;
   readonly onUpdateNow: () => void;
@@ -33,6 +34,7 @@ const canUsePwaUpdate = (): boolean => {
   return (
     import.meta.env.PROD &&
     hasTauriRuntime() !== true &&
+    resolveIsStandalonePwaRuntime() === true &&
     "window" in globalThis &&
     "document" in globalThis &&
     "navigator" in globalThis &&

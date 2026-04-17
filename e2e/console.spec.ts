@@ -42,6 +42,15 @@ const openHelpMenu = async (page: Page): Promise<void> => {
   await getMenuTrigger(page, "ヘルプ").click();
 };
 
+const emulateTauriRuntime = async (page: Page): Promise<void> => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "__TAURI_INTERNALS__", {
+      configurable: true,
+      value: {},
+    });
+  });
+};
+
 test("captures browser console and page errors", async ({ page }) => {
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
@@ -127,15 +136,61 @@ test("layout follows window resize", async ({ page }) => {
 test("shows global app menu controls", async ({ page }) => {
   await gotoApp(page);
 
-  const menuBar = page.getByRole("toolbar", {
+  type TopLevelTriggerLabel = "作業モード" | "編集" | "ファイル" | "ヘルプ";
+
+  const menuBar = page.getByRole("menubar", {
     name: "ファイル操作メニューバー",
   });
+  const topLevelTriggerLabels: ReadonlyArray<TopLevelTriggerLabel> = [
+    "作業モード",
+    "編集",
+    "ファイル",
+    "ヘルプ",
+  ];
 
   await expect(menuBar).toBeVisible();
   await expect(getMenuTrigger(page, "作業モード")).toBeVisible();
   await expect(getMenuTrigger(page, "ファイル")).toBeVisible();
   await expect(getMenuTrigger(page, "編集")).toBeVisible();
   await expect(getMenuTrigger(page, "ヘルプ")).toBeVisible();
+
+  const triggerPositions = await Promise.all(
+    topLevelTriggerLabels.map(async (label) => {
+      const box = await getMenuTrigger(page, label).boundingBox();
+      const hasBoundingBox = box instanceof Object;
+
+      return {
+        x: hasBoundingBox ? box.x : -1,
+        y: hasBoundingBox ? box.y : -1,
+      };
+    }),
+  );
+
+  triggerPositions.forEach((position) => {
+    expect(position.x).toBeGreaterThanOrEqual(0);
+    expect(position.y).toBeGreaterThanOrEqual(0);
+  });
+
+  const firstTriggerY = triggerPositions[0]?.y ?? -1;
+
+  expect(
+    Math.abs((triggerPositions[1]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs((triggerPositions[2]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs((triggerPositions[3]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
+  expect(triggerPositions[1]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[0]?.x ?? -1,
+  );
+  expect(triggerPositions[2]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[1]?.x ?? -1,
+  );
+  expect(triggerPositions[3]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[2]?.x ?? -1,
+  );
 
   await getMenuTrigger(page, "作業モード").click();
   await expect(getVisibleMenuItem(page, "スプライト編集")).toBeVisible();
@@ -148,11 +203,9 @@ test("shows global app menu controls", async ({ page }) => {
   const undoMenuItem = getVisibleMenuItem(page, /アンドゥ/);
   const redoMenuItem = getVisibleMenuItem(page, /リドゥ/);
   await expect(undoMenuItem).toBeVisible();
-  await expect(undoMenuItem).toContainText(/(Ctrl\+Z|Cmd\+Z)/);
+  await expect(undoMenuItem).toContainText(/(Ctrl\+Z|⌘Z)/);
   await expect(redoMenuItem).toBeVisible();
-  await expect(redoMenuItem).toContainText(
-    /(Ctrl\+Shift\+Z|Ctrl\+Y|Cmd\+Shift\+Z)/,
-  );
+  await expect(redoMenuItem).toContainText(/(Ctrl\+Shift\+Z|Ctrl\+Y|⇧⌘Z)/);
   await page.keyboard.press("Escape");
 
   await openFileMenu(page);
@@ -161,10 +214,15 @@ test("shows global app menu controls", async ({ page }) => {
   await page.keyboard.press("Escape");
 
   await getMenuTrigger(page, "ヘルプ").click();
-  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "更新を確認" })).toHaveCount(
+    0,
+  );
   await getVisibleMenuItem(page, "About").click();
   const aboutDialog = page.getByRole("dialog", { name: "About" });
   await expect(aboutDialog).toBeVisible();
+  await expect(
+    aboutDialog.getByRole("button", { name: "更新を確認" }),
+  ).toHaveCount(0);
   const aboutIcon = page.getByRole("img", { name: "nesdot icon" });
   await expect(aboutIcon).toBeVisible();
 
@@ -189,6 +247,56 @@ test("shows global app menu controls", async ({ page }) => {
   expect(aboutIconPathname).toBe(expectedAboutIconPathname);
   await expect(page.getByText(/^Version /)).toBeVisible();
   await expect(aboutDialog.getByText("nesdot", { exact: true })).toBeVisible();
+});
+
+test("clicking the same menu trigger closes it without keeping the open styling", async ({
+  page,
+}) => {
+  await gotoApp(page);
+
+  const helpTrigger = getMenuTrigger(page, "ヘルプ");
+
+  await helpTrigger.click();
+  await expect(getVisibleMenuItem(page, "About")).toBeVisible();
+
+  await helpTrigger.click();
+  await expect(page.getByRole("menu", { name: "ヘルプメニュー" })).toHaveCount(
+    0,
+  );
+
+  await page.mouse.move(0, 0);
+
+  await expect
+    .poll(async () =>
+      helpTrigger.evaluate((element) => {
+        const computedStyle = window.getComputedStyle(element);
+
+        return {
+          backgroundImage: computedStyle.backgroundImage,
+          boxShadow: computedStyle.boxShadow,
+        };
+      }),
+    )
+    .toEqual({
+      backgroundImage: "none",
+      boxShadow: "none",
+    });
+});
+
+test("shows update checks inside tauri runtime", async ({ page }) => {
+  await emulateTauriRuntime(page);
+  await gotoApp(page);
+
+  await openHelpMenu(page);
+  await expect(getVisibleMenuItem(page, "更新を確認")).toBeVisible();
+
+  await getVisibleMenuItem(page, "About").click();
+  const aboutDialog = page.getByRole("dialog", { name: "About" });
+
+  await expect(aboutDialog).toBeVisible();
+  await expect(
+    aboutDialog.getByRole("button", { name: "更新を確認" }),
+  ).toBeVisible();
 });
 
 test("includes pwa manifest and app icons", async ({ page }) => {
@@ -226,7 +334,7 @@ test("file menu availability follows the current work mode", async ({
     page.getByRole("region", { name: "BG編集ワークスペース", exact: true }),
   ).toBeVisible();
   await expectFileMenuState(page, {
-    shareDisabled: true,
+    shareDisabled: false,
     restoreDisabled: true,
   });
 

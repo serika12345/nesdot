@@ -12,7 +12,7 @@ const toNonNegativeInteger = (value, label) => {
   return parsed;
 };
 
-export const parseSemver = (version) => {
+const parseSemver = (version) => {
   const match = version.match(SEMVER_PATTERN);
 
   if (match === null) {
