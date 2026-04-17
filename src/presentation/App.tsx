@@ -23,6 +23,7 @@ import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileM
 import { BgMode } from "./components/bgMode/ui/core/BgMode";
 import { useCharacterModeProjectActions } from "./components/characterMode/logic/characterModeProjectActions";
 import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
+import { usePalettePickerState } from "./components/common/logic/palettePickerState";
 import {
   emptyFileMenuState,
   type FileMenuState,
@@ -370,6 +371,7 @@ const AppBody: React.FC = () => {
   const { projectActions: characterProjectActions } =
     useCharacterModeProjectActions();
   const bgFileMenuState = useBgModeFileMenuState();
+  const palettePickerState = usePalettePickerState();
   const screenFileMenuState = useScreenModeFileMenuState();
 
   const spriteFileMenuState = useMemo<FileMenuState>(
@@ -581,7 +583,7 @@ const AppBody: React.FC = () => {
                 pr={2.25}
                 style={{ scrollbarGutter: "stable" }}
               >
-                <PalettePicker />
+                <PalettePicker palettePickerState={palettePickerState} />
               </Box>
             </Stack>
           </Stack>
