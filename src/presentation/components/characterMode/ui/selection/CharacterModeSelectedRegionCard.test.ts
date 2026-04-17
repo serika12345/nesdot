@@ -18,7 +18,7 @@ vi.mock("../../logic/characterModeDecompositionState", () => {
   };
 });
 
-vi.mock("../preview/CharacterModeTilePreview", () => {
+vi.mock("./preview/CharacterModeTilePreview", () => {
   return {
     CharacterModeTilePreview: () => React.createElement("div", {}, "preview"),
   };

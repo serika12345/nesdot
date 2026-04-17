@@ -14,7 +14,7 @@ vi.mock("../../logic/characterModeEditorState", () => {
   };
 });
 
-vi.mock("../preview/CharacterModeTilePreview", () => {
+vi.mock("./preview/CharacterModeTilePreview", () => {
   return {
     CharacterModeTilePreview: () => React.createElement("div", {}, "preview"),
   };

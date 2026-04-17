@@ -48,7 +48,7 @@ import {
   MenuSubContentSurface,
   MenuSubTriggerAction,
   MenuTriggerAction,
-} from "./styles";
+} from "./MenuBarStyle";
 
 interface MenuBarProps {
   fileMenuState: FileMenuState;
