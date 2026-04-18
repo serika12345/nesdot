@@ -232,6 +232,18 @@
       }
     },
     {
+      "label": "Verify Tauri CSP",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:tauri:csp"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
       "label": "Run WSL Doctor",
       "type": "shell",
       "command": "nix",

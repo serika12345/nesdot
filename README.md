@@ -229,6 +229,14 @@ nix develop -c zsh -lc 'pnpm verify:security'
 
 この検証では、依存サプライチェーン設定、CI / release workflow の `--frozen-lockfile`、Tauri updater 設定、アプリ内の JSON 復元境界を機械的に確認します。
 
+### macOS Tauri CSP Runtime Verification
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:tauri:csp'
+```
+
+この検証は macOS 専用です。`nix build` で生成した `result/bin/nesdot` を実際に起動し、macOS unified log から Tauri / WebKit の CSP violation と起動直後の console error を検出します。
+
 ### License Verification
 
 ```sh
@@ -353,6 +361,12 @@ nix develop -c zsh -lc 'pnpm verify:full'
 
 ```sh
 nix develop -c zsh -lc 'pnpm verify:rust'
+```
+
+macOS の Tauri production build / CSP 対応を変更した場合:
+
+```sh
+nix develop -c zsh -lc 'pnpm verify:tauri:csp'
 ```
 
 CI では通常の verify job に加えて `pnpm verify:licenses` と `pnpm verify:cve` を走らせ、新しい license 構成差分や advisory を pull request / push の段階で検出します。

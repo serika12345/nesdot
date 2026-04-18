@@ -263,6 +263,10 @@ const runVerification = ({ run, skipChecks, skipE2EConsole }) => {
   }
 
   run(["pnpm", "verify:rust"]);
+
+  if (process.platform === "darwin") {
+    run(["pnpm", "verify:tauri:csp"]);
+  }
 };
 
 const ensureTagDoesNotExist = ({ run, tagName }) => {

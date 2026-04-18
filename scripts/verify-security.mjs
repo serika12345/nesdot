@@ -225,17 +225,17 @@ const checkTauriSecurityConfiguration = () => {
       ]),
     )
     .concat(
-      requireDirectiveSources(relativePath, security.csp, "style-src-elem", [
-        "'self'",
-      ]),
-    )
-    .concat(
       requireDirectiveSources(relativePath, security.csp, "style-src-attr", [
         "'none'",
       ]),
     )
     .concat(
       forbidDirectiveSources(relativePath, security.csp, "style-src", [
+        "'unsafe-inline'",
+      ]),
+    )
+    .concat(
+      forbidDirectiveSources(relativePath, security.csp, "style-src-elem", [
         "'unsafe-inline'",
       ]),
     )

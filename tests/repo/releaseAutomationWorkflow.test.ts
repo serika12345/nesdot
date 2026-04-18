@@ -25,6 +25,8 @@ describe("release automation workflow", () => {
     expect(releaseAutomation).toContain('run(["pnpm", "verify"]);');
     expect(releaseAutomation).toContain('run(["pnpm", "test:e2e:console"]);');
     expect(releaseAutomation).toContain('run(["pnpm", "verify:rust"]);');
+    expect(releaseAutomation).toContain('process.platform === "darwin"');
+    expect(releaseAutomation).toContain('run(["pnpm", "verify:tauri:csp"]);');
     expect(releaseAutomation).toContain("RELEASE_FILES.flakeNix,");
   });
 });

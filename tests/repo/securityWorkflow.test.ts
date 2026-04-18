@@ -16,6 +16,9 @@ describe("security verification workflow", () => {
       '"verify:security": "node scripts/verify-security.mjs"',
     );
     expect(packageJson).toContain(
+      '"verify:tauri:csp": "node scripts/verify-tauri-csp.mjs"',
+    );
+    expect(packageJson).toContain(
       '"verify:cve": "node scripts/verify-cves.mjs"',
     );
     expect(packageJson).toContain(
@@ -27,8 +30,10 @@ describe("security verification workflow", () => {
     const tasksJson = readTextFile("../../.vscode/tasks.json");
 
     expect(tasksJson).toContain('"Verify Security"');
+    expect(tasksJson).toContain('"Verify Tauri CSP"');
     expect(tasksJson).toContain('"Verify CVE"');
     expect(tasksJson).toContain('"pnpm verify:security"');
+    expect(tasksJson).toContain('"pnpm verify:tauri:csp"');
     expect(tasksJson).toContain('"pnpm verify:cve"');
   });
 
@@ -36,13 +41,15 @@ describe("security verification workflow", () => {
     const readme = readTextFile("../../README.md");
 
     expect(readme).toContain("pnpm verify:security");
+    expect(readme).toContain("pnpm verify:tauri:csp");
     expect(readme).toContain("pnpm verify:cve");
     expect(readme).toContain("baseline");
   });
 
   test("keeps security verification focused on supply chain, csp, updater, JSON boundaries, and CI wiring", () => {
     const securityScript = readTextFile("../../scripts/verify-security.mjs");
-    const tauriConfig = readTextFile("../../src-tauri/tauri.conf.json");
+    const tauriConfigText = readTextFile("../../src-tauri/tauri.conf.json");
+    const tauriConfig = JSON.parse(tauriConfigText);
     const eslintConfig = readTextFile("../../eslint.config.js");
     const ciWorkflow = readTextFile("../../.github/workflows/ci.yml");
     const flakeNix = readTextFile("../../flake.nix");
@@ -70,16 +77,25 @@ describe("security verification workflow", () => {
     expect(securityScript).toContain("checkInlineStyleAttributeBoundaries");
     expect(securityScript).toContain("cssText");
 
-    expect(tauriConfig).toContain('"freezePrototype": true');
-    expect(tauriConfig).toContain('"csp": {');
-    expect(tauriConfig).toContain('"devCsp": {');
-    expect(tauriConfig).toContain('"default-src"');
-    expect(tauriConfig).toContain('"connect-src"');
-    expect(tauriConfig).toContain('"img-src"');
-    expect(tauriConfig).toContain('"style-src": ["\'self\'"]');
-    expect(tauriConfig).toContain('"style-src-elem": ["\'self\'"]');
-    expect(tauriConfig).toContain('"style-src-attr": ["\'none\'"]');
-    expect(tauriConfig).toContain('"X-Content-Type-Options": "nosniff"');
+    expect(tauriConfig.app.security.freezePrototype).toBe(true);
+    expect(tauriConfig.app.security.csp["default-src"]).toEqual(["'self'"]);
+    expect(tauriConfig.app.security.csp["connect-src"]).toContain("'self'");
+    expect(tauriConfig.app.security.csp["img-src"]).toEqual([
+      "'self'",
+      "blob:",
+      "data:",
+    ]);
+    expect(tauriConfig.app.security.csp["style-src"]).toEqual(["'self'"]);
+    expect(tauriConfig.app.security.csp).not.toHaveProperty("style-src-elem");
+    expect(tauriConfig.app.security.csp["style-src-attr"]).toEqual(["'none'"]);
+    expect(tauriConfig.app.security.devCsp["style-src"]).toEqual(["'self'"]);
+    expect(tauriConfig.app.security.devCsp["style-src-elem"]).toEqual([
+      "'self'",
+      "'unsafe-inline'",
+    ]);
+    expect(tauriConfig.app.security.headers["X-Content-Type-Options"]).toBe(
+      "nosniff",
+    );
 
     expect(eslintConfig).toContain('"no-eval": "error"');
     expect(eslintConfig).toContain('"no-implied-eval": "error"');
