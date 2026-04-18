@@ -6,6 +6,11 @@
 - Converge on stock MUI / Material visuals wherever the UI is not editor-specific.
 - Keep custom styling only for product-specific editor geometry, canvas overlays, and preview sizing.
 
+Related implementation docs:
+
+- `docs/emotion-removal-migration-plan.md`
+- `docs/static-css-architecture.md`
+
 ## Direction
 
 The target state is:

@@ -461,7 +461,7 @@ gh secret set TAURI_SIGNING_PRIVATE_KEY -R paseri3739/nesdot < ~/.tauri/nesdot-u
 - ビルド: Vite
 - デスクトップ化: Tauri 2
 - 状態管理: Zustand
-- スタイル: Emotion (MUI)
+- スタイル: MUI theme + static CSS migration in progress (current runtime path still includes Emotion)
 - キャンバス: Fabric.js (キャラクター合成キャンバス)
 - ランタイムバリデーション: Zod
 - 関数型ユーティリティ: fp-ts
@@ -499,6 +499,9 @@ gh secret set TAURI_SIGNING_PRIVATE_KEY -R paseri3739/nesdot < ~/.tauri/nesdot-u
 ## 実装メモ
 
 - `nesdev` の仕様をもとにした画面描画コンテキスト: [`docs/nesdev-screen-rendering-context.md`](docs/nesdev-screen-rendering-context.md)
+- Emotion 全廃の実装計画: [`docs/emotion-removal-migration-plan.md`](docs/emotion-removal-migration-plan.md)
+- CSS Modules / static CSS の設計ルール: [`docs/static-css-architecture.md`](docs/static-css-architecture.md)
+- 既存 MUI 移行メモ: [`docs/plain-mui-migration-prep.md`](docs/plain-mui-migration-prep.md)
 
 ## ライセンス
 
