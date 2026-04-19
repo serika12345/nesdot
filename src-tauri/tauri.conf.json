@@ -40,7 +40,6 @@
         "default-src": ["'self'"],
         "script-src": ["'self'"],
         "style-src": ["'self'"],
-        "style-src-elem": ["'self'", "'unsafe-inline'"],
         "style-src-attr": ["'none'"],
         "img-src": ["'self'", "blob:", "data:"],
         "font-src": ["'self'"],

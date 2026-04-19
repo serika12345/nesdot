@@ -19,11 +19,15 @@ describe("security verification workflow", () => {
       '"verify:tauri:csp": "node scripts/verify-tauri-csp.mjs"',
     );
     expect(packageJson).toContain(
+      '"verify:tauri:csp:if-supported": "node scripts/verify-tauri-csp-if-supported.mjs"',
+    );
+    expect(packageJson).toContain(
       '"verify:cve": "node scripts/verify-cves.mjs"',
     );
     expect(packageJson).toContain(
       '"verify": "pnpm format:check && pnpm lint && pnpm typecheck:safety && pnpm verify:security && pnpm test"',
     );
+    expect(packageJson).toContain("pnpm verify:tauri:csp:if-supported");
   });
 
   test("defines VS Code tasks for targeted security verification", () => {
@@ -55,6 +59,14 @@ describe("security verification workflow", () => {
     const flakeNix = readTextFile("../../flake.nix");
     const cveScript = readTextFile("../../scripts/verify-cves.mjs");
     const cveBaseline = readTextFile("../../scripts/cve-audit-baseline.json");
+    const screenModeProjectActions = readTextFile(
+      "../../src/presentation/components/screenMode/logic/useScreenModeProjectActions.ts",
+    );
+    const spriteModeProjectActions = readTextFile(
+      "../../src/presentation/components/spriteMode/logic/spriteModeProjectActions.ts",
+    );
+    const mainSource = readTextFile("../../src/main.tsx");
+    const indexHtml = readTextFile("../../src/index.html");
 
     expect(securityScript).toContain("strictDepBuilds: true");
     expect(securityScript).toContain("minimumReleaseAge: 1440");
@@ -75,6 +87,8 @@ describe("security verification workflow", () => {
     expect(securityScript).toContain("style-src-elem");
     expect(securityScript).toContain("style-src-attr");
     expect(securityScript).toContain("checkInlineStyleAttributeBoundaries");
+    expect(securityScript).toContain("checkTauriStyleNonceBootstrap");
+    expect(securityScript).toContain("checkTauriStartupLazyBoundaries");
     expect(securityScript).toContain("cssText");
 
     expect(tauriConfig.app.security.freezePrototype).toBe(true);
@@ -88,11 +102,19 @@ describe("security verification workflow", () => {
     expect(tauriConfig.app.security.csp["style-src"]).toEqual(["'self'"]);
     expect(tauriConfig.app.security.csp).not.toHaveProperty("style-src-elem");
     expect(tauriConfig.app.security.csp["style-src-attr"]).toEqual(["'none'"]);
+    expect(tauriConfig.app.security.devCsp["default-src"]).toEqual(
+      tauriConfig.app.security.csp["default-src"],
+    );
+    expect(tauriConfig.app.security.devCsp["script-src"]).toEqual(
+      tauriConfig.app.security.csp["script-src"],
+    );
     expect(tauriConfig.app.security.devCsp["style-src"]).toEqual(["'self'"]);
-    expect(tauriConfig.app.security.devCsp["style-src-elem"]).toEqual([
-      "'self'",
-      "'unsafe-inline'",
-    ]);
+    expect(tauriConfig.app.security.devCsp).not.toHaveProperty(
+      "style-src-elem",
+    );
+    expect(tauriConfig.app.security.devCsp["style-src-attr"]).toEqual(
+      tauriConfig.app.security.csp["style-src-attr"],
+    );
     expect(tauriConfig.app.security.headers["X-Content-Type-Options"]).toBe(
       "nosniff",
     );
@@ -105,7 +127,27 @@ describe("security verification workflow", () => {
     expect(eslintConfig).toContain("insertAdjacentHTML");
     expect(eslintConfig).toContain("innerHTML");
 
+    expect(mainSource).toContain("CacheProvider");
+    expect(mainSource).toContain("createCache");
+    expect(mainSource).toContain("getCspNonce");
+    expect(indexHtml).toContain('name="csp-nonce"');
+    expect(indexHtml).toContain("__TAURI_STYLE_NONCE__");
+    expect(screenModeProjectActions).not.toContain(
+      'import useImportImage from "../../../../infrastructure/browser/useImportImage"',
+    );
+    expect(screenModeProjectActions).toContain(
+      'import("../../../../infrastructure/browser/useImportImage")',
+    );
+    expect(spriteModeProjectActions).not.toContain(
+      'import useImportImage from "../../../../infrastructure/browser/useImportImage"',
+    );
+    expect(spriteModeProjectActions).toContain(
+      'import("../../../../infrastructure/browser/useImportImage")',
+    );
+
     expect(ciWorkflow).toContain("pnpm verify:cve");
+    expect(ciWorkflow).toContain("verify-macos-tauri-csp:");
+    expect(ciWorkflow).toContain("pnpm verify:tauri:csp");
     expect(flakeNix).toContain("cargo-audit");
     expect(cveScript).toContain('"pnpm"');
     expect(cveScript).toContain('"audit"');

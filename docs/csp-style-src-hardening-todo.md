@@ -2,40 +2,32 @@
 
 ## 現在の到達点
 
-- [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) の `app.security.csp` は `style-src 'self'` のみ。`style-src-elem` は未定義（`style-src` にフォールバック）
-- Tauri の `__TAURI_STYLE_NONCE__` トークンを使い、プロダクションビルドでは CSP nonce 方式で Emotion runtime `<style>` を許可
-- [../src/index.html](../src/index.html) に `<meta name="csp-nonce" content="__TAURI_STYLE_NONCE__">` を配置。Tauri がページロード時にランダム nonce に置換し、CSP `style-src` に `'nonce-xxx'` を追加する
-- [../src/infrastructure/browser/getCspNonce.ts](../src/infrastructure/browser/getCspNonce.ts) が meta タグから nonce を読み取り、Emotion `createCache({ nonce })` に渡す
-- [../src/main.tsx](../src/main.tsx) で `@emotion/cache` の `CacheProvider` を使い、全ての Emotion runtime `<style>` タグに nonce 属性を付与
+- [../src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) の `app.security.csp` / `devCsp` は `default-src` / `script-src` / `style-src` / `style-src-attr` などの strict directive を揃え、差分は dev server 用の `connect-src` に限定している
+- `style-src-elem` は両方の CSP から定義を外し、style element の判定を Tauri が nonce を注入する `style-src` に一本化している
+- [../src/main.tsx](../src/main.tsx) は `ThemeProvider` に加えて Emotion `CacheProvider` を使い、Tauri の style nonce を runtime `<style>` 注入へ渡す
+- [../src/index.html](../src/index.html) に `csp-nonce` meta placeholder を置き、debug / release build の bundled runtime で同じ nonce bootstrap を使う
+- [../package.json](../package.json) には direct `@emotion/cache` / `@emotion/react` 依存を戻し、bootstrap の依存関係を明示している
+- [../src/assets/global.css](../src/assets/global.css) に global CSS を置き、component-owned styling は CSS Modules へ寄せている
 - `style-src-attr` は `['none']` を維持し、style attribute 文字列の注入を禁止
-- `devCsp` のみ `style-src-elem: ['self', 'unsafe-inline']` を維持（Tauri dev mode は nonce 置換を行わないため）
-- [../src/assets/global.css](../src/assets/global.css) に CssBaseline の global styles を static CSS として抽出し、runtime 依存を削減
+- `devCsp` も `default-src` / `script-src` / `style-src` / `style-src-attr` などの strict directive は production `csp` と一致させ、差分は dev server 用の `connect-src` のみに限定する
 
 ## 何が変わったか
 
-Pigment CSS v0.0.30 の `styles.css` はプレースホルダーであり、MUI コンポーネントの基本スタイル（Stack の `display: flex` 等）は全て Emotion runtime で `<style>` タグに注入される。
+以前は debug / release で別の CSP 経路を通しており、Tauri runtime に残っている style injector と startup `zod` import を見落としやすかった。
 
-当初は `style-src-elem` に `'unsafe-inline'` を追加して対応していたが、Tauri の `__TAURI_STYLE_NONCE__` メカニズムを活用して根本解決した：
-
-1. `index.html` の `<meta>` タグに nonce トークンを配置
-2. Tauri がビルド時に `<style>` タグへ nonce 属性を追加、実行時にランダム値に置換
-3. Emotion `createCache({ nonce })` で動的 `<style>` にも同一 nonce を付与
-4. CSP `style-src` に nonce が自動追加され、`'unsafe-inline'` が不要に
+現在は release build と同じ `frontendDist` / production CSP を使う debug binary を起動して `pnpm verify:tauri:csp` を回しつつ、runtime `<style>` は Tauri の `__TAURI_STYLE_NONCE__` bootstrap で許可し、`style-src-elem` は定義せず `style-src` の nonce 判定へ寄せ、JSON import の `zod` は interaction 時の dynamic import に分離している。
 
 ## 現在のガードレール
 
-- [../scripts/verify-security.mjs](../scripts/verify-security.mjs) が `style-src` / `style-src-attr` の期待値を検査する
-- 同 verifier が `style-src` と `style-src-elem` の両方で `'unsafe-inline'` を禁止する
+- [../scripts/verify-security.mjs](../scripts/verify-security.mjs) が production `csp` の期待値を検査し、`devCsp` にも `connect-src` 以外は同じ directive set を要求する
+- 同 verifier が `style-src` で `'unsafe-inline'` を禁止し、`style-src-elem` の明示定義自体も拒否する
 - 同 verifier が `setAttribute("style", ...)` と `cssText` の使用を拒否する
-- [../tests/repo/securityWorkflow.test.ts](../tests/repo/securityWorkflow.test.ts) が production CSP に `style-src-elem` が存在しないことを検証する
+- 同 verifier が Tauri style nonce bootstrap の構成と、`useImportImage` の dynamic import 境界を確認する
+- [../scripts/verify-tauri-csp.mjs](../scripts/verify-tauri-csp.mjs) が `tauri build --debug --no-bundle` で生成した debug binary を起動し、release build と同じ `frontendDist` / production CSP 経路で runtime diagnostics file と macOS unified log を検査する
 
 ## 残る注意点
 
-- Playwright の web preview では Tauri の CSP 自体は実行されないため、最終的な実ランタイム確認は Tauri WebView で別途見る価値がある
+- Playwright の web preview では Tauri の CSP 自体は実行されないため、最終確認は `pnpm verify:tauri:csp` を使う
 - `style-src-attr` / `style-src-elem` は CSP Level 3 依存なので、古い WebView サポート方針を広げる場合は互換性を再確認する
-- 将来ライブラリ追加で inline `<style>` を生成する実装が入ると、`CacheProvider` 外の `<style>` は nonce を持たず CSP violation になる。新規ライブラリ導入時は nonce 対応を確認すること
-
-## 次に見るなら
-
-- Pigment CSS が MUI コンポーネントの static CSS extraction を完全サポートした段階で、Emotion runtime の `<style>` 注入自体がなくなり、nonce メカニズムも不要になる
-- `devCsp` の `style-src-elem: ['self', 'unsafe-inline']` も、Tauri dev mode が nonce 置換をサポートすれば除去可能
+- 将来追加するライブラリが runtime `<style>` を挿入する場合、production CSP と衝突する。導入時は `pnpm verify:tauri:csp` を必ず通す
+- 将来 Emotion / MUI runtime を本当に外せる段階になったら、nonce bootstrap と direct Emotion dependency も一緒に削る。片方だけ先に外すと再び Tauri でレイアウトが崩れる

@@ -1,5 +1,6 @@
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
+import "./infrastructure/browser/tauriRuntimeDiagnostics";
 import "@mui/material-pigment-css/styles.css";
 import { ThemeProvider } from "@mui/material/styles";
 import * as O from "fp-ts/Option";
@@ -21,10 +22,9 @@ const emotionCache = createCache(
 );
 
 const rootElement = document.getElementById("root");
-const rootElementOption = O.fromNullable(rootElement);
 
-if (O.isSome(rootElementOption)) {
-  createRoot(rootElementOption.value).render(
+if (rootElement instanceof HTMLDivElement) {
+  createRoot(rootElement).render(
     <CacheProvider value={emotionCache}>
       <ThemeProvider theme={appTheme}>
         <App />

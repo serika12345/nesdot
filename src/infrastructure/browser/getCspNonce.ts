@@ -1,9 +1,8 @@
 /**
  * Tauri replaces __TAURI_STYLE_NONCE__ tokens in the built HTML with a
  * unique random nonce at page-load time and adds the nonce to the CSP
- * `style-src` directive.  In dev mode (Vite dev server) the token stays
- * as the literal placeholder, so we return None and let Emotion create
- * `<style>` tags without a nonce attribute.
+ * `style-src` directive. In dev mode the placeholder remains unchanged,
+ * so we only expose a nonce when the build runtime has already resolved it.
  */
 
 import * as O from "fp-ts/Option";

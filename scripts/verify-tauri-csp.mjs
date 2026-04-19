@@ -1,55 +1,18 @@
 #!/usr/bin/env node
 
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { findViolationLines, logPredicate } from "./verify-tauri-csp-core.mjs";
 
 const repoRoot = process.cwd();
-const tauriBinaryPath = resolve(repoRoot, "result/bin/nesdot");
-
-const logPredicate = [
-  '(process == "nesdot")',
-  "||",
-  '((process CONTAINS "WebKit") AND (eventMessage CONTAINS[c] "Content Security" || eventMessage CONTAINS[c] "console"))',
-].join(" ");
-
-const violationPatterns = Object.freeze([
-  /content.?security/u,
-  /csp/u,
-  /style-src/u,
-  /refused to apply/u,
-  /refused to load/u,
-  /console-error/u,
-  /console error/u,
-]);
-
-const harmlessPatterns = Object.freeze([
-  /Filtering the log data using/u,
-  /CFPasteboard/u,
-  /Connection invalid/u,
-  /sandbox/iu,
-  /Operation not permitted/iu,
-  /AudioComponentRegistrar/u,
-  /coreservicesd/u,
-  /RunningBoard/u,
-  /AppKit:WindowTab/u,
-  /Missing entitlements/u,
-  /networkd_settings_read_from_file_locked/u,
-  /bootstrap look-up/u,
-  /Error registering app with intents framework/u,
-  /SLSLogBreak/u,
-  /Attempt to connect to launchservicesd prohibited/u,
-  /Conn 0x0 is not a valid connection ID/u,
-  /Unable to hide query parameters from script/u,
-  /invalid product id/u,
-  /CRASHSTRING:/u,
-  /BoardServices/u,
-  /XPCErrorDescription/u,
-  /TCC:access/u,
-  /appintents:Connection/u,
-  /Handshake aborted as the connection has been invalidated/u,
-]);
+const tauriBinaryPath = resolve(repoRoot, "src-tauri/target/debug/nesdot");
+const runtimeDiagnosticsPath = resolve(
+  tmpdir(),
+  `nesdot-verify-tauri-csp-${process.pid}.jsonl`,
+);
 
 const ensureSupportedPlatform = () => {
   if (process.platform !== "darwin") {
@@ -62,7 +25,7 @@ const ensureSupportedPlatform = () => {
 const ensureBuiltBinary = () => {
   if (existsSync(tauriBinaryPath) !== true) {
     throw new Error(
-      `Expected a nix-built Tauri binary at ${tauriBinaryPath}, but it does not exist.`,
+      `Expected a debug Tauri binary at ${tauriBinaryPath}, but it does not exist.`,
     );
   }
 
@@ -70,13 +33,13 @@ const ensureBuiltBinary = () => {
 
   if (binaryStat.isFile() !== true) {
     throw new Error(
-      `Expected ${tauriBinaryPath} to be a file produced by nix build.`,
+      `Expected ${tauriBinaryPath} to be a debug Tauri binary produced by tauri build --debug --no-bundle.`,
     );
   }
 };
 
-const runNixBuild = () => {
-  execFileSync("nix", ["build"], {
+const runDebugBuild = () => {
+  execFileSync("pnpm", ["tauri", "build", "--debug", "--no-bundle"], {
     cwd: repoRoot,
     stdio: "inherit",
   });
@@ -101,6 +64,53 @@ const terminateProcessGroup = (pid) => {
       throw error;
     }
   }
+};
+
+const clearRuntimeDiagnosticsFile = () => {
+  rmSync(runtimeDiagnosticsPath, {
+    force: true,
+  });
+};
+
+const formatRuntimeDiagnosticLine = (line) => {
+  try {
+    const parsed = JSON.parse(line);
+
+    if (typeof parsed !== "object" || parsed === null) {
+      return line;
+    }
+
+    const kind =
+      "kind" in parsed && typeof parsed.kind === "string" ? parsed.kind : "";
+    const message =
+      "message" in parsed && typeof parsed.message === "string"
+        ? parsed.message
+        : line;
+    const details =
+      "details" in parsed && typeof parsed.details === "string"
+        ? parsed.details
+        : "";
+
+    return details.length > 0
+      ? `[${kind}] ${message} (${details})`
+      : `[${kind}] ${message}`;
+  } catch {
+    return line;
+  }
+};
+
+const readRuntimeDiagnosticLines = () => {
+  if (existsSync(runtimeDiagnosticsPath) !== true) {
+    return [];
+  }
+
+  const diagnosticsText = readFileSync(runtimeDiagnosticsPath, "utf8").trim();
+
+  if (diagnosticsText.length === 0) {
+    return [];
+  }
+
+  return diagnosticsText.split("\n").map(formatRuntimeDiagnosticLine);
 };
 
 const collectRuntimeLogLines = async () => {
@@ -138,14 +148,21 @@ const collectRuntimeLogLines = async () => {
   logProcess.stdout.on("data", appendChunk);
   logProcess.stderr.on("data", appendChunk);
 
+  clearRuntimeDiagnosticsFile();
   await delay(1_000);
 
   const appProcess = spawn(tauriBinaryPath, [], {
     cwd: repoRoot,
     detached: true,
     stdio: "ignore",
+    env: {
+      ...process.env,
+      NESDOT_VERIFY_TAURI_CSP_DIAGNOSTICS_FILE: runtimeDiagnosticsPath,
+      NESDOT_VERIFY_TAURI_CSP_SELF_TEST:
+        process.env.NESDOT_VERIFY_TAURI_CSP_SELF_TEST ?? "",
+    },
   });
-  const appPid = ensurePid(appProcess, "The nix-built Tauri app");
+  const appPid = ensurePid(appProcess, "The debug Tauri app");
 
   appProcess.unref();
 
@@ -160,39 +177,34 @@ const collectRuntimeLogLines = async () => {
   return closedLogLines;
 };
 
-const findViolationLines = (logLines) => {
-  return logLines.filter((line) => {
-    const isViolation = violationPatterns.some((pattern) => pattern.test(line));
-    const isHarmless = harmlessPatterns.some((pattern) => pattern.test(line));
-
-    return isViolation === true && isHarmless !== true;
-  });
-};
-
 const main = async () => {
   ensureSupportedPlatform();
-  console.info("[verify-tauri-csp] Building the desktop app with nix build...");
-  runNixBuild();
+  console.info(
+    "[verify-tauri-csp] Building the debug desktop binary with tauri build --debug --no-bundle...",
+  );
+  runDebugBuild();
   ensureBuiltBinary();
 
   console.info(
-    "[verify-tauri-csp] Launching the nix-built Tauri app and inspecting macOS unified logs...",
+    "[verify-tauri-csp] Launching the debug Tauri binary and inspecting macOS unified logs...",
   );
 
   const logLines = await collectRuntimeLogLines();
+  const runtimeDiagnosticLines = readRuntimeDiagnosticLines();
   const violationLines = findViolationLines(logLines);
 
-  if (violationLines.length > 0) {
+  if (runtimeDiagnosticLines.length > 0 || violationLines.length > 0) {
     throw new Error(
       [
-        "Detected CSP or console-error lines while launching the nix-built Tauri app:",
+        "Detected CSP or console-error diagnostics while launching the debug Tauri binary:",
+        ...runtimeDiagnosticLines.map((line) => `[runtime-diagnostic] ${line}`),
         ...violationLines,
       ].join("\n"),
     );
   }
 
   console.info(
-    "[verify-tauri-csp] No CSP or console errors were detected while launching result/bin/nesdot.",
+    "[verify-tauri-csp] No CSP or console errors were detected while launching src-tauri/target/debug/nesdot.",
   );
 };
 

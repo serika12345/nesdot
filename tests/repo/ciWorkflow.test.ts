@@ -16,12 +16,16 @@ describe("ci-equivalent verification workflow", () => {
       '"verify:ui:console": "pnpm test:e2e:console"',
     );
     expect(packageJson).toContain('"verify:ci":');
+    expect(packageJson).toContain(
+      '"verify:tauri:csp:if-supported": "node scripts/verify-tauri-csp-if-supported.mjs"',
+    );
     expect(packageJson).toContain("pnpm nix:check-pnpm-deps-hash");
     expect(packageJson).toContain("pnpm install --frozen-lockfile");
     expect(packageJson).toContain("pnpm verify:licenses");
     expect(packageJson).toContain("pnpm verify:rust");
     expect(packageJson).toContain("pnpm verify:ui:console");
     expect(packageJson).toContain("pnpm verify:cve");
+    expect(packageJson).toContain("pnpm verify:tauri:csp:if-supported");
   });
 
   test("documents the one-shot local CI-equivalent verification command", () => {
@@ -36,6 +40,9 @@ describe("ci-equivalent verification workflow", () => {
 
     expect(workflow).toContain("pnpm verify:ui:console");
     expect(workflow).toContain("pnpm verify:cve");
+    expect(workflow).toContain("verify-macos-tauri-csp:");
+    expect(workflow).toContain("runs-on: macos-latest");
+    expect(workflow).toContain("pnpm verify:tauri:csp");
     expect(workflow).not.toContain("pnpm e2e:install && pnpm verify:ui'");
     expect(workflow).not.toContain("audit-cves:");
   });

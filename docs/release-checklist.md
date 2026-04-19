@@ -15,6 +15,7 @@
 - [ ] Linux system library変更時: `pnpm verify:system-libraries` パス
 - [ ] CVE監査: `pnpm verify:cve` パス
 - [ ] CI/CDフル検証: `pnpm verify:ci` パス
+- [ ] 通常 CI の macOS job で `pnpm verify:tauri:csp` パス
 - [ ] `nix build` がローカルで成功し、`result/bin/nesdot` が生成される
 - [ ] バージョン・タグ・manifestの整合性確認
 - [ ] リリースノート作成

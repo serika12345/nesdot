@@ -3,7 +3,7 @@
  *
  * CSP `style-src-elem 'self'` in the Tauri production build blocks
  * runtime-injected <style> tags. All global CSS that was previously
- * supplied by the Emotion-powered CssBaseline must live in a static
+ * supplied by the previous runtime CssBaseline path must live in a static
  * CSS file loaded via <link>.
  */
 

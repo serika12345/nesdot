@@ -235,7 +235,7 @@ nix develop -c zsh -lc 'pnpm verify:security'
 nix develop -c zsh -lc 'pnpm verify:tauri:csp'
 ```
 
-この検証は macOS 専用です。`nix build` で生成した `result/bin/nesdot` を実際に起動し、macOS unified log から Tauri / WebKit の CSP violation と起動直後の console error を検出します。
+この検証は macOS 専用です。`tauri dev` の `devUrl` 経路は使わず、`pnpm tauri build --debug --no-bundle` で生成した `src-tauri/target/debug/nesdot` を実際に起動します。これにより `frontendDist` と production `app.security.csp` は release build と同じ経路になります。`app.security.devCsp` も `connect-src` 以外の strict directive は production `csp` と一致させ、debug / release 間で script/style 系 CSP がずれないようにしています。起動中はフロントエンドが `console.error` / `window.onerror` / `unhandledrejection` / `securitypolicyviolation` を一時診断ファイルへ記録し、script はその内容に加えて macOS unified log も補助的に確認します。残っている MUI runtime style は Tauri の `__TAURI_STYLE_NONCE__` bootstrap で許可し、style element は `style-src` の nonce に統一、JSON import の `zod` は startup chunk へ入れず interaction 時の dynamic import に逃がしています。
 
 ### License Verification
 
@@ -344,6 +344,7 @@ nix develop -c zsh -lc 'pnpm verify:ci'
 ```
 
 このコマンドは `pnpm nix:check-pnpm-deps-hash`、`pnpm install --frozen-lockfile`、`pnpm verify`、`pnpm verify:licenses`、`pnpm verify:rust`、`pnpm e2e:install`、`pnpm verify:ui:console`、`pnpm verify:cve` を CI と同じ順序でまとめて実行します。
+macOS では最後に `pnpm verify:tauri:csp` も実行し、非 macOS ではその runtime 検証だけを skip します。
 
 UI 変更:
 
@@ -356,6 +357,8 @@ UI の表示・操作フローに影響する変更:
 ```sh
 nix develop -c zsh -lc 'pnpm verify:full'
 ```
+
+このコマンドは `pnpm verify:ui`、`pnpm test:e2e` に加えて、macOS では `pnpm verify:tauri:csp` も実行します。非 macOS では CSP runtime 検証だけを skip します。
 
 `src-tauri` や Rust 向けの build / release tooling を変更した場合:
 
@@ -370,6 +373,7 @@ nix develop -c zsh -lc 'pnpm verify:tauri:csp'
 ```
 
 CI では通常の verify job に加えて `pnpm verify:licenses` と `pnpm verify:cve` を走らせ、新しい license 構成差分や advisory を pull request / push の段階で検出します。
+さらに通常 CI に macOS 専用の `pnpm verify:tauri:csp` job も含め、Tauri runtime の CSP regression を release 前に検出します。
 console E2E は `pnpm verify:ui` ではなく `pnpm verify:ui:console` を直接使い、base verify の二重実行を避けています。
 
 VS Code では `Terminal: Run Task` から `Verify Licenses`, `Verify Security`, `Verify System Libraries`, `Verify CVE`, `Verify`, `Verify UI`, `Verify Full`, `Verify Rust`, `Run Unit Tests`, `Run Console E2E`, `Run Full E2E`, `Format Check` を直接実行できます。
@@ -461,7 +465,7 @@ gh secret set TAURI_SIGNING_PRIVATE_KEY -R paseri3739/nesdot < ~/.tauri/nesdot-u
 - ビルド: Vite
 - デスクトップ化: Tauri 2
 - 状態管理: Zustand
-- スタイル: MUI theme + static CSS migration in progress (current runtime path still includes Emotion)
+- スタイル: MUI theme + static CSS + Tauri nonce bootstrap（残存する runtime style injector を許可）
 - キャンバス: Fabric.js (キャラクター合成キャンバス)
 - ランタイムバリデーション: Zod
 - 関数型ユーティリティ: fp-ts
