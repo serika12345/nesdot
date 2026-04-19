@@ -12,6 +12,7 @@
     "dev:tauri": "node scripts/ensure-tauri-dev-server.mjs",
     "start": "pnpm icons:sync && tauri dev",
     "build": "pnpm icons:sync && tsc --noEmit && vite build",
+    "docs:readme:screenshots": "node scripts/capture-readme-screenshots.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:licenses": "node scripts/verify-licenses.mjs && node scripts/verify-system-libraries.mjs",

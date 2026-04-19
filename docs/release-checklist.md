@@ -71,6 +71,6 @@
 
 ## 備考
 
-- shell から実行する場合は `README.md` の release 節を参照
+- shell から実行する場合は `docs/development-manual.md` の release 節を参照
 - VS Code task も内部では `nix develop -c zsh -lc '...'` を使う
 - CI での自動検証結果はリリース完了条件に含める

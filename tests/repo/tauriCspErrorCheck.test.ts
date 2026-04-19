@@ -65,12 +65,12 @@ describe("tauri CSP runtime verification", () => {
     expect(tauriRustSource).toContain("record_runtime_diagnostic");
   });
 
-  test("documents the macOS runtime verifier for release checks", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents the macOS runtime verifier for release checks in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
     const releaseChecklist = readTextFile("../../docs/release-checklist.md");
 
-    expect(readme).toContain("pnpm verify:tauri:csp");
-    expect(readme).toContain("pnpm tauri build --debug --no-bundle");
+    expect(manual).toContain("pnpm verify:tauri:csp");
+    expect(manual).toContain("pnpm tauri build --debug --no-bundle");
     expect(releaseChecklist).toContain("pnpm verify:tauri:csp");
   });
 });

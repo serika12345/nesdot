@@ -41,13 +41,13 @@ describe("security verification workflow", () => {
     expect(tasksJson).toContain('"pnpm verify:cve"');
   });
 
-  test("documents the security verification gate", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents the security verification gate in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("pnpm verify:security");
-    expect(readme).toContain("pnpm verify:tauri:csp");
-    expect(readme).toContain("pnpm verify:cve");
-    expect(readme).toContain("baseline");
+    expect(manual).toContain("pnpm verify:security");
+    expect(manual).toContain("pnpm verify:tauri:csp");
+    expect(manual).toContain("pnpm verify:cve");
+    expect(manual).toContain("baseline");
   });
 
   test("keeps security verification focused on supply chain, csp, updater, JSON boundaries, and CI wiring", () => {

@@ -28,11 +28,11 @@ describe("ci-equivalent verification workflow", () => {
     expect(packageJson).toContain("pnpm verify:tauri:csp:if-supported");
   });
 
-  test("documents the one-shot local CI-equivalent verification command", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents the one-shot local CI-equivalent verification command in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("pnpm verify:ci");
-    expect(readme).toContain("CI 相当");
+    expect(manual).toContain("pnpm verify:ci");
+    expect(manual).toContain("CI 相当");
   });
 
   test("keeps the main CI job from rerunning the base verification unnecessarily", () => {

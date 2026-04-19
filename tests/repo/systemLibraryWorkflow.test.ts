@@ -24,12 +24,12 @@ describe("system library verification workflow", () => {
     expect(tasksJson).toContain('"pnpm verify:system-libraries"');
   });
 
-  test("documents when to run the system library check", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents when to run the system library check in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("pnpm verify:system-libraries");
-    expect(readme).toContain("system library");
-    expect(readme).toContain("webkitgtk_4_1");
+    expect(manual).toContain("pnpm verify:system-libraries");
+    expect(manual).toContain("system library");
+    expect(manual).toContain("webkitgtk_4_1");
   });
 
   test("keeps the system library check focused on reviewed Linux Tauri inputs", () => {

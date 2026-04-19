@@ -20,13 +20,13 @@ describe("nix workflow", () => {
     );
   });
 
-  test("documents how to verify and refresh the flake pnpm hash after lockfile updates", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents how to verify and refresh the flake pnpm hash after lockfile updates in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("pnpm-lock.yaml");
-    expect(readme).toContain("flake.nix");
-    expect(readme).toContain("pnpm nix:check-pnpm-deps-hash");
-    expect(readme).toContain("pnpm nix:sync-pnpm-deps-hash");
+    expect(manual).toContain("pnpm-lock.yaml");
+    expect(manual).toContain("flake.nix");
+    expect(manual).toContain("pnpm nix:check-pnpm-deps-hash");
+    expect(manual).toContain("pnpm nix:sync-pnpm-deps-hash");
   });
 
   test("ships a sync script that can check hash drift from the dedicated pnpmDeps target", () => {

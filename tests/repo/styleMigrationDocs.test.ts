@@ -31,12 +31,12 @@ describe("style migration docs", () => {
     expect(architecture).toContain("Typed Runtime Geometry");
   });
 
-  test("links the migration docs from the README and prep notes", () => {
-    const readme = readTextFile("../../README.md");
+  test("links the migration docs from the development manual and prep notes", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
     const prep = readTextFile("../../docs/plain-mui-migration-prep.md");
 
-    expect(readme).toContain("docs/emotion-removal-migration-plan.md");
-    expect(readme).toContain("docs/static-css-architecture.md");
+    expect(manual).toContain("docs/emotion-removal-migration-plan.md");
+    expect(manual).toContain("docs/static-css-architecture.md");
     expect(prep).toContain("docs/emotion-removal-migration-plan.md");
     expect(prep).toContain("docs/static-css-architecture.md");
   });

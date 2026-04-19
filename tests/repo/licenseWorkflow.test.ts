@@ -30,12 +30,12 @@ describe("license verification workflow", () => {
     expect(ciWorkflow).toContain("pnpm verify:licenses");
   });
 
-  test("documents the independent license verification flow", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents the independent license verification flow in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("pnpm verify:licenses");
-    expect(readme).toContain("GPL");
-    expect(readme).toContain("System Library Verification");
+    expect(manual).toContain("pnpm verify:licenses");
+    expect(manual).toContain("GPL");
+    expect(manual).toContain("System Library Verification");
   });
 
   test("keeps dependency license verification independent from security verification", () => {
