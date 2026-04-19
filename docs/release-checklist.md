@@ -1,4 +1,39 @@
-# リリース前チェックリスト
+# リリース runbook
+
+## 前提
+
+- すべてのコマンドは Nix dev shell 内で実行する
+- リリース自動化は `develop -> main` のマージと `vX.Y.Z` タグ作成を前提にしている
+- GitHub へ push できる状態であること
+- GitHub Actions secret `TAURI_SIGNING_PRIVATE_KEY` が設定済みであること
+- updater private key に password を付けている場合は `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` も設定済みであること
+- ワーキングツリーが clean であること
+
+## VS Code からの標準フロー
+
+- `Terminal: Run Task` から `Verify CI` を実行する
+- `Terminal: Run Task` から `Release Desktop Dry Run` を実行し、`patch / minor / major` を選ぶ
+- dry run の出力で次バージョン、push 対象ブランチ、実行予定の verify コマンドを確認する
+- 問題がなければ `Terminal: Run Task` から `Deploy Desktop Release` を実行し、同じ bump 種別を選ぶ
+- 実行後は GitHub Actions の `release-tauri-desktop` と `deploy-pages` を確認する
+
+## 実行内容
+
+`Deploy Desktop Release` は次をまとめて実行する。
+
+- `pnpm verify:ci`
+- `package.json`
+- `src-tauri/tauri.conf.json`
+- `src-tauri/Cargo.toml`
+- `flake.nix` に紐づく pnpm deps hash
+- `pnpm release:auto -- --skip-checks`
+- `develop` への version bump commit push
+- `main` への merge push
+- `vX.Y.Z` タグ push
+
+`main` push により GitHub Pages の deploy が走り、`vX.Y.Z` タグ push により desktop release workflow が走る。
+
+## リリース前チェックリスト
 
 - [ ] 主要ブランチ最新化・競合解消済み
 - [ ] 変更内容のテスト・レビュー完了
@@ -20,8 +55,22 @@
 - [ ] バージョン・タグ・manifestの整合性確認
 - [ ] リリースノート作成
 
+## リリース後チェックリスト
+
+- [ ] GitHub Actions `release-tauri-desktop` が green
+- [ ] GitHub Actions `deploy-pages` が green
+- [ ] GitHub Release に macOS / Linux / Windows artifact と `latest.json` が作成されている
+- [ ] Pages の最新デプロイが main の commit を反映している
+- [ ] 既存 desktop アプリから更新確認ができる
+
+## 失敗時の扱い
+
+- dry run が失敗した場合は修正してからやり直す
+- `Release Desktop` 実行後に GitHub へ push 済みなら、履歴を書き換えて戻すより follow-up commit で修正する
+- 既に公開した tag や release を消す対応は最終手段とし、必要な場合だけ明示的に行う
+
 ## 備考
 
-- すべてNix dev shell内で実行すること
-- 詳細な手順・コマンドはREADME参照
-- CIでの自動検証も必ず確認
+- shell から実行する場合は `README.md` の release 節を参照
+- VS Code task も内部では `nix develop -c zsh -lc '...'` を使う
+- CI での自動検証結果はリリース完了条件に含める
