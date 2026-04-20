@@ -1,0 +1,21 @@
+# CODEOWNERS for nesdot
+
+# More specific paths should come earlier. Owners are GitHub usernames or teams.
+
+# Ensure these accounts exist in your organization or replace them with appropriate team handles.
+
+# Critical repo files
+
+/package.json @paseri3739
+/pnpm-lock.yaml @paseri3739
+/flake.nix @paseri3739
+
+# Native / tooling / scripts
+
+/src-tauri/ @paseri3739
+/scripts/ @paseri3739
+/.github/ @paseri3739
+
+# Source tree (default owner for code changes)
+
+/src/ @paseri3739
