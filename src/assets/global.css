@@ -111,3 +111,11 @@ select {
 ::selection {
   background: rgba(45, 212, 191, 0.32);
 }
+
+/* Tauri-only: disable text selection in the desktop app */
+html.tauri body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

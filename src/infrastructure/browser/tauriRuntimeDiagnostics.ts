@@ -293,6 +293,11 @@ const installTauriRuntimeDiagnostics = (): void => {
   if (isTauri() !== true) {
     return;
   }
+  try {
+    document.documentElement.classList.add("tauri");
+  } catch (e) {
+    void e;
+  }
 
   installConsoleErrorRuntimeDiagnostics();
   installWindowErrorRuntimeDiagnostics();
