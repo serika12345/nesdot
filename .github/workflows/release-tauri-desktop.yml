@@ -5,11 +5,46 @@ on:
     tags:
       - v*
 
+concurrency:
+  group: release-tauri-desktop-${{ github.ref_name }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
+  verify-tag-target:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag commit comes from main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+
+          tag_commit="$(git rev-list -n 1 "${GITHUB_REF}")"
+          main_commit="$(git rev-parse "origin/main")"
+
+          if [ "${tag_commit}" = "${main_commit}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} points to current origin/main head ${main_commit}."
+            exit 0
+          fi
+
+          if git merge-base --is-ancestor "${tag_commit}" "${main_commit}"; then
+            echo "Tag ${GITHUB_REF_NAME} points to ${tag_commit}, which is contained in origin/main at ${main_commit}."
+            exit 0
+          fi
+
+          echo "Tag ${GITHUB_REF_NAME} must point to a commit on main."
+          exit 1
+
   verify-pnpm-deps-hash:
+    needs: verify-tag-target
     runs-on: ubuntu-22.04
 
     steps:
@@ -92,6 +127,15 @@ jobs:
           package_version="$(node -p "require('./package.json').version")"
           tauri_version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
           cargo_version="$(awk -F '"' '/^version = "/ { print $2; exit }' src-tauri/Cargo.toml)"
+          cargo_lock_version="$(awk '
+            $0 == "[[package]]" { in_package = 0; next }
+            $0 == "name = \"nesdot\"" { in_package = 1; next }
+            in_package == 1 && /^version = "/ {
+              gsub(/^version = "|"$/, "", $0)
+              print $0
+              exit
+            }
+          ' src-tauri/Cargo.lock)"
 
           if [ "${package_version}" != "${tag_version}" ]; then
             echo "package.json version mismatch: ${package_version} != ${tag_version}"
@@ -105,6 +149,11 @@ jobs:
 
           if [ "${cargo_version}" != "${tag_version}" ]; then
             echo "src-tauri/Cargo.toml version mismatch: ${cargo_version} != ${tag_version}"
+            exit 1
+          fi
+
+          if [ "${cargo_lock_version}" != "${tag_version}" ]; then
+            echo "src-tauri/Cargo.lock version mismatch: ${cargo_lock_version} != ${tag_version}"
             exit 1
           fi
 
@@ -133,6 +182,16 @@ jobs:
             Automated desktop release from tag ${{ github.ref_name }}.
 
             Commit: ${{ github.sha }}
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
+
+  publish-release:
+    needs: release
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --latest

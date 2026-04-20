@@ -28,13 +28,19 @@ describe("release workflow verification", () => {
       JSON.parse(readTextFile("../../src-tauri/tauri.conf.json")),
     );
     const cargoToml = readTextFile("../../src-tauri/Cargo.toml");
+    const cargoLock = readTextFile("../../src-tauri/Cargo.lock");
     const cargoVersionMatch = cargoToml.match(
       /^version = "(\d+\.\d+\.\d+)"$/mu,
     );
+    const cargoLockVersionMatch = cargoLock.match(
+      /\[\[package\]\]\nname = "nesdot"\nversion = "(\d+\.\d+\.\d+)"/u,
+    );
 
     expect(cargoVersionMatch).not.toBeNull();
+    expect(cargoLockVersionMatch).not.toBeNull();
     expect(tauriConfig.version).toBe(packageJson.version);
     expect(cargoVersionMatch?.[1]).toBe(packageJson.version);
+    expect(cargoLockVersionMatch?.[1]).toBe(packageJson.version);
   });
 
   test("keeps Playwright packages on the same version", () => {
@@ -60,9 +66,18 @@ describe("release workflow verification", () => {
       "../../.github/workflows/release-tauri-desktop.yml",
     );
 
+    expect(workflow).toContain("verify-tag-target:");
+    expect(workflow).toContain("fetch-depth: 0");
+    expect(workflow).toContain('git rev-list -n 1 "${GITHUB_REF}"');
+    expect(workflow).toContain(
+      'git merge-base --is-ancestor "${tag_commit}" "${main_commit}"',
+    );
     expect(workflow).toContain("verify-pnpm-deps-hash:");
+    expect(workflow).toContain("needs: verify-tag-target");
     expect(workflow).toContain("pnpm nix:check-pnpm-deps-hash");
     expect(workflow).toContain("needs: verify-pnpm-deps-hash");
+    expect(workflow).toContain('cargo_lock_version="$(awk');
+    expect(workflow).toContain("src-tauri/Cargo.lock version mismatch");
     expect(workflow).toContain("pnpm verify:full");
     expect(workflow).toContain("pnpm verify:rust");
   });
@@ -77,6 +92,20 @@ describe("release workflow verification", () => {
     expect(workflow).toContain("pnpm verify:tauri:csp");
     expect(workflow).toContain(
       "needs: [verify-release, verify-macos-tauri-csp]",
+    );
+  });
+
+  test("publishes desktop releases only after all artifacts are uploaded", () => {
+    const workflow = readTextFile(
+      "../../.github/workflows/release-tauri-desktop.yml",
+    );
+
+    expect(workflow).toContain("concurrency:");
+    expect(workflow).toContain("releaseDraft: true");
+    expect(workflow).toContain("publish-release:");
+    expect(workflow).toContain("needs: release");
+    expect(workflow).toContain(
+      'gh release edit "${GITHUB_REF_NAME}" --draft=false --latest',
     );
   });
 });

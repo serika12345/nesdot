@@ -679,15 +679,19 @@ nix develop -c zsh -lc 'pnpm verify:tauri:csp'
 
 VS Code 標準フロー:
 
-1. `Verify CI`
-2. `Release Desktop Dry Run`
-3. `Deploy Desktop Release`
+1. `main` に checkout して `git pull --ff-only origin main`
+2. `Verify CI`
+3. `Release Desktop Dry Run`
+4. `Deploy Desktop Release`
 
 詳しい runbook は [`docs/release-checklist.md`](./release-checklist.md) を参照してください。
 
 補足:
 
-- 自動化は `develop -> main` マージと `vX.Y.Z` タグ作成を前提にしています
+- 自動化は `main` 上で version を確定し、その commit に `vX.Y.Z` タグを付けます
+- `Release Desktop Dry Run` は `main` が `origin/main` と一致している状態で実行してください
+- `release-tauri-desktop` は tag が `main` 系列の commit を指している場合のみ継続します
+- GitHub Release は全 artifact upload 完了まで draft のまま保持され、最後に publish されます
 - signing key などの GitHub secret 前提があります
 - push 済みで失敗した場合は、履歴を書き換えて巻き戻すより follow-up commit 修正が基本です
 
