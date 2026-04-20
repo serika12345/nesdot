@@ -104,8 +104,9 @@ describe("release workflow verification", () => {
     expect(workflow).toContain("releaseDraft: true");
     expect(workflow).toContain("publish-release:");
     expect(workflow).toContain("needs: release");
-    expect(workflow).toContain(
-      'gh release edit "${GITHUB_REF_NAME}" --draft=false --latest',
-    );
+    expect(workflow).toContain('gh release edit "${GITHUB_REF_NAME}"');
+    expect(workflow).toContain('--repo "${GITHUB_REPOSITORY}"');
+    expect(workflow).toContain("--draft=false");
+    expect(workflow).toContain("--latest");
   });
 });
