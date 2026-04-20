@@ -10,11 +10,33 @@ const readTextFile = (relativePath: string): string => {
 };
 
 const PackageJsonSchema = z.object({
+  version: z.string(),
   dependencies: z.record(z.string(), z.string()).optional(),
   devDependencies: z.record(z.string(), z.string()).optional(),
 });
 
+const TauriConfigSchema = z.object({
+  version: z.string(),
+});
+
 describe("release workflow verification", () => {
+  test("keeps release versions aligned across package, tauri config, and Cargo", () => {
+    const packageJson = PackageJsonSchema.parse(
+      JSON.parse(readTextFile("../../package.json")),
+    );
+    const tauriConfig = TauriConfigSchema.parse(
+      JSON.parse(readTextFile("../../src-tauri/tauri.conf.json")),
+    );
+    const cargoToml = readTextFile("../../src-tauri/Cargo.toml");
+    const cargoVersionMatch = cargoToml.match(
+      /^version = "(\d+\.\d+\.\d+)"$/mu,
+    );
+
+    expect(cargoVersionMatch).not.toBeNull();
+    expect(tauriConfig.version).toBe(packageJson.version);
+    expect(cargoVersionMatch?.[1]).toBe(packageJson.version);
+  });
+
   test("keeps Playwright packages on the same version", () => {
     const packageJson = PackageJsonSchema.parse(
       JSON.parse(readTextFile("../../package.json")),
