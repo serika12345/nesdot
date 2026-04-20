@@ -77,6 +77,40 @@ const forbidDirectiveSources = (
   });
 };
 
+const forbidDirectiveDefinition = (relativePath, directives, directiveName) => {
+  return Object.prototype.hasOwnProperty.call(directives ?? {}, directiveName)
+    ? [`${relativePath} must not define ${directiveName}.`]
+    : [];
+};
+
+const requireMatchingDirectiveSources = (
+  relativePath,
+  referenceDirectives,
+  candidateDirectives,
+  directiveName,
+  referenceLabel,
+  candidateLabel,
+) => {
+  const referenceSources = normalizeDirectiveSources(
+    referenceDirectives?.[directiveName],
+  );
+  const candidateSources = normalizeDirectiveSources(
+    candidateDirectives?.[directiveName],
+  );
+  const sameLength = referenceSources.length === candidateSources.length;
+  const sameSources =
+    sameLength === true &&
+    referenceSources.every(
+      (source, index) => candidateSources[index] === source,
+    );
+
+  return sameSources === true
+    ? []
+    : [
+        `${relativePath} ${candidateLabel} ${directiveName} must match ${referenceLabel} ${directiveName}.`,
+      ];
+};
+
 const listFiles = (relativeDirectoryPath) => {
   return readdirSync(resolve(repoRoot, relativeDirectoryPath), {
     withFileTypes: true,
@@ -225,11 +259,6 @@ const checkTauriSecurityConfiguration = () => {
       ]),
     )
     .concat(
-      requireDirectiveSources(relativePath, security.csp, "style-src-elem", [
-        "'self'",
-      ]),
-    )
-    .concat(
       requireDirectiveSources(relativePath, security.csp, "style-src-attr", [
         "'none'",
       ]),
@@ -238,6 +267,9 @@ const checkTauriSecurityConfiguration = () => {
       forbidDirectiveSources(relativePath, security.csp, "style-src", [
         "'unsafe-inline'",
       ]),
+    )
+    .concat(
+      forbidDirectiveDefinition(relativePath, security.csp, "style-src-elem"),
     )
     .concat(
       requireDirectiveSources(relativePath, security.csp, "img-src", [
@@ -259,12 +291,107 @@ const checkTauriSecurityConfiguration = () => {
       ]),
     )
     .concat(
-      requireDirectiveSources(relativePath, security.devCsp, "style-src", [
-        "'self'",
-      ]),
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "default-src",
+        "csp",
+        "devCsp",
+      ),
     )
     .concat(
-      requireDirectiveSources(relativePath, security.devCsp, "style-src-elem", [
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "script-src",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "style-src",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "style-src-attr",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "img-src",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "font-src",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "object-src",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "base-uri",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "form-action",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireMatchingDirectiveSources(
+        relativePath,
+        security.csp,
+        security.devCsp,
+        "frame-ancestors",
+        "csp",
+        "devCsp",
+      ),
+    )
+    .concat(
+      requireDirectiveSources(relativePath, security.devCsp, "style-src", [
         "'self'",
       ]),
     )
@@ -277,6 +404,13 @@ const checkTauriSecurityConfiguration = () => {
       forbidDirectiveSources(relativePath, security.devCsp, "style-src", [
         "'unsafe-inline'",
       ]),
+    )
+    .concat(
+      forbidDirectiveDefinition(
+        relativePath,
+        security.devCsp,
+        "style-src-elem",
+      ),
     )
     .concat(
       requireDirectiveSources(relativePath, security.devCsp, "connect-src", [
@@ -372,6 +506,73 @@ const checkInlineStyleAttributeBoundaries = () => {
   });
 };
 
+const checkTauriStyleNonceBootstrap = () => {
+  const mainPath = "src/main.tsx";
+  const indexPath = "src/index.html";
+  const nonceHelperPath = "src/infrastructure/browser/getCspNonce.ts";
+  const packageJsonPath = "package.json";
+  const mainSource = readTextFile(mainPath);
+  const indexHtml = readTextFile(indexPath);
+  const nonceHelper = readTextFile(nonceHelperPath);
+  const packageJson = readTextFile(packageJsonPath);
+
+  return requireTextFragments(mainPath, mainSource, [
+    "@emotion/cache",
+    "@emotion/react",
+    "createCache",
+    "CacheProvider",
+    "getCspNonce",
+  ])
+    .concat(
+      requireTextFragments(indexPath, indexHtml, [
+        'name="csp-nonce"',
+        "__TAURI_STYLE_NONCE__",
+      ]),
+    )
+    .concat(
+      requireTextFragments(nonceHelperPath, nonceHelper, [
+        "__TAURI_STYLE_NONCE__",
+        'meta[name="csp-nonce"]',
+      ]),
+    )
+    .concat(
+      requireTextFragments(packageJsonPath, packageJson, [
+        '"@emotion/cache"',
+        '"@emotion/react"',
+      ]),
+    );
+};
+
+const checkTauriStartupLazyBoundaries = () => {
+  const boundaryPaths = [
+    "src/presentation/components/screenMode/logic/useScreenModeProjectActions.ts",
+    "src/presentation/components/spriteMode/logic/spriteModeProjectActions.ts",
+  ];
+
+  return boundaryPaths.flatMap((relativePath) => {
+    const source = readTextFile(relativePath);
+    const failures = [];
+
+    if (source.includes('import useImportImage from "') === true) {
+      failures.push(
+        `${relativePath} must lazy-load useImportImage so zod stays out of the startup chunk.`,
+      );
+    }
+
+    if (
+      source.includes(
+        'import("../../../../infrastructure/browser/useImportImage")',
+      ) === false
+    ) {
+      failures.push(
+        `${relativePath} must dynamically import useImportImage from the interaction handler path.`,
+      );
+    }
+
+    return failures;
+  });
+};
+
 const checkApplicationJsonBoundaries = () => {
   const sourceFiles = listTypeScriptSourceFiles();
   const jsonParseFiles = sourceFiles.filter((relativePath) => {
@@ -417,6 +618,8 @@ const failures = checkSupplyChainPolicy().concat(
   checkTauriSecurityConfiguration(),
   checkDangerousApiLinting(),
   checkInlineStyleAttributeBoundaries(),
+  checkTauriStyleNonceBootstrap(),
+  checkTauriStartupLazyBoundaries(),
   checkApplicationJsonBoundaries(),
   checkCveAuditIntegration(),
 );

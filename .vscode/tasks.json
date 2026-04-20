@@ -232,6 +232,77 @@
       }
     },
     {
+      "label": "Verify Tauri CSP",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:tauri:csp"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Verify CI",
+      "type": "shell",
+      "command": "nix",
+      "args": ["develop", "-c", "zsh", "-lc", "pnpm verify:ci"],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Release Desktop Dry Run",
+      "type": "shell",
+      "command": "nix",
+      "args": [
+        "develop",
+        "-c",
+        "zsh",
+        "-lc",
+        "pnpm release:auto -- --part=${input:releaseBumpPart} --dry-run"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Release Desktop (Skip Checks)",
+      "type": "shell",
+      "command": "nix",
+      "args": [
+        "develop",
+        "-c",
+        "zsh",
+        "-lc",
+        "pnpm release:auto -- --part=${input:releaseBumpPart} --skip-checks"
+      ],
+      "group": "build",
+      "hide": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Deploy Desktop Release",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Verify CI", "Release Desktop (Skip Checks)"],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
       "label": "Run WSL Doctor",
       "type": "shell",
       "command": "nix",
@@ -241,6 +312,15 @@
         "panel": "dedicated",
         "clear": true
       }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "releaseBumpPart",
+      "type": "pickString",
+      "description": "Choose the desktop release version bump",
+      "default": "patch",
+      "options": ["patch", "minor", "major"]
     }
   ]
 }

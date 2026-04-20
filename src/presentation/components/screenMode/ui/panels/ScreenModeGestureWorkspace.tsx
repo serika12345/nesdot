@@ -16,9 +16,6 @@ import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenMode
 import { ScreenModeCharacterLibraryPanel } from "./ScreenModeCharacterLibraryPanel";
 import { ScreenModeFloatingPreview } from "./ScreenModeFloatingPreview";
 import { ScreenModeGestureContextMenu } from "./ScreenModeGestureContextMenu";
-import { ScreenModeSpriteLibraryPanel } from "./ScreenModeSpriteLibraryPanel";
-import { ScreenModeStageViewport } from "./ScreenModeStageViewport";
-import { ScreenModeWorkspaceHeader } from "./ScreenModeWorkspaceHeader";
 import {
   helperTextStyle,
   sidebarScrollStyle,
@@ -27,6 +24,9 @@ import {
   type ScreenModeGestureWorkspaceBackgroundEditing,
   type ScreenModeGestureWorkspaceDisplayState,
 } from "./ScreenModeGestureWorkspaceTypes";
+import { ScreenModeSpriteLibraryPanel } from "./ScreenModeSpriteLibraryPanel";
+import { ScreenModeStageViewport } from "./ScreenModeStageViewport";
+import { ScreenModeWorkspaceHeader } from "./ScreenModeWorkspaceHeader";
 
 interface ScreenModeGestureWorkspaceProps {
   backgroundEditingState: ScreenModeWorkspaceBackgroundEditingStateResult;

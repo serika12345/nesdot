@@ -11,7 +11,6 @@ import {
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
-import useImportImage from "../../../../infrastructure/browser/useImportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
 import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 import { resolveSpriteModeTile } from "./spriteModeShared";
@@ -32,6 +31,17 @@ interface SpriteModeProjectActionsResult {
   handleImport: () => Promise<void>;
   projectActions: ReadonlyArray<ProjectActionItem>;
 }
+
+type ImportImageService = ReturnType<
+  (typeof import("../../../../infrastructure/browser/useImportImage"))["default"]
+>;
+
+const loadImportImageService = async (): Promise<ImportImageService> => {
+  const module =
+    await import("../../../../infrastructure/browser/useImportImage");
+
+  return module.default();
+};
 
 export const createSpriteModeProjectActions = ({
   exportChr,
@@ -118,10 +128,11 @@ export const useSpriteModeProjectActions =
     );
     const { exportChr, exportPng, exportSvgSimple, exportJSON } =
       useExportImage();
-    const { importJSON } = useImportImage();
 
     const handleImport = useCallback(async (): Promise<void> => {
       try {
+        const { importJSON } = await loadImportImageService();
+
         await importJSON((data) => {
           const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
           useProjectState.setState({
@@ -141,7 +152,7 @@ export const useSpriteModeProjectActions =
       } catch (error) {
         alert(`インポートに失敗しました: ${String(error)}`);
       }
-    }, [activeSprite, importJSON, setActivePalette]);
+    }, [activeSprite, setActivePalette]);
 
     const projectActions = useMemo<ReadonlyArray<ProjectActionItem>>(
       () =>

@@ -1,4 +1,3 @@
-import { styled } from "@mui/material/styles";
 import type { CSSProperties } from "react";
 import { floatingOverlayPanelSurfaceStyle } from "../../../common/ui/styleHelpers";
 
@@ -156,94 +155,6 @@ export const createPixelPreviewCellStyle = (
   backgroundColor: colorHex,
   flexShrink: 0,
 });
-
-export const CharacterStageSurfaceRoot = styled("div", {
-  shouldForwardProp: (prop) => prop !== "activeDropState",
-})<{ activeDropState: boolean }>(({ activeDropState }) => ({
-  position: "relative",
-  overflow: "hidden",
-  background:
-    "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.98))",
-  boxShadow:
-    "0 1.75rem 3.75rem rgba(15, 23, 42, 0.22), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.92)",
-  transition:
-    "transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease",
-  border:
-    activeDropState === true
-      ? "0.0625rem solid rgba(45, 212, 191, 0.72)"
-      : "0.0625rem solid rgba(148, 163, 184, 0.22)",
-  transform: activeDropState === true ? "scale(1.01)" : "none",
-  "&:focus-visible": {
-    outline: "0.125rem solid rgba(15, 118, 110, 0.92)",
-    outlineOffset: "0.25rem",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    backgroundImage: [
-      "linear-gradient(rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-      "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-    ].join(", "),
-    backgroundSize: [
-      "var(--stage-cell-size) var(--stage-cell-size)",
-      "var(--stage-cell-size) var(--stage-cell-size)",
-      "var(--stage-grid-size) var(--stage-grid-size)",
-      "var(--stage-grid-size) var(--stage-grid-size)",
-    ].join(", "),
-    opacity: 0.95,
-    pointerEvents: "none",
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    backgroundImage: [
-      "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-      "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-    ].join(", "),
-    backgroundSize:
-      "0.0625rem var(--stage-height-px), var(--stage-width-px) 0.0625rem",
-    backgroundPosition: "var(--stage-mid-x) 0, 0 var(--stage-mid-y)",
-    backgroundRepeat: "no-repeat",
-    pointerEvents: "none",
-  },
-}));
-
-export const characterStageSurfaceGridStyle: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  backgroundImage: [
-    "linear-gradient(rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-    "linear-gradient(90deg, rgba(148, 163, 184, 0.18) 0.0625rem, transparent 0.0625rem)",
-    "linear-gradient(rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-    "linear-gradient(90deg, rgba(148, 163, 184, 0.15) 0.0625rem, transparent 0.0625rem)",
-  ].join(", "),
-  backgroundSize: [
-    "var(--stage-cell-size) var(--stage-cell-size)",
-    "var(--stage-cell-size) var(--stage-cell-size)",
-    "var(--stage-grid-size) var(--stage-grid-size)",
-    "var(--stage-grid-size) var(--stage-grid-size)",
-  ].join(", "),
-  opacity: 0.95,
-  pointerEvents: "none",
-};
-
-export const characterStageSurfaceAxisStyle: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  backgroundImage: [
-    "linear-gradient(rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-    "linear-gradient(90deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.12))",
-  ].join(", "),
-  backgroundSize:
-    "0.0625rem var(--stage-height-px), var(--stage-width-px) 0.0625rem",
-  backgroundPosition: "var(--stage-mid-x) 0, 0 var(--stage-mid-y)",
-  backgroundRepeat: "no-repeat",
-  pointerEvents: "none",
-};
 
 export const createStageSurfaceStyle = (
   style: CSSProperties,

@@ -1,0 +1,197 @@
+.menuBarSurface {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--menu-bar-min-height);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--menu-bar-padding);
+  border: 0.0625rem solid var(--menu-bar-border-color);
+  border-radius: var(--menu-radius);
+  background: var(--menu-bar-background);
+  box-shadow: var(--menu-bar-shadow);
+  backdrop-filter: blur(1rem);
+}
+
+.menuBarRoot {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  width: max-content;
+  min-width: 0;
+}
+
+.menuTriggerAction {
+  appearance: none;
+  border: 0.0625rem solid transparent;
+  border-radius: var(--menu-radius);
+  background: transparent;
+  color: var(--menu-text-primary);
+  font-family: var(--menu-font-family);
+  font-size: var(--menu-font-size);
+  font-weight: var(--menu-font-weight);
+  line-height: var(--menu-line-height);
+  padding: var(--menu-trigger-padding-block) var(--menu-trigger-padding-inline);
+  user-select: none;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color var(--menu-transition-duration) ease,
+    border-color var(--menu-transition-duration) ease,
+    box-shadow var(--menu-transition-duration) ease,
+    color var(--menu-transition-duration) ease;
+}
+
+.menuTriggerAction:hover {
+  border-color: var(--menu-trigger-hover-border-color);
+  background: var(--menu-trigger-hover-background);
+}
+
+.menuTriggerAction[data-state="open"] {
+  color: var(--menu-trigger-open-color);
+  border-color: var(--menu-trigger-open-border-color);
+  background: var(--menu-trigger-open-background);
+  box-shadow: var(--menu-trigger-open-shadow);
+}
+
+.menuTriggerAction:focus-visible {
+  border-color: var(--menu-trigger-focus-border-color);
+  box-shadow: var(--menu-trigger-focus-shadow);
+}
+
+.menuContentSurface {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 15rem;
+  padding: var(--menu-popover-padding);
+  border: 0.0625rem solid var(--menu-popover-border-color);
+  border-radius: var(--menu-radius);
+  background: var(--menu-popover-background);
+  box-shadow: var(--menu-popover-shadow);
+  backdrop-filter: blur(1rem);
+  z-index: var(--menu-popover-z-index);
+  outline: none;
+}
+
+.menuSeparatorLine {
+  height: 0.0625rem;
+  margin: 0.25rem 0.125rem;
+  background: var(--menu-separator-color);
+}
+
+.menuItemAction,
+.menuSubTriggerAction {
+  display: block;
+  width: 100%;
+  min-height: var(--menu-action-min-height);
+  padding: var(--menu-action-padding-block) var(--menu-action-padding-inline);
+  border: none;
+  border-radius: var(--menu-radius);
+  background: transparent;
+  color: var(--menu-text-primary);
+  font-size: var(--menu-font-size);
+  line-height: var(--menu-line-height);
+  text-align: left;
+  user-select: none;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background-color var(--menu-transition-duration) ease,
+    color var(--menu-transition-duration) ease;
+  box-sizing: border-box;
+}
+
+.menuItemAction[data-highlighted],
+.menuSubTriggerAction[data-highlighted],
+.menuSubTriggerAction[data-state="open"] {
+  background: var(--menu-highlight-background);
+  color: var(--menu-highlight-color);
+}
+
+.menuItemAction[data-disabled],
+.menuSubTriggerAction[data-disabled] {
+  color: var(--menu-text-secondary);
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.menuItemContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.menuItemLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.menuItemIconSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--menu-icon-size);
+  height: var(--menu-icon-size);
+  color: currentColor;
+  opacity: 0.78;
+  flex-shrink: 0;
+}
+
+.menuItemMeta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--menu-meta-gap);
+  color: currentColor;
+  opacity: 0.72;
+  flex-shrink: 0;
+}
+
+.menuModeSelectionMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--menu-marker-size);
+  height: var(--menu-marker-size);
+  flex-shrink: 0;
+}
+
+.menuItemTextLabel {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.menuItemShortcutText {
+  font-size: var(--menu-shortcut-font-size);
+  line-height: var(--menu-shortcut-line-height);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.menuAboutIconImage {
+  width: var(--menu-about-icon-size);
+  height: var(--menu-about-icon-size);
+  border-radius: var(--menu-radius);
+}
+
+.menuAboutAppName {
+  color: var(--menu-text-primary);
+  font-size: var(--menu-about-app-font-size);
+  font-weight: 700;
+  line-height: var(--menu-about-app-line-height);
+}
+
+.menuAboutVersionText {
+  color: var(--menu-text-secondary);
+  font-size: var(--menu-about-version-font-size);
+  line-height: var(--menu-about-version-line-height);
+}

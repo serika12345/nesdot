@@ -1,3 +1,8 @@
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::fs::{create_dir_all, OpenOptions};
+use std::io::Write;
+use std::path::PathBuf;
 use tauri::Emitter;
 
 #[cfg(target_os = "macos")]
@@ -30,6 +35,83 @@ const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
 const MENU_EVENT_MODE_BG: &str = "mode-menu://switch-bg";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
 const MENU_EVENT_HELP_CHECK_FOR_UPDATES: &str = "help-menu://check-for-updates";
+const VERIFY_TAURI_CSP_DIAGNOSTICS_FILE_ENV: &str = "NESDOT_VERIFY_TAURI_CSP_DIAGNOSTICS_FILE";
+const VERIFY_TAURI_CSP_SELF_TEST_ENV: &str = "NESDOT_VERIFY_TAURI_CSP_SELF_TEST";
+
+#[derive(Clone, Copy, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum RuntimeDiagnosticsSelfTest {
+    None,
+    Console,
+    Style,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RuntimeDiagnosticsConfig {
+    enabled: bool,
+    self_test: RuntimeDiagnosticsSelfTest,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RuntimeDiagnosticPayload {
+    kind: String,
+    message: String,
+    details: Option<String>,
+    time: String,
+}
+
+fn runtime_diagnostics_path() -> Option<PathBuf> {
+    env::var_os(VERIFY_TAURI_CSP_DIAGNOSTICS_FILE_ENV).map(PathBuf::from)
+}
+
+fn runtime_diagnostics_self_test() -> RuntimeDiagnosticsSelfTest {
+    match env::var(VERIFY_TAURI_CSP_SELF_TEST_ENV).ok().as_deref() {
+        Some("console") => RuntimeDiagnosticsSelfTest::Console,
+        Some("style") => RuntimeDiagnosticsSelfTest::Style,
+        _ => RuntimeDiagnosticsSelfTest::None,
+    }
+}
+
+#[tauri::command]
+fn get_runtime_diagnostics_config() -> RuntimeDiagnosticsConfig {
+    RuntimeDiagnosticsConfig {
+        enabled: runtime_diagnostics_path().is_some(),
+        self_test: runtime_diagnostics_self_test(),
+    }
+}
+
+#[tauri::command]
+fn record_runtime_diagnostic(payload: RuntimeDiagnosticPayload) -> Result<(), String> {
+    let Some(diagnostics_path) = runtime_diagnostics_path() else {
+        return Ok(());
+    };
+
+    if payload.message.trim().is_empty() {
+        return Err("runtime diagnostic message must not be empty".into());
+    }
+
+    if let Some(parent_directory) = diagnostics_path.parent() {
+        create_dir_all(parent_directory)
+            .map_err(|error| format!("failed to create diagnostics directory: {error}"))?;
+    }
+
+    let serialized_payload = serde_json::to_string(&payload)
+        .map_err(|error| format!("failed to serialize runtime diagnostic payload: {error}"))?;
+    let line = format!("{serialized_payload}\n");
+    let mut diagnostics_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&diagnostics_path)
+        .map_err(|error| format!("failed to open runtime diagnostics file: {error}"))?;
+
+    diagnostics_file
+        .write_all(line.as_bytes())
+        .map_err(|error| format!("failed to write runtime diagnostic payload: {error}"))?;
+
+    Ok(())
+}
 
 #[cfg(target_os = "macos")]
 fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
@@ -155,6 +237,10 @@ fn emit_file_menu_event<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>, eve
 pub fn run() {
     let app_context = tauri::generate_context!("tauri.conf.json");
     let builder = tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            get_runtime_diagnostics_config,
+            record_runtime_diagnostic
+        ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())

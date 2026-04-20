@@ -9,15 +9,15 @@ const readTextFile = (relativePath: string): string => {
 };
 
 describe("wsl workflow", () => {
-  test("documents the recommended WSL workflow in the README", () => {
-    const readme = readTextFile("../../README.md");
+  test("documents the recommended WSL workflow in the development manual", () => {
+    const manual = readTextFile("../../docs/development-manual.md");
 
-    expect(readme).toContain("## WSL での開発");
-    expect(readme).toContain("Remote - WSL");
-    expect(readme).toContain("/mnt/c");
-    expect(readme).toContain("direnv allow");
-    expect(readme).toContain("pnpm doctor:wsl");
-    expect(readme).toContain("WSLg");
+    expect(manual).toContain("### 3.4 WSL 利用時の注意");
+    expect(manual).toContain("Remote - WSL");
+    expect(manual).toContain("/mnt/c");
+    expect(manual).toContain("direnv allow");
+    expect(manual).toContain("pnpm doctor:wsl");
+    expect(manual).toContain("WSLg");
   });
 
   test("recommends the VS Code Remote - WSL extension", () => {

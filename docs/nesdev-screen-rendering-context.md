@@ -8,11 +8,11 @@
 
 ## 実装の現在地
 
-- 画面プレビューは [../src/presentation/components/common/canvas/ScreenCanvas.tsx](../src/presentation/components/common/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、最終的に [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderScreenToHexArray` で描画しています。
+- 画面プレビューは [../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx](../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、最終的に [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderScreenToHexArray` で描画しています。
 - PNG/SVG エクスポートも [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) の `getHexArrayForScreen` から同じ合成ロジックを使います。
 - 実アプリの正本はまだ legacy の [../src/domain/project/project.ts](../src/domain/project/project.ts) の `ProjectState` です。`screen` は `sprites` だけを持ち、背景は `nes.chrBytes` / `nes.nameTable` / `nes.attributeTable` に残っています。
-- BG 編集モードは [../src/presentation/components/bgMode/hooks/useBgModeEditingState.ts](../src/presentation/components/bgMode/hooks/useBgModeEditingState.ts) で `nes.chrBytes` を直接編集します。
-- 画面配置モードの BG タイル配置 / BG 属性編集は [../src/presentation/components/screenMode/hooks/useScreenModeBackgroundEditingState.ts](../src/presentation/components/screenMode/hooks/useScreenModeBackgroundEditingState.ts) で `nes.nameTable` と `nes.attributeTable` を直接更新します。
+- BG 編集モードは [../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts](../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts) の `useBgModeTileEditorState` で `nes.chrBytes` を直接編集します。
+- 画面配置モードの BG タイル配置 / BG 属性編集は [../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts](../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts) の `useScreenModeWorkspaceBackgroundEditingState` で `nes.nameTable` と `nes.attributeTable` を直接更新します。
 - スプライト制約チェックは [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts) の `mergeScreenIntoNesOam` で `screen.sprites` を OAM に写し、[../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) の `scanNesSpriteConstraints` で判定します。
 - 並行して、正規化済みの [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts) / [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts) / [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) も整備されています。ただしこれは主に domain / test 用で、Zustand ストアや import/export の正本にはまだ接続されていません。
 
@@ -49,7 +49,7 @@
 
 - [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts) の `toOamEntryFromScreenSprite` が `screen` 座標を OAM へ変換し、`y - 1` と priority / flip bit を attribute byte に詰めます
 - [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) は `64` 枚上限、1 scanline `8` 枚上限、`ppuControl.spriteSize` を使った scanline 判定を実装済みです
-- screen mode では [../src/presentation/components/screenMode/hooks/useScreenModeProjectState.ts](../src/presentation/components/screenMode/hooks/useScreenModeProjectState.ts) からこの検査結果を UI に出しています
+- screen mode では [../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts](../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts) からこの検査結果を UI に出しています
 
 ### 5. BG 編集と画面配置 BG 編集は実装済み
 
@@ -106,8 +106,8 @@
 - [../src/domain/nes/backgroundEditing.ts](../src/domain/nes/backgroundEditing.ts)
 - [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts)
 - [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts)
-- [../src/presentation/components/bgMode/hooks/useBgModeEditingState.ts](../src/presentation/components/bgMode/hooks/useBgModeEditingState.ts)
-- [../src/presentation/components/screenMode/hooks/useScreenModeBackgroundEditingState.ts](../src/presentation/components/screenMode/hooks/useScreenModeBackgroundEditingState.ts)
+- [../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts](../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts)
+- [../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts](../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts)
 - [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts)
 - [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts)
 

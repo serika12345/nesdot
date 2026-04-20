@@ -10,7 +10,6 @@ import Stack, { type StackProps } from "@mui/material/Stack";
 import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
 import {
-  CharacterStageSurfaceRoot,
   characterStageCanvasStyle,
   createCharacterStageViewportStyle,
   createDecompositionCanvasStyle,
@@ -23,6 +22,7 @@ import {
   createStageDragPreviewStyle,
   createStageSurfaceStyle,
 } from "./CharacterModePrimitivesStyle";
+import styles from "./CharacterModePrimitives.module.css";
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
@@ -662,12 +662,12 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
     ref,
   ) {
     return (
-      <CharacterStageSurfaceRoot
+      <div
         ref={ref}
         {...props}
-        activeDropState={activeDrop === true}
         data-active-drop={toBooleanDataValue(activeDrop)}
         className={mergeClassNames(
+          styles.characterStageSurface ?? false,
           typeof className === "string" ? className : false,
         )}
         style={createStageSurfaceStyle(
@@ -678,7 +678,7 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
         )}
       >
         {children}
-      </CharacterStageSurfaceRoot>
+      </div>
     );
   },
 );
