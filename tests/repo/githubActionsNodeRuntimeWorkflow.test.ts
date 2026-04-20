@@ -16,6 +16,15 @@ describe("GitHub Actions JavaScript runtime", () => {
     expect(workflow).not.toContain("FORCE_JAVASCRIPT_ACTIONS_TO_NODE24");
   });
 
+  test("uses Node 24 compatible actions in PR safety checks", () => {
+    const workflow = readTextFile("../../.github/workflows/pr-safety.yml");
+
+    expect(workflow).toContain("actions/checkout@v6");
+    expect(workflow).toContain("actions/setup-node@v6");
+    expect(workflow).toContain('node-version: "24"');
+    expect(workflow).not.toContain("FORCE_JAVASCRIPT_ACTIONS_TO_NODE24");
+  });
+
   test("uses Node 24 compatible pages actions", () => {
     const workflow = readTextFile("../../.github/workflows/deploy-pages.yml");
 
