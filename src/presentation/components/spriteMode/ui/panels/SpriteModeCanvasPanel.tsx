@@ -1,11 +1,10 @@
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import React from "react";
 import { type SpriteModeCanvasPanelState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeCanvasSurface } from "../canvas/SpriteModeCanvasSurface";
 import { SpriteModePaletteSlots } from "../forms/SpriteModePaletteSlots";
 import { SpriteModeToolOverlay } from "../overlay/SpriteModeToolOverlay";
+import styles from "./SpriteModeCanvasPanel.module.css";
 
 interface SpriteModeCanvasPanelProps {
   canvasPanelState: SpriteModeCanvasPanelState;
@@ -19,15 +18,11 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
   canvasPanelState,
 }) => {
   return (
-    <Stack
-      component={Paper}
+    <Paper
       variant="outlined"
-      spacing="0.875rem"
-      p="1.125rem"
       role="region"
       aria-label="スプライトキャンバスパネル"
-      flex={1}
-      minHeight={0}
+      className={styles.root}
     >
       <SpriteModePaletteSlots
         activePalette={canvasPanelState.paletteSlots.activePalette}
@@ -36,20 +31,12 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
         onPaletteClick={canvasPanelState.paletteSlots.handlePaletteClick}
       />
 
-      <Box
-        component={Paper}
-        variant="outlined"
-        flex={1}
-        minHeight={0}
-        overflow="auto"
-        position="relative"
-        p="1.125rem"
-      >
+      <Paper variant="outlined" className={styles.surface}>
         <SpriteModeToolOverlay toolOverlay={canvasPanelState.toolOverlay} />
         <SpriteModeCanvasSurface
           canvasSurface={canvasPanelState.canvasSurface}
         />
-      </Box>
-    </Stack>
+      </Paper>
+    </Paper>
   );
 };

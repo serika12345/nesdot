@@ -1,6 +1,4 @@
-import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -38,6 +36,7 @@ import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScr
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
+import styles from "./App.module.css";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -505,16 +504,7 @@ const AppBody: React.FC = () => {
         onUndoSelect={handleUndoSelect}
         onUpdateCheck={handleDesktopAutoUpdateCheck}
       />
-      <Stack
-        component="div"
-        spacing={{ xs: "0.75rem", md: "1rem" }}
-        p={{ xs: "1rem", md: "1.5rem" }}
-        position="relative"
-        zIndex={1}
-        height="100vh"
-        overflow="hidden"
-        useFlexGap
-      >
+      <div className={styles.root}>
         {isNativeMacMenu === true ? (
           <></>
         ) : (
@@ -527,68 +517,23 @@ const AppBody: React.FC = () => {
           />
         )}
 
-        <Stack
-          useFlexGap
-          direction={{ xs: "column", lg: "row" }}
-          spacing={{ xs: "1rem", xl: "1.25rem" }}
-          flex={1}
-          minHeight={0}
-          overflow={{ xs: "auto", lg: "visible" }}
-        >
-          <Stack
-            component="section"
-            flex={1}
-            height="100%"
-            minWidth={0}
-            minHeight={0}
-            overflow="hidden"
-            useFlexGap
-          >
-            {appPanel}
-          </Stack>
+        <div className={styles.content}>
+          <section className={styles.panel}>{appPanel}</section>
 
-          <Stack
-            component="aside"
-            spacing="1rem"
-            width={{ xs: "100%", lg: "20rem", xl: "22.5rem" }}
-            flexShrink={0}
-            height="100%"
-            minHeight={{ xs: "auto", lg: 0 }}
-            overflow="hidden"
-            useFlexGap
-          >
-            <Stack
-              component={Paper}
-              variant="outlined"
-              spacing="0.875rem"
-              p="1.125rem"
-              flex={1}
-              minHeight={0}
-            >
-              <Stack
-                position="relative"
-                zIndex={1}
-                spacing="0.3125rem"
-                useFlexGap
-              >
+          <aside className={styles.sidebar}>
+            <Paper variant="outlined" className={styles.paletteCard}>
+              <div className={styles.paletteHeader}>
                 <Typography component="h2" variant="h2" color="text.primary">
                   NES パレット
                 </Typography>
-              </Stack>
-              <Box
-                flex={1}
-                minHeight={0}
-                overflow="auto"
-                mr={-2.25}
-                pr={2.25}
-                style={{ scrollbarGutter: "stable" }}
-              >
+              </div>
+              <div className={styles.paletteScroll}>
                 <PalettePicker palettePickerState={palettePickerState} />
-              </Box>
-            </Stack>
-          </Stack>
-        </Stack>
-      </Stack>
+              </div>
+            </Paper>
+          </aside>
+        </div>
+      </div>
     </>
   );
 };

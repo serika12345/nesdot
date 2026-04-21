@@ -1,12 +1,12 @@
-import Box, { type BoxProps } from "@mui/material/Box";
+import type { BoxProps } from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
-import MaterialGrid, {
-  type GridProps,
-  type GridSize,
-} from "@mui/material/Grid";
+import type { GridProps, GridSize } from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import Stack, { type StackProps } from "@mui/material/Stack";
+import type { StackProps } from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import MaterialGrid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
 import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
 import {

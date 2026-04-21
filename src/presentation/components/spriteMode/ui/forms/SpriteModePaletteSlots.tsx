@@ -1,8 +1,6 @@
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -15,6 +13,7 @@ import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { getArrayItem } from "../../../../../shared/arrayAccess";
 import { slotSwatchStyle } from "./SpriteModePaletteSlotsStyle";
+import styles from "./SpriteModePaletteSlots.module.css";
 
 const resolvePaletteHex = (index: number): string =>
   pipe(
@@ -40,26 +39,19 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
   onPaletteClick,
 }) => {
   return (
-    <Box flexShrink={0}>
+    <div className={styles.root}>
       <Paper variant="outlined">
-        <Stack spacing={1} padding={1.75}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={1.5}
-            useFlexGap
-            flexWrap="wrap"
-          >
+        <div className={styles.content}>
+          <div className={styles.header}>
             <Typography variant="body2">現在のスロット</Typography>
             <Chip
               size="small"
               color="primary"
               label={`パレット ${activePalette}`}
             />
-          </Stack>
+          </div>
 
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+          <div className={styles.row}>
             {palettes[activePalette].map((colorIndex, slotIndex) => (
               <Button
                 key={slotIndex}
@@ -70,7 +62,9 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
                   slotIndex === 0 ? "スロット 0: 透明" : `スロット ${slotIndex}`
                 }
                 startIcon={
-                  <Box
+                  <span
+                    aria-hidden="true"
+                    className={styles.swatch}
                     style={slotSwatchStyle(
                       slotIndex === 0,
                       resolvePaletteHex(colorIndex),
@@ -81,9 +75,9 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
                 スロット{slotIndex}
               </Button>
             ))}
-          </Stack>
-        </Stack>
+          </div>
+        </div>
       </Paper>
-    </Box>
+    </div>
   );
 };

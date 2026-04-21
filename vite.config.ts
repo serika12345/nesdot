@@ -2,6 +2,7 @@
 
 import { pigment } from "@pigment-css/vite-plugin";
 import react from "@vitejs/plugin-react";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import {
   defineConfig,
@@ -17,9 +18,44 @@ import { getViteBase } from "./src/shared/viteBase";
 const host = process.env.TAURI_DEV_HOST;
 const appVersion = process.env.npm_package_version ?? "0.0.0";
 const require = createRequire(import.meta.url);
+
+const isStringRecord = (
+  value: unknown,
+): value is Readonly<Record<string, string>> => {
+  return (
+    value instanceof Object &&
+    !Array.isArray(value) &&
+    Object.values(value).every((entry) => typeof entry === "string")
+  );
+};
+
+const readProjectDependencyNames = (): ReadonlySet<string> => {
+  const packageJsonText = readFileSync(
+    new URL("./package.json", import.meta.url),
+    "utf8",
+  );
+  const parsed: unknown = JSON.parse(packageJsonText);
+
+  if (!(parsed instanceof Object) || Array.isArray(parsed)) {
+    return new Set<string>();
+  }
+
+  const dependencies =
+    "dependencies" in parsed && isStringRecord(parsed.dependencies)
+      ? Object.keys(parsed.dependencies)
+      : [];
+  const devDependencies =
+    "devDependencies" in parsed && isStringRecord(parsed.devDependencies)
+      ? Object.keys(parsed.devDependencies)
+      : [];
+
+  return new Set<string>([...dependencies, ...devDependencies]);
+};
+
+const projectDependencyNames = readProjectDependencyNames();
 const pigmentConfig = {
   theme: appTheme,
-  transformLibraries: ["@mui/material"],
+  transformLibraries: ["@mui/material", "@mui/material-pigment-css"],
 };
 
 type ViteConfigHook = NonNullable<Plugin["config"]>;
@@ -43,6 +79,10 @@ const isResolvableOptimizeDep = (dependencyName: string): boolean => {
   } catch {
     return false;
   }
+};
+
+const isDirectProjectDependency = (dependencyName: string): boolean => {
+  return projectDependencyNames.has(dependencyName);
 };
 
 const patchPigmentConfigPlugin = (plugin: Plugin): Plugin => {
@@ -72,7 +112,11 @@ const patchPigmentConfigPlugin = (plugin: Plugin): Plugin => {
             ...configResult,
             optimizeDeps: {
               ...optimizeDeps,
-              include: include.filter(isResolvableOptimizeDep),
+              include: include.filter(
+                (dependencyName) =>
+                  isDirectProjectDependency(dependencyName) &&
+                  isResolvableOptimizeDep(dependencyName),
+              ),
             },
           };
         },

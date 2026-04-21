@@ -1,0 +1,101 @@
+@layer components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  @media (min-width: 900px) {
+    .root {
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1200px) {
+    .content {
+      flex-direction: row;
+      gap: 1rem;
+      overflow: visible;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .content {
+      gap: 1.25rem;
+    }
+  }
+
+  .panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    flex-shrink: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  @media (min-width: 1200px) {
+    .sidebar {
+      width: 20rem;
+      min-height: 0;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .sidebar {
+      width: 22.5rem;
+    }
+  }
+
+  .paletteCard {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-height: 0;
+    padding: 1.125rem;
+  }
+
+  .paletteHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .paletteScroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    margin-right: -2.25rem;
+    padding-right: 2.25rem;
+    scrollbar-gutter: stable;
+  }
+}

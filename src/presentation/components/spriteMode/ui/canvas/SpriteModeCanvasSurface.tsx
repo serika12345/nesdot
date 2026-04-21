@@ -1,8 +1,8 @@
-import Stack from "@mui/material/Stack";
 import React from "react";
 import { useSpriteCanvas } from "../../../../../infrastructure/browser/canvas/useSpriteCanvas";
 import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../../styleClassNames";
 import { type SpriteModeCanvasSurfaceState } from "../../logic/spriteModeCanvasState";
+import styles from "./SpriteModeCanvasSurface.module.css";
 
 interface SpriteModeCanvasSurfaceProps {
   canvasSurface: SpriteModeCanvasSurfaceState;
@@ -31,17 +31,12 @@ export const SpriteModeCanvasSurface: React.FC<
   });
 
   return (
-    <Stack
-      minWidth="100%"
-      minHeight="100%"
-      alignItems="center"
-      justifyContent="center"
-    >
+    <div className={styles.root}>
       <canvas
         className={APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME}
         aria-label="スプライト編集キャンバス"
         {...canvasProps}
       />
-    </Stack>
+    </div>
   );
 };

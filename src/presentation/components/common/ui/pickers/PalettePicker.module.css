@@ -1,0 +1,72 @@
+@layer components {
+  .root {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .currentRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .actionRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .paletteList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .paletteCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .paletteCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .slotRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .libraryCard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .libraryHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .colorRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .swatch {
+    display: inline-block;
+    flex-shrink: 0;
+  }
+}

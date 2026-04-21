@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = process.cwd();
@@ -24,6 +24,14 @@ const requireTextFragments = (relativePath, text, fragments) => {
     return text.includes(fragment)
       ? []
       : [`${relativePath} must contain \"${fragment}\".`];
+  });
+};
+
+const forbidTextFragments = (relativePath, text, fragments) => {
+  return fragments.flatMap((fragment) => {
+    return text.includes(fragment)
+      ? [`${relativePath} must not contain \"${fragment}\".`]
+      : [];
   });
 };
 
@@ -506,17 +514,21 @@ const checkInlineStyleAttributeBoundaries = () => {
   });
 };
 
-const checkTauriStyleNonceBootstrap = () => {
+const checkEmotionBootstrapRemoval = () => {
   const mainPath = "src/main.tsx";
   const indexPath = "src/index.html";
   const nonceHelperPath = "src/infrastructure/browser/getCspNonce.ts";
   const packageJsonPath = "package.json";
   const mainSource = readTextFile(mainPath);
   const indexHtml = readTextFile(indexPath);
-  const nonceHelper = readTextFile(nonceHelperPath);
   const packageJson = readTextFile(packageJsonPath);
 
-  return requireTextFragments(mainPath, mainSource, [
+  const nonceHelperFailures =
+    existsSync(resolve(repoRoot, nonceHelperPath)) === true
+      ? [`${nonceHelperPath} must be removed once Emotion bootstrap is gone.`]
+      : [];
+
+  return forbidTextFragments(mainPath, mainSource, [
     "@emotion/cache",
     "@emotion/react",
     "createCache",
@@ -524,23 +536,18 @@ const checkTauriStyleNonceBootstrap = () => {
     "getCspNonce",
   ])
     .concat(
-      requireTextFragments(indexPath, indexHtml, [
+      forbidTextFragments(indexPath, indexHtml, [
         'name="csp-nonce"',
         "__TAURI_STYLE_NONCE__",
       ]),
     )
     .concat(
-      requireTextFragments(nonceHelperPath, nonceHelper, [
-        "__TAURI_STYLE_NONCE__",
-        'meta[name="csp-nonce"]',
-      ]),
-    )
-    .concat(
-      requireTextFragments(packageJsonPath, packageJson, [
+      forbidTextFragments(packageJsonPath, packageJson, [
         '"@emotion/cache"',
         '"@emotion/react"',
       ]),
-    );
+    )
+    .concat(nonceHelperFailures);
 };
 
 const checkTauriStartupLazyBoundaries = () => {
@@ -618,7 +625,7 @@ const failures = checkSupplyChainPolicy().concat(
   checkTauriSecurityConfiguration(),
   checkDangerousApiLinting(),
   checkInlineStyleAttributeBoundaries(),
-  checkTauriStyleNonceBootstrap(),
+  checkEmotionBootstrapRemoval(),
   checkTauriStartupLazyBoundaries(),
   checkApplicationJsonBoundaries(),
   checkCveAuditIntegration(),

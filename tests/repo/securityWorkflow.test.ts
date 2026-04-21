@@ -87,7 +87,7 @@ describe("security verification workflow", () => {
     expect(securityScript).toContain("style-src-elem");
     expect(securityScript).toContain("style-src-attr");
     expect(securityScript).toContain("checkInlineStyleAttributeBoundaries");
-    expect(securityScript).toContain("checkTauriStyleNonceBootstrap");
+    expect(securityScript).toContain("checkEmotionBootstrapRemoval");
     expect(securityScript).toContain("checkTauriStartupLazyBoundaries");
     expect(securityScript).toContain("cssText");
 
@@ -127,11 +127,12 @@ describe("security verification workflow", () => {
     expect(eslintConfig).toContain("insertAdjacentHTML");
     expect(eslintConfig).toContain("innerHTML");
 
-    expect(mainSource).toContain("CacheProvider");
-    expect(mainSource).toContain("createCache");
-    expect(mainSource).toContain("getCspNonce");
-    expect(indexHtml).toContain('name="csp-nonce"');
-    expect(indexHtml).toContain("__TAURI_STYLE_NONCE__");
+    expect(mainSource).not.toContain("CacheProvider");
+    expect(mainSource).not.toContain("createCache");
+    expect(mainSource).not.toContain("getCspNonce");
+    expect(mainSource).toContain("ThemeProvider");
+    expect(indexHtml).not.toContain('name="csp-nonce"');
+    expect(indexHtml).not.toContain("__TAURI_STYLE_NONCE__");
     expect(screenModeProjectActions).not.toContain(
       'import useImportImage from "../../../../infrastructure/browser/useImportImage"',
     );

@@ -1,11 +1,10 @@
-import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import { type SpriteModeEditorPanelState } from "../../logic/spriteModeEditorState";
 import { SpriteModeEditorSelectionFields } from "../forms/SpriteModeEditorSelectionFields";
+import styles from "./SpriteModeEditorPanel.module.css";
 
 interface SpriteModeEditorPanelProps {
   editorPanelState: SpriteModeEditorPanelState;
@@ -19,30 +18,20 @@ export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
   editorPanelState,
 }) => {
   return (
-    <Stack
-      component={Paper}
+    <Paper
       variant="outlined"
-      spacing="0.875rem"
-      p="1.125rem"
       role="region"
       aria-label="スプライト編集パネル"
-      minHeight={0}
+      className={styles.root}
     >
-      <Stack position="relative" zIndex={1} spacing="0.3125rem" useFlexGap>
+      <div className={styles.header}>
         <Typography component="h2" variant="h2" color="text.primary">
           スプライト編集
         </Typography>
-      </Stack>
+      </div>
 
-      <Box
-        flex={1}
-        minHeight={0}
-        overflow="auto"
-        mr={-2.25}
-        pr={2.25}
-        style={{ scrollbarGutter: "stable" }}
-      >
-        <Stack spacing={2} useFlexGap>
+      <div className={styles.scroll}>
+        <div className={styles.content}>
           <SpriteModeEditorSelectionFields
             selectionFields={editorPanelState.selectionFields}
           />
@@ -56,8 +45,8 @@ export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
                 : "Project Sprite Size 8x16"
             }
           />
-        </Stack>
-      </Box>
-    </Stack>
+        </div>
+      </div>
+    </Paper>
   );
 };

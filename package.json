@@ -79,18 +79,16 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "hoist-non-react-statics": "^3.3.2",
+    "playwright": "^1.59.1",
     "prettier": "^3.8.1",
     "prop-types": "^15.8.1",
     "react-is": "^19.2.5",
     "typescript": "~5.8.3",
     "vite": "^7.3.2",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.1.1",
-    "playwright": "^1.59.1"
+    "vitest": "^4.1.1"
   },
   "dependencies": {
-    "@emotion/cache": "^11.14.0",
-    "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
     "@mui/material-pigment-css": "7.3.9",

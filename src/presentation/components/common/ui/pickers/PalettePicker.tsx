@@ -1,10 +1,8 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Collapse from "@mui/material/Collapse";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import {
@@ -19,6 +17,7 @@ import {
   pickerPanelPaperStyle,
   transparentSwatchStyle,
 } from "./PalettePickerStyle";
+import styles from "./PalettePicker.module.css";
 
 interface PalettePickerProps {
   palettePickerState: PalettePickerState;
@@ -32,26 +31,27 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
   palettePickerState,
 }) => {
   return (
-    <Stack spacing={2}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+    <div className={styles.root}>
+      <div className={styles.currentRow}>
         <Typography variant="h6">
           パレット {palettePickerState.activePalette} / スロット{" "}
           {palettePickerState.activeSlot}
         </Typography>
-        <Box
+        <span
           title={`#${palettePickerState.activeColorIndex
             .toString(16)
             .padStart(2, "0")
             .toUpperCase()}`}
+          className={styles.swatch}
           style={
             palettePickerState.activeSlot === 0
               ? transparentSwatchStyle
               : colorSwatchStyle(palettePickerState.activeColorHex)
           }
         />
-      </Stack>
+      </div>
 
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+      <div className={styles.actionRow}>
         <Button
           type="button"
           variant={
@@ -84,10 +84,10 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
             ? "色ライブラリを閉じる"
             : "色ライブラリを開く"}
         </Button>
-      </Stack>
+      </div>
 
       <Collapse in={palettePickerState.isPaletteListOpen}>
-        <Stack spacing={1.5}>
+        <div className={styles.paletteList}>
           {palettePickerState.palettes.map((palette, paletteIndex) => {
             const isActivePalette =
               palettePickerState.activePalette === paletteIndex;
@@ -98,12 +98,8 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                 variant="outlined"
                 style={pickerPanelPaperStyle}
               >
-                <Stack spacing={1.25}>
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
+                <div className={styles.paletteCard}>
+                  <div className={styles.paletteCardHeader}>
                     <Typography variant="subtitle2">
                       パレット {paletteIndex}
                     </Typography>
@@ -112,9 +108,9 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                     ) : (
                       <></>
                     )}
-                  </Stack>
+                  </div>
 
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <div className={styles.slotRow}>
                     {palette.map((colorIndex, slotIndex) => (
                       <Button
                         key={slotIndex}
@@ -139,7 +135,9 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                             : `スロット ${slotIndex}`
                         }
                         startIcon={
-                          <Box
+                          <span
+                            aria-hidden="true"
+                            className={styles.swatch}
                             style={
                               slotIndex === 0
                                 ? transparentSwatchStyle
@@ -151,23 +149,18 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                         スロット{slotIndex}
                       </Button>
                     ))}
-                  </Stack>
-                </Stack>
+                  </div>
+                </div>
               </Paper>
             );
           })}
-        </Stack>
+        </div>
       </Collapse>
 
       <Collapse in={palettePickerState.isLibraryOpen}>
         <Paper variant="outlined" style={pickerPanelPaperStyle}>
-          <Stack spacing={1.5}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              spacing={1}
-            >
+          <div className={styles.libraryCard}>
+            <div className={styles.libraryHeader}>
               <Typography variant="body2">
                 パレット {palettePickerState.activePalette} / スロット{" "}
                 {palettePickerState.activeSlot} に割り当てる色を選択
@@ -181,8 +174,8 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                   .padStart(2, "0")
                   .toUpperCase()}`}
               />
-            </Stack>
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+            </div>
+            <div className={styles.colorRow}>
               {NES_PALETTE_HEX.map((hex, colorIndex) => (
                 <Button
                   key={colorIndex}
@@ -209,10 +202,10 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
                   )}
                 />
               ))}
-            </Stack>
-          </Stack>
+            </div>
+          </div>
         </Paper>
       </Collapse>
-    </Stack>
+    </div>
   );
 };

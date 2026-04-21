@@ -13,36 +13,36 @@ const readTextFile = (relativePath: string): string => {
 };
 
 describe("tauri csp style bootstrap", () => {
-  test("keeps the application entrypoint wired for emotion nonce injection", () => {
+  test("keeps the application entrypoint free of emotion bootstrap code", () => {
     const mainSource = readTextFile("../../src/main.tsx");
 
-    expect(mainSource).toContain("@emotion/cache");
-    expect(mainSource).toContain("@emotion/react");
-    expect(mainSource).toContain("createCache");
-    expect(mainSource).toContain("CacheProvider");
-    expect(mainSource).toContain("getCspNonce");
+    expect(mainSource).not.toContain("@emotion/cache");
+    expect(mainSource).not.toContain("@emotion/react");
+    expect(mainSource).not.toContain("createCache");
+    expect(mainSource).not.toContain("CacheProvider");
+    expect(mainSource).not.toContain("getCspNonce");
     expect(mainSource).toContain("ThemeProvider");
   });
 
-  test("keeps index.html wired with the tauri style nonce placeholder", () => {
+  test("keeps index.html free of the tauri style nonce placeholder", () => {
     const indexHtml = readTextFile("../../src/index.html");
 
-    expect(indexHtml).toContain('name="csp-nonce"');
-    expect(indexHtml).toContain("__TAURI_STYLE_NONCE__");
+    expect(indexHtml).not.toContain('name="csp-nonce"');
+    expect(indexHtml).not.toContain("__TAURI_STYLE_NONCE__");
   });
 
-  test("keeps the csp nonce lookup helper available", () => {
+  test("removes the csp nonce lookup helper", () => {
     expect(
       existsSync(
         path.join(projectRoot, "src/infrastructure/browser/getCspNonce.ts"),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  test("keeps direct emotion runtime dependencies in package.json", () => {
+  test("removes direct emotion runtime dependencies from package.json", () => {
     const packageJson = readTextFile("../../package.json");
 
-    expect(packageJson).toContain('"@emotion/cache"');
-    expect(packageJson).toContain('"@emotion/react"');
+    expect(packageJson).not.toContain('"@emotion/cache"');
+    expect(packageJson).not.toContain('"@emotion/react"');
   });
 });

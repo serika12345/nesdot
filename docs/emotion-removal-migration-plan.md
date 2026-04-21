@@ -7,9 +7,16 @@
 - Move ordinary presentation styling to static CSS with explicit module boundaries.
 - Preserve current application behavior while tightening CSP compatibility.
 
+## Current Status
+
+- `@emotion/cache` and `@emotion/react` have been removed from direct dependencies.
+- `src/main.tsx` renders through `ThemeProvider` only.
+- the Tauri nonce bootstrap and `getCspNonce` helper are gone.
+- remaining work is limited to continuing the static CSS migration and avoiding new Emotion-backed paths.
+
 ## Why This Is A Separate Migration
 
-The current repository is CSP-sensitive and still has live Emotion entry points:
+At the start of this migration, the repository was CSP-sensitive and still had live Emotion entry points:
 
 - `src/main.tsx` creates an Emotion cache and wraps the app in `CacheProvider`
 - multiple feature files still use `styled(...)` from `@mui/material/styles`

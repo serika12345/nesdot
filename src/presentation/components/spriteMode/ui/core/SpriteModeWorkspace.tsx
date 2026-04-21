@@ -1,5 +1,5 @@
-import Stack from "@mui/material/Stack";
 import React from "react";
+import styles from "./SpriteModeWorkspace.module.css";
 
 interface SpriteModeWorkspaceProps {
   canvasPanel: React.ReactNode;
@@ -14,16 +14,9 @@ export const SpriteModeWorkspace: React.FC<SpriteModeWorkspaceProps> = ({
   editorPanel,
 }) => {
   return (
-    <Stack
-      useFlexGap
-      direction={{ xs: "column", lg: "row" }}
-      spacing="1rem"
-      minHeight={0}
-      flex={1}
-      height="100%"
-    >
+    <div className={styles.root}>
       {editorPanel}
       {canvasPanel}
-    </Stack>
+    </div>
   );
 };

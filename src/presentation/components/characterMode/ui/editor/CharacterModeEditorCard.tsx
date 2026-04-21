@@ -1,5 +1,6 @@
 import Paper from "@mui/material/Paper";
-import Stack, { type StackProps } from "@mui/material/Stack";
+import type { StackProps } from "@mui/material/Stack";
+import Stack from "@mui/material/Stack";
 import React from "react";
 
 /**

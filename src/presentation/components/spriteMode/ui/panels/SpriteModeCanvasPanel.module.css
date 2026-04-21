@@ -1,0 +1,20 @@
+@layer components {
+  .root {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-height: 0;
+    padding: 1.125rem;
+  }
+
+  .surface {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+    padding: 1.125rem;
+  }
+}

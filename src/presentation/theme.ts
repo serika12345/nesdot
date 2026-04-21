@@ -5,7 +5,6 @@ const lineBase = "#94a3b8";
 const shadowBase = "#0f172a";
 
 const appThemeBase = createTheme({
-  cssVariables: true,
   palette: {
     mode: "light",
     primary: {
