@@ -1,5 +1,5 @@
-import { Button, Dialog } from "@radix-ui/themes";
 import * as Menubar from "@radix-ui/react-menubar";
+import { Button, Dialog } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -155,7 +155,10 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   };
 
   return (
-    <div className={styles.menuBarSurface}>
+    <nav
+      className={styles.menuBarSurface}
+      aria-label="アプリケーションメニュー"
+    >
       <Menubar.Root
         className={styles.menuBarRoot}
         aria-label="ファイル操作メニューバー"
@@ -437,6 +440,6 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </div>
         </Dialog.Content>
       </Dialog.Root>
-    </div>
+    </nav>
   );
 };

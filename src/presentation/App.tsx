@@ -16,6 +16,7 @@ import {
 } from "../application/state/workbenchStore";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
+import styles from "./App.module.css";
 import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileMenuState";
 import { BgMode } from "./components/bgMode/ui/core/BgMode";
 import { useCharacterModeProjectActions } from "./components/characterMode/logic/characterModeProjectActions";
@@ -27,6 +28,7 @@ import {
   type FileShareAction,
   type FileShareActionId,
 } from "./components/common/logic/state/fileMenuState";
+import { SurfaceCard } from "./components/common/ui/chrome/SurfaceCard";
 import { DesktopAutoUpdateDialog } from "./components/common/ui/dialogs/DesktopAutoUpdateDialog";
 import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog";
 import { MenuBar } from "./components/common/ui/menu/MenuBar";
@@ -35,8 +37,6 @@ import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScr
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
-import { SurfaceCard } from "./components/common/ui/chrome/SurfaceCard";
-import styles from "./App.module.css";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -508,16 +508,18 @@ const AppBody: React.FC = () => {
         {isNativeMacMenu === true ? (
           <></>
         ) : (
-          <MenuBar
-            fileMenuState={fileMenuState}
-            editMode={editMode}
-            onEditModeSelect={handleEditModeSelect}
-            onUndoSelect={handleUndoSelect}
-            onRedoSelect={handleRedoSelect}
-          />
+          <header>
+            <MenuBar
+              fileMenuState={fileMenuState}
+              editMode={editMode}
+              onEditModeSelect={handleEditModeSelect}
+              onUndoSelect={handleUndoSelect}
+              onRedoSelect={handleRedoSelect}
+            />
+          </header>
         )}
 
-        <div className={styles.content}>
+        <main className={styles.content}>
           <section className={styles.panel}>{appPanel}</section>
 
           <aside className={styles.sidebar}>
@@ -532,7 +534,7 @@ const AppBody: React.FC = () => {
               </div>
             </SurfaceCard>
           </aside>
-        </div>
+        </main>
       </div>
     </>
   );
