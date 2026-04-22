@@ -23,7 +23,6 @@ export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
   return (
     <section
       className={styles.root}
-      role="region"
       aria-label="スクリーン配置ジェスチャーワークスペース"
     >
       <ScreenModeGestureWorkspace

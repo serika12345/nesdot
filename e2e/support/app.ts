@@ -14,7 +14,9 @@ export const getMenuTrigger = (page: Page, label: AppMenuLabel) =>
   });
 
 export const getVisibleMenuItem = (page: Page, label: string | RegExp) =>
-  page.getByRole("menuitem", { name: label });
+  page
+    .getByRole("menuitem", { name: label })
+    .or(page.getByRole("menuitemradio", { name: label }));
 
 export const gotoApp = async (page: Page): Promise<void> => {
   await page.goto("/");

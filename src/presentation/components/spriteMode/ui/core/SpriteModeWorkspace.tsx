@@ -14,9 +14,9 @@ export const SpriteModeWorkspace: React.FC<SpriteModeWorkspaceProps> = ({
   editorPanel,
 }) => {
   return (
-    <div className={styles.root}>
+    <section className={styles.root} aria-label="スプライト編集ワークスペース">
       {editorPanel}
       {canvasPanel}
-    </div>
+    </section>
   );
 };

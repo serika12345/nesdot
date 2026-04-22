@@ -21,11 +21,7 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   const sidebarSections = React.Children.toArray(children);
 
   return (
-    <div
-      className={styles.sidebar}
-      role="complementary"
-      aria-label="キャラクター編集サイドバー"
-    >
+    <aside className={styles.sidebar} aria-label="キャラクター編集サイドバー">
       {sidebarSections.map((child, index) => (
         <div key={`sidebar-section-${index}`} className={styles.sidebarSection}>
           {child}
@@ -36,6 +32,6 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
           handleLibraryPointerDown={handleLibraryPointerDown}
         />
       </div>
-    </div>
+    </aside>
   );
 };

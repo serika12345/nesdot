@@ -13,7 +13,7 @@ import styles from "./CharacterModeShell.module.css";
 export const CharacterModeScreen: React.FC = () => {
   return (
     <section className={styles.screenRoot}>
-      <div className={styles.toolbarRow}>
+      <header className={styles.toolbarRow}>
         <div className={styles.toolbarGroup}>
           <CharacterModeSidebarEditorModeCard />
           <CharacterModeSidebarSpriteSizeCard />
@@ -22,7 +22,7 @@ export const CharacterModeScreen: React.FC = () => {
         <div className={styles.toolbarGroupEnd}>
           <CharacterModeSetSelectionFields />
         </div>
-      </div>
+      </header>
 
       <CharacterModeGestureWorkspace />
     </section>

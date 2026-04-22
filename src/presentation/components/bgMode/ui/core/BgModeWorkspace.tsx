@@ -14,13 +14,9 @@ export const BgModeWorkspace: React.FC<BgModeWorkspaceProps> = ({
   libraryPanel,
 }) => {
   return (
-    <div
-      className={styles.workspace}
-      role="region"
-      aria-label="BG編集ワークスペース"
-    >
+    <section className={styles.workspace} aria-label="BG編集ワークスペース">
       {libraryPanel}
       {editorPanel}
-    </div>
+    </section>
   );
 };

@@ -76,15 +76,27 @@ const MenuItemLabel: React.FC<{ children: React.ReactNode }> = ({
 
 const MenuItemIconSlot: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <span className={styles.menuItemIconSlot}>{children}</span>;
+}) => (
+  <span aria-hidden="true" className={styles.menuItemIconSlot}>
+    {children}
+  </span>
+);
 
 const MenuItemMeta: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <span className={styles.menuItemMeta}>{children}</span>;
+}) => (
+  <span aria-hidden="true" className={styles.menuItemMeta}>
+    {children}
+  </span>
+);
 
 const MenuModeSelectionMarker: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => <span className={styles.menuModeSelectionMarker}>{children}</span>;
+}) => (
+  <span aria-hidden="true" className={styles.menuModeSelectionMarker}>
+    {children}
+  </span>
+);
 
 const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
   if (actionId === "share-save-project") {
@@ -118,12 +130,16 @@ export const MenuBar: React.FC<MenuBarProps> = ({
     () =>
       typeof navigator !== "undefined" && navigator.userAgent.includes("Mac")
         ? {
-            undo: "⌘Z",
-            redo: "⇧⌘Z",
+            redoLabel: "⇧⌘Z",
+            redoShortcut: "Meta+Shift+Z",
+            undoLabel: "⌘Z",
+            undoShortcut: "Meta+Z",
           }
         : {
-            undo: "Ctrl+Z",
-            redo: "Ctrl+Shift+Z / Ctrl+Y",
+            redoLabel: "Ctrl+Shift+Z / Ctrl+Y",
+            redoShortcut: "Control+Shift+Z Control+Y",
+            undoLabel: "Ctrl+Z",
+            undoShortcut: "Control+Z",
           },
     [],
   );
@@ -179,33 +195,38 @@ export const MenuBar: React.FC<MenuBarProps> = ({
               align="start"
               sideOffset={6}
             >
-              {WORK_MODE_ITEMS.map((modeItem) => {
-                const isSelected = modeItem.value === editMode;
+              <Menubar.RadioGroup value={editMode}>
+                {WORK_MODE_ITEMS.map((modeItem) => {
+                  const isSelected = modeItem.value === editMode;
 
-                return (
-                  <Menubar.Item
-                    key={modeItem.value}
-                    className={styles.menuItemAction}
-                    onSelect={() => {
-                      onEditModeSelect(modeItem.value);
-                    }}
-                  >
-                    <MenuItemContent>
-                      <MenuItemLabel>
-                        <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
-                        <span className={styles.menuItemTextLabel}>
-                          {modeItem.label}
-                        </span>
-                      </MenuItemLabel>
-                      <MenuItemMeta>
-                        <MenuModeSelectionMarker>
-                          {isSelected === true ? <CheckIcon /> : <></>}
-                        </MenuModeSelectionMarker>
-                      </MenuItemMeta>
-                    </MenuItemContent>
-                  </Menubar.Item>
-                );
-              })}
+                  return (
+                    <Menubar.RadioItem
+                      key={modeItem.value}
+                      value={modeItem.value}
+                      className={styles.menuItemAction}
+                      aria-checked={isSelected}
+                      aria-label={`作業モード ${modeItem.label}`}
+                      onSelect={() => {
+                        onEditModeSelect(modeItem.value);
+                      }}
+                    >
+                      <MenuItemContent>
+                        <MenuItemLabel>
+                          <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
+                          <span className={styles.menuItemTextLabel}>
+                            {modeItem.label}
+                          </span>
+                        </MenuItemLabel>
+                        <MenuItemMeta>
+                          <MenuModeSelectionMarker>
+                            {isSelected === true ? <CheckIcon /> : <></>}
+                          </MenuModeSelectionMarker>
+                        </MenuItemMeta>
+                      </MenuItemContent>
+                    </Menubar.RadioItem>
+                  );
+                })}
+              </Menubar.RadioGroup>
             </Menubar.Content>
           </Menubar.Portal>
         </Menubar.Menu>
@@ -228,6 +249,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
             >
               <Menubar.Item
                 className={styles.menuItemAction}
+                aria-keyshortcuts={shortcutLabels.undoShortcut}
                 onSelect={onUndoSelect}
               >
                 <MenuItemContent>
@@ -239,7 +261,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   </MenuItemLabel>
                   <MenuItemMeta>
                     <span className={styles.menuItemShortcutText}>
-                      {shortcutLabels.undo}
+                      {shortcutLabels.undoLabel}
                     </span>
                   </MenuItemMeta>
                 </MenuItemContent>
@@ -247,6 +269,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
 
               <Menubar.Item
                 className={styles.menuItemAction}
+                aria-keyshortcuts={shortcutLabels.redoShortcut}
                 onSelect={onRedoSelect}
               >
                 <MenuItemContent>
@@ -258,7 +281,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   </MenuItemLabel>
                   <MenuItemMeta>
                     <span className={styles.menuItemShortcutText}>
-                      {shortcutLabels.redo}
+                      {shortcutLabels.redoLabel}
                     </span>
                   </MenuItemMeta>
                 </MenuItemContent>
@@ -419,10 +442,10 @@ export const MenuBar: React.FC<MenuBarProps> = ({
               src={aboutIconSrc}
               alt="nesdot icon"
             />
-            <span className={styles.menuAboutAppName}>nesdot</span>
-            <span className={styles.menuAboutVersionText}>
+            <p className={styles.menuAboutAppName}>nesdot</p>
+            <p className={styles.menuAboutVersionText}>
               {`Version ${appVersion}`}
-            </span>
+            </p>
           </div>
           <div className={styles.menuAboutActions}>
             {canCheckForUpdates === true ? (
