@@ -1,16 +1,8 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import React from "react";
+import { AppButton, AppIconButton } from "../../../common/ui/forms/AppControls";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
-import {
-  chevronStyle,
-  overlayCollapsedToggleButtonStyle,
-  overlayMenuProps,
-  overlayRootProps,
-  overlayToggleButtonStyle,
-} from "./CharacterModeDecompositionToolOverlayStyle";
+import styles from "./CharacterModeDecomposition.module.css";
 
 /**
  * 分解キャンバス上に重なるツールメニューを描画します。
@@ -20,35 +12,33 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
   const [isToolsOpen, setIsToolsOpen] = React.useState(false);
 
   return (
-    <Box {...overlayRootProps}>
+    <div className={styles.overlayRoot}>
       {isToolsOpen === true ? (
-        <Button
-          type="button"
-          variant="contained"
-          style={overlayToggleButtonStyle}
-          endIcon={<ExpandMoreRoundedIcon style={chevronStyle(true)} />}
+        <AppButton
+          tone="accent"
+          variant="solid"
           onClick={() => setIsToolsOpen((previous) => !previous)}
         >
           分解ツールを閉じる
-        </Button>
+          <ChevronDownIcon className={styles.chevron} data-open="true" />
+        </AppButton>
       ) : (
-        <IconButton
-          type="button"
+        <AppIconButton
           aria-label="分解ツールを開く"
-          style={overlayCollapsedToggleButtonStyle}
+          className={styles.collapsedToggle}
           onClick={() => setIsToolsOpen((previous) => !previous)}
         >
-          <ExpandMoreRoundedIcon style={chevronStyle(false)} />
-        </IconButton>
+          <ChevronDownIcon className={styles.chevron} data-open="false" />
+        </AppIconButton>
       )}
 
       {isToolsOpen === true ? (
-        <Box {...overlayMenuProps}>
+        <div className={styles.overlayMenu}>
           <CharacterModeDecompositionToolCard />
-        </Box>
+        </div>
       ) : (
         <></>
       )}
-    </Box>
+    </div>
   );
 };

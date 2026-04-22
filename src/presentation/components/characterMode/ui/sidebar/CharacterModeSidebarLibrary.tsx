@@ -1,27 +1,14 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
+import { AppBadge, AppButton } from "../../../common/ui/forms/AppControls";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../logic/characterModeEditorState";
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
-import { CharacterLibraryGrid } from "../primitives/CharacterModePrimitives";
-import {
-  characterLibraryPreviewFrameStyle,
-  characterLibraryScrollAreaStyle,
-  characterLibrarySpriteTitleStyle,
-  collapseChevronStyle,
-  createCharacterLibraryInteractionRootStyle,
-  createCharacterLibraryPreviewButtonStyle,
-} from "./CharacterModeSidebarLibraryStyle";
+import styles from "./CharacterModeSidebarLibrary.module.css";
 
 const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
@@ -48,7 +35,7 @@ const areSameLibraryContentProps = (
   previous.sprites === next.sprites;
 
 type CharacterLibraryPreviewButtonProps = React.ComponentProps<
-  typeof Button
+  typeof AppButton
 > & {
   dragging?: boolean;
 };
@@ -58,14 +45,17 @@ const CharacterLibraryPreviewButton = React.forwardRef<
   CharacterLibraryPreviewButtonProps
 >(function CharacterLibraryPreviewButton({ dragging, ...props }, ref) {
   return (
-    <Button
+    <AppButton
       ref={ref}
       {...props}
-      color={dragging === true ? "primary" : "inherit"}
+      className={styles.previewButton}
+      data-dragging-state={toBooleanDataValue(dragging)}
       fullWidth
-      style={createCharacterLibraryPreviewButtonStyle(dragging === true)}
-      variant={dragging === true ? "contained" : "outlined"}
-    />
+      tone={dragging === true ? "accent" : "neutral"}
+      variant={dragging === true ? "solid" : "outline"}
+    >
+      {props.children}
+    </AppButton>
   );
 });
 
@@ -78,16 +68,8 @@ const CharacterModeSidebarLibraryContent = React.memo(
     sprites,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
-      <Box
-        id={id}
-        flex={1}
-        minHeight={0}
-        overflow="auto"
-        mr={-2.25}
-        pr={2.25}
-        style={characterLibraryScrollAreaStyle}
-      >
-        <CharacterLibraryGrid>
+      <div className={styles.scrollArea} id={id}>
+        <div className={styles.grid}>
           {sprites.map((spriteTile, spriteIndex) => (
             <CharacterLibraryPreviewButton
               key={`library-sprite-${spriteIndex}`}
@@ -103,38 +85,25 @@ const CharacterModeSidebarLibraryContent = React.memo(
                 handleLibraryPointerDown(event, spriteIndex)
               }
             >
-              <Stack alignItems="center" spacing="0.625rem" width="100%">
-                <Typography
-                  component="span"
-                  variant="caption"
-                  style={characterLibrarySpriteTitleStyle}
-                >
+              <div className={styles.previewContent}>
+                <span className={styles.spriteTitle}>
                   {`Sprite ${spriteIndex}`}
-                </Typography>
-                <Stack
-                  component={Paper}
-                  variant="outlined"
-                  alignItems="center"
-                  justifyContent="center"
-                  spacing={0}
-                  style={characterLibraryPreviewFrameStyle}
-                >
+                </span>
+                <div className={styles.previewFrame}>
                   <CharacterModeTilePreview
                     scale={LIBRARY_PREVIEW_SCALE}
                     spritePalettes={spritePalettes}
                     tileOption={O.some(spriteTile)}
                   />
-                </Stack>
-                <Chip
-                  size="small"
-                  color="primary"
-                  label={`${spriteTile.width}×${spriteTile.height}`}
-                />
-              </Stack>
+                </div>
+                <AppBadge tone="accent">
+                  {`${spriteTile.width}×${spriteTile.height}`}
+                </AppBadge>
+              </div>
             </CharacterLibraryPreviewButton>
           ))}
-        </CharacterLibraryGrid>
-      </Box>
+        </div>
+      </div>
     );
   },
   areSameLibraryContentProps,
@@ -168,49 +137,39 @@ export const CharacterModeSidebarLibrary: React.FC<
   );
 
   return (
-    <CharacterModeEditorCard
-      minHeight={0}
-      spacing="0.875rem"
-      p="1rem"
-      useFlexGap
-    >
-      <Stack direction="row" spacing="0.75rem" alignItems="center">
-        <Typography variant="body2">スプライトライブラリ</Typography>
-        <Button
-          type="button"
-          aria-expanded={isLibraryOpen}
+    <CharacterModeEditorCard className={styles.root}>
+      <div className={styles.headerRow}>
+        <span className={styles.headerLabel}>スプライトライブラリ</span>
+        <AppButton
           aria-controls={libraryContentId}
+          aria-expanded={isLibraryOpen}
           aria-label={
             isLibraryOpen
               ? "スプライトライブラリを閉じる"
               : "スプライトライブラリを開く"
           }
-          color={isLibraryOpen === true ? "primary" : "inherit"}
-          endIcon={
-            <ExpandMoreRoundedIcon
-              style={collapseChevronStyle(isLibraryOpen)}
-            />
-          }
           size="small"
-          variant={isLibraryOpen === true ? "contained" : "outlined"}
+          tone={isLibraryOpen === true ? "accent" : "neutral"}
+          variant={isLibraryOpen === true ? "solid" : "outline"}
           onClick={() => setIsLibraryOpen((previous) => !previous)}
         >
           {isLibraryOpen ? "閉じる" : "開く"}
-        </Button>
-      </Stack>
+          <ChevronDownIcon
+            className={styles.chevron}
+            data-open={isLibraryOpen}
+          />
+        </AppButton>
+      </div>
 
-      <Box
+      <div
+        className={styles.contentWrap}
         id={libraryContentId}
         data-open-state={toBooleanDataValue(isLibraryOpen)}
         aria-hidden={isLibraryOpen === false}
-        display={isLibraryOpen === true ? "block" : "none"}
-        minHeight={0}
       >
-        <Box
+        <div
+          className={styles.interactionRoot}
           data-interactive-state={toBooleanDataValue(
-            spriteLibrary.isLibraryDraggable,
-          )}
-          style={createCharacterLibraryInteractionRootStyle(
             spriteLibrary.isLibraryDraggable,
           )}
         >
@@ -221,8 +180,8 @@ export const CharacterModeSidebarLibrary: React.FC<
             spritePalettes={spriteLibrary.spritePalettes}
             sprites={spriteLibrary.sprites}
           />
-        </Box>
-      </Box>
+        </div>
+      </div>
     </CharacterModeEditorCard>
   );
 };

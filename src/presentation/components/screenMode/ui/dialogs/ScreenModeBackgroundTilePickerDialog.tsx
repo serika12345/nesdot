@@ -1,19 +1,12 @@
-import Button from "@mui/material/Button";
-import ButtonBase from "@mui/material/ButtonBase";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
 import React from "react";
+import { AppButton, AppDialog } from "../../../common/ui/forms/AppControls";
 import {
   type NesBackgroundPalettes,
   type NesColorIndex,
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
-import { previewButtonStyle } from "./ScreenModeBackgroundTilePickerDialogStyle";
+import styles from "./ScreenModeBackgroundTilePickerDialog.module.css";
 
 type BgPickerMode = "bgTile" | "bgPalette";
 type BgPaletteIndex = 0 | 1 | 2 | 3;
@@ -42,12 +35,12 @@ interface ScreenModeBackgroundTilePickerDialogProps {
 
 const BG_PALETTE_OPTIONS: ReadonlyArray<BgPaletteIndex> = [0, 1, 2, 3];
 
-const resolveDialogMaxWidth = (pickerMode: BgPickerMode): "lg" | "sm" => {
+const resolveDialogSize = (pickerMode: BgPickerMode): "large" | "small" => {
   if (pickerMode === "bgTile") {
-    return "lg";
+    return "large";
   }
 
-  return "sm";
+  return "small";
 };
 
 const resolveDialogTitle = (pickerMode: BgPickerMode): string => {
@@ -69,90 +62,77 @@ export const ScreenModeBackgroundTilePickerDialog: React.FC<
     dialog;
 
   return (
-    <Dialog
+    <AppDialog
+      actions={
+        <>
+          <AppButton variant="outline" onClick={actions.onClose}>
+            閉じる
+          </AppButton>
+          {pickerMode === "bgPalette" ? (
+            <AppButton
+              tone="accent"
+              variant="solid"
+              onClick={actions.onApplyPaletteSelection}
+            >
+              変更する
+            </AppButton>
+          ) : (
+            <></>
+          )}
+        </>
+      }
       open={isOpen}
+      size={resolveDialogSize(pickerMode)}
+      title={resolveDialogTitle(pickerMode)}
       onClose={actions.onClose}
-      fullWidth
-      maxWidth={resolveDialogMaxWidth(pickerMode)}
     >
-      <DialogTitle>{resolveDialogTitle(pickerMode)}</DialogTitle>
-      <DialogContent>
-        {pickerMode === "bgTile" ? (
-          <Grid
-            container
-            columns={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-            spacing={1.75}
-          >
-            {preview.visibleBackgroundTiles.map((tile, tileIndex) => (
-              <Grid key={`screen-mode-bg-dialog-tile-${tileIndex}`} size={1}>
-                <ButtonBase
-                  type="button"
-                  aria-label={`BGタイルプレビュー ${tileIndex}`}
-                  style={previewButtonStyle}
-                  onClick={() => {
-                    actions.onTileSelect(tileIndex);
-                  }}
-                >
-                  <Stack
-                    useFlexGap
-                    width="100%"
-                    alignItems="flex-start"
-                    spacing="0.625rem"
-                  >
-                    <BackgroundTilePreview
-                      scale={8}
-                      tile={tile}
-                      palette={preview.backgroundPalettes[activePaletteIndex]}
-                      universalBackgroundColor={
-                        preview.universalBackgroundColor
-                      }
-                    />
-                    <strong>{`#${String(tileIndex).padStart(3, "0")}`}</strong>
-                  </Stack>
-                </ButtonBase>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Stack
-            direction="row"
-            flexWrap="wrap"
-            alignItems="center"
-            spacing="0.625rem"
-            useFlexGap
-          >
-            {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-              <Button
-                key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
-                type="button"
-                size="small"
-                variant={
-                  pendingPaletteIndex === paletteIndex
-                    ? "contained"
-                    : "outlined"
-                }
-                aria-label={`BGパレット ${paletteIndex}`}
-                aria-pressed={pendingPaletteIndex === paletteIndex}
-                onClick={() => {
-                  actions.onPaletteSelect(paletteIndex);
-                }}
-              >
-                {`Palette ${paletteIndex}`}
-              </Button>
-            ))}
-          </Stack>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={actions.onClose}>閉じる</Button>
-        {pickerMode === "bgPalette" ? (
-          <Button variant="contained" onClick={actions.onApplyPaletteSelection}>
-            変更する
-          </Button>
-        ) : (
-          <></>
-        )}
-      </DialogActions>
-    </Dialog>
+      {pickerMode === "bgTile" ? (
+        <div className={styles.tileGrid}>
+          {preview.visibleBackgroundTiles.map((tile, tileIndex) => (
+            <button
+              key={`screen-mode-bg-dialog-tile-${tileIndex}`}
+              className={styles.tileButton}
+              type="button"
+              aria-label={`BGタイルプレビュー ${tileIndex}`}
+              onClick={() => {
+                actions.onTileSelect(tileIndex);
+              }}
+            >
+              <span className={styles.tileButtonContent}>
+                <BackgroundTilePreview
+                  scale={8}
+                  tile={tile}
+                  palette={preview.backgroundPalettes[activePaletteIndex]}
+                  universalBackgroundColor={preview.universalBackgroundColor}
+                />
+                <strong className={styles.tileLabel}>
+                  {`#${String(tileIndex).padStart(3, "0")}`}
+                </strong>
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.paletteRow}>
+          {BG_PALETTE_OPTIONS.map((paletteIndex) => (
+            <AppButton
+              key={`screen-mode-dialog-bg-palette-${paletteIndex}`}
+              size="small"
+              variant={
+                pendingPaletteIndex === paletteIndex ? "solid" : "outline"
+              }
+              tone={pendingPaletteIndex === paletteIndex ? "accent" : "neutral"}
+              aria-label={`BGパレット ${paletteIndex}`}
+              aria-pressed={pendingPaletteIndex === paletteIndex}
+              onClick={() => {
+                actions.onPaletteSelect(paletteIndex);
+              }}
+            >
+              {`Palette ${paletteIndex}`}
+            </AppButton>
+          ))}
+        </div>
+      )}
+    </AppDialog>
   );
 };

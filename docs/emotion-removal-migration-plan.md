@@ -10,19 +10,20 @@
 ## Current Status
 
 - `@emotion/cache` and `@emotion/react` have been removed from direct dependencies.
-- `src/main.tsx` renders through `ThemeProvider` only.
+- `src/main.tsx` renders through a static CSS entry plus the Radix Themes root provider.
 - the Tauri nonce bootstrap and `getCspNonce` helper are gone.
-- remaining work is limited to continuing the static CSS migration and avoiding new Emotion-backed paths.
+- the legacy runtime styling packages have been removed from the application entry path and package manifest.
+- remaining work is limited to continuing the static CSS migration and avoiding new runtime style injection paths.
 
 ## Why This Is A Separate Migration
 
 At the start of this migration, the repository was CSP-sensitive and still had live Emotion entry points:
 
 - `src/main.tsx` creates an Emotion cache and wraps the app in `CacheProvider`
-- multiple feature files still use `styled(...)` from `@mui/material/styles`
+- multiple feature files still use legacy `styled(...)` wrappers
 - the current CSP workaround depends on a nonce to keep Emotion-compatible Tauri production builds working
 
-Because of that, removing Emotion is not a package cleanup. It is an architectural migration.
+Because of that, removing Emotion was not a package cleanup. It was an architectural migration.
 
 ## Target State
 
@@ -30,27 +31,27 @@ Because of that, removing Emotion is not a package cleanup. It is an architectur
 
 - `@emotion/cache` and `@emotion/react` are removed from dependencies
 - `src/main.tsx` no longer creates an Emotion cache or reads a style nonce
-- the app renders through `ThemeProvider` only
+- the app renders through static CSS and a non-Emotion root provider
 - Tauri production builds do not require Emotion-specific CSP handling
 
 ### Styling Model
 
 - global CSS is limited to reset, app shell, and shared canvas helper rules
 - component-owned visual styling lives in colocated `*.module.css` files
-- shared visual tokens are exposed through CSS custom properties and MUI theme tokens
+- shared visual tokens are exposed through CSS custom properties
 - dynamic geometry remains in narrow, typed boundaries only where static CSS cannot express the behavior
 
-### MUI Usage
+### Component Library Usage
 
-- use stock MUI components directly where possible
-- keep `theme.ts` as a thin Material token layer
+- use static component libraries that do not inject runtime `<style>` tags
+- keep visual tokens in CSS custom properties and local modules
 - remove `styled(...)` usage from application-owned components
-- do not replace editor-specific geometry with generic MUI abstractions when the geometry is product-specific
+- do not replace editor-specific geometry with generic abstractions when the geometry is product-specific
 
 ## Non-Goals
 
 - redesigning the product
-- replacing MUI as a component library
+- redesigning the component library again after the runtime CSS removal is complete
 - removing all dynamic style values in one patch
 - changing CSP to re-allow runtime style injection
 

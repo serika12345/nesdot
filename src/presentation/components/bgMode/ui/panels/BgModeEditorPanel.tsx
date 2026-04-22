@@ -1,9 +1,3 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import React from "react";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
@@ -11,14 +5,12 @@ import {
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { AppButton } from "../../../common/ui/forms/AppControls";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { BgModeTileEditorCanvas } from "../canvas/BgModeTileEditorCanvas";
 import { BgModeToolMenu } from "../menu/BgModeToolMenu";
-import {
-  canvasOverlayRootProps,
-  centeredCanvasWrapProps,
-  chevronStyle,
-  overlayToggleButtonStyle,
-} from "./bgModePanelStyles";
+import styles from "./BgModePanels.module.css";
 
 type BgModeTool = "pen" | "eraser";
 
@@ -64,27 +56,16 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
   editorPanelState,
 }) => {
   return (
-    <Stack
-      component={Paper}
-      variant="outlined"
-      spacing="0.875rem"
-      p="1.125rem"
+    <SurfaceCard
+      className={`${styles.panel} ${styles.editorPanel}`}
       aria-label="BGタイルエディター"
-      flex={1}
-      minHeight={0}
     >
-      <Box
-        component={Paper}
-        variant="outlined"
-        flex={1}
-        minHeight={0}
-        overflow="auto"
-        position="relative"
-        p="1.125rem"
+      <div
+        className={styles.canvasViewport}
         aria-label="BGタイル編集キャンバスビュー"
       >
-        <Box {...canvasOverlayRootProps}>
-          <Button
+        <div className={styles.overlayRoot}>
+          <AppButton
             type="button"
             aria-expanded={editorPanelState.isToolMenuOpen}
             aria-controls="bg-mode-canvas-tool-menu"
@@ -93,25 +74,21 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
                 ? "BGツールを閉じる"
                 : "BGツールを開く"
             }
-            color={
-              editorPanelState.isToolMenuOpen === true ? "primary" : "inherit"
-            }
-            endIcon={
-              <ExpandMoreRoundedIcon
-                style={chevronStyle(editorPanelState.isToolMenuOpen)}
-              />
-            }
             size="small"
-            style={overlayToggleButtonStyle}
+            tone={
+              editorPanelState.isToolMenuOpen === true ? "accent" : "neutral"
+            }
             variant={
-              editorPanelState.isToolMenuOpen === true
-                ? "contained"
-                : "outlined"
+              editorPanelState.isToolMenuOpen === true ? "solid" : "outline"
             }
             onClick={editorPanelState.handleToolMenuToggle}
           >
             {editorPanelState.isToolMenuOpen ? "閉じる" : "開く"}
-          </Button>
+            <ChevronDownIcon
+              className={styles.chevron}
+              data-open={editorPanelState.isToolMenuOpen}
+            />
+          </AppButton>
 
           {editorPanelState.isToolMenuOpen === true ? (
             <BgModeToolMenu
@@ -127,9 +104,9 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
           ) : (
             <></>
           )}
-        </Box>
+        </div>
 
-        <Grid {...centeredCanvasWrapProps}>
+        <div className={styles.canvasWrap}>
           <BgModeTileEditorCanvas
             tile={editorPanelState.canvasState.selectedTile}
             palette={resolveActivePalette(
@@ -141,8 +118,8 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
             }
             onPaintPixel={editorPanelState.canvasState.handlePaintPixel}
           />
-        </Grid>
-      </Box>
-    </Stack>
+        </div>
+      </div>
+    </SurfaceCard>
   );
 };

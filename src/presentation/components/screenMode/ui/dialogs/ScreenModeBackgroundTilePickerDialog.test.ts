@@ -6,34 +6,6 @@ import { createEmptyBackgroundTile } from "../../../../../domain/project/project
 
 type PickerMode = "bgTile" | "bgPalette";
 
-vi.mock("@mui/material/Dialog", () => {
-  return {
-    default: ({ children }: { children: React.ReactNode }) =>
-      React.createElement("div", {}, children),
-  };
-});
-
-vi.mock("@mui/material/DialogActions", () => {
-  return {
-    default: ({ children }: { children: React.ReactNode }) =>
-      React.createElement("div", {}, children),
-  };
-});
-
-vi.mock("@mui/material/DialogContent", () => {
-  return {
-    default: ({ children }: { children: React.ReactNode }) =>
-      React.createElement("div", {}, children),
-  };
-});
-
-vi.mock("@mui/material/DialogTitle", () => {
-  return {
-    default: ({ children }: { children: React.ReactNode }) =>
-      React.createElement("div", {}, children),
-  };
-});
-
 vi.mock("../../../../common/ui/preview/BackgroundTilePreview", () => {
   return {
     BackgroundTilePreview: () => React.createElement("div", {}, "preview"),
@@ -81,7 +53,7 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
     expect(markup).not.toContain("BGパレット変更");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
-    expect(markup).not.toMatch(/data-tone=/);
+    expect(markup).toContain('data-variant="outline"');
   });
 
   it("renders the palette picker flow from the dedicated BG palette button", () => {
@@ -115,6 +87,6 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
     expect(markup).not.toContain("BG属性");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
-    expect(markup).not.toMatch(/data-tone=/);
+    expect(markup).toContain('data-tone="accent"');
   });
 });

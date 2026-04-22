@@ -1,9 +1,9 @@
-import Button from "@mui/material/Button";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { AppButton } from "../../../common/ui/forms/AppControls";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
-import { createScreenLibraryPreviewButtonStyle } from "./ScreenModeGestureWorkspaceStyle";
+import styles from "./ScreenModeGestureWorkspaceShared.module.css";
 
 export const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
@@ -50,7 +50,9 @@ export const isCharacterDragState = (
     ),
   );
 
-type ScreenLibraryPreviewButtonProps = React.ComponentProps<typeof Button> & {
+type ScreenLibraryPreviewButtonProps = React.ComponentProps<
+  typeof AppButton
+> & {
   dragging?: boolean;
 };
 
@@ -59,13 +61,16 @@ export const ScreenLibraryPreviewButton = React.forwardRef<
   ScreenLibraryPreviewButtonProps
 >(function ScreenLibraryPreviewButton({ dragging, ...props }, ref) {
   return (
-    <Button
+    <AppButton
       ref={ref}
       {...props}
-      color={dragging === true ? "primary" : "inherit"}
+      className={styles.previewButton}
+      data-dragging-state={toBooleanDataValue(dragging)}
       fullWidth
-      style={createScreenLibraryPreviewButtonStyle(dragging === true)}
-      variant={dragging === true ? "contained" : "outlined"}
-    />
+      tone={dragging === true ? "accent" : "neutral"}
+      variant={dragging === true ? "solid" : "outline"}
+    >
+      {props.children}
+    </AppButton>
   );
 });

@@ -7,7 +7,7 @@
  * CSS file loaded via <link>.
  */
 
-/* ---- Design tokens (mirrors theme.ts getAppGlobalStyles) ---- */
+/* ---- Design tokens shared by static UI modules ---- */
 
 :root {
   --ink-strong: #0f172a;

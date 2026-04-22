@@ -1,5 +1,5 @@
-import Stack from "@mui/material/Stack";
 import React from "react";
+import styles from "../panels/BgModePanels.module.css";
 
 interface BgModeWorkspaceProps {
   editorPanel: React.ReactNode;
@@ -14,18 +14,13 @@ export const BgModeWorkspace: React.FC<BgModeWorkspaceProps> = ({
   libraryPanel,
 }) => {
   return (
-    <Stack
-      useFlexGap
-      direction={{ xs: "column", lg: "row" }}
-      spacing="1rem"
-      minHeight={0}
-      flex={1}
-      height="100%"
+    <div
+      className={styles.workspace}
       role="region"
       aria-label="BG編集ワークスペース"
     >
       {libraryPanel}
       {editorPanel}
-    </Stack>
+    </div>
   );
 };

@@ -1,16 +1,12 @@
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import {
+  AppBadge,
+  AppButton,
+  AppDialog,
+  AppInput,
+} from "../../../common/ui/forms/AppControls";
 import { INSPECTOR_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import {
   getIssueLabel,
@@ -24,6 +20,7 @@ import { useCharacterModeSpritePalettes } from "../../logic/characterModeShared"
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../primitives/CharacterModePrimitives";
+import styles from "./CharacterModeSelectedRegionCard.module.css";
 
 /**
  * 分解モードで選択中の領域詳細を表示するカードです。
@@ -34,7 +31,6 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
   const spritePalettes = useCharacterModeSpritePalettes();
   const [isApplyFeedbackDialogOpen, setIsApplyFeedbackDialogOpen] =
     React.useState(false);
-  const applyFeedbackDialogTitleId = React.useId();
 
   const handleCloseApplyFeedbackDialog = () => {
     setIsApplyFeedbackDialogOpen(false);
@@ -48,20 +44,11 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
 
   return (
     <>
-      <CharacterModeEditorCard
-        minHeight={0}
-        spacing="0.875rem"
-        p="1rem"
-        useFlexGap
-      >
-        <Typography variant="body2">選択中の領域</Typography>
+      <CharacterModeEditorCard className={styles.root}>
+        <span className={styles.title}>選択中の領域</span>
 
-        <Paper variant="outlined" style={{ borderRadius: "1.125rem" }}>
-          <Stack
-            minHeight="6.75rem"
-            alignItems="center"
-            justifyContent="center"
-          >
+        <div className={styles.previewFrame}>
+          <div className={styles.previewCenter}>
             <CharacterModeTilePreview
               scale={INSPECTOR_PREVIEW_SCALE}
               spritePalettes={spritePalettes}
@@ -70,171 +57,109 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 O.chain((regionAnalysis) => regionAnalysis.tile),
               )}
             />
-          </Stack>
-        </Paper>
+          </div>
+        </div>
 
-        <Stack spacing={0.75}>
-          <Paper variant="outlined">
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={1}
-              padding={1.5}
-              useFlexGap
-            >
-              <Typography variant="body2" color="text.secondary">
-                領域数
-              </Typography>
-              <Chip
-                size="small"
-                color="primary"
-                label={
-                  decompositionOverview.decompositionAnalysis.regions.length
-                }
-              />
-            </Stack>
-          </Paper>
-          <Paper variant="outlined">
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={1}
-              padding={1.5}
-              useFlexGap
-            >
-              <Typography variant="body2" color="text.secondary">
-                有効 / 無効
-              </Typography>
-              <Chip
-                size="small"
-                color={
+        <div className={styles.infoColumn}>
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>領域数</span>
+              <AppBadge tone="accent">
+                {decompositionOverview.decompositionAnalysis.regions.length}
+              </AppBadge>
+            </div>
+          </div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>有効 / 無効</span>
+              <AppBadge
+                tone={
                   decompositionOverview.decompositionInvalidRegionCount > 0
-                    ? "error"
-                    : "default"
+                    ? "danger"
+                    : "neutral"
                 }
-                label={`${decompositionOverview.decompositionValidRegionCount} / ${decompositionOverview.decompositionInvalidRegionCount}`}
-              />
-            </Stack>
-          </Paper>
-          <Paper variant="outlined">
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={1}
-              padding={1.5}
-              useFlexGap
-            >
-              <Typography variant="body2" color="text.secondary">
-                再利用 / 新規
-              </Typography>
-              <Chip
-                size="small"
-                label={`${decompositionOverview.decompositionAnalysis.reusableSpriteCount} / ${decompositionOverview.decompositionAnalysis.requiredNewSpriteCount}`}
-              />
-            </Stack>
-          </Paper>
-        </Stack>
+              >
+                {`${decompositionOverview.decompositionValidRegionCount} / ${decompositionOverview.decompositionInvalidRegionCount}`}
+              </AppBadge>
+            </div>
+          </div>
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>再利用 / 新規</span>
+              <AppBadge>
+                {`${decompositionOverview.decompositionAnalysis.reusableSpriteCount} / ${decompositionOverview.decompositionAnalysis.requiredNewSpriteCount}`}
+              </AppBadge>
+            </div>
+          </div>
+        </div>
 
         {pipe(
           selectedRegion.selectedRegionAnalysis,
           O.match(
             () => <></>,
             (regionAnalysis) => (
-              <Stack spacing={1.25} useFlexGap>
+              <div className={styles.detailsColumn}>
                 <SelectedRegionFieldGrid>
-                  <Stack component="label" spacing={0.5}>
-                    <Typography variant="caption" color="text.secondary">
-                      x
-                    </Typography>
-                    <OutlinedInput
-                      size="small"
+                  <label className={styles.fieldLabel}>
+                    <span className={styles.fieldCaption}>x</span>
+                    <AppInput
                       type="number"
                       value={regionAnalysis.region.x}
                       readOnly
-                      inputProps={{
-                        "aria-label": "選択中領域X座標",
-                      }}
+                      aria-label="選択中領域X座標"
                     />
-                  </Stack>
-                  <Stack component="label" spacing={0.5}>
-                    <Typography variant="caption" color="text.secondary">
-                      y
-                    </Typography>
-                    <OutlinedInput
-                      size="small"
+                  </label>
+                  <label className={styles.fieldLabel}>
+                    <span className={styles.fieldCaption}>y</span>
+                    <AppInput
                       type="number"
                       value={regionAnalysis.region.y}
                       readOnly
-                      inputProps={{
-                        "aria-label": "選択中領域Y座標",
-                      }}
+                      aria-label="選択中領域Y座標"
                     />
-                  </Stack>
+                  </label>
                 </SelectedRegionFieldGrid>
 
-                <Stack spacing={0.75}>
-                  <Paper variant="outlined">
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      spacing={1}
-                      padding={1.5}
-                      useFlexGap
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        状態
-                      </Typography>
-                      <Chip
-                        size="small"
-                        color={
-                          regionAnalysis.issues.length > 0 ? "error" : "primary"
+                <div className={styles.infoColumn}>
+                  <div className={styles.infoCard}>
+                    <div className={styles.infoRow}>
+                      <span className={styles.infoLabel}>状態</span>
+                      <AppBadge
+                        tone={
+                          regionAnalysis.issues.length > 0 ? "danger" : "accent"
                         }
-                        label={getRegionStatusLabel(regionAnalysis)}
-                      />
-                    </Stack>
-                  </Paper>
-                  <Paper variant="outlined">
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      spacing={1}
-                      padding={1.5}
-                      useFlexGap
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        issues
-                      </Typography>
-                      <Chip
-                        size="small"
-                        color={
-                          regionAnalysis.issues.length > 0 ? "error" : "default"
-                        }
-                        label={
+                      >
+                        {getRegionStatusLabel(regionAnalysis)}
+                      </AppBadge>
+                    </div>
+                  </div>
+                  <div className={styles.infoCard}>
+                    <div className={styles.infoRow}>
+                      <span className={styles.infoLabel}>issues</span>
+                      <AppBadge
+                        tone={
                           regionAnalysis.issues.length > 0
-                            ? regionAnalysis.issues
-                                .map(getIssueLabel)
-                                .join(", ")
-                            : "none"
+                            ? "danger"
+                            : "neutral"
                         }
-                      />
-                    </Stack>
-                  </Paper>
-                </Stack>
-              </Stack>
+                      >
+                        {regionAnalysis.issues.length > 0
+                          ? regionAnalysis.issues.map(getIssueLabel).join(", ")
+                          : "none"}
+                      </AppBadge>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ),
           ),
         )}
 
-        <Button
-          type="button"
+        <AppButton
           fullWidth
           size="small"
-          variant="contained"
+          tone="accent"
+          variant="solid"
           disabled={
             O.isNone(decompositionOverview.activeSet) ||
             decompositionOverview.decompositionAnalysis.regions.length === 0 ||
@@ -243,26 +168,22 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           onClick={handleApplyDecomposition}
         >
           分解して現在のセットへ反映
-        </Button>
+        </AppButton>
       </CharacterModeEditorCard>
 
-      <Dialog
-        open={isApplyFeedbackDialogOpen}
-        onClose={handleCloseApplyFeedbackDialog}
-        aria-labelledby={applyFeedbackDialogTitleId}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle id={applyFeedbackDialogTitleId}>
-          現在のセットへ反映しました
-        </DialogTitle>
-        <DialogContent>分解結果を現在のセットへ反映しました。</DialogContent>
-        <DialogActions>
-          <Button type="button" onClick={handleCloseApplyFeedbackDialog}>
+      <AppDialog
+        actions={
+          <AppButton variant="outline" onClick={handleCloseApplyFeedbackDialog}>
             閉じる
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </AppButton>
+        }
+        open={isApplyFeedbackDialogOpen}
+        size="small"
+        title="現在のセットへ反映しました"
+        onClose={handleCloseApplyFeedbackDialog}
+      >
+        <span>分解結果を現在のセットへ反映しました。</span>
+      </AppDialog>
     </>
   );
 };

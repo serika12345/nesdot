@@ -1,20 +1,17 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
+  AppButton,
+  AppDialog,
+  AppInput,
+  AppSelect,
+} from "../../../common/ui/forms/AppControls";
+import {
   useCharacterModeSetName,
   useCharacterModeSetSelection,
 } from "../../logic/characterModeEditorState";
+import styles from "./CharacterModeSetFields.module.css";
 
 /**
  * 編集対象セットの選択、名前変更、削除を扱う入力欄です。
@@ -24,7 +21,6 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
   const setName = useCharacterModeSetName();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = React.useState(false);
   const [renameDraftName, setRenameDraftName] = React.useState("");
-  const renameDialogTitleId = React.useId();
   const activeSetId = pipe(
     setSelection.selectedCharacterId,
     O.match(
@@ -68,14 +64,9 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
 
   return (
     <>
-      <Box minWidth={{ xs: "100%", sm: "10rem" }} flex="1 1 12rem">
-        <Select
-          fullWidth
-          size="small"
-          variant="outlined"
-          inputProps={{
-            "aria-label": "編集中のセット",
-          }}
+      <div className={styles.selectWrap}>
+        <AppSelect
+          aria-label="編集中のセット"
           value={activeSetId}
           onChange={(event) => {
             const value = event.target.value;
@@ -85,76 +76,77 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
             setSelection.handleSelectSet(value);
           }}
         >
-          {setSelection.characterSets.length === 0 && (
-            <MenuItem value="">キャラクターセットがありません</MenuItem>
+          {setSelection.characterSets.length === 0 ? (
+            <option value="">キャラクターセットがありません</option>
+          ) : (
+            <></>
           )}
           {setSelection.characterSets.map((characterSet) => (
-            <MenuItem key={characterSet.id} value={characterSet.id}>
+            <option key={characterSet.id} value={characterSet.id}>
               {`${characterSet.name} (${characterSet.sprites.length} sprites)`}
-            </MenuItem>
+            </option>
           ))}
-        </Select>
-      </Box>
-      <Box flexShrink={0}>
-        <Button
-          type="button"
+        </AppSelect>
+      </div>
+      <div className={styles.actionWrap}>
+        <AppButton
           size="small"
-          variant="outlined"
+          variant="outline"
           disabled={O.isNone(setSelection.selectedCharacterId)}
           onClick={handleOpenRenameDialog}
         >
           セット名変更
-        </Button>
-      </Box>
-      <Box flexShrink={0}>
-        <Button
-          type="button"
+        </AppButton>
+      </div>
+      <div className={styles.actionWrap}>
+        <AppButton
           size="small"
-          variant="outlined"
-          color="error"
+          tone="danger"
+          variant="outline"
           disabled={O.isNone(setSelection.selectedCharacterId)}
           onClick={handleDeleteSetWithConfirmation}
         >
           セットを削除
-        </Button>
-      </Box>
+        </AppButton>
+      </div>
 
-      <Dialog
-        open={isRenameDialogOpen}
-        onClose={handleCloseRenameDialog}
-        aria-labelledby={renameDialogTitleId}
-        fullWidth
-        maxWidth="xs"
-      >
-        <Stack component="form" onSubmit={handleRenameSetSubmit} spacing={0}>
-          <DialogTitle id={renameDialogTitleId}>セット名を変更</DialogTitle>
-
-          <DialogContent>
-            <Box pt={1.5}>
-              <TextField
-                fullWidth
-                type="text"
-                label="変更後のセット名"
-                value={renameDraftName}
-                autoFocus
-                inputProps={{
-                  "aria-label": "変更後のセット名",
-                }}
-                onChange={(event) => setRenameDraftName(event.target.value)}
-              />
-            </Box>
-          </DialogContent>
-
-          <DialogActions>
-            <Button type="button" onClick={handleCloseRenameDialog}>
+      <AppDialog
+        actions={
+          <>
+            <AppButton variant="outline" onClick={handleCloseRenameDialog}>
               キャンセル
-            </Button>
-            <Button type="submit" variant="contained">
+            </AppButton>
+            <AppButton
+              form="character-mode-rename-set-form"
+              tone="accent"
+              type="submit"
+              variant="solid"
+            >
               変更する
-            </Button>
-          </DialogActions>
-        </Stack>
-      </Dialog>
+            </AppButton>
+          </>
+        }
+        open={isRenameDialogOpen}
+        size="small"
+        title="セット名を変更"
+        onClose={handleCloseRenameDialog}
+      >
+        <form
+          className={styles.dialogForm}
+          id="character-mode-rename-set-form"
+          onSubmit={handleRenameSetSubmit}
+        >
+          <div className={styles.dialogField}>
+            <AppInput
+              aria-label="変更後のセット名"
+              autoFocus
+              type="text"
+              value={renameDraftName}
+              onChange={(event) => setRenameDraftName(event.target.value)}
+            />
+          </div>
+        </form>
+      </AppDialog>
     </>
   );
 };

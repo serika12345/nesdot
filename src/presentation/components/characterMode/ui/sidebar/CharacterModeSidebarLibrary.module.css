@@ -1,0 +1,105 @@
+@layer components {
+  .root {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1rem;
+  }
+
+  .headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+  }
+
+  .headerLabel {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .contentWrap {
+    min-height: 0;
+  }
+
+  .contentWrap[data-open-state="false"] {
+    display: none;
+  }
+
+  .interactionRoot {
+    cursor: default;
+  }
+
+  .interactionRoot[data-interactive-state="true"] {
+    cursor: grab;
+  }
+
+  .scrollArea {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    margin-right: -2.25rem;
+    padding-right: 2.25rem;
+    scrollbar-gutter: stable;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
+  }
+
+  .previewButton {
+    width: 100%;
+    min-height: 7.375rem;
+    padding: 0.75rem;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .previewButton[data-dragging-state="true"] {
+    cursor: grabbing;
+  }
+
+  .previewContent {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.625rem;
+    flex-direction: column;
+  }
+
+  .spriteTitle {
+    color: var(--ink-soft);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .previewFrame {
+    display: flex;
+    width: 5.5rem;
+    min-height: 4rem;
+    align-items: center;
+    justify-content: center;
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .chevron {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 160ms ease;
+  }
+
+  .chevron[data-open="true"] {
+    transform: rotate(180deg);
+  }
+}

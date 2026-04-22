@@ -1,9 +1,7 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import React from "react";
+import { AppBadge, AppButton } from "../../../common/ui/forms/AppControls";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { ScreenModeCharacterPreview } from "../preview/ScreenModeCharacterPreview";
 import {
@@ -16,14 +14,7 @@ import {
   ScreenLibraryPreviewButton,
   toBooleanDataValue,
 } from "./ScreenModeGestureWorkspaceShared";
-import {
-  collapseChevronStyle,
-  createScreenLibraryScrollAreaStyle,
-  fieldLabelStyle,
-  helperTextStyle,
-  resolveBadgeStyle,
-  screenPreviewLabelStyle,
-} from "./ScreenModeGestureWorkspaceStyle";
+import styles from "./ScreenModeLibraryPanels.module.css";
 
 interface ScreenModeCharacterLibraryPanelProps {
   libraryState: ScreenModeLibraryPresentationState;
@@ -35,55 +26,33 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
   const [isOpen, setIsOpen] = React.useState(true);
 
   return (
-    <Stack
-      component={Paper}
-      variant="outlined"
-      position="relative"
-      flexShrink={0}
-      overflow="hidden"
-      p={1.5}
-      spacing={1.25}
-      useFlexGap
-      minHeight={0}
+    <SurfaceCard
+      className={styles.panel}
       role="region"
       aria-label="スクリーン配置キャラクターライブラリ"
     >
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing="0.75rem"
-        flexWrap="wrap"
-        useFlexGap
-      >
-        <Box component="span" style={fieldLabelStyle}>
-          キャラクタープレビュー
-        </Box>
-        <Stack direction="row" spacing="0.5rem" alignItems="center">
-          <span style={resolveBadgeStyle("neutral")}>
-            {`${libraryState.characterPreviewCards.length} sets`}
-          </span>
-          <Button
-            type="button"
-            aria-expanded={isOpen}
+      <div className={styles.headerRow}>
+        <span className={styles.label}>キャラクタープレビュー</span>
+        <div className={styles.badgeRow}>
+          <AppBadge>{`${libraryState.characterPreviewCards.length} sets`}</AppBadge>
+          <AppButton
             aria-controls="screen-mode-character-library-content"
+            aria-expanded={isOpen}
             aria-label={
               isOpen
                 ? "キャラクタープレビューを閉じる"
                 : "キャラクタープレビューを開く"
             }
-            color={isOpen === true ? "primary" : "inherit"}
-            endIcon={
-              <ExpandMoreRoundedIcon style={collapseChevronStyle(isOpen)} />
-            }
             size="small"
-            variant={isOpen === true ? "contained" : "outlined"}
+            tone={isOpen === true ? "accent" : "neutral"}
+            variant={isOpen === true ? "solid" : "outline"}
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-          </Button>
-        </Stack>
-      </Stack>
+            <ChevronDownIcon className={styles.chevron} data-open={isOpen} />
+          </AppButton>
+        </div>
+      </div>
 
       <LibrarySectionContent
         id="screen-mode-character-library-content"
@@ -91,7 +60,7 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
         aria-hidden={isOpen === false}
       >
         {libraryState.characterPreviewCards.length > 0 ? (
-          <Box style={createScreenLibraryScrollAreaStyle("15.5rem")}>
+          <div className={styles.scrollArea} data-kind="character">
             <CharacterLibraryGrid>
               {libraryState.characterPreviewCards.map((characterCard) => (
                 <ScreenLibraryPreviewButton
@@ -121,13 +90,7 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
                     )
                   }
                 >
-                  <Stack
-                    useFlexGap
-                    alignItems="center"
-                    justifyContent="center"
-                    width="100%"
-                    spacing="0.375rem"
-                  >
+                  <div className={styles.previewContent}>
                     <CharacterPreviewTiles>
                       <ScreenModeCharacterPreview
                         maxHeightPx={64}
@@ -136,23 +99,23 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
                         previewGrid={characterCard.previewGrid}
                       />
                     </CharacterPreviewTiles>
-                    <Box component="span" style={screenPreviewLabelStyle}>
+                    <span className={styles.previewLabel}>
                       {characterCard.name}
-                    </Box>
-                    <span style={resolveBadgeStyle("accent")}>
-                      {`${characterCard.spriteCount} sprites`}
                     </span>
-                  </Stack>
+                    <AppBadge tone="accent">
+                      {`${characterCard.spriteCount} sprites`}
+                    </AppBadge>
+                  </div>
                 </ScreenLibraryPreviewButton>
               ))}
             </CharacterLibraryGrid>
-          </Box>
+          </div>
         ) : (
-          <Box component="p" m={0} style={helperTextStyle}>
+          <p className={styles.helperText}>
             先にキャラクター編集モードでセットを作成すると、ここからドラッグ配置できます。
-          </Box>
+          </p>
         )}
       </LibrarySectionContent>
-    </Stack>
+    </SurfaceCard>
   );
 };

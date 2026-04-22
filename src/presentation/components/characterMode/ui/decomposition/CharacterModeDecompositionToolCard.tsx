@@ -1,12 +1,10 @@
-import Button from "@mui/material/Button";
-import ButtonBase from "@mui/material/ButtonBase";
-import Chip from "@mui/material/Chip";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
+import {
+  AppBadge,
+  AppButton,
+  AppSelect,
+} from "../../../common/ui/forms/AppControls";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
@@ -20,8 +18,9 @@ import {
   PaletteSlotGrid,
 } from "../primitives/CharacterModePrimitives";
 import { createPaletteSlotButtonStyle } from "./CharacterModeDecompositionToolCardStyle";
+import styles from "./CharacterModeDecomposition.module.css";
 
-type PaletteSlotButtonProps = React.ComponentProps<typeof ButtonBase> & {
+type PaletteSlotButtonProps = React.ComponentProps<"button"> & {
   colorHex: string;
   selectedState?: boolean;
 };
@@ -33,9 +32,11 @@ const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
   ...props
 }) => {
   return (
-    <ButtonBase
+    <button
       {...props}
+      className={styles.slotButton}
       data-selected-state={selectedState === true ? "true" : "false"}
+      type={props.type ?? "button"}
       style={createPaletteSlotButtonStyle(
         style ?? {},
         colorHex,
@@ -53,82 +54,73 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
   const decompositionPalette = useCharacterModeDecompositionPalette();
 
   return (
-    <CharacterModeEditorCard
-      minHeight={0}
-      spacing="0.875rem"
-      p="1rem"
-      useFlexGap
-    >
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing={1.5}
-        useFlexGap
-        flexWrap="wrap"
-      >
-        <Typography variant="body2">分解ツール</Typography>
-        <Chip
-          size="small"
-          variant="outlined"
-          label={decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
-        />
-      </Stack>
+    <CharacterModeEditorCard className={styles.toolCard}>
+      <div className={styles.headerRow}>
+        <span className={styles.title}>分解ツール</span>
+        <AppBadge>
+          {decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
+        </AppBadge>
+      </div>
 
       <DecompositionToolGrid>
-        <Button
-          type="button"
+        <AppButton
           aria-label="分解ツール ペン"
           size="small"
           variant={
-            decompositionTool.decompositionTool === "pen"
-              ? "contained"
-              : "outlined"
+            decompositionTool.decompositionTool === "pen" ? "solid" : "outline"
+          }
+          tone={
+            decompositionTool.decompositionTool === "pen" ? "accent" : "neutral"
           }
           onClick={() => decompositionTool.handleDecompositionToolChange("pen")}
         >
           ペン
-        </Button>
-        <Button
-          type="button"
+        </AppButton>
+        <AppButton
           aria-label="分解ツール 消しゴム"
           size="small"
           variant={
             decompositionTool.decompositionTool === "eraser"
-              ? "contained"
-              : "outlined"
+              ? "solid"
+              : "outline"
+          }
+          tone={
+            decompositionTool.decompositionTool === "eraser"
+              ? "accent"
+              : "neutral"
           }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("eraser")
           }
         >
           消しゴム
-        </Button>
-        <Button
-          type="button"
+        </AppButton>
+        <AppButton
           aria-label="分解ツール 切り取り"
           size="small"
           variant={
             decompositionTool.decompositionTool === "region"
-              ? "contained"
-              : "outlined"
+              ? "solid"
+              : "outline"
+          }
+          tone={
+            decompositionTool.decompositionTool === "region"
+              ? "accent"
+              : "neutral"
           }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("region")
           }
         >
           切り取り
-        </Button>
+        </AppButton>
       </DecompositionToolGrid>
 
       <PaletteControlRow>
         <PaletteControlContainer>
-          <Select
-            variant="outlined"
+          <AppSelect
+            aria-label="分解描画パレット"
             value={decompositionPalette.decompositionPaletteIndex}
-            inputProps={{
-              "aria-label": "分解描画パレット",
-            }}
             onChange={(event) => {
               const value = event.target.value;
               if (typeof value !== "string" && typeof value !== "number") {
@@ -139,11 +131,11 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
             }}
           >
             {decompositionPalette.spritePalettes.map((_, paletteIndex) => (
-              <MenuItem key={paletteIndex} value={paletteIndex}>
+              <option key={paletteIndex} value={paletteIndex}>
                 パレット {paletteIndex}
-              </MenuItem>
+              </option>
             ))}
-          </Select>
+          </AppSelect>
         </PaletteControlContainer>
 
         <PaletteSlotGrid>
@@ -158,10 +150,9 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
             );
 
             return (
-              <Stack
+              <div
                 key={`decompose-slot-${slotIndex}`}
-                alignItems="center"
-                spacing="0.5rem"
+                className={styles.slotEntry}
               >
                 <PaletteSlotButton
                   type="button"
@@ -174,8 +165,8 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
                     )
                   }
                 />
-                <Typography variant="caption">{`slot${slotIndex}`}</Typography>
-              </Stack>
+                <span className={styles.slotLabel}>{`slot${slotIndex}`}</span>
+              </div>
             );
           })}
         </PaletteSlotGrid>

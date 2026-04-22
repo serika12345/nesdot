@@ -1,0 +1,72 @@
+@layer components {
+  .root {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1rem;
+  }
+
+  .title {
+    color: var(--ink);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .previewFrame {
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 1.125rem;
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  .previewCenter {
+    display: flex;
+    min-height: 6.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .infoColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .infoCard {
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .infoLabel {
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+
+  .detailsColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .fieldLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .fieldCaption {
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+}

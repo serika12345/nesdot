@@ -1,0 +1,14 @@
+@layer components {
+  .previewButton {
+    width: 100%;
+    min-width: 0;
+    min-height: 6rem;
+    touch-action: none;
+    user-select: none;
+    cursor: grab;
+  }
+
+  .previewButton[data-dragging-state="true"] {
+    cursor: grabbing;
+  }
+}

@@ -1,7 +1,5 @@
-import Paper from "@mui/material/Paper";
-import type { StackProps } from "@mui/material/Stack";
-import Stack from "@mui/material/Stack";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 
 /**
  * キャラクター編集画面で繰り返し使うカード枠です。
@@ -9,15 +7,7 @@ import React from "react";
  */
 export const CharacterModeEditorCard = React.forwardRef<
   HTMLDivElement,
-  StackProps<typeof Paper>
+  React.HTMLAttributes<HTMLDivElement>
 >(function CharacterModeEditorCard({ className, ...props }, ref) {
-  return (
-    <Stack
-      ref={ref}
-      component={Paper}
-      variant="outlined"
-      {...props}
-      className={className}
-    />
-  );
+  return <SurfaceCard {...props} ref={ref} className={className} />;
 });

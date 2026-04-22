@@ -1,4 +1,3 @@
-import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -25,6 +24,7 @@ import {
 } from "../primitives/CharacterModePrimitives";
 import { CharacterModeSidebar } from "../sidebar/CharacterModeSidebar";
 import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
+import styles from "./CharacterModeShell.module.css";
 
 /**
  * CharacterMode の DOM bridge と gesture 系イベントをこの境界で組み立てます。
@@ -102,7 +102,6 @@ export const CharacterModeGestureWorkspace: React.FC = () => {
 
   return (
     <CharacterWorkspaceRoot
-      flex={1}
       onPointerDownCapture={handleWorkspacePointerDownCapture}
       onPointerMoveCapture={handleWorkspacePointerMoveCapture}
       onPointerUpCapture={handleWorkspacePointerEndCapture}
@@ -179,19 +178,13 @@ export const CharacterModeGestureWorkspace: React.FC = () => {
                 dragClientX={drag.clientX}
                 dragClientY={drag.clientY}
               >
-                <Stack
-                  height="100%"
-                  width="100%"
-                  alignItems="center"
-                  justifyContent="center"
-                  spacing={0}
-                >
+                <div className={styles.floatingPreviewContent}>
                   <CharacterModeTilePreview
                     scale={LIBRARY_PREVIEW_SCALE}
                     spritePalettes={dragPreview.spritePalettes}
                     tileOption={dragPreview.getSpriteTile(drag.spriteIndex)}
                   />
-                </Stack>
+                </div>
               </FloatingLibraryPreview>
             ),
           ),

@@ -1,0 +1,48 @@
+@layer components {
+  .root {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .helperText {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+  }
+
+  .contentRow {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sidebar {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  @media (min-width: 64rem) {
+    .contentRow {
+      flex-direction: row;
+    }
+
+    .sidebar {
+      width: 21rem;
+      flex-shrink: 0;
+    }
+  }
+}

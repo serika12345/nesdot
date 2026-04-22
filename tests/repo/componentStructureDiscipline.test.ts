@@ -100,6 +100,9 @@ const matchesAllowedFeatureRootDirectories = (
 const isPrimitivesCollectionFile = (filePath: string): boolean =>
   /Primitives\.tsx$/u.test(filePath);
 
+const isCollectionModuleFile = (filePath: string): boolean =>
+  /(?:Primitives|AppControls|AppIcons)\.tsx$/u.test(filePath);
+
 const isLegacyComponentFilename = (filePath: string): boolean =>
   /(?:^|[\\/])(?:index\.tsx|index\.test\.tsx?|styles\.ts|shared\.tsx|types\.ts)$/u.test(
     filePath,
@@ -197,6 +200,7 @@ describe("presentation component file discipline", () => {
   it("keeps each component file to one public component export", () => {
     const offenders = listTsxFiles(componentsRoot)
       .filter((filePath) => isPrimitivesCollectionFile(filePath) === false)
+      .filter((filePath) => isCollectionModuleFile(filePath) === false)
       .map(
         (filePath): TsxFileMetric => ({
           filePath,
@@ -218,7 +222,7 @@ describe("presentation component file discipline", () => {
         }),
       )
       .filter((metric) => metric.value > 1)
-      .filter((metric) => isPrimitivesCollectionFile(metric.filePath) === false)
+      .filter((metric) => isCollectionModuleFile(metric.filePath) === false)
       .map(toRelativeMetricLabel);
 
     expect(offenders).toStrictEqual([]);

@@ -4,8 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
-const lintedFilePath =
-  "src/presentation/components/characterMode/ui/core/CharacterMode.tsx";
+const lintedFilePath = "tests/repo/fixtures/mui-sx-rule-fixture.tsx";
 const lintTestTimeoutMs = 15_000;
 const eslint = new ESLint({
   cwd: projectRoot,
@@ -28,11 +27,11 @@ const getMuiRuleMessages = async (
   const messages = await lintSnippet(source);
 
   return messages
-    .filter((message) => message.ruleId === "mui-guidance/restrict-sx")
+    .filter((message) => message.ruleId === "ui-style-guidance/restrict-sx")
     .map((message) => message.message);
 };
 
-describe("mui-guidance/restrict-sx", () => {
+describe("ui-style-guidance/restrict-sx", () => {
   test(
     "allows a short shallow sx object",
     async () => {

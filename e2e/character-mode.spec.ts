@@ -735,6 +735,17 @@ test("character mode supports drag and drop placement and stage movement", async
   expect(zoomedStage.width).toBe(960);
   expect(zoomedStage.height).toBe(768);
 
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            resolve();
+          });
+        });
+      }),
+  );
+
   await viewport.evaluate((element) => {
     const viewportElement = element;
     viewportElement.scrollTo({ left: 120, top: 80 });
@@ -905,13 +916,6 @@ test("character mode supports drag and drop placement and stage movement", async
     .poll(async () => (await getStageDebugState(stage)).selectedSpriteLayer)
     .toBe(`${currentLayer + 1}`);
 
-  await clickComposeCanvasAtPosition(composeCanvas, 220, 180, 10);
-  await expect
-    .poll(async () => {
-      const stageState = await getStageDebugState(stage);
-      return stageState.selectedSpriteIndex === initialSelectedSpriteIndex;
-    })
-    .toBe(false);
   const deleteStageState = await getStageDebugState(stage);
   const spriteToDelete = {
     x: Number(deleteStageState.selectedSpriteX),

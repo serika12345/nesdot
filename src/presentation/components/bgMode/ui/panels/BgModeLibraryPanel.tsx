@@ -1,9 +1,3 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import React from "react";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
@@ -11,11 +5,10 @@ import {
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { AppButton } from "../../../common/ui/forms/AppControls";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
-import {
-  tileButtonLayoutProps,
-  tileLibraryGridProps,
-} from "./bgModePanelStyles";
+import styles from "./BgModePanels.module.css";
 
 const DEFAULT_BG_PALETTE: NesSubPalette = [0, 0, 0, 0];
 
@@ -49,71 +42,56 @@ export const BgModeLibraryPanel: React.FC<BgModeLibraryPanelProps> = ({
   libraryPanelState,
 }) => {
   return (
-    <Stack
-      component={Paper}
-      variant="outlined"
-      spacing="0.875rem"
-      p="1.125rem"
+    <SurfaceCard
+      className={`${styles.panel} ${styles.libraryPanel}`}
       role="region"
       aria-label="BGタイル一覧"
-      flex="0 0 21rem"
-      minHeight={0}
     >
-      <Stack position="relative" zIndex={1} spacing="0.3125rem" useFlexGap>
-        <Typography component="h2" variant="h2" color="text.primary">
-          BG編集
-        </Typography>
-      </Stack>
+      <div className={styles.headingWrap}>
+        <h2 className={styles.heading}>BG編集</h2>
+      </div>
 
-      <Box
-        flex={1}
-        minHeight={0}
-        overflow="auto"
-        mr={-2.25}
-        pr={2.25}
-        style={{ scrollbarGutter: "stable" }}
-      >
-        <Grid {...tileLibraryGridProps}>
+      <div className={styles.scrollArea}>
+        <div className={styles.tileGrid}>
           {libraryPanelState.tiles.map((tile, tileIndex) => (
-            <Grid key={`bg-tile-preview-${tileIndex}`} size={1}>
-              <Button
-                type="button"
-                color={
-                  libraryPanelState.selectedTileIndex === tileIndex
-                    ? "primary"
-                    : "inherit"
-                }
-                variant={
-                  libraryPanelState.selectedTileIndex === tileIndex
-                    ? "contained"
-                    : "outlined"
-                }
-                fullWidth
-                aria-label={`#${formatTileNumber(tileIndex)}`}
-                aria-pressed={libraryPanelState.selectedTileIndex === tileIndex}
-                onClick={() => {
-                  libraryPanelState.handleSelectTile(tileIndex);
-                }}
-              >
-                <Stack {...tileButtonLayoutProps}>
-                  <BackgroundTilePreview
-                    scale={6}
-                    tile={tile}
-                    palette={resolveActivePalette(
-                      libraryPanelState.backgroundPalettes,
-                      libraryPanelState.activePaletteIndex,
-                    )}
-                    universalBackgroundColor={
-                      libraryPanelState.universalBackgroundColor
-                    }
-                  />
-                  <span>{`#${formatTileNumber(tileIndex)}`}</span>
-                </Stack>
-              </Button>
-            </Grid>
+            <AppButton
+              key={`bg-tile-preview-${tileIndex}`}
+              type="button"
+              tone={
+                libraryPanelState.selectedTileIndex === tileIndex
+                  ? "accent"
+                  : "neutral"
+              }
+              variant={
+                libraryPanelState.selectedTileIndex === tileIndex
+                  ? "solid"
+                  : "outline"
+              }
+              fullWidth
+              aria-label={`#${formatTileNumber(tileIndex)}`}
+              aria-pressed={libraryPanelState.selectedTileIndex === tileIndex}
+              onClick={() => {
+                libraryPanelState.handleSelectTile(tileIndex);
+              }}
+            >
+              <span className={styles.tileButtonContent}>
+                <BackgroundTilePreview
+                  scale={6}
+                  tile={tile}
+                  palette={resolveActivePalette(
+                    libraryPanelState.backgroundPalettes,
+                    libraryPanelState.activePaletteIndex,
+                  )}
+                  universalBackgroundColor={
+                    libraryPanelState.universalBackgroundColor
+                  }
+                />
+                <span>{`#${formatTileNumber(tileIndex)}`}</span>
+              </span>
+            </AppButton>
           ))}
-        </Grid>
-      </Box>
-    </Stack>
+        </div>
+      </div>
+    </SurfaceCard>
   );
 };

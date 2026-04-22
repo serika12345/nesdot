@@ -1,10 +1,9 @@
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type ScreenModeContextMenuStateResult } from "../../logic/useScreenModeContextMenuState";
 import { resolveMenuPosition } from "./ScreenModeGestureWorkspaceShared";
+import styles from "./ScreenModeGestureContextMenu.module.css";
 
 interface ScreenModeGestureContextMenuProps {
   contextMenuState: ScreenModeContextMenuStateResult;
@@ -18,34 +17,77 @@ export const ScreenModeGestureContextMenu: React.FC<
     O.map((menu) => resolveMenuPosition(menu.clientX, menu.clientY)),
   );
 
+  if (O.isNone(contextMenuPosition)) {
+    return <></>;
+  }
+
   return (
-    <Menu
-      open={O.isSome(contextMenuPosition)}
-      onClose={contextMenuState.close}
-      anchorReference="anchorPosition"
-      anchorPosition={pipe(
-        contextMenuPosition,
-        O.getOrElse(() => ({ left: 0, top: 0 })),
-      )}
-      MenuListProps={{
-        "aria-label": "スクリーン配置コンテキストメニュー",
+    <div
+      aria-label="スクリーン配置コンテキストメニュー"
+      className={styles.menu}
+      data-screen-context-menu="true"
+      role="menu"
+      style={{
+        left: contextMenuPosition.value.left,
+        top: contextMenuPosition.value.top,
       }}
     >
-      <MenuItem onClick={contextMenuState.handleRaiseLayer}>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleRaiseLayer}
+      >
         レイヤーを上げる
-      </MenuItem>
-      <MenuItem onClick={contextMenuState.handleLowerLayer}>
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleLowerLayer}
+      >
         レイヤーを下げる
-      </MenuItem>
-      <MenuItem onClick={contextMenuState.handleSetPriorityFront}>
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleSetPriorityFront}
+      >
         優先度: 背景の前
-      </MenuItem>
-      <MenuItem onClick={contextMenuState.handleSetPriorityBehind}>
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleSetPriorityBehind}
+      >
         優先度: 背景の後ろ
-      </MenuItem>
-      <MenuItem onClick={contextMenuState.handleToggleFlipH}>H反転</MenuItem>
-      <MenuItem onClick={contextMenuState.handleToggleFlipV}>V反転</MenuItem>
-      <MenuItem onClick={contextMenuState.handleDeleteSprites}>削除</MenuItem>
-    </Menu>
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleToggleFlipH}
+      >
+        H反転
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleToggleFlipV}
+      >
+        V反転
+      </button>
+      <button
+        className={styles.item}
+        role="menuitem"
+        type="button"
+        onClick={contextMenuState.handleDeleteSprites}
+      >
+        削除
+      </button>
+    </div>
   );
 };

@@ -1,11 +1,11 @@
-import Button from "@mui/material/Button";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { AppButton } from "../../../common/ui/forms/AppControls";
 import {
   useCharacterModeSetSelection,
   useCharacterModeSpriteSize,
 } from "../../logic/characterModeEditorState";
-import { SidebarToggleGrid } from "../primitives/CharacterModePrimitives";
+import styles from "../core/CharacterModeShell.module.css";
 
 /**
  * プロジェクトのスプライトサイズ切り替えカードです。
@@ -16,8 +16,8 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
   const isDisabled = O.isNone(setSelection.selectedCharacterId);
 
   return (
-    <SidebarToggleGrid>
-      <Button
+    <div className={styles.toggleGrid}>
+      <AppButton
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
         fullWidth
@@ -27,12 +27,13 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 8)
         }
-        variant={spriteSize.projectSpriteSize === 8 ? "contained" : "outlined"}
+        tone={spriteSize.projectSpriteSize === 8 ? "accent" : "neutral"}
+        variant={spriteSize.projectSpriteSize === 8 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(8)}
       >
         8×8
-      </Button>
-      <Button
+      </AppButton>
+      <AppButton
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x16"
         fullWidth
@@ -42,11 +43,12 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 16)
         }
-        variant={spriteSize.projectSpriteSize === 16 ? "contained" : "outlined"}
+        tone={spriteSize.projectSpriteSize === 16 ? "accent" : "neutral"}
+        variant={spriteSize.projectSpriteSize === 16 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(16)}
       >
         8×16
-      </Button>
-    </SidebarToggleGrid>
+      </AppButton>
+    </div>
   );
 };

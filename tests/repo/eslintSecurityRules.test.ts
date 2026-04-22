@@ -4,8 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
-const lintedFilePath =
-  "src/presentation/components/characterMode/ui/core/CharacterMode.tsx";
+const lintedFilePath = "tests/repo/fixtures/security-rules-fixture.tsx";
 const lintTestTimeoutMs = 15_000;
 const eslint = new ESLint({
   cwd: projectRoot,

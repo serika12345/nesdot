@@ -1,0 +1,94 @@
+@layer components {
+  .editorContent {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .workspaceHeaderActionCluster {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: nowrap;
+  }
+
+  .zoomControlsRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .previewViewport {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 1.5rem;
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 1.125rem;
+    background: var(--panel-surface);
+    box-shadow: var(--shadow-3, var(--panel-shadow));
+    backdrop-filter: blur(1rem);
+    cursor: default;
+  }
+
+  .previewViewport[data-active="true"] {
+    cursor: grabbing;
+  }
+
+  .previewCanvasWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    min-width: 100%;
+    min-height: 100%;
+    height: max-content;
+  }
+
+  .librarySectionContent {
+    display: block;
+    min-height: 0;
+  }
+
+  .librarySectionContent[data-open-state="false"] {
+    display: none;
+  }
+
+  .spriteLibraryGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .characterLibraryGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .characterPreviewTiles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 1.5rem;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .warningList {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+}

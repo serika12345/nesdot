@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,20 @@ const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 const readTextFile = (relativePath: string): string => {
   return readFileSync(new URL(relativePath, import.meta.url), "utf8");
+};
+
+const listProjectFiles = (rootPath: string): ReadonlyArray<string> => {
+  const directoryEntries = readdirSync(rootPath);
+
+  return directoryEntries.flatMap((entryName) => {
+    const entryPath = path.join(rootPath, entryName);
+
+    if (statSync(entryPath).isDirectory()) {
+      return listProjectFiles(entryPath);
+    }
+
+    return [entryPath];
+  });
 };
 
 describe("tauri csp style bootstrap", () => {
@@ -23,7 +37,8 @@ describe("tauri csp style bootstrap", () => {
     expect(mainSource).not.toContain("getCspNonce");
     expect(mainSource).toContain("@radix-ui/themes/styles.css");
     expect(mainSource).toContain("Theme");
-    expect(mainSource).toContain("ThemeProvider");
+    expect(mainSource).not.toContain("@mui/material-pigment-css/styles.css");
+    expect(mainSource).not.toContain("ThemeProvider");
   });
 
   test("keeps index.html free of the tauri style nonce placeholder", () => {
@@ -47,5 +62,26 @@ describe("tauri csp style bootstrap", () => {
     expect(packageJson).not.toContain('"@emotion/cache"');
     expect(packageJson).not.toContain('"@emotion/react"');
     expect(packageJson).toContain('"@radix-ui/themes"');
+  });
+
+  test("keeps src and entry config free of mui and pigment imports", () => {
+    const projectFiles = [
+      ...listProjectFiles(path.join(projectRoot, "src")),
+      path.join(projectRoot, "vite.config.ts"),
+    ];
+    const offenders = projectFiles.flatMap((filePath) => {
+      const source = readFileSync(filePath, "utf8");
+
+      if (
+        source.includes("@mui/") === true ||
+        source.includes("@pigment-css/") === true
+      ) {
+        return [path.relative(projectRoot, filePath)];
+      }
+
+      return [];
+    });
+
+    expect(offenders).toStrictEqual([]);
   });
 });

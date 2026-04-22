@@ -1,6 +1,6 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { Button } from "@radix-ui/themes";
 import React from "react";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { type SpriteModeToolOverlayState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeToolMenu } from "../menu/SpriteModeToolMenu";
 import styles from "./SpriteModeToolOverlay.module.css";
@@ -26,7 +26,7 @@ export const SpriteModeToolOverlay: React.FC<SpriteModeToolOverlayProps> = ({
           onClick={toolOverlay.handleToggleTools}
         >
           {toolOverlay.isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
-          <ExpandMoreRoundedIcon
+          <ChevronDownIcon
             className={styles.chevron}
             data-open={toolOverlay.isToolsOpen}
           />

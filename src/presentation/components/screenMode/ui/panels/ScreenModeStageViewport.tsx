@@ -1,4 +1,3 @@
-import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -15,10 +14,9 @@ import {
   createSpriteOutlineStyle,
   createStageMarqueeStyle,
   createStageSurfaceStyle,
-  stageInteractionLayerStyle,
-  stageSpriteIndexStyle,
 } from "./ScreenModeGestureWorkspaceStyle";
 import { type ScreenModeStageViewportUiState } from "./ScreenModeGestureWorkspaceTypes";
+import styles from "./ScreenModeStageViewport.module.css";
 
 interface ScreenModeStageViewportProps {
   screen: ScreenModeProjectStateResult["screen"];
@@ -165,7 +163,7 @@ export const ScreenModeStageViewport: React.FC<
   );
 
   return (
-    <Stack minHeight={0} minWidth={0} flex="1 1 0">
+    <div className={styles.root}>
       <PreviewViewport
         ref={viewportState.setViewportRef}
         aria-label="画面プレビューキャンバスビュー"
@@ -209,7 +207,7 @@ export const ScreenModeStageViewport: React.FC<
               showGrid={true}
             />
 
-            <div aria-hidden="true" style={stageInteractionLayerStyle}>
+            <div aria-hidden="true" className={styles.interactionLayer}>
               {screen.sprites.map((sprite, index) => (
                 <div
                   key={`screen-stage-sprite-outline-${index}`}
@@ -231,7 +229,7 @@ export const ScreenModeStageViewport: React.FC<
                   )}
                 >
                   {stageUiState.displayState.isSpriteIndexVisible === true ? (
-                    <span style={stageSpriteIndexStyle}>{`#${index}`}</span>
+                    <span className={styles.spriteIndex}>{`#${index}`}</span>
                   ) : (
                     <></>
                   )}
@@ -267,6 +265,6 @@ export const ScreenModeStageViewport: React.FC<
           </div>
         </PreviewCanvasWrap>
       </PreviewViewport>
-    </Stack>
+    </div>
   );
 };

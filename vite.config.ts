@@ -1,145 +1,13 @@
 /// <reference types="vitest/config" />
 
-import { pigment } from "@pigment-css/vite-plugin";
 import react from "@vitejs/plugin-react";
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import {
-  defineConfig,
-  type ConfigPluginContext,
-  type Plugin,
-  type PluginOption,
-} from "vite";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-import { appTheme } from "./src/presentation/theme";
 import { getViteBase } from "./src/shared/viteBase";
 
 const host = process.env.TAURI_DEV_HOST;
 const appVersion = process.env.npm_package_version ?? "0.0.0";
-const require = createRequire(import.meta.url);
-
-const isStringRecord = (
-  value: unknown,
-): value is Readonly<Record<string, string>> => {
-  return (
-    value instanceof Object &&
-    !Array.isArray(value) &&
-    Object.values(value).every((entry) => typeof entry === "string")
-  );
-};
-
-const readProjectDependencyNames = (): ReadonlySet<string> => {
-  const packageJsonText = readFileSync(
-    new URL("./package.json", import.meta.url),
-    "utf8",
-  );
-  const parsed: unknown = JSON.parse(packageJsonText);
-
-  if (!(parsed instanceof Object) || Array.isArray(parsed)) {
-    return new Set<string>();
-  }
-
-  const dependencies =
-    "dependencies" in parsed && isStringRecord(parsed.dependencies)
-      ? Object.keys(parsed.dependencies)
-      : [];
-  const devDependencies =
-    "devDependencies" in parsed && isStringRecord(parsed.devDependencies)
-      ? Object.keys(parsed.devDependencies)
-      : [];
-
-  return new Set<string>([...dependencies, ...devDependencies]);
-};
-
-const projectDependencyNames = readProjectDependencyNames();
-const pigmentConfig = {
-  theme: appTheme,
-  transformLibraries: ["@mui/material", "@mui/material-pigment-css"],
-};
-
-type ViteConfigHook = NonNullable<Plugin["config"]>;
-type ExtractHookHandler<Hook> = Hook extends { handler: infer Handler }
-  ? Handler
-  : Hook extends (...args: infer Args) => infer Result
-    ? (...args: Args) => Result
-    : never;
-type ViteConfigHandler = ExtractHookHandler<ViteConfigHook>;
-type ViteConfigHookArgs = Parameters<ViteConfigHandler>;
-
-const isVitePlugin = (pluginOption: PluginOption): pluginOption is Plugin =>
-  pluginOption instanceof Object &&
-  !Array.isArray(pluginOption) &&
-  "name" in pluginOption;
-
-const isResolvableOptimizeDep = (dependencyName: string): boolean => {
-  try {
-    require.resolve(dependencyName);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const isDirectProjectDependency = (dependencyName: string): boolean => {
-  return projectDependencyNames.has(dependencyName);
-};
-
-const patchPigmentConfigPlugin = (plugin: Plugin): Plugin => {
-  if (plugin.name !== "pigment-css-config-plugin") {
-    return plugin;
-  }
-
-  if (typeof plugin.config !== "function") {
-    return plugin;
-  }
-
-  const originalConfig = plugin.config;
-
-  return {
-    ...plugin,
-    config(this: ConfigPluginContext, ...args: ViteConfigHookArgs) {
-      return Promise.resolve(originalConfig.call(this, ...args)).then(
-        (configResult) => {
-          const optimizeDeps = configResult?.optimizeDeps;
-          const include = optimizeDeps?.include;
-
-          if (!Array.isArray(include)) {
-            return configResult;
-          }
-
-          return {
-            ...configResult,
-            optimizeDeps: {
-              ...optimizeDeps,
-              include: include.filter(
-                (dependencyName) =>
-                  isDirectProjectDependency(dependencyName) &&
-                  isResolvableOptimizeDep(dependencyName),
-              ),
-            },
-          };
-        },
-      );
-    },
-  };
-};
-
-const patchPigmentPluginOptions = (
-  pluginOption: PluginOption,
-): PluginOption => {
-  if (Array.isArray(pluginOption)) {
-    return pluginOption.map(patchPigmentPluginOptions);
-  }
-
-  if (isVitePlugin(pluginOption)) {
-    return patchPigmentConfigPlugin(pluginOption);
-  }
-
-  return pluginOption;
-};
-
-const pigmentPlugins = patchPigmentPluginOptions(pigment(pigmentConfig));
 
 export default defineConfig(({ command }) => {
   const base = getViteBase(command);
@@ -152,7 +20,6 @@ export default defineConfig(({ command }) => {
     },
     plugins: [
       react(),
-      pigmentPlugins,
       VitePWA({
         registerType: "prompt",
         injectRegister: false,

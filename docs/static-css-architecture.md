@@ -103,19 +103,18 @@ Rules:
 - new imports from `@emotion/cache`
 - new imports from `@emotion/react`
 - new application-owned `styled(...)` wrappers
-- new repository-specific visual rules in `theme.ts`
+- new repository-specific visual rules in a runtime theme file
 - ad hoc global selectors for feature-owned UI
 
 ## Theme Responsibility
 
-`src/presentation/theme.ts` remains responsible for:
+`src/assets/global.css` remains responsible for:
 
-- palette
-- typography
-- shape
-- stable Material component defaults when they are truly global
+- palette and effect variables
+- app-shell backgrounds and resets
+- truly global utilities that cannot be component-owned
 
-`theme.ts` should not grow back into:
+the global token layer should not grow back into:
 
 - a feature styling registry
 - a screen-level skinning layer

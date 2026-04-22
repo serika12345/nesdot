@@ -56,7 +56,9 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).toContain("スプライトライブラリ");
     expect(markup).toContain("スプライトライブラリを閉じる");
     expect(markup).toContain("8×8");
-    expect(markup).toContain("MuiPaper-outlined");
+    expect(markup).toContain('data-open-state="true"');
+    expect(markup).toContain('data-tone="accent"');
+    expect(markup).not.toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-field-label");
     expect(markup).not.toContain("app-badge");
@@ -65,6 +67,5 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).not.toContain("character-library-sprite-title");
     expect(markup).not.toContain("character-library-sprite-preview-frame");
     expect(markup).not.toContain("character-library-interaction-root");
-    expect(markup).not.toMatch(/data-tone=/);
   });
 });

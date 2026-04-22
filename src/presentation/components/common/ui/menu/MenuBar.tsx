@@ -1,18 +1,3 @@
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import CodeRoundedIcon from "@mui/icons-material/CodeRounded";
-import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";
-import DrawRoundedIcon from "@mui/icons-material/DrawRounded";
-import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
-import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
-import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
-import RedoRoundedIcon from "@mui/icons-material/RedoRounded";
-import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import TextureRoundedIcon from "@mui/icons-material/TextureRounded";
-import UndoRoundedIcon from "@mui/icons-material/UndoRounded";
-import UpdateRoundedIcon from "@mui/icons-material/UpdateRounded";
-import WallpaperRoundedIcon from "@mui/icons-material/WallpaperRounded";
 import { Button, Dialog } from "@radix-ui/themes";
 import * as Menubar from "@radix-ui/react-menubar";
 import { pipe } from "fp-ts/function";
@@ -27,6 +12,23 @@ import {
   type FileMenuState,
   type FileShareActionId,
 } from "../../logic/state/fileMenuState";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  DashboardIcon,
+  DrawIcon,
+  FileUploadIcon,
+  ImageIcon,
+  InfoIcon,
+  RedoIcon,
+  SaveIcon,
+  ShareIcon,
+  TextureIcon,
+  UndoIcon,
+  UpdateIcon,
+  WallpaperIcon,
+} from "../icons/AppIcons";
 import styles from "./MenuBar.module.css";
 
 interface MenuBarProps {
@@ -45,22 +47,22 @@ const WORK_MODE_ITEMS: ReadonlyArray<{
   {
     value: "sprite",
     label: "スプライト編集",
-    icon: <DrawRoundedIcon fontSize="small" />,
+    icon: <DrawIcon />,
   },
   {
     value: "character",
     label: "キャラクター編集",
-    icon: <DashboardCustomizeRoundedIcon fontSize="small" />,
+    icon: <DashboardIcon />,
   },
   {
     value: "bg",
     label: "BG編集",
-    icon: <TextureRoundedIcon fontSize="small" />,
+    icon: <TextureIcon />,
   },
   {
     value: "screen",
     label: "画面配置",
-    icon: <WallpaperRoundedIcon fontSize="small" />,
+    icon: <WallpaperIcon />,
   },
 ];
 
@@ -86,14 +88,14 @@ const MenuModeSelectionMarker: React.FC<{ children: React.ReactNode }> = ({
 
 const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
   if (actionId === "share-save-project") {
-    return <SaveRoundedIcon fontSize="small" />;
+    return <SaveIcon />;
   }
 
   if (actionId === "share-export-png" || actionId === "share-export-svg") {
-    return <ImageRoundedIcon fontSize="small" />;
+    return <ImageIcon />;
   }
 
-  return <CodeRoundedIcon fontSize="small" />;
+  return <CodeIcon />;
 };
 
 export const MenuBar: React.FC<MenuBarProps> = ({
@@ -194,11 +196,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                       </MenuItemLabel>
                       <MenuItemMeta>
                         <MenuModeSelectionMarker>
-                          {isSelected === true ? (
-                            <CheckRoundedIcon fontSize="small" />
-                          ) : (
-                            <></>
-                          )}
+                          {isSelected === true ? <CheckIcon /> : <></>}
                         </MenuModeSelectionMarker>
                       </MenuItemMeta>
                     </MenuItemContent>
@@ -232,7 +230,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <MenuItemContent>
                   <MenuItemLabel>
                     <MenuItemIconSlot>
-                      <UndoRoundedIcon fontSize="small" />
+                      <UndoIcon />
                     </MenuItemIconSlot>
                     <span className={styles.menuItemTextLabel}>アンドゥ</span>
                   </MenuItemLabel>
@@ -251,7 +249,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <MenuItemContent>
                   <MenuItemLabel>
                     <MenuItemIconSlot>
-                      <RedoRoundedIcon fontSize="small" />
+                      <RedoIcon />
                     </MenuItemIconSlot>
                     <span className={styles.menuItemTextLabel}>リドゥ</span>
                   </MenuItemLabel>
@@ -290,12 +288,12 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                   <MenuItemContent>
                     <MenuItemLabel>
                       <MenuItemIconSlot>
-                        <ShareRoundedIcon fontSize="small" />
+                        <ShareIcon />
                       </MenuItemIconSlot>
                       <span className={styles.menuItemTextLabel}>共有</span>
                     </MenuItemLabel>
                     <MenuItemMeta>
-                      <ChevronRightRoundedIcon fontSize="small" />
+                      <ChevronRightIcon />
                     </MenuItemMeta>
                   </MenuItemContent>
                 </Menubar.SubTrigger>
@@ -341,7 +339,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <MenuItemContent>
                   <MenuItemLabel>
                     <MenuItemIconSlot>
-                      <FileUploadRoundedIcon fontSize="small" />
+                      <FileUploadIcon />
                     </MenuItemIconSlot>
                     <span className={styles.menuItemTextLabel}>復元</span>
                   </MenuItemLabel>
@@ -376,7 +374,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                     <MenuItemContent>
                       <MenuItemLabel>
                         <MenuItemIconSlot>
-                          <UpdateRoundedIcon fontSize="small" />
+                          <UpdateIcon />
                         </MenuItemIconSlot>
                         <span className={styles.menuItemTextLabel}>
                           更新を確認
@@ -398,7 +396,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <MenuItemContent>
                   <MenuItemLabel>
                     <MenuItemIconSlot>
-                      <InfoRoundedIcon fontSize="small" />
+                      <InfoIcon />
                     </MenuItemIconSlot>
                     <span className={styles.menuItemTextLabel}>About</span>
                   </MenuItemLabel>

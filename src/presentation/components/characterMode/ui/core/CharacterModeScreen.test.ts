@@ -47,7 +47,8 @@ describe("CharacterModeScreen", () => {
 
     expect(markup).toContain("character-gesture-workspace");
     expect(markup).toContain("editor-mode-card");
-    expect(markup).toContain("MuiPaper-outlined");
+    expect(markup).toContain("screenRoot");
+    expect(markup).not.toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");
   });
 });

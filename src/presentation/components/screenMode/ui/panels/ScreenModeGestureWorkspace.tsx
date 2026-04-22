@@ -1,5 +1,3 @@
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -16,10 +14,7 @@ import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenMode
 import { ScreenModeCharacterLibraryPanel } from "./ScreenModeCharacterLibraryPanel";
 import { ScreenModeFloatingPreview } from "./ScreenModeFloatingPreview";
 import { ScreenModeGestureContextMenu } from "./ScreenModeGestureContextMenu";
-import {
-  helperTextStyle,
-  sidebarScrollStyle,
-} from "./ScreenModeGestureWorkspaceStyle";
+import { helperTextStyle } from "./ScreenModeGestureWorkspaceStyle";
 import {
   type ScreenModeGestureWorkspaceBackgroundEditing,
   type ScreenModeGestureWorkspaceDisplayState,
@@ -27,6 +22,7 @@ import {
 import { ScreenModeSpriteLibraryPanel } from "./ScreenModeSpriteLibraryPanel";
 import { ScreenModeStageViewport } from "./ScreenModeStageViewport";
 import { ScreenModeWorkspaceHeader } from "./ScreenModeWorkspaceHeader";
+import styles from "./ScreenModeGestureWorkspace.module.css";
 
 interface ScreenModeGestureWorkspaceProps {
   backgroundEditingState: ScreenModeWorkspaceBackgroundEditingStateResult;
@@ -82,9 +78,20 @@ export const ScreenModeGestureWorkspace: React.FC<
     },
     [],
   );
-  const handleWorkspacePointerDownCapture = React.useCallback(() => {
-    closeContextMenu();
-  }, [closeContextMenu]);
+  const handleWorkspacePointerDownCapture = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('[data-screen-context-menu="true"]') instanceof
+          Element
+      ) {
+        return;
+      }
+
+      closeContextMenu();
+    },
+    [closeContextMenu],
+  );
 
   const grabbedBackgroundTile = React.useMemo(() => {
     if (O.isNone(backgroundEditingState.grabbedTileIndex)) {
@@ -194,11 +201,8 @@ export const ScreenModeGestureWorkspace: React.FC<
   );
 
   return (
-    <Stack
-      useFlexGap
-      flex={1}
-      minHeight={0}
-      spacing="0.875rem"
+    <div
+      className={styles.root}
       onContextMenuCapture={handleWorkspaceContextMenuCapture}
       onPointerDownCapture={handleWorkspacePointerDownCapture}
       onPointerMoveCapture={libraryController.handleWorkspacePointerMoveCapture}
@@ -222,27 +226,13 @@ export const ScreenModeGestureWorkspace: React.FC<
         }}
       />
 
-      <Box component="p" m={0} mt={0.25} style={helperTextStyle}>
+      <p className={styles.helperText} style={helperTextStyle}>
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
-      </Box>
+      </p>
 
-      <Stack
-        useFlexGap
-        minHeight={0}
-        minWidth={0}
-        flex="1 1 0"
-        direction={{ xs: "column", lg: "row" }}
-        spacing={2}
-      >
-        <Stack
-          useFlexGap
-          minHeight={0}
-          minWidth={0}
-          maxHeight="100%"
-          spacing={1.5}
-          width={{ lg: "21rem" }}
-          flexShrink={{ lg: 0 }}
-          style={sidebarScrollStyle}
+      <div className={styles.contentRow}>
+        <aside
+          className={styles.sidebar}
           role="complementary"
           aria-label="スクリーン配置サイドバー"
         >
@@ -254,7 +244,7 @@ export const ScreenModeGestureWorkspace: React.FC<
           <ScreenModeCharacterLibraryPanel
             libraryState={libraryController.libraryState}
           />
-        </Stack>
+        </aside>
 
         <ScreenModeStageViewport
           screen={projectState.screen}
@@ -266,7 +256,7 @@ export const ScreenModeGestureWorkspace: React.FC<
           }}
           viewportState={viewportState}
         />
-      </Stack>
+      </div>
 
       <ScreenModeGestureContextMenu contextMenuState={contextMenuState} />
       <ScreenModeFloatingPreview
@@ -274,6 +264,6 @@ export const ScreenModeGestureWorkspace: React.FC<
         spritePalettes={projectState.nes.spritePalettes}
         sprites={projectState.sprites}
       />
-    </Stack>
+    </div>
   );
 };

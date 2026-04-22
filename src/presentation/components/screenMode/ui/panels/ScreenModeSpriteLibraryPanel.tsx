@@ -1,10 +1,8 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { AppBadge, AppButton } from "../../../common/ui/forms/AppControls";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
@@ -17,13 +15,7 @@ import {
   ScreenLibraryPreviewButton,
   toBooleanDataValue,
 } from "./ScreenModeGestureWorkspaceShared";
-import {
-  collapseChevronStyle,
-  createScreenLibraryScrollAreaStyle,
-  fieldLabelStyle,
-  resolveBadgeStyle,
-  screenPreviewLabelStyle,
-} from "./ScreenModeGestureWorkspaceStyle";
+import styles from "./ScreenModeLibraryPanels.module.css";
 
 interface ScreenModeSpriteLibraryPanelProps {
   libraryState: ScreenModeLibraryPresentationState;
@@ -37,59 +29,39 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
   const [isOpen, setIsOpen] = React.useState(true);
 
   return (
-    <Stack
-      component={Paper}
-      variant="outlined"
-      position="relative"
-      flexShrink={0}
-      overflow="hidden"
-      p={1.5}
-      spacing={1.25}
-      useFlexGap
-      minHeight={0}
+    <SurfaceCard
+      className={styles.panel}
       role="region"
       aria-label="スクリーン配置スプライトライブラリ"
     >
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing="0.75rem"
-        flexWrap="wrap"
-        useFlexGap
-      >
-        <Stack direction="row" spacing="0.75rem" alignItems="center">
-          <Box component="span" style={fieldLabelStyle}>
-            スプライトプレビュー
-          </Box>
-          <Button
-            type="button"
-            aria-expanded={isOpen}
+      <div className={styles.headerRow}>
+        <div className={styles.titleRow}>
+          <span className={styles.label}>スプライトプレビュー</span>
+          <AppButton
             aria-controls="screen-mode-sprite-library-content"
+            aria-expanded={isOpen}
             aria-label={
               isOpen
                 ? "スプライトプレビューを閉じる"
                 : "スプライトプレビューを開く"
             }
-            color={isOpen === true ? "primary" : "inherit"}
-            endIcon={
-              <ExpandMoreRoundedIcon style={collapseChevronStyle(isOpen)} />
-            }
             size="small"
-            variant={isOpen === true ? "contained" : "outlined"}
+            tone={isOpen === true ? "accent" : "neutral"}
+            variant={isOpen === true ? "solid" : "outline"}
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-          </Button>
-        </Stack>
-      </Stack>
+            <ChevronDownIcon className={styles.chevron} data-open={isOpen} />
+          </AppButton>
+        </div>
+      </div>
 
       <LibrarySectionContent
         id="screen-mode-sprite-library-content"
         open={isOpen}
         aria-hidden={isOpen === false}
       >
-        <Box style={createScreenLibraryScrollAreaStyle("13.5rem")}>
+        <div className={styles.scrollArea} data-kind="sprite">
           <SpriteLibraryGrid>
             {sprites.map((sprite, spriteIndex) => (
               <ScreenLibraryPreviewButton
@@ -111,30 +83,24 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
                   libraryState.handleSpritePointerDown(event, spriteIndex)
                 }
               >
-                <Stack
-                  useFlexGap
-                  alignItems="center"
-                  justifyContent="center"
-                  width="100%"
-                  spacing="0.375rem"
-                >
+                <div className={styles.previewContent}>
                   <CharacterModeTilePreview
                     scale={3}
                     spritePalettes={spritePalettes}
                     tileOption={O.some(sprite)}
                   />
-                  <Box component="span" style={screenPreviewLabelStyle}>
-                    {`Sprite ${spriteIndex}`}
-                  </Box>
-                  <span style={resolveBadgeStyle("accent")}>
+                  <span
+                    className={styles.previewLabel}
+                  >{`Sprite ${spriteIndex}`}</span>
+                  <AppBadge tone="accent">
                     {`${sprite.width}×${sprite.height}`}
-                  </span>
-                </Stack>
+                  </AppBadge>
+                </div>
               </ScreenLibraryPreviewButton>
             ))}
           </SpriteLibraryGrid>
-        </Box>
+        </div>
       </LibrarySectionContent>
-    </Stack>
+    </SurfaceCard>
   );
 };

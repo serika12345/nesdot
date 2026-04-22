@@ -1,0 +1,20 @@
+@layer components {
+  .selectWrap {
+    flex: 1 1 12rem;
+    min-width: 10rem;
+  }
+
+  .actionWrap {
+    flex-shrink: 0;
+  }
+
+  .dialogForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .dialogField {
+    padding-top: 0.25rem;
+  }
+}

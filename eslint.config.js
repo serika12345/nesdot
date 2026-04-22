@@ -5,7 +5,7 @@ import functionalPlugin from "eslint-plugin-functional";
 import importPlugin from "eslint-plugin-import";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
-const MUI_SX_MAX_PROPERTIES = 5;
+const UI_SX_MAX_PROPERTIES = 5;
 const HEX_COLOR_PATTERN =
   /^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
 const PIXEL_VALUE_PATTERN = /\b-?\d+(?:\.\d+)?px\b/;
@@ -39,14 +39,14 @@ const getTemplateLiteralValue = (node) => {
   return node.quasis.map((quasi) => quasi.value.cooked ?? "").join("");
 };
 
-const muiGuidancePlugin = {
+const uiStyleGuidancePlugin = {
   rules: {
     "restrict-sx": {
       meta: {
         type: "suggestion",
         docs: {
           description:
-            "Restrict MUI `sx` usage to small shallow objects backed by theme tokens.",
+            "Restrict `sx` usage to small shallow objects backed by shared design tokens.",
         },
         schema: [],
         messages: {
@@ -198,7 +198,7 @@ const muiGuidancePlugin = {
                 (property) => property.type === "Property",
               ).length;
 
-            if (topLevelPropertyCount > MUI_SX_MAX_PROPERTIES) {
+            if (topLevelPropertyCount > UI_SX_MAX_PROPERTIES) {
               report(node.value.expression, "tooManyProperties");
             }
 
@@ -324,7 +324,7 @@ const config = [
       "@typescript-eslint": tsPlugin,
       functional: functionalPlugin,
       import: importPlugin,
-      "mui-guidance": muiGuidancePlugin,
+      "ui-style-guidance": uiStyleGuidancePlugin,
       "react-hooks": reactHooksPlugin,
     },
     rules: {
@@ -354,7 +354,7 @@ const config = [
       "functional/no-let": "error",
       "functional/no-throw-statements": "error",
 
-      "mui-guidance/restrict-sx": "error",
+      "ui-style-guidance/restrict-sx": "error",
 
       "no-restricted-syntax": [
         "error",

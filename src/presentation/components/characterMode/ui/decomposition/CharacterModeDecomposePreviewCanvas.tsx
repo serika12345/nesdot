@@ -1,11 +1,11 @@
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import {
+  AppBadge,
+  AppButton,
+  AppInput,
+} from "../../../common/ui/forms/AppControls";
 import {
   type CharacterDecompositionAnalysis,
   type CharacterDecompositionRegionAnalysis,
@@ -35,6 +35,7 @@ import {
   ViewportCenterWrap,
 } from "../primitives/CharacterModePrimitives";
 import { CharacterModeDecompositionToolOverlay } from "./CharacterModeDecompositionToolOverlay";
+import styles from "../compose/CharacterModeCanvasPanels.module.css";
 
 interface CharacterModeDecompositionCanvasHandlers {
   handleDecompositionCanvasPointerDown: React.PointerEventHandler<HTMLCanvasElement>;
@@ -81,76 +82,57 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
     decompositionRegions.decompositionAnalysis;
 
   return (
-    <StageEditorCard flex={1} minWidth={0}>
+    <StageEditorCard>
       <PreviewHeaderLayout>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={1.5}
-          useFlexGap
-          flexWrap="wrap"
-        >
-          <Typography variant="body2">分解キャンバス</Typography>
-          <Chip
-            size="small"
-            color="primary"
-            label={`${decompositionRegions.decompositionRegions.length} regions`}
-          />
-        </Stack>
+        <div className={styles.headerRow}>
+          <span className={styles.title}>分解キャンバス</span>
+          <AppBadge tone="accent">
+            {`${decompositionRegions.decompositionRegions.length} regions`}
+          </AppBadge>
+        </div>
 
         <PreviewControlsRow>
           <StageInputContainer>
-            <OutlinedInput
+            <AppInput
               type="number"
               value={stageSize.stageWidth}
-              inputProps={{
-                min: CHARACTER_MODE_STAGE_LIMITS.minWidth,
-                max: CHARACTER_MODE_STAGE_LIMITS.maxWidth,
-                step: 8,
-                "aria-label": "プレビューキャンバス幅",
-              }}
+              min={CHARACTER_MODE_STAGE_LIMITS.minWidth}
+              max={CHARACTER_MODE_STAGE_LIMITS.maxWidth}
+              step={8}
+              aria-label="プレビューキャンバス幅"
               onChange={(event) =>
                 stageSize.handleStageWidthChange(event.target.value)
               }
             />
           </StageInputContainer>
           <StageInputContainer>
-            <OutlinedInput
+            <AppInput
               type="number"
               value={stageSize.stageHeight}
-              inputProps={{
-                min: CHARACTER_MODE_STAGE_LIMITS.minHeight,
-                max: CHARACTER_MODE_STAGE_LIMITS.maxHeight,
-                step: 8,
-                "aria-label": "プレビューキャンバス高さ",
-              }}
+              min={CHARACTER_MODE_STAGE_LIMITS.minHeight}
+              max={CHARACTER_MODE_STAGE_LIMITS.maxHeight}
+              step={8}
+              aria-label="プレビューキャンバス高さ"
               onChange={(event) =>
                 stageSize.handleStageHeightChange(event.target.value)
               }
             />
           </StageInputContainer>
-          <Chip
+          <AppBadge>{`${stageZoom.stageZoomLevel}x`}</AppBadge>
+          <AppButton
             size="small"
-            variant="outlined"
-            label={`${stageZoom.stageZoomLevel}x`}
-          />
-          <Button
-            type="button"
-            size="small"
-            variant="outlined"
+            variant="outline"
             onClick={stageZoom.handleZoomOut}
           >
             -
-          </Button>
-          <Button
-            type="button"
+          </AppButton>
+          <AppButton
             size="small"
-            variant="outlined"
+            variant="outline"
             onClick={stageZoom.handleZoomIn}
           >
             +
-          </Button>
+          </AppButton>
         </PreviewControlsRow>
       </PreviewHeaderLayout>
 
@@ -250,24 +232,16 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
                     regionScale={stageSize.stageScale}
                     toolMode={decompositionTool.decompositionTool}
                   >
-                    <Stack
-                      height="100%"
-                      width="100%"
-                      alignItems="flex-start"
-                      justifyContent="space-between"
-                      spacing={0}
-                    >
-                      <Chip
-                        size="small"
-                        color={hasIssues ? "error" : "primary"}
-                        label={`#${regionIndex}`}
-                      />
-                      <Chip
-                        size="small"
-                        color={hasIssues ? "error" : "default"}
-                        label={getRegionStatusLabel(regionAnalysis)}
-                      />
-                    </Stack>
+                    <div className={styles.regionLabels}>
+                      <AppBadge tone={hasIssues === true ? "danger" : "accent"}>
+                        {`#${regionIndex}`}
+                      </AppBadge>
+                      <AppBadge
+                        tone={hasIssues === true ? "danger" : "neutral"}
+                      >
+                        {getRegionStatusLabel(regionAnalysis)}
+                      </AppBadge>
+                    </div>
                   </RegionOverlayButton>
                 );
               },

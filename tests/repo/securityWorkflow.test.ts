@@ -130,7 +130,8 @@ describe("security verification workflow", () => {
     expect(mainSource).not.toContain("CacheProvider");
     expect(mainSource).not.toContain("createCache");
     expect(mainSource).not.toContain("getCspNonce");
-    expect(mainSource).toContain("ThemeProvider");
+    expect(mainSource).not.toContain("ThemeProvider");
+    expect(mainSource).not.toContain("@mui/material-pigment-css/styles.css");
     expect(indexHtml).not.toContain('name="csp-nonce"');
     expect(indexHtml).not.toContain("__TAURI_STYLE_NONCE__");
     expect(screenModeProjectActions).not.toContain(

@@ -1,15 +1,15 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Stack from "@mui/material/Stack";
-import Switch from "@mui/material/Switch";
-import Typography from "@mui/material/Typography";
 import React from "react";
+import {
+  AppBadge,
+  AppButton,
+  AppSwitch,
+} from "../../../common/ui/forms/AppControls";
 import { type ScreenModeWorkspaceBackgroundEditingStateResult } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import {
   WorkspaceHeaderActionCluster,
   ZoomControlsRow,
 } from "../primitives/ScreenModePrimitives";
+import styles from "./ScreenModeWorkspaceHeader.module.css";
 import {
   type ScreenModeGestureWorkspaceDisplayState,
   type ScreenModeWorkspaceHeaderSummary,
@@ -39,22 +39,14 @@ const ScreenModeDisplaySwitch: React.FC<ScreenModeDisplaySwitchProps> = ({
   label,
   onChange,
 }) => (
-  <Stack component="label" direction="row" alignItems="center" spacing={0.5}>
-    <Typography component="span" variant="body2">
-      {label}
-    </Typography>
-    <Switch
-      size="small"
-      color="primary"
+  <label className={styles.switchLabel}>
+    <span>{label}</span>
+    <AppSwitch
+      aria-label={inputLabel}
       checked={checked}
-      slotProps={{
-        input: {
-          "aria-label": inputLabel,
-        },
-      }}
-      onChange={(_event, nextChecked) => onChange(nextChecked)}
+      onCheckedChange={onChange}
     />
-  </Stack>
+  </label>
 );
 
 export const ScreenModeWorkspaceHeader: React.FC<
@@ -67,55 +59,44 @@ export const ScreenModeWorkspaceHeader: React.FC<
   zoomActions,
 }) => (
   <ZoomControlsRow>
-    <Chip size="small" variant="outlined" label={`${summary.zoomLevel}x`} />
-    <Button
-      type="button"
+    <AppBadge>{`${summary.zoomLevel}x`}</AppBadge>
+    <AppButton
       size="small"
-      variant="outlined"
+      variant="outline"
       aria-label="画面ズーム縮小"
       onClick={zoomActions.handleZoomOut}
     >
       -
-    </Button>
-    <Button
-      type="button"
+    </AppButton>
+    <AppButton
       size="small"
-      variant="outlined"
+      variant="outline"
       aria-label="画面ズーム拡大"
       onClick={zoomActions.handleZoomIn}
     >
       +
-    </Button>
-    <Chip
-      size="small"
-      variant="outlined"
-      label={`${summary.spriteCount} sprites`}
-    />
-    <Chip
-      size="small"
-      color="primary"
-      label={`${summary.selectedSpriteCount} selected`}
-    />
-    <Box flex="1 1 auto" minWidth="0.75rem" />
+    </AppButton>
+    <AppBadge>{`${summary.spriteCount} sprites`}</AppBadge>
+    <AppBadge tone="accent">{`${summary.selectedSpriteCount} selected`}</AppBadge>
+    <div className={styles.spacer} />
     <WorkspaceHeaderActionCluster>
-      <Button
-        type="button"
+      <AppButton
         size="small"
-        variant="contained"
+        tone="accent"
+        variant="solid"
         aria-label="BGタイル追加"
         onClick={backgroundEditingState.openTilePicker}
       >
         BGタイル追加
-      </Button>
-      <Button
-        type="button"
+      </AppButton>
+      <AppButton
         size="small"
-        variant="outlined"
+        variant="outline"
         aria-label="BGパレット変更"
         onClick={backgroundEditingState.openPalettePicker}
       >
         BGパレット変更
-      </Button>
+      </AppButton>
       <ScreenModeDisplaySwitch
         checked={displayState.isSpriteOutlineVisible}
         inputLabel="スプライト外枠表示切り替え"

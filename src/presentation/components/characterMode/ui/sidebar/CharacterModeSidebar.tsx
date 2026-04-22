@@ -1,6 +1,5 @@
-import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
 import React from "react";
+import styles from "../core/CharacterModeShell.module.css";
 import { CharacterModeSidebarLibrary } from "./CharacterModeSidebarLibrary";
 
 interface CharacterModeSidebarProps {
@@ -22,26 +21,21 @@ export const CharacterModeSidebar: React.FC<CharacterModeSidebarProps> = ({
   const sidebarSections = React.Children.toArray(children);
 
   return (
-    <Stack
+    <div
+      className={styles.sidebar}
       role="complementary"
       aria-label="キャラクター編集サイドバー"
-      height="100%"
-      minWidth={0}
-      minHeight={0}
-      spacing="1rem"
-      overflow="auto"
-      pr="0.25rem"
     >
       {sidebarSections.map((child, index) => (
-        <Box key={`sidebar-section-${index}`} flexShrink={0} minWidth={0}>
+        <div key={`sidebar-section-${index}`} className={styles.sidebarSection}>
           {child}
-        </Box>
+        </div>
       ))}
-      <Box flexShrink={0} minWidth={0}>
+      <div className={styles.sidebarSection}>
         <CharacterModeSidebarLibrary
           handleLibraryPointerDown={handleLibraryPointerDown}
         />
-      </Box>
-    </Stack>
+      </div>
+    </div>
   );
 };

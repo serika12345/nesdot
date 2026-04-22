@@ -1,0 +1,145 @@
+@layer components {
+  .workspace {
+    display: flex;
+    flex: 1 1 0;
+    min-height: 0;
+    height: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .panel {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.125rem;
+  }
+
+  .libraryPanel {
+    flex: 0 0 21rem;
+  }
+
+  .editorPanel {
+    flex: 1 1 0;
+  }
+
+  .headingWrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+  }
+
+  .heading {
+    margin: 0;
+    color: var(--ink-strong);
+    font-size: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+
+  .scrollArea {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    margin-right: -2.25rem;
+    padding-right: 2.25rem;
+    scrollbar-gutter: stable;
+  }
+
+  .tileGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tileButtonContent {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+
+  .canvasViewport {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 1.125rem;
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 1.125rem;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: inset 0 0.0625rem 0 rgba(255, 255, 255, 0.94);
+  }
+
+  .overlayRoot {
+    position: absolute;
+    left: 2.25rem;
+    top: 2.25rem;
+    z-index: 2;
+    pointer-events: auto;
+  }
+
+  .overlayMenu {
+    display: flex;
+    width: 20rem;
+    max-width: calc(100vw - 4rem);
+    margin-top: 1rem;
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    pointer-events: auto;
+    border-radius: 1.125rem;
+    background: rgba(255, 255, 255, 0.98);
+    border: 0.0625rem solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 1.375rem 2.5rem rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(1.125rem);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex-wrap: wrap;
+  }
+
+  .canvasWrap {
+    display: flex;
+    width: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chevron {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 160ms ease;
+  }
+
+  .chevron[data-open="true"] {
+    transform: rotate(180deg);
+  }
+
+  @media (min-width: 40rem) {
+    .tileGrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .workspace {
+      flex-direction: row;
+    }
+
+    .tileGrid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}

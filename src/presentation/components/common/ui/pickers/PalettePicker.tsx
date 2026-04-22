@@ -1,7 +1,7 @@
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { Badge, Button, Heading, Text } from "@radix-ui/themes";
 import React from "react";
 import { SurfaceCard } from "../chrome/SurfaceCard";
+import { ChevronDownIcon } from "../icons/AppIcons";
 import paletteColors from "../palette/NesPaletteColors.module.css";
 import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { type PalettePickerState } from "../../logic/palettePickerState";
@@ -71,7 +71,7 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
           {palettePickerState.isPaletteListOpen
             ? "パレットを閉じる"
             : "パレットを開く"}
-          <ExpandMoreRoundedIcon
+          <ChevronDownIcon
             className={styles.chevron}
             data-open={palettePickerState.isPaletteListOpen}
           />
@@ -87,7 +87,7 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
           {palettePickerState.isLibraryOpen
             ? "色ライブラリを閉じる"
             : "色ライブラリを開く"}
-          <ExpandMoreRoundedIcon
+          <ChevronDownIcon
             className={styles.chevron}
             data-open={palettePickerState.isLibraryOpen}
           />

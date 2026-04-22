@@ -64,7 +64,6 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@pigment-css/vite-plugin": "0.0.30",
     "@playwright/test": "^1.59.1",
     "@tauri-apps/cli": "^2",
     "@types/node": "^25.5.0",
@@ -89,10 +88,6 @@
     "vitest": "^4.1.1"
   },
   "dependencies": {
-    "@mui/icons-material": "^7.3.9",
-    "@mui/material": "^7.3.9",
-    "@mui/material-pigment-css": "7.3.9",
-    "@pigment-css/react": "0.0.30",
     "@radix-ui/react-menubar": "^1.1.16",
     "@radix-ui/themes": "^3.3.0",
     "@tauri-apps/api": "^2",

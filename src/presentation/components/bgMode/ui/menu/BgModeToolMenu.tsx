@@ -1,11 +1,7 @@
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
 import React from "react";
+import { AppButton } from "../../../common/ui/forms/AppControls";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
-import {
-  canvasOverlayMenuProps,
-  mockToolbarProps,
-} from "../panels/bgModePanelStyles";
+import styles from "../panels/BgModePanels.module.css";
 
 type BgModeTool = "pen" | "eraser";
 
@@ -28,56 +24,51 @@ export const BgModeToolMenu: React.FC<BgModeToolMenuProps> = ({
   onToolChange,
 }) => {
   return (
-    <Stack {...canvasOverlayMenuProps} id="bg-mode-canvas-tool-menu">
-      <Stack {...mockToolbarProps}>
-        <Button
-          type="button"
-          color={tool === "pen" ? "primary" : "inherit"}
-          variant={tool === "pen" ? "contained" : "outlined"}
+    <div className={styles.overlayMenu} id="bg-mode-canvas-tool-menu">
+      <div className={styles.toolbar}>
+        <AppButton
           aria-label="ペンツール"
           aria-pressed={tool === "pen"}
           size="small"
+          tone={tool === "pen" ? "accent" : "neutral"}
+          variant={tool === "pen" ? "solid" : "outline"}
           onClick={() => {
             onToolChange("pen");
           }}
         >
           ペン
-        </Button>
-        <Button
-          type="button"
-          color={tool === "eraser" ? "primary" : "inherit"}
-          variant={tool === "eraser" ? "contained" : "outlined"}
+        </AppButton>
+        <AppButton
           aria-label="消しゴムツール"
           aria-pressed={tool === "eraser"}
           size="small"
+          tone={tool === "eraser" ? "accent" : "neutral"}
+          variant={tool === "eraser" ? "solid" : "outline"}
           onClick={() => {
             onToolChange("eraser");
           }}
         >
           消しゴム
-        </Button>
-      </Stack>
+        </AppButton>
+      </div>
 
-      <Stack {...mockToolbarProps}>
+      <div className={styles.toolbar}>
         {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-          <Button
+          <AppButton
             key={`bg-mode-palette-${paletteIndex}`}
-            type="button"
-            color={activePaletteIndex === paletteIndex ? "primary" : "inherit"}
-            variant={
-              activePaletteIndex === paletteIndex ? "contained" : "outlined"
-            }
             size="small"
             aria-label={`BGパレット ${paletteIndex}`}
             aria-pressed={activePaletteIndex === paletteIndex}
+            tone={activePaletteIndex === paletteIndex ? "accent" : "neutral"}
+            variant={activePaletteIndex === paletteIndex ? "solid" : "outline"}
             onClick={() => {
               onActivePaletteChange(paletteIndex);
             }}
           >
             {`Palette ${paletteIndex}`}
-          </Button>
+          </AppButton>
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 };

@@ -1,6 +1,3 @@
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import React from "react";
 import { useScreenModeWorkspaceBackgroundEditingState } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import {
@@ -11,6 +8,7 @@ import { useScreenModeViewportState } from "../../logic/useScreenModeViewportSta
 import { ScreenModeBackgroundTilePickerDialog } from "../dialogs/ScreenModeBackgroundTilePickerDialog";
 import { WarningList } from "../primitives/ScreenModePrimitives";
 import { ScreenModeGestureWorkspace } from "./ScreenModeGestureWorkspace";
+import styles from "./ScreenModeWorkspacePanel.module.css";
 
 /**
  * スクリーン配置モードのワークスペース全体を描画します。
@@ -23,16 +21,10 @@ export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
   const backgroundEditingState = useScreenModeWorkspaceBackgroundEditingState();
 
   return (
-    <Stack
-      component={Paper}
-      variant="outlined"
-      flex={1}
-      minHeight={0}
+    <section
+      className={styles.root}
       role="region"
       aria-label="スクリーン配置ジェスチャーワークスペース"
-      spacing="0.875rem"
-      p="1.125rem"
-      useFlexGap
     >
       <ScreenModeGestureWorkspace
         backgroundEditingState={backgroundEditingState}
@@ -67,23 +59,15 @@ export const ScreenModeWorkspacePanel: React.FC<Record<string, never>> = () => {
       {projectState.scanReport.ok === false ? (
         <WarningList>
           {projectState.scanReport.errors.map((error) => (
-            <Stack
-              key={error}
-              direction="row"
-              alignItems="flex-start"
-              justifyContent="space-between"
-              spacing={1}
-            >
-              <Typography variant="body2" color="text.secondary">
-                警告
-              </Typography>
-              <Typography variant="body2">{error}</Typography>
-            </Stack>
+            <div key={error} className={styles.warningRow}>
+              <span className={styles.warningLabel}>警告</span>
+              <span className={styles.warningText}>{error}</span>
+            </div>
           ))}
         </WarningList>
       ) : (
         <></>
       )}
-    </Stack>
+    </section>
   );
 };

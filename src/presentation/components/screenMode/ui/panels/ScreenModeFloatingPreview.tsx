@@ -1,6 +1,3 @@
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -9,10 +6,8 @@ import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenMo
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
 import { ScreenModeCharacterPreview } from "../preview/ScreenModeCharacterPreview";
 import { CharacterPreviewTiles } from "../primitives/ScreenModePrimitives";
-import {
-  createFloatingDragPreviewStyle,
-  screenPreviewLabelStyle,
-} from "./ScreenModeGestureWorkspaceStyle";
+import { createFloatingDragPreviewStyle } from "./ScreenModeGestureWorkspaceStyle";
+import styles from "./ScreenModeFloatingPreview.module.css";
 
 interface ScreenModeFloatingPreviewProps {
   libraryState: ScreenModeLibraryPresentationState;
@@ -51,20 +46,14 @@ export const ScreenModeFloatingPreview: React.FC<
         );
 
         return (
-          <Box
-            component={Paper}
-            variant="outlined"
+          <div
+            className={styles.card}
             style={createFloatingDragPreviewStyle(
               dragState.clientX,
               dragState.clientY,
             )}
           >
-            <Stack
-              useFlexGap
-              alignItems="center"
-              justifyContent="center"
-              spacing="0.375rem"
-            >
+            <div className={styles.stack}>
               {dragState.kind === "sprite" ? (
                 <CharacterModeTilePreview
                   scale={3}
@@ -81,13 +70,13 @@ export const ScreenModeFloatingPreview: React.FC<
                   />
                 </CharacterPreviewTiles>
               )}
-              <Box component="span" style={screenPreviewLabelStyle}>
+              <span className={styles.label}>
                 {dragState.kind === "sprite"
                   ? `Sprite ${dragState.spriteIndex}`
                   : characterPreviewName}
-              </Box>
-            </Stack>
-          </Box>
+              </span>
+            </div>
+          </div>
         );
       },
     ),

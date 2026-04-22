@@ -8,24 +8,21 @@ import {
 } from "./CharacterModePrimitives";
 
 describe("CharacterModePrimitives", () => {
-  it("renders StageEditorCard with a plain Paper shell", () => {
+  it("renders StageEditorCard with the shared surface shell", () => {
     const markup = renderToStaticMarkup(
       React.createElement(
         StageEditorCard,
-        {
-          flex: 1,
-          minWidth: 0,
-        },
+        {},
         React.createElement("div", {}, "stage"),
       ),
     );
 
     expect(markup).toContain("stage");
-    expect(markup).toContain("MuiPaper-outlined");
-    expect(markup).not.toContain("app-panel");
+    expect(markup).toContain("stageEditorCard");
+    expect(markup).not.toContain("MuiPaper-outlined");
   });
 
-  it("renders CharacterStageViewport with a plain Paper shell", () => {
+  it("renders CharacterStageViewport with local drag state markers", () => {
     const markup = renderToStaticMarkup(
       React.createElement(
         CharacterStageViewport,
@@ -38,7 +35,7 @@ describe("CharacterModePrimitives", () => {
 
     expect(markup).toContain('data-dragging-state="true"');
     expect(markup).toContain("viewport");
-    expect(markup).toContain("MuiPaper-outlined");
-    expect(markup).not.toContain("app-canvas-viewport");
+    expect(markup).toContain("characterStageViewport");
+    expect(markup).not.toContain("MuiPaper-outlined");
   });
 });
