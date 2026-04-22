@@ -36,6 +36,15 @@ export const selectMaterialOption = async (
   optionText: string,
 ): Promise<void> => {
   const select = page.getByRole("combobox", { name: selectLabel });
+  const tagName = await select.evaluate((element) =>
+    element.tagName.toLowerCase(),
+  );
+
+  if (tagName === "select") {
+    await select.selectOption({ label: optionText });
+    return;
+  }
+
   await select.click();
   await page.getByRole("option", { name: optionText, exact: true }).click();
 };

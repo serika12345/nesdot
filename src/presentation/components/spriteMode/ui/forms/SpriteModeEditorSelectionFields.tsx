@@ -1,8 +1,3 @@
-import FormControl from "@mui/material/FormControl";
-import MenuItem from "@mui/material/MenuItem";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import Select from "@mui/material/Select";
-import Typography from "@mui/material/Typography";
 import React from "react";
 import { type SpriteModeSelectionFieldsState } from "../../logic/spriteModeEditorState";
 import styles from "./SpriteModeEditorSelectionFields.module.css";
@@ -19,30 +14,27 @@ export const SpriteModeEditorSelectionFields: React.FC<
 > = ({ selectionFields }) => {
   return (
     <div className={styles.root}>
-      <FormControl fullWidth className={styles.field}>
-        <Typography variant="caption">スプライト番号</Typography>
-        <OutlinedInput
+      <label className={styles.field}>
+        <span className={styles.label}>スプライト番号</span>
+        <input
+          className={styles.input}
           type="number"
           value={selectionFields.activeSprite}
-          inputProps={{
-            "aria-label": "スプライト番号",
-            min: 0,
-            max: 63,
-            step: 1,
-          }}
+          aria-label="スプライト番号"
+          min={0}
+          max={63}
+          step={1}
           onChange={(event) =>
             selectionFields.handleSpriteChange(event.target.value)
           }
         />
-      </FormControl>
-      <FormControl fullWidth className={styles.field}>
-        <Typography variant="caption">パレット</Typography>
-        <Select
-          variant="outlined"
+      </label>
+      <label className={styles.field}>
+        <span className={styles.label}>パレット</span>
+        <select
+          className={styles.select}
           value={selectionFields.activePalette}
-          inputProps={{
-            "aria-label": "パレット",
-          }}
+          aria-label="パレット"
           onChange={(event) => {
             const value = event.target.value;
             if (typeof value !== "string" && typeof value !== "number") {
@@ -52,12 +44,12 @@ export const SpriteModeEditorSelectionFields: React.FC<
           }}
         >
           {selectionFields.palettes.map((_, index) => (
-            <MenuItem key={index} value={index}>
+            <option key={index} value={index}>
               パレット {index}
-            </MenuItem>
+            </option>
           ))}
-        </Select>
-      </FormControl>
+        </select>
+      </label>
     </div>
   );
 };

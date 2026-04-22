@@ -1,7 +1,6 @@
-import Chip from "@mui/material/Chip";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+import { Badge, Heading } from "@radix-ui/themes";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { type SpriteModeEditorPanelState } from "../../logic/spriteModeEditorState";
 import { SpriteModeEditorSelectionFields } from "../forms/SpriteModeEditorSelectionFields";
 import styles from "./SpriteModeEditorPanel.module.css";
@@ -18,16 +17,15 @@ export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
   editorPanelState,
 }) => {
   return (
-    <Paper
-      variant="outlined"
+    <SurfaceCard
       role="region"
       aria-label="スプライト編集パネル"
       className={styles.root}
     >
       <div className={styles.header}>
-        <Typography component="h2" variant="h2" color="text.primary">
+        <Heading as="h2" size="5">
           スプライト編集
-        </Typography>
+        </Heading>
       </div>
 
       <div className={styles.scroll}>
@@ -36,17 +34,13 @@ export const SpriteModeEditorPanel: React.FC<SpriteModeEditorPanelProps> = ({
             selectionFields={editorPanelState.selectionFields}
           />
 
-          <Chip
-            color="primary"
-            variant="outlined"
-            label={
-              editorPanelState.projectSpriteSize === 8
-                ? "Project Sprite Size 8x8"
-                : "Project Sprite Size 8x16"
-            }
-          />
+          <Badge color="teal" size="2" variant="surface">
+            {editorPanelState.projectSpriteSize === 8
+              ? "Project Sprite Size 8x8"
+              : "Project Sprite Size 8x16"}
+          </Badge>
         </div>
       </div>
-    </Paper>
+    </SurfaceCard>
   );
 };

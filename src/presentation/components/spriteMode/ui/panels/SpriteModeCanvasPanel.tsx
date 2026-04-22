@@ -1,5 +1,5 @@
-import Paper from "@mui/material/Paper";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { type SpriteModeCanvasPanelState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeCanvasSurface } from "../canvas/SpriteModeCanvasSurface";
 import { SpriteModePaletteSlots } from "../forms/SpriteModePaletteSlots";
@@ -18,8 +18,7 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
   canvasPanelState,
 }) => {
   return (
-    <Paper
-      variant="outlined"
+    <SurfaceCard
       role="region"
       aria-label="スプライトキャンバスパネル"
       className={styles.root}
@@ -31,12 +30,12 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
         onPaletteClick={canvasPanelState.paletteSlots.handlePaletteClick}
       />
 
-      <Paper variant="outlined" className={styles.surface}>
+      <SurfaceCard className={styles.surface}>
         <SpriteModeToolOverlay toolOverlay={canvasPanelState.toolOverlay} />
         <SpriteModeCanvasSurface
           canvasSurface={canvasPanelState.canvasSurface}
         />
-      </Paper>
-    </Paper>
+      </SurfaceCard>
+    </SurfaceCard>
   );
 };

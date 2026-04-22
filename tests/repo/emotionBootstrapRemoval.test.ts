@@ -21,6 +21,8 @@ describe("tauri csp style bootstrap", () => {
     expect(mainSource).not.toContain("createCache");
     expect(mainSource).not.toContain("CacheProvider");
     expect(mainSource).not.toContain("getCspNonce");
+    expect(mainSource).toContain("@radix-ui/themes/styles.css");
+    expect(mainSource).toContain("Theme");
     expect(mainSource).toContain("ThemeProvider");
   });
 
@@ -44,5 +46,6 @@ describe("tauri csp style bootstrap", () => {
 
     expect(packageJson).not.toContain('"@emotion/cache"');
     expect(packageJson).not.toContain('"@emotion/react"');
+    expect(packageJson).toContain('"@radix-ui/themes"');
   });
 });

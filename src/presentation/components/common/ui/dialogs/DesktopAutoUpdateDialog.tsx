@@ -1,20 +1,9 @@
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Grid from "@mui/material/Grid";
-import LinearProgress from "@mui/material/LinearProgress";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Button, Dialog, Progress } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import type { DesktopAutoUpdateDialogState } from "../../../../../infrastructure/browser/useDesktopAutoUpdate";
-import {
-  failureDetailLabelStyle,
-  failureDetailValueStyle,
-} from "./DesktopAutoUpdateDialogStyle";
+import styles from "./UpdateDialogs.module.css";
 
 interface DesktopAutoUpdateDialogProps {
   readonly state: DesktopAutoUpdateDialogState;
@@ -98,8 +87,8 @@ const renderProgressBar = (
   return pipe(
     progressPercent,
     O.match(
-      () => <LinearProgress />,
-      (percent) => <LinearProgress variant="determinate" value={percent} />,
+      () => <Progress color="teal" />,
+      (percent) => <Progress color="teal" value={percent} />,
     ),
   );
 };
@@ -107,203 +96,119 @@ const renderProgressBar = (
 export const DesktopAutoUpdateDialog: React.FC<
   DesktopAutoUpdateDialogProps
 > = ({ state, progressPercent, onDialogClose, onRestartNow, onUpdateNow }) => {
-  const isOpen = state.kind !== "hidden";
+  if (state.kind === "hidden") {
+    return <></>;
+  }
+
+  const isBlocking = state.kind === "checking" || state.kind === "downloading";
+  const blockingDialogContentProps =
+    isBlocking === true
+      ? {
+          onEscapeKeyDown: (event: KeyboardEvent) => event.preventDefault(),
+          onPointerDownOutside: (event: Event) => event.preventDefault(),
+        }
+      : {};
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (state.kind === "checking" || state.kind === "downloading") {
-          if (reason === "backdropClick" || reason === "escapeKeyDown") {
-            return;
-          }
+    <Dialog.Root
+      open
+      onOpenChange={(open) => {
+        if (open === true || isBlocking === true) {
+          return;
         }
 
         onDialogClose();
       }}
-      disableEscapeKeyDown={
-        state.kind === "checking" || state.kind === "downloading"
-      }
-      aria-labelledby="desktop-auto-update-title"
     >
-      <DialogTitle id="desktop-auto-update-title">
-        {resolveDialogTitle(state)}
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={1}>
-          <Typography component="p" variant="body2" color="text.primary">
+      <Dialog.Content maxWidth="32rem" {...blockingDialogContentProps}>
+        <Dialog.Title>{resolveDialogTitle(state)}</Dialog.Title>
+        <div className={styles.content}>
+          <Dialog.Description>
             {resolveDialogDescription(state)}
-          </Typography>
+          </Dialog.Description>
 
           {state.kind === "checking" ? (
-            <Stack spacing={0.5}>
-              <LinearProgress />
-            </Stack>
+            <div className={styles.progressGroup}>
+              <Progress color="teal" />
+            </div>
           ) : (
             <></>
           )}
 
           {state.kind === "downloading" ? (
-            <Stack spacing={0.5}>
+            <div className={styles.progressGroup}>
               {renderProgressBar(progressPercent)}
-              <Typography variant="caption" color="text.secondary">
+              <span className={styles.progressText}>
                 {resolveProgressText(progressPercent)}
-              </Typography>
-            </Stack>
+              </span>
+            </div>
           ) : (
             <></>
           )}
 
           {state.kind === "failed" ? (
-            <Grid
-              container
-              component="dl"
-              alignItems="start"
-              rowGap={0.5}
-              columnGap={1.5}
-              m={0}
-            >
-              <Grid size="auto">
-                <Typography
-                  component="dt"
-                  variant="caption"
-                  color="text.secondary"
-                  style={failureDetailLabelStyle}
-                >
-                  対象バージョン
-                </Typography>
-              </Grid>
-              <Grid size="grow">
-                <Typography
-                  component="dd"
-                  variant="body2"
-                  color="text.primary"
-                  style={failureDetailValueStyle}
-                >
-                  {state.versionLabel}
-                </Typography>
-              </Grid>
-              <Grid size="auto">
-                <Typography
-                  component="dt"
-                  variant="caption"
-                  color="text.secondary"
-                  style={failureDetailLabelStyle}
-                >
-                  処理段階
-                </Typography>
-              </Grid>
-              <Grid size="grow">
-                <Typography
-                  component="dd"
-                  variant="body2"
-                  color="text.primary"
-                  style={failureDetailValueStyle}
-                >
-                  {state.operationLabel}
-                </Typography>
-              </Grid>
-              <Grid size="auto">
-                <Typography
-                  component="dt"
-                  variant="caption"
-                  color="text.secondary"
-                  style={failureDetailLabelStyle}
-                >
-                  技術詳細
-                </Typography>
-              </Grid>
-              <Grid size="grow">
-                <Typography
-                  component="dd"
-                  variant="body2"
-                  color="text.primary"
-                  style={failureDetailValueStyle}
-                >
-                  {state.detail}
-                </Typography>
-              </Grid>
-              <Grid size="auto">
-                <Typography
-                  component="dt"
-                  variant="caption"
-                  color="text.secondary"
-                  style={failureDetailLabelStyle}
-                >
-                  対処
-                </Typography>
-              </Grid>
-              <Grid size="grow">
-                <Typography
-                  component="dd"
-                  variant="body2"
-                  color="text.primary"
-                  style={failureDetailValueStyle}
-                >
-                  {state.recoveryHint}
-                </Typography>
-              </Grid>
-            </Grid>
+            <dl className={styles.detailsGrid}>
+              <dt className={styles.detailLabel}>対象バージョン</dt>
+              <dd className={styles.detailValue}>{state.versionLabel}</dd>
+              <dt className={styles.detailLabel}>処理段階</dt>
+              <dd className={styles.detailValue}>{state.operationLabel}</dd>
+              <dt className={styles.detailLabel}>技術詳細</dt>
+              <dd className={styles.detailValue}>{state.detail}</dd>
+              <dt className={styles.detailLabel}>対処</dt>
+              <dd className={styles.detailValue}>{state.recoveryHint}</dd>
+            </dl>
           ) : (
             <></>
           )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        {state.kind === "checking" ? (
-          <Button variant="contained" disabled>
-            確認中...
-          </Button>
-        ) : (
-          <></>
-        )}
+        </div>
+        <div className={styles.actions}>
+          {state.kind === "checking" ? (
+            <Button disabled>確認中...</Button>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "available" ? (
-          <>
-            <Button onClick={onDialogClose}>あとで</Button>
-            <Button variant="contained" onClick={onUpdateNow}>
-              今すぐ更新
-            </Button>
-          </>
-        ) : (
-          <></>
-        )}
+          {state.kind === "available" ? (
+            <>
+              <Button color="gray" onClick={onDialogClose} variant="surface">
+                あとで
+              </Button>
+              <Button onClick={onUpdateNow}>今すぐ更新</Button>
+            </>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "ready" ? (
-          <>
-            <Button onClick={onDialogClose}>あとで</Button>
-            <Button variant="contained" onClick={onRestartNow}>
-              今すぐ再起動
-            </Button>
-          </>
-        ) : (
-          <></>
-        )}
+          {state.kind === "ready" ? (
+            <>
+              <Button color="gray" onClick={onDialogClose} variant="surface">
+                あとで
+              </Button>
+              <Button onClick={onRestartNow}>今すぐ再起動</Button>
+            </>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "up-to-date" ? (
-          <Button variant="contained" onClick={onDialogClose}>
-            閉じる
-          </Button>
-        ) : (
-          <></>
-        )}
+          {state.kind === "up-to-date" ? (
+            <Button onClick={onDialogClose}>閉じる</Button>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "failed" ? (
-          <Button variant="contained" onClick={onDialogClose}>
-            閉じる
-          </Button>
-        ) : (
-          <></>
-        )}
+          {state.kind === "failed" ? (
+            <Button onClick={onDialogClose}>閉じる</Button>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "downloading" ? (
-          <Button variant="contained" disabled>
-            ダウンロード中...
-          </Button>
-        ) : (
-          <></>
-        )}
-      </DialogActions>
-    </Dialog>
+          {state.kind === "downloading" ? (
+            <Button disabled>ダウンロード中...</Button>
+          ) : (
+            <></>
+          )}
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 };

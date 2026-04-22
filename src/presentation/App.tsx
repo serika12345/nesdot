@@ -1,5 +1,4 @@
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+import { Heading } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -36,6 +35,7 @@ import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScr
 import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
 import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
 import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
+import { SurfaceCard } from "./components/common/ui/chrome/SurfaceCard";
 import styles from "./App.module.css";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
@@ -521,16 +521,16 @@ const AppBody: React.FC = () => {
           <section className={styles.panel}>{appPanel}</section>
 
           <aside className={styles.sidebar}>
-            <Paper variant="outlined" className={styles.paletteCard}>
+            <SurfaceCard className={styles.paletteCard}>
               <div className={styles.paletteHeader}>
-                <Typography component="h2" variant="h2" color="text.primary">
+                <Heading as="h2" size="5">
                   NES パレット
-                </Typography>
+                </Heading>
               </div>
               <div className={styles.paletteScroll}>
                 <PalettePicker palettePickerState={palettePickerState} />
               </div>
-            </Paper>
+            </SurfaceCard>
           </aside>
         </div>
       </div>

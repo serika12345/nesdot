@@ -19,6 +19,10 @@
     gap: 0.5rem;
   }
 
+  .sectionCard {
+    padding: 0.875rem;
+  }
+
   .paletteList {
     display: flex;
     flex-direction: column;
@@ -68,5 +72,113 @@
   .swatch {
     display: inline-block;
     flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    border: 0.0625rem solid rgba(15, 23, 42, 0.08);
+    background: var(--nes-color);
+  }
+
+  .transparentSwatch {
+    border-color: rgba(148, 163, 184, 0.4);
+    background-image: repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%);
+    background-size: 0.5rem 0.5rem;
+  }
+
+  .chevron {
+    transition: transform 160ms ease;
+  }
+
+  .chevron[data-open="true"] {
+    transform: rotate(180deg);
+  }
+
+  .slotButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    border: 0.0625rem solid var(--panel-border);
+    border-radius: 0.875rem;
+    background: var(--panel-surface-strong);
+    color: var(--ink);
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .slotButton:hover:not(:disabled) {
+    border-color: var(--accent-border);
+    background: var(--accent-soft);
+  }
+
+  .slotButton:focus-visible {
+    outline: none;
+    border-color: var(--accent-border-strong);
+    box-shadow: 0 0 0 0.1875rem var(--accent-soft);
+  }
+
+  .slotButton:disabled,
+  .slotButtonDisabled {
+    opacity: 0.64;
+    cursor: not-allowed;
+  }
+
+  .slotButtonActive {
+    border-color: var(--accent-border-strong);
+    background: var(--accent-solid);
+    color: var(--accent-contrast);
+    box-shadow: var(--accent-shadow);
+  }
+
+  .slotButtonText {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .colorButton {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0.125rem solid rgba(15, 23, 42, 0.18);
+    border-radius: 0.75rem;
+    background: var(--nes-color);
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .colorButton:hover {
+    transform: translateY(-0.0625rem);
+  }
+
+  .colorButton:focus-visible {
+    outline: none;
+    border-color: var(--accent-border-strong);
+    box-shadow: 0 0 0 0.1875rem var(--accent-soft);
+  }
+
+  .colorButtonActive {
+    border-color: rgba(15, 23, 42, 0.85);
+    box-shadow: 0 0 0 0.125rem rgba(255, 255, 255, 0.82);
+  }
+
+  .visuallyHidden {
+    position: absolute;
+    width: 0.0625rem;
+    height: 0.0625rem;
+    padding: 0;
+    margin: -0.0625rem;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
   }
 }

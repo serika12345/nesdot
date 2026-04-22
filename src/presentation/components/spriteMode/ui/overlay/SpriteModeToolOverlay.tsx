@@ -1,10 +1,9 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
+import { Button } from "@radix-ui/themes";
 import React from "react";
 import { type SpriteModeToolOverlayState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeToolMenu } from "../menu/SpriteModeToolMenu";
-import { chevronStyle, overlayRootStyle } from "./SpriteModeToolOverlayStyle";
+import styles from "./SpriteModeToolOverlay.module.css";
 
 interface SpriteModeToolOverlayProps {
   toolOverlay: SpriteModeToolOverlayState;
@@ -19,20 +18,20 @@ export const SpriteModeToolOverlay: React.FC<SpriteModeToolOverlayProps> = ({
 }) => {
   return (
     <>
-      <Box style={overlayRootStyle}>
+      <div className={styles.root}>
         <Button
           type="button"
-          variant={toolOverlay.isToolsOpen ? "contained" : "outlined"}
-          endIcon={
-            <ExpandMoreRoundedIcon
-              style={chevronStyle(toolOverlay.isToolsOpen)}
-            />
-          }
+          color={toolOverlay.isToolsOpen === true ? "teal" : "gray"}
+          variant={toolOverlay.isToolsOpen === true ? "solid" : "surface"}
           onClick={toolOverlay.handleToggleTools}
         >
           {toolOverlay.isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
+          <ExpandMoreRoundedIcon
+            className={styles.chevron}
+            data-open={toolOverlay.isToolsOpen}
+          />
         </Button>
-      </Box>
+      </div>
 
       {toolOverlay.isToolsOpen === true ? (
         <SpriteModeToolMenu toolMenu={toolOverlay.toolMenu} />

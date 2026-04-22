@@ -1,13 +1,7 @@
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import LinearProgress from "@mui/material/LinearProgress";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Button, Dialog, Progress } from "@radix-ui/themes";
 import React from "react";
 import type { PwaUpdateDialogState } from "../../../../../infrastructure/browser/pwaUpdateMonitor";
+import styles from "./UpdateDialogs.module.css";
 
 interface PwaUpdateDialogProps {
   readonly state: PwaUpdateDialogState;
@@ -52,71 +46,70 @@ export const PwaUpdateDialog: React.FC<PwaUpdateDialogProps> = ({
   onDialogClose,
   onUpdateNow,
 }) => {
-  const isOpen = state.kind !== "hidden";
+  if (state.kind === "hidden") {
+    return <></>;
+  }
+
+  const isBlocking = state.kind === "applying";
+  const blockingDialogContentProps =
+    isBlocking === true
+      ? {
+          onEscapeKeyDown: (event: KeyboardEvent) => event.preventDefault(),
+          onPointerDownOutside: (event: Event) => event.preventDefault(),
+        }
+      : {};
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={(_event, reason) => {
-        if (state.kind === "applying") {
-          if (reason === "backdropClick" || reason === "escapeKeyDown") {
-            return;
-          }
+    <Dialog.Root
+      open
+      onOpenChange={(open) => {
+        if (open === true || isBlocking === true) {
+          return;
         }
 
         onDialogClose();
       }}
-      disableEscapeKeyDown={state.kind === "applying"}
-      aria-labelledby="pwa-update-title"
     >
-      <DialogTitle id="pwa-update-title">
-        {resolveDialogTitle(state)}
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={1}>
-          <Typography component="p" variant="body2" color="text.primary">
+      <Dialog.Content maxWidth="28rem" {...blockingDialogContentProps}>
+        <Dialog.Title>{resolveDialogTitle(state)}</Dialog.Title>
+        <div className={styles.content}>
+          <Dialog.Description>
             {resolveDialogDescription(state)}
-          </Typography>
+          </Dialog.Description>
 
-          {state.kind === "applying" ? <LinearProgress /> : <></>}
+          {state.kind === "applying" ? <Progress color="teal" /> : <></>}
 
           {state.kind === "failed" ? (
-            <Typography component="p" variant="body2" color="error.main">
-              {state.message}
-            </Typography>
+            <p className={styles.errorText}>{state.message}</p>
           ) : (
             <></>
           )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        {state.kind === "available" ? (
-          <>
-            <Button onClick={onDialogClose}>あとで</Button>
-            <Button variant="contained" onClick={onUpdateNow}>
-              今すぐ更新
-            </Button>
-          </>
-        ) : (
-          <></>
-        )}
+        </div>
+        <div className={styles.actions}>
+          {state.kind === "available" ? (
+            <>
+              <Button color="gray" onClick={onDialogClose} variant="surface">
+                あとで
+              </Button>
+              <Button onClick={onUpdateNow}>今すぐ更新</Button>
+            </>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "failed" ? (
-          <Button variant="contained" onClick={onDialogClose}>
-            閉じる
-          </Button>
-        ) : (
-          <></>
-        )}
+          {state.kind === "failed" ? (
+            <Button onClick={onDialogClose}>閉じる</Button>
+          ) : (
+            <></>
+          )}
 
-        {state.kind === "applying" ? (
-          <Button variant="contained" disabled>
-            更新中...
-          </Button>
-        ) : (
-          <></>
-        )}
-      </DialogActions>
-    </Dialog>
+          {state.kind === "applying" ? (
+            <Button disabled>更新中...</Button>
+          ) : (
+            <></>
+          )}
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 };

@@ -1,10 +1,9 @@
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+import { Badge, Text } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import paletteColors from "../../../common/ui/palette/NesPaletteColors.module.css";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
@@ -12,13 +11,24 @@ import {
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { getArrayItem } from "../../../../../shared/arrayAccess";
-import { slotSwatchStyle } from "./SpriteModePaletteSlotsStyle";
 import styles from "./SpriteModePaletteSlots.module.css";
 
-const resolvePaletteHex = (index: number): string =>
+const resolvePaletteColorClassName = (index: number): string =>
   pipe(
     getArrayItem(NES_PALETTE_HEX, index),
-    O.getOrElse(() => "#000000"),
+    O.map(() => {
+      const colorClassName = paletteColors[`c${index}`];
+
+      if (typeof colorClassName !== "string") {
+        return typeof paletteColors.c0 === "string" ? paletteColors.c0 : "";
+      }
+
+      return colorClassName;
+    }),
+    O.match(
+      () => (typeof paletteColors.c0 === "string" ? paletteColors.c0 : ""),
+      (colorClassName) => colorClassName,
+    ),
   );
 
 interface SpriteModePaletteSlotsProps {
@@ -40,44 +50,48 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
 }) => {
   return (
     <div className={styles.root}>
-      <Paper variant="outlined">
+      <SurfaceCard className={styles.surface}>
         <div className={styles.content}>
           <div className={styles.header}>
-            <Typography variant="body2">現在のスロット</Typography>
-            <Chip
-              size="small"
-              color="primary"
-              label={`パレット ${activePalette}`}
-            />
+            <Text size="2">現在のスロット</Text>
+            <Badge color="teal" size="2" variant="surface">
+              {`パレット ${activePalette}`}
+            </Badge>
           </div>
 
           <div className={styles.row}>
-            {palettes[activePalette].map((colorIndex, slotIndex) => (
-              <Button
-                key={slotIndex}
-                type="button"
-                variant={activeSlot === slotIndex ? "contained" : "outlined"}
-                onClick={() => onPaletteClick(slotIndex)}
-                title={
-                  slotIndex === 0 ? "スロット 0: 透明" : `スロット ${slotIndex}`
-                }
-                startIcon={
+            {palettes[activePalette].map((colorIndex, slotIndex) => {
+              const buttonClassName =
+                activeSlot === slotIndex
+                  ? `${styles.slotButton} ${styles.slotButtonActive}`
+                  : styles.slotButton;
+              const swatchClassName =
+                slotIndex === 0
+                  ? `${styles.swatch} ${styles.transparentSwatch}`
+                  : `${styles.swatch} ${resolvePaletteColorClassName(colorIndex)}`;
+
+              return (
+                <button
+                  key={slotIndex}
+                  type="button"
+                  className={buttonClassName}
+                  onClick={() => onPaletteClick(slotIndex)}
+                  title={
+                    slotIndex === 0
+                      ? "スロット 0: 透明"
+                      : `スロット ${slotIndex}`
+                  }
+                >
+                  <span aria-hidden="true" className={swatchClassName} />
                   <span
-                    aria-hidden="true"
-                    className={styles.swatch}
-                    style={slotSwatchStyle(
-                      slotIndex === 0,
-                      resolvePaletteHex(colorIndex),
-                    )}
-                  />
-                }
-              >
-                スロット{slotIndex}
-              </Button>
-            ))}
+                    className={styles.slotLabel}
+                  >{`スロット${slotIndex}`}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      </Paper>
+      </SurfaceCard>
     </div>
   );
 };

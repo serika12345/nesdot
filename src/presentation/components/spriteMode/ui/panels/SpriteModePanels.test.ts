@@ -47,7 +47,7 @@ describe("SpriteModePanels", () => {
     );
 
     expect(markup).toContain("スプライト編集");
-    expect(markup).toContain("MuiPaper-outlined");
+    expect(markup).toContain("スプライト編集パネル");
     expect(markup).not.toContain("app-panel");
   });
 
@@ -91,7 +91,7 @@ describe("SpriteModePanels", () => {
 
     expect(markup).toContain("palette");
     expect(markup).toContain("canvas-surface");
-    expect(markup).toContain("MuiPaper-outlined");
+    expect(markup).toContain("スプライトキャンバスパネル");
     expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-canvas-viewport");
   });

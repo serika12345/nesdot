@@ -1,13 +1,8 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
+import { Button } from "@radix-ui/themes";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { type SpriteModeToolMenuState } from "../../logic/spriteModeCanvasState";
-import {
-  toolMenuPaperStyle,
-  toolMenuRootStyle,
-} from "./SpriteModeToolMenuStyle";
+import styles from "./SpriteModeToolMenu.module.css";
 
 interface SpriteModeToolMenuProps {
   toolMenu: SpriteModeToolMenuState;
@@ -20,43 +15,46 @@ export const SpriteModeToolMenu: React.FC<SpriteModeToolMenuProps> = ({
   toolMenu,
 }) => {
   return (
-    <Box style={toolMenuRootStyle}>
-      <Paper variant="outlined" style={toolMenuPaperStyle}>
-        <Stack spacing={1}>
+    <div className={styles.root}>
+      <SurfaceCard className={styles.surface}>
+        <div className={styles.actions}>
           <Button
             type="button"
-            variant={toolMenu.tool === "pen" ? "contained" : "outlined"}
+            color={toolMenu.tool === "pen" ? "teal" : "gray"}
             disabled={toolMenu.isChangeOrderMode}
+            variant={toolMenu.tool === "pen" ? "solid" : "surface"}
             onClick={() => toolMenu.handleToolChange("pen")}
           >
             ペン
           </Button>
           <Button
             type="button"
-            variant={toolMenu.tool === "eraser" ? "contained" : "outlined"}
+            color={toolMenu.tool === "eraser" ? "teal" : "gray"}
             disabled={toolMenu.isChangeOrderMode}
+            variant={toolMenu.tool === "eraser" ? "solid" : "surface"}
             onClick={() => toolMenu.handleToolChange("eraser")}
           >
             消しゴム
           </Button>
           <Button
             type="button"
-            variant="outlined"
+            color="gray"
             disabled={toolMenu.isChangeOrderMode}
+            variant="surface"
             onClick={toolMenu.handleClearSprite}
           >
             クリア
           </Button>
           <Button
             type="button"
-            variant={toolMenu.isChangeOrderMode ? "contained" : "outlined"}
-            color={toolMenu.isChangeOrderMode ? "primary" : "inherit"}
+            color={toolMenu.isChangeOrderMode === true ? "teal" : "gray"}
+            variant={toolMenu.isChangeOrderMode === true ? "solid" : "surface"}
             onClick={toolMenu.handleToggleChangeOrderMode}
           >
             {toolMenu.isChangeOrderMode ? "並べ替え終了" : "並べ替え"}
           </Button>
-        </Stack>
-      </Paper>
-    </Box>
+        </div>
+      </SurfaceCard>
+    </div>
   );
 };

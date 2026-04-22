@@ -47,5 +47,7 @@ describe("menu bar static CSS migration", () => {
 
     expect(menuBarSource).toContain("./MenuBar.module.css");
     expect(menuBarSource).not.toContain("./MenuBarStyle");
+    expect(menuBarSource).not.toContain("@mui/material");
+    expect(menuBarSource).not.toContain("useTheme");
   });
 });

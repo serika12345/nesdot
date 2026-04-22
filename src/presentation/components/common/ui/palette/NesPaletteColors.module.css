@@ -1,0 +1,257 @@
+@layer components {
+  .c0 {
+    --nes-color: #7c7c7c;
+  }
+
+  .c1 {
+    --nes-color: #0000fc;
+  }
+
+  .c2 {
+    --nes-color: #0000bc;
+  }
+
+  .c3 {
+    --nes-color: #4428bc;
+  }
+
+  .c4 {
+    --nes-color: #940084;
+  }
+
+  .c5 {
+    --nes-color: #a80020;
+  }
+
+  .c6 {
+    --nes-color: #a81000;
+  }
+
+  .c7 {
+    --nes-color: #881400;
+  }
+
+  .c8 {
+    --nes-color: #503000;
+  }
+
+  .c9 {
+    --nes-color: #007800;
+  }
+
+  .c10 {
+    --nes-color: #006800;
+  }
+
+  .c11 {
+    --nes-color: #005800;
+  }
+
+  .c12 {
+    --nes-color: #004058;
+  }
+
+  .c13 {
+    --nes-color: #000000;
+  }
+
+  .c14 {
+    --nes-color: #000000;
+  }
+
+  .c15 {
+    --nes-color: #000000;
+  }
+
+  .c16 {
+    --nes-color: #bcbcbc;
+  }
+
+  .c17 {
+    --nes-color: #0078f8;
+  }
+
+  .c18 {
+    --nes-color: #0058f8;
+  }
+
+  .c19 {
+    --nes-color: #6844fc;
+  }
+
+  .c20 {
+    --nes-color: #d800cc;
+  }
+
+  .c21 {
+    --nes-color: #e40058;
+  }
+
+  .c22 {
+    --nes-color: #f83800;
+  }
+
+  .c23 {
+    --nes-color: #e45c10;
+  }
+
+  .c24 {
+    --nes-color: #ac7c00;
+  }
+
+  .c25 {
+    --nes-color: #00b800;
+  }
+
+  .c26 {
+    --nes-color: #00a800;
+  }
+
+  .c27 {
+    --nes-color: #00a844;
+  }
+
+  .c28 {
+    --nes-color: #008888;
+  }
+
+  .c29 {
+    --nes-color: #000000;
+  }
+
+  .c30 {
+    --nes-color: #000000;
+  }
+
+  .c31 {
+    --nes-color: #000000;
+  }
+
+  .c32 {
+    --nes-color: #f8f8f8;
+  }
+
+  .c33 {
+    --nes-color: #3cbcfc;
+  }
+
+  .c34 {
+    --nes-color: #6888fc;
+  }
+
+  .c35 {
+    --nes-color: #9878f8;
+  }
+
+  .c36 {
+    --nes-color: #f878f8;
+  }
+
+  .c37 {
+    --nes-color: #f85898;
+  }
+
+  .c38 {
+    --nes-color: #f87858;
+  }
+
+  .c39 {
+    --nes-color: #fca044;
+  }
+
+  .c40 {
+    --nes-color: #f8b800;
+  }
+
+  .c41 {
+    --nes-color: #b8f818;
+  }
+
+  .c42 {
+    --nes-color: #58d854;
+  }
+
+  .c43 {
+    --nes-color: #58f898;
+  }
+
+  .c44 {
+    --nes-color: #00e8d8;
+  }
+
+  .c45 {
+    --nes-color: #787878;
+  }
+
+  .c46 {
+    --nes-color: #000000;
+  }
+
+  .c47 {
+    --nes-color: #000000;
+  }
+
+  .c48 {
+    --nes-color: #fcfcfc;
+  }
+
+  .c49 {
+    --nes-color: #a4e4fc;
+  }
+
+  .c50 {
+    --nes-color: #b8b8f8;
+  }
+
+  .c51 {
+    --nes-color: #d8b8f8;
+  }
+
+  .c52 {
+    --nes-color: #f8b8f8;
+  }
+
+  .c53 {
+    --nes-color: #f8a4c0;
+  }
+
+  .c54 {
+    --nes-color: #f0d0b0;
+  }
+
+  .c55 {
+    --nes-color: #fce0a8;
+  }
+
+  .c56 {
+    --nes-color: #f8d878;
+  }
+
+  .c57 {
+    --nes-color: #d8f878;
+  }
+
+  .c58 {
+    --nes-color: #b8f8b8;
+  }
+
+  .c59 {
+    --nes-color: #b8f8d8;
+  }
+
+  .c60 {
+    --nes-color: #00fcfc;
+  }
+
+  .c61 {
+    --nes-color: #f8d8f8;
+  }
+
+  .c62 {
+    --nes-color: #000000;
+  }
+
+  .c63 {
+    --nes-color: #000000;
+  }
+}

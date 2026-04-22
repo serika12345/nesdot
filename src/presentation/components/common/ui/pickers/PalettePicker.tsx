@@ -1,27 +1,32 @@
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Collapse from "@mui/material/Collapse";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+import { Badge, Button, Heading, Text } from "@radix-ui/themes";
 import React from "react";
-import {
-  NES_PALETTE_HEX,
-  nesIndexToCssHex,
-} from "../../../../../domain/nes/palette";
+import { SurfaceCard } from "../chrome/SurfaceCard";
+import paletteColors from "../palette/NesPaletteColors.module.css";
+import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { type PalettePickerState } from "../../logic/palettePickerState";
-import {
-  colorSwatchStyle,
-  createColorLibraryButtonStyle,
-  disclosureChevronStyle,
-  pickerPanelPaperStyle,
-  transparentSwatchStyle,
-} from "./PalettePickerStyle";
 import styles from "./PalettePicker.module.css";
 
 interface PalettePickerProps {
   palettePickerState: PalettePickerState;
 }
+
+const resolvePaletteColorClassName = (colorIndex: number): string => {
+  const fallbackClassName =
+    typeof paletteColors.c0 === "string" ? paletteColors.c0 : "";
+
+  if (colorIndex < 0 || colorIndex >= NES_PALETTE_HEX.length) {
+    return fallbackClassName;
+  }
+
+  const colorClassName = paletteColors[`c${colorIndex}`];
+
+  if (typeof colorClassName !== "string") {
+    return fallbackClassName;
+  }
+
+  return colorClassName;
+};
 
 /**
  * NES パレットの選択と色差し替えを行う共通パレットエディタです。
@@ -33,20 +38,21 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
   return (
     <div className={styles.root}>
       <div className={styles.currentRow}>
-        <Typography variant="h6">
+        <Heading as="h3" size="4">
           パレット {palettePickerState.activePalette} / スロット{" "}
           {palettePickerState.activeSlot}
-        </Typography>
+        </Heading>
         <span
           title={`#${palettePickerState.activeColorIndex
             .toString(16)
             .padStart(2, "0")
             .toUpperCase()}`}
-          className={styles.swatch}
-          style={
+          className={
             palettePickerState.activeSlot === 0
-              ? transparentSwatchStyle
-              : colorSwatchStyle(palettePickerState.activeColorHex)
+              ? `${styles.swatch} ${styles.transparentSwatch}`
+              : `${styles.swatch} ${resolvePaletteColorClassName(
+                  palettePickerState.activeColorIndex,
+                )}`
           }
         />
       </div>
@@ -54,158 +60,177 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
       <div className={styles.actionRow}>
         <Button
           type="button"
-          variant={
-            palettePickerState.isPaletteListOpen ? "contained" : "outlined"
+          color={
+            palettePickerState.isPaletteListOpen === true ? "teal" : "gray"
           }
-          endIcon={
-            <ExpandMoreRoundedIcon
-              style={disclosureChevronStyle(
-                palettePickerState.isPaletteListOpen,
-              )}
-            />
+          variant={
+            palettePickerState.isPaletteListOpen === true ? "solid" : "surface"
           }
           onClick={palettePickerState.handlePaletteListToggle}
         >
           {palettePickerState.isPaletteListOpen
             ? "パレットを閉じる"
             : "パレットを開く"}
+          <ExpandMoreRoundedIcon
+            className={styles.chevron}
+            data-open={palettePickerState.isPaletteListOpen}
+          />
         </Button>
         <Button
           type="button"
-          variant={palettePickerState.isLibraryOpen ? "contained" : "outlined"}
-          endIcon={
-            <ExpandMoreRoundedIcon
-              style={disclosureChevronStyle(palettePickerState.isLibraryOpen)}
-            />
+          color={palettePickerState.isLibraryOpen === true ? "teal" : "gray"}
+          variant={
+            palettePickerState.isLibraryOpen === true ? "solid" : "surface"
           }
           onClick={palettePickerState.handleLibraryToggle}
         >
           {palettePickerState.isLibraryOpen
             ? "色ライブラリを閉じる"
             : "色ライブラリを開く"}
+          <ExpandMoreRoundedIcon
+            className={styles.chevron}
+            data-open={palettePickerState.isLibraryOpen}
+          />
         </Button>
       </div>
 
-      <Collapse in={palettePickerState.isPaletteListOpen}>
+      {palettePickerState.isPaletteListOpen === true ? (
         <div className={styles.paletteList}>
           {palettePickerState.palettes.map((palette, paletteIndex) => {
             const isActivePalette =
               palettePickerState.activePalette === paletteIndex;
 
             return (
-              <Paper
-                key={paletteIndex}
-                variant="outlined"
-                style={pickerPanelPaperStyle}
-              >
+              <SurfaceCard key={paletteIndex} className={styles.sectionCard}>
                 <div className={styles.paletteCard}>
                   <div className={styles.paletteCardHeader}>
-                    <Typography variant="subtitle2">
+                    <Text size="2" weight="medium">
                       パレット {paletteIndex}
-                    </Typography>
+                    </Text>
                     {isActivePalette ? (
-                      <Chip size="small" color="primary" label="選択中" />
+                      <Badge color="teal" size="2" variant="surface">
+                        選択中
+                      </Badge>
                     ) : (
                       <></>
                     )}
                   </div>
 
                   <div className={styles.slotRow}>
-                    {palette.map((colorIndex, slotIndex) => (
-                      <Button
-                        key={slotIndex}
-                        type="button"
-                        aria-label={`背景パレット ${paletteIndex} スロット ${slotIndex}`}
-                        variant={
-                          isActivePalette &&
-                          palettePickerState.activeSlot === slotIndex
-                            ? "contained"
-                            : "outlined"
+                    {palette.map((colorIndex, slotIndex) => {
+                      const isActiveSlot =
+                        isActivePalette === true &&
+                        palettePickerState.activeSlot === slotIndex;
+                      const buttonClassName = (() => {
+                        if (slotIndex === 0) {
+                          return `${styles.slotButton} ${styles.slotButtonDisabled}`;
                         }
-                        disabled={slotIndex === 0}
-                        onClick={() =>
-                          palettePickerState.handlePaletteSlotSelect(
-                            paletteIndex,
-                            slotIndex,
-                          )
+
+                        if (isActiveSlot === true) {
+                          return `${styles.slotButton} ${styles.slotButtonActive}`;
                         }
-                        title={
-                          slotIndex === 0
-                            ? "スロット 0: 透明"
-                            : `スロット ${slotIndex}`
-                        }
-                        startIcon={
+
+                        return styles.slotButton;
+                      })();
+                      const swatchClassName =
+                        slotIndex === 0
+                          ? `${styles.swatch} ${styles.transparentSwatch}`
+                          : `${styles.swatch} ${resolvePaletteColorClassName(
+                              colorIndex,
+                            )}`;
+
+                      return (
+                        <button
+                          key={slotIndex}
+                          type="button"
+                          aria-label={`背景パレット ${paletteIndex} スロット ${slotIndex}`}
+                          className={buttonClassName}
+                          disabled={slotIndex === 0}
+                          onClick={() =>
+                            palettePickerState.handlePaletteSlotSelect(
+                              paletteIndex,
+                              slotIndex,
+                            )
+                          }
+                          title={
+                            slotIndex === 0
+                              ? "スロット 0: 透明"
+                              : `スロット ${slotIndex}`
+                          }
+                        >
                           <span
                             aria-hidden="true"
-                            className={styles.swatch}
-                            style={
-                              slotIndex === 0
-                                ? transparentSwatchStyle
-                                : colorSwatchStyle(nesIndexToCssHex(colorIndex))
-                            }
+                            className={swatchClassName}
                           />
-                        }
-                      >
-                        スロット{slotIndex}
-                      </Button>
-                    ))}
+                          <span className={styles.slotButtonText}>
+                            スロット{slotIndex}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </Paper>
+              </SurfaceCard>
             );
           })}
         </div>
-      </Collapse>
+      ) : (
+        <></>
+      )}
 
-      <Collapse in={palettePickerState.isLibraryOpen}>
-        <Paper variant="outlined" style={pickerPanelPaperStyle}>
+      {palettePickerState.isLibraryOpen === true ? (
+        <SurfaceCard className={styles.sectionCard}>
           <div className={styles.libraryCard}>
             <div className={styles.libraryHeader}>
-              <Typography variant="body2">
+              <Text size="2">
                 パレット {palettePickerState.activePalette} / スロット{" "}
                 {palettePickerState.activeSlot} に割り当てる色を選択
-              </Typography>
-              <Chip
-                size="small"
-                color="primary"
-                variant="outlined"
-                label={`#${palettePickerState.activeColorIndex
+              </Text>
+              <Badge color="teal" size="2" variant="surface">
+                {`#${palettePickerState.activeColorIndex
                   .toString(16)
                   .padStart(2, "0")
                   .toUpperCase()}`}
-              />
+              </Badge>
             </div>
             <div className={styles.colorRow}>
-              {NES_PALETTE_HEX.map((hex, colorIndex) => (
-                <Button
-                  key={colorIndex}
-                  type="button"
-                  aria-label={`NES色 #${colorIndex
-                    .toString(16)
-                    .padStart(2, "0")
-                    .toUpperCase()}`}
-                  title={`#${colorIndex
-                    .toString(16)
-                    .padStart(2, "0")
-                    .toUpperCase()}`}
-                  onClick={() =>
-                    palettePickerState.handleColorSelect(colorIndex)
-                  }
-                  variant={
-                    colorIndex === palettePickerState.activeColorIndex
-                      ? "contained"
-                      : "outlined"
-                  }
-                  style={createColorLibraryButtonStyle(
-                    hex,
-                    colorIndex === palettePickerState.activeColorIndex,
-                  )}
-                />
-              ))}
+              {NES_PALETTE_HEX.map((hex, colorIndex) => {
+                const buttonClassName =
+                  colorIndex === palettePickerState.activeColorIndex
+                    ? `${styles.colorButton} ${styles.colorButtonActive} ${resolvePaletteColorClassName(
+                        colorIndex,
+                      )}`
+                    : `${styles.colorButton} ${resolvePaletteColorClassName(
+                        colorIndex,
+                      )}`;
+
+                return (
+                  <button
+                    key={colorIndex}
+                    type="button"
+                    aria-label={`NES色 #${colorIndex
+                      .toString(16)
+                      .padStart(2, "0")
+                      .toUpperCase()}`}
+                    className={buttonClassName}
+                    title={`#${colorIndex
+                      .toString(16)
+                      .padStart(2, "0")
+                      .toUpperCase()}`}
+                    onClick={() =>
+                      palettePickerState.handleColorSelect(colorIndex)
+                    }
+                  >
+                    <span className={styles.visuallyHidden}>{hex}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </Paper>
-      </Collapse>
+        </SurfaceCard>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
