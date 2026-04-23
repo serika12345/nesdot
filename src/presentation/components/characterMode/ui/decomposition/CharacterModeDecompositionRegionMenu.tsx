@@ -1,3 +1,4 @@
+import { Theme } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -55,34 +56,38 @@ export const CharacterModeDecompositionRegionMenu: React.FC<
             );
 
             return createPortal(
-              <PortalOverlay
-                data-decomposition-region-context-menu-root="true"
-                onContextMenu={(event) => event.preventDefault()}
-                onPointerDown={menuState.closeDecompositionRegionContextMenu}
-              >
-                <PositionedActionMenu
-                  role="menu"
-                  aria-label="切り取り領域メニュー"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  menuLeft={left}
-                  menuTop={top}
-                  menuWidth={DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH}
-                  ready={true}
+              <Theme asChild>
+                <PortalOverlay
+                  data-decomposition-region-context-menu-root="true"
+                  onContextMenu={(event) => event.preventDefault()}
+                  onPointerDown={menuState.closeDecompositionRegionContextMenu}
                 >
-                  <PositionedActionMenuButton
-                    type="button"
-                    danger
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      menuActions.handleDeleteContextMenuRegion(menu.regionId);
-                      focusStageElement();
-                    }}
+                  <PositionedActionMenu
+                    role="menu"
+                    aria-label="切り取り領域メニュー"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    menuLeft={left}
+                    menuTop={top}
+                    menuWidth={DECOMPOSITION_REGION_CONTEXT_MENU_WIDTH}
+                    ready={true}
                   >
-                    選択中領域を削除
-                  </PositionedActionMenuButton>
-                </PositionedActionMenu>
-              </PortalOverlay>,
+                    <PositionedActionMenuButton
+                      type="button"
+                      danger
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        menuActions.handleDeleteContextMenuRegion(
+                          menu.regionId,
+                        );
+                        focusStageElement();
+                      }}
+                    >
+                      選択中領域を削除
+                    </PositionedActionMenuButton>
+                  </PositionedActionMenu>
+                </PortalOverlay>
+              </Theme>,
               document.body,
             );
           }),

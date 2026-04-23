@@ -1,5 +1,5 @@
+import { Dialog, Flex } from "@radix-ui/themes";
 import React from "react";
-import { createPortal } from "react-dom";
 import { mergeClassNames } from "../../../../styleClassNames";
 import { ChevronDownIcon } from "../icons/AppIcons";
 import styles from "./AppControls.module.css";
@@ -187,73 +187,67 @@ export const AppDialog: React.FC<AppDialogProps> = ({
   size = "medium",
   title,
 }) => {
+  const hasActions = typeof actions !== "undefined";
   const titleId = React.useId();
-
-  React.useEffect(() => {
-    if (open === false) {
-      return;
+  const maxWidth = (() => {
+    if (size === "small") {
+      return "28rem";
     }
 
-    const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== "Escape") {
-        return;
-      }
+    if (size === "large") {
+      return "56rem";
+    }
 
-      onClose();
-    };
+    return "32rem";
+  })();
 
-    window.addEventListener("keydown", handleKeyDown);
+  if (typeof document === "undefined") {
+    if (open === false) {
+      return <></>;
+    }
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose, open]);
-
-  if (open === false) {
-    return <></>;
+    return (
+      <div aria-labelledby={titleId} aria-modal="true" role="dialog">
+        <h2 id={titleId}>{title}</h2>
+        <div className={styles.dialogBody}>{children}</div>
+        {hasActions === true ? (
+          <div className={styles.dialogActions}>{actions}</div>
+        ) : (
+          <></>
+        )}
+      </div>
+    );
   }
 
-  const hasActions = typeof actions !== "undefined";
-
-  const dialogNode = (
-    <div
-      className={styles.dialogOverlay}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target !== event.currentTarget) {
+  return (
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (nextOpen === true) {
           return;
         }
 
         onClose();
       }}
     >
-      <div
-        aria-labelledby={titleId}
-        aria-modal="true"
-        className={styles.dialogContent}
-        data-size={size}
-        role="dialog"
-      >
-        <div className={styles.dialogHeader}>
-          <h2 className={styles.dialogTitle} id={titleId}>
-            {title}
-          </h2>
-        </div>
+      <Dialog.Content maxWidth={maxWidth}>
+        <Dialog.Title>{title}</Dialog.Title>
         <div className={styles.dialogBody}>{children}</div>
-        {hasActions === false ? (
-          <></>
+        {hasActions === true ? (
+          <Flex
+            className={styles.dialogActions}
+            gap="3"
+            justify="end"
+            wrap="wrap"
+          >
+            {actions}
+          </Flex>
         ) : (
-          <div className={styles.dialogActions}>{actions}</div>
+          <></>
         )}
-      </div>
-    </div>
+      </Dialog.Content>
+    </Dialog.Root>
   );
-
-  if (typeof document === "undefined") {
-    return dialogNode;
-  }
-
-  return createPortal(dialogNode, document.body);
 };
 
 export const visuallyHiddenClassName = styles.visuallyHidden;

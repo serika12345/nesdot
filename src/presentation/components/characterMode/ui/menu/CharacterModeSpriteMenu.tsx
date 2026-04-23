@@ -1,3 +1,4 @@
+import { Theme } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -86,37 +87,39 @@ export const CharacterModeSpriteMenu: React.FC<
             ];
 
             return createPortal(
-              <PortalOverlay
-                data-sprite-context-menu-root="true"
-                onContextMenu={handleComposeContextMenu}
-                onPointerDown={menuState.closeSpriteContextMenu}
-              >
-                <PositionedActionMenu
-                  role="menu"
-                  aria-label="スプライトメニュー"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  menuLeft={left}
-                  menuTop={top}
-                  menuWidth={STAGE_CONTEXT_MENU_WIDTH}
-                  ready={true}
+              <Theme asChild>
+                <PortalOverlay
+                  data-sprite-context-menu-root="true"
+                  onContextMenu={handleComposeContextMenu}
+                  onPointerDown={menuState.closeSpriteContextMenu}
                 >
-                  {actions.map((action) => (
-                    <PositionedActionMenuButton
-                      key={action.label}
-                      type="button"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        action.onSelect();
-                        focusStageElement();
-                      }}
-                      danger={action.tone === "danger"}
-                    >
-                      {action.label}
-                    </PositionedActionMenuButton>
-                  ))}
-                </PositionedActionMenu>
-              </PortalOverlay>,
+                  <PositionedActionMenu
+                    role="menu"
+                    aria-label="スプライトメニュー"
+                    onPointerDown={(event) => event.stopPropagation()}
+                    menuLeft={left}
+                    menuTop={top}
+                    menuWidth={STAGE_CONTEXT_MENU_WIDTH}
+                    ready={true}
+                  >
+                    {actions.map((action) => (
+                      <PositionedActionMenuButton
+                        key={action.label}
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          action.onSelect();
+                          focusStageElement();
+                        }}
+                        danger={action.tone === "danger"}
+                      >
+                        {action.label}
+                      </PositionedActionMenuButton>
+                    ))}
+                  </PositionedActionMenu>
+                </PortalOverlay>
+              </Theme>,
               document.body,
             );
           }),

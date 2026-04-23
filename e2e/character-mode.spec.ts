@@ -68,6 +68,47 @@ const expectDialogTextboxTopGap = async (
   expect(gap).toBeGreaterThanOrEqual(12);
 };
 
+const expectDialogSurfaceToUseThemeStyles = async (
+  dialog: Locator,
+): Promise<void> => {
+  const computedStyles = await dialog.evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return {
+      backgroundColor: styles.backgroundColor,
+      boxShadow: styles.boxShadow,
+    };
+  });
+
+  expect(computedStyles.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(computedStyles.boxShadow).not.toBe("none");
+};
+
+const expectPortalControlToUseThemeStyles = async (
+  control: Locator,
+): Promise<void> => {
+  const computedStyles = await control.evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return {
+      backgroundImage: styles.backgroundImage,
+      backgroundColor: styles.backgroundColor,
+      borderTopStyle: styles.borderTopStyle,
+      boxShadow: styles.boxShadow,
+    };
+  });
+
+  const hasVisibleBackground =
+    computedStyles.backgroundImage !== "none" ||
+    computedStyles.backgroundColor !== "rgba(0, 0, 0, 0)";
+  const hasSurfaceFrame =
+    computedStyles.boxShadow !== "none" ||
+    computedStyles.borderTopStyle !== "none";
+
+  expect(hasVisibleBackground).toBe(true);
+  expect(hasSurfaceFrame).toBe(true);
+};
+
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
   const feedbackDialog = page.getByRole("dialog", {
     name: "現在のセットへ反映しました",
@@ -375,6 +416,7 @@ test("character mode keeps room for dialog text-field labels", async ({
     name: "キャラクターセットを作成",
   });
   await expect(createDialog).toBeVisible();
+  await expectDialogSurfaceToUseThemeStyles(createDialog);
   await expectDialogTextboxTopGap(
     createDialog,
     "キャラクターセットを作成",
@@ -392,6 +434,7 @@ test("character mode keeps room for dialog text-field labels", async ({
 
   const renameDialog = page.getByRole("dialog", { name: "セット名を変更" });
   await expect(renameDialog).toBeVisible();
+  await expectDialogSurfaceToUseThemeStyles(renameDialog);
   await expectDialogTextboxTopGap(
     renameDialog,
     "セット名を変更",
@@ -882,6 +925,12 @@ test("character mode supports drag and drop placement and stage movement", async
   await expect(
     page.getByRole("menu", { name: "スプライトメニュー" }),
   ).toBeVisible();
+  await expectPortalControlToUseThemeStyles(
+    page.getByRole("button", { name: "レイヤーを上げる" }),
+  );
+  await expectPortalControlToUseThemeStyles(
+    page.getByRole("button", { name: "削除", exact: true }),
+  );
   const preventsNativeContextMenu = await page.evaluate((point) => {
     const target = document.elementFromPoint(point.clientX, point.clientY);
     if (target instanceof Element === false) {
@@ -1094,6 +1143,9 @@ test("character decomposition deletes selected regions from context menu", async
   await expect(
     page.getByRole("menu", { name: "切り取り領域メニュー" }),
   ).toBeVisible();
+  await expectPortalControlToUseThemeStyles(
+    page.getByRole("button", { name: "選択中領域を削除" }),
+  );
   await clickPortalButton(
     page.getByRole("button", { name: "選択中領域を削除" }),
   );
