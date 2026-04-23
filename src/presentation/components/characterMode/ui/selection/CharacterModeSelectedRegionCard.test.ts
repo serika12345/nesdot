@@ -100,7 +100,10 @@ describe("CharacterModeSelectedRegionCard", () => {
     expect(markup).not.toContain(
       "character-selected-region-preview-surface-root",
     );
-    expect(markup).toContain('data-tone="accent"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain("rt-Badge");
+    expect(markup).toContain("rt-TextFieldRoot");
+    expect(markup).toContain("rt-Button");
     expect(markup).not.toMatch(/data-active=/);
   });
 });

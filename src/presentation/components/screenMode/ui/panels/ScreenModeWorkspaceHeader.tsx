@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  AppBadge,
-  AppButton,
-  AppSwitch,
-} from "../../../common/ui/forms/AppControls";
+import { Badge, Button, Switch } from "@radix-ui/themes";
 import { type ScreenModeWorkspaceBackgroundEditingStateResult } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import {
   WorkspaceHeaderActionCluster,
@@ -41,10 +37,11 @@ const ScreenModeDisplaySwitch: React.FC<ScreenModeDisplaySwitchProps> = ({
 }) => (
   <label className={styles.switchLabel}>
     <span>{label}</span>
-    <AppSwitch
+    <Switch
       aria-label={inputLabel}
       checked={checked}
       onCheckedChange={onChange}
+      color="teal"
     />
   </label>
 );
@@ -59,44 +56,53 @@ export const ScreenModeWorkspaceHeader: React.FC<
   zoomActions,
 }) => (
   <ZoomControlsRow>
-    <AppBadge>{`${summary.zoomLevel}x`}</AppBadge>
-    <AppButton
-      size="small"
+    <Badge color="gray" size="2" variant="surface">
+      {`${summary.zoomLevel}x`}
+    </Badge>
+    <Button
+      color="gray"
+      size="1"
       variant="outline"
       aria-label="画面ズーム縮小"
       onClick={zoomActions.handleZoomOut}
     >
       -
-    </AppButton>
-    <AppButton
-      size="small"
+    </Button>
+    <Button
+      color="gray"
+      size="1"
       variant="outline"
       aria-label="画面ズーム拡大"
       onClick={zoomActions.handleZoomIn}
     >
       +
-    </AppButton>
-    <AppBadge>{`${summary.spriteCount} sprites`}</AppBadge>
-    <AppBadge tone="accent">{`${summary.selectedSpriteCount} selected`}</AppBadge>
+    </Button>
+    <Badge color="gray" size="2" variant="surface">
+      {`${summary.spriteCount} sprites`}
+    </Badge>
+    <Badge color="teal" size="2" variant="surface">
+      {`${summary.selectedSpriteCount} selected`}
+    </Badge>
     <div className={styles.spacer} />
     <WorkspaceHeaderActionCluster>
-      <AppButton
-        size="small"
-        tone="accent"
+      <Button
+        color="teal"
+        size="1"
         variant="solid"
         aria-label="BGタイル追加"
         onClick={backgroundEditingState.openTilePicker}
       >
         BGタイル追加
-      </AppButton>
-      <AppButton
-        size="small"
+      </Button>
+      <Button
+        color="gray"
+        size="1"
         variant="outline"
         aria-label="BGパレット変更"
         onClick={backgroundEditingState.openPalettePicker}
       >
         BGパレット変更
-      </AppButton>
+      </Button>
       <ScreenModeDisplaySwitch
         checked={displayState.isSpriteOutlineVisible}
         inputLabel="スプライト外枠表示切り替え"

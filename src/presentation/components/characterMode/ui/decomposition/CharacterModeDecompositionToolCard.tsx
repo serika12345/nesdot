@@ -1,10 +1,6 @@
+import { Badge, Button, Select } from "@radix-ui/themes";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
-import {
-  AppBadge,
-  AppButton,
-  AppSelect,
-} from "../../../common/ui/forms/AppControls";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
@@ -52,90 +48,103 @@ const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
 export const CharacterModeDecompositionToolCard: React.FC = () => {
   const decompositionTool = useCharacterModeDecompositionTool();
   const decompositionPalette = useCharacterModeDecompositionPalette();
+  const paletteOptions = decompositionPalette.spritePalettes.map(
+    (_, paletteIndex) => ({
+      label: `パレット ${paletteIndex}`,
+      value: String(paletteIndex),
+    }),
+  );
+  const activePaletteLabel =
+    paletteOptions.find(
+      (option) =>
+        option.value === String(decompositionPalette.decompositionPaletteIndex),
+    )?.label ?? "パレット";
 
   return (
     <CharacterModeEditorCard className={styles.toolCard}>
       <div className={styles.headerRow}>
         <span className={styles.title}>分解ツール</span>
-        <AppBadge>
+        <Badge color="gray" size="2" variant="surface">
           {decompositionTool.projectSpriteSize === 8 ? "8×8" : "8×16"}
-        </AppBadge>
+        </Badge>
       </div>
 
       <DecompositionToolGrid>
-        <AppButton
+        <Button
           aria-label="分解ツール ペン"
-          size="small"
+          color={
+            decompositionTool.decompositionTool === "pen" ? "teal" : "gray"
+          }
+          size="1"
           variant={
             decompositionTool.decompositionTool === "pen" ? "solid" : "outline"
-          }
-          tone={
-            decompositionTool.decompositionTool === "pen" ? "accent" : "neutral"
           }
           onClick={() => decompositionTool.handleDecompositionToolChange("pen")}
         >
           ペン
-        </AppButton>
-        <AppButton
+        </Button>
+        <Button
           aria-label="分解ツール 消しゴム"
-          size="small"
+          color={
+            decompositionTool.decompositionTool === "eraser" ? "teal" : "gray"
+          }
+          size="1"
           variant={
             decompositionTool.decompositionTool === "eraser"
               ? "solid"
               : "outline"
-          }
-          tone={
-            decompositionTool.decompositionTool === "eraser"
-              ? "accent"
-              : "neutral"
           }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("eraser")
           }
         >
           消しゴム
-        </AppButton>
-        <AppButton
+        </Button>
+        <Button
           aria-label="分解ツール 切り取り"
-          size="small"
+          color={
+            decompositionTool.decompositionTool === "region" ? "teal" : "gray"
+          }
+          size="1"
           variant={
             decompositionTool.decompositionTool === "region"
               ? "solid"
               : "outline"
-          }
-          tone={
-            decompositionTool.decompositionTool === "region"
-              ? "accent"
-              : "neutral"
           }
           onClick={() =>
             decompositionTool.handleDecompositionToolChange("region")
           }
         >
           切り取り
-        </AppButton>
+        </Button>
       </DecompositionToolGrid>
 
       <PaletteControlRow>
         <PaletteControlContainer>
-          <AppSelect
-            aria-label="分解描画パレット"
-            value={decompositionPalette.decompositionPaletteIndex}
-            onChange={(event) => {
-              const value = event.target.value;
-              if (typeof value !== "string" && typeof value !== "number") {
-                return;
-              }
-
+          <Select.Root
+            value={String(decompositionPalette.decompositionPaletteIndex)}
+            onValueChange={(value) => {
               decompositionPalette.handleDecompositionPaletteSelect(value);
             }}
           >
-            {decompositionPalette.spritePalettes.map((_, paletteIndex) => (
-              <option key={paletteIndex} value={paletteIndex}>
-                パレット {paletteIndex}
-              </option>
-            ))}
-          </AppSelect>
+            <Select.Trigger
+              aria-label="分解描画パレット"
+              style={{ width: "100%" }}
+            >
+              {activePaletteLabel}
+            </Select.Trigger>
+            {typeof document !== "undefined" ? (
+              <Select.Content>
+                {paletteOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            ) : (
+              <></>
+            )}
+          </Select.Root>
         </PaletteControlContainer>
 
         <PaletteSlotGrid>

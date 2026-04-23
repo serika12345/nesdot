@@ -1,11 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { Badge, Button, TextField } from "@radix-ui/themes";
 import React from "react";
-import {
-  AppBadge,
-  AppButton,
-  AppInput,
-} from "../../../common/ui/forms/AppControls";
 import {
   useCharacterModeLibraryDragPreview,
   useCharacterModeStageDisplay,
@@ -66,53 +62,59 @@ export const CharacterModeComposePreviewCanvas: React.FC<
       <PreviewHeaderLayout>
         <div className={styles.headerRow}>
           <span className={styles.title}>プレビューキャンバス</span>
-          <AppBadge tone="accent">
+          <Badge color="teal" size="2" variant="surface">
             {`${stageDisplay.activeSetSpriteCount} items`}
-          </AppBadge>
+          </Badge>
         </div>
 
         <PreviewControlsRow>
           <StageInputContainer>
-            <AppInput
+            <TextField.Root
               type="number"
               value={stageSize.stageWidth}
               min={CHARACTER_MODE_STAGE_LIMITS.minWidth}
               max={CHARACTER_MODE_STAGE_LIMITS.maxWidth}
               step={8}
               aria-label="プレビューキャンバス幅"
+              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageWidthChange(event.target.value)
               }
             />
           </StageInputContainer>
           <StageInputContainer>
-            <AppInput
+            <TextField.Root
               type="number"
               value={stageSize.stageHeight}
               min={CHARACTER_MODE_STAGE_LIMITS.minHeight}
               max={CHARACTER_MODE_STAGE_LIMITS.maxHeight}
               step={8}
               aria-label="プレビューキャンバス高さ"
+              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageHeightChange(event.target.value)
               }
             />
           </StageInputContainer>
-          <AppBadge>{`${stageZoom.stageZoomLevel}x`}</AppBadge>
-          <AppButton
-            size="small"
+          <Badge color="gray" size="2" variant="surface">
+            {`${stageZoom.stageZoomLevel}x`}
+          </Badge>
+          <Button
+            color="gray"
+            size="1"
             variant="outline"
             onClick={stageZoom.handleZoomOut}
           >
             -
-          </AppButton>
-          <AppButton
-            size="small"
+          </Button>
+          <Button
+            color="gray"
+            size="1"
             variant="outline"
             onClick={stageZoom.handleZoomIn}
           >
             +
-          </AppButton>
+          </Button>
         </PreviewControlsRow>
       </PreviewHeaderLayout>
 

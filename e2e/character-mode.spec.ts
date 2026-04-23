@@ -109,6 +109,31 @@ const expectPortalControlToUseThemeStyles = async (
   expect(hasSurfaceFrame).toBe(true);
 };
 
+const expectLibraryButtonToUseCardLayout = async (
+  control: Locator,
+  maximumHeight?: number,
+): Promise<void> => {
+  const computedStyles = await control.evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return {
+      alignItems: styles.alignItems,
+      height: element.getBoundingClientRect().height,
+      justifyContent: styles.justifyContent,
+      whiteSpace: styles.whiteSpace,
+    };
+  });
+
+  expect(computedStyles.alignItems).toBe("stretch");
+  expect(computedStyles.justifyContent).toBe("flex-start");
+  expect(computedStyles.whiteSpace).toBe("normal");
+  expect(computedStyles.height).toBeGreaterThanOrEqual(90);
+
+  if (typeof maximumHeight === "number") {
+    expect(computedStyles.height).toBeLessThanOrEqual(maximumHeight);
+  }
+};
+
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
   const feedbackDialog = page.getByRole("dialog", {
     name: "現在のセットへ反映しました",
@@ -487,6 +512,7 @@ test("character mode lets the sprite library collapse and expand", async ({
   await expect(page.getByText("64 items", { exact: true })).toHaveCount(0);
   await expect(closeLibraryButton).toBeVisible();
   await expect(librarySprite).toHaveCount(1);
+  await expectLibraryButtonToUseCardLayout(librarySprite, 100);
 
   const [libraryLabelBox, closeLibraryButtonBox] = await Promise.all([
     getLocatorRect(libraryLabel),

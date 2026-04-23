@@ -65,8 +65,8 @@ describe("BgModePanels", () => {
 
     expect(markup).toContain("BG編集");
     expect(markup).toContain("preview");
-    expect(markup).toContain('data-tone="accent"');
-    expect(markup).toContain('data-variant="solid"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain("rt-variant-solid");
     expect(markup).not.toContain("app-tool-button");
   });
 
@@ -95,8 +95,8 @@ describe("BgModePanels", () => {
 
     expect(markup).toContain("bg-tool-menu");
     expect(markup).toContain("BGタイル編集キャンバス");
-    expect(markup).toContain('data-tone="accent"');
-    expect(markup).toContain('data-variant="solid"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain("rt-variant-solid");
     expect(markup).not.toContain("app-collapse-toggle");
     expect(markup).toContain('data-open="true"');
   });

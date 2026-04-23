@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@radix-ui/themes";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
   type NesColorIndex,
@@ -6,7 +7,6 @@ import {
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import { AppButton } from "../../../common/ui/forms/AppControls";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
 import styles from "./BgModePanels.module.css";
 
@@ -54,20 +54,29 @@ export const BgModeLibraryPanel: React.FC<BgModeLibraryPanelProps> = ({
       <div className={styles.scrollArea}>
         <div className={styles.tileGrid}>
           {libraryPanelState.tiles.map((tile, tileIndex) => (
-            <AppButton
+            <Button
               key={`bg-tile-preview-${tileIndex}`}
+              className={styles.tileButton}
               type="button"
-              tone={
+              color={
                 libraryPanelState.selectedTileIndex === tileIndex
-                  ? "accent"
-                  : "neutral"
+                  ? "teal"
+                  : "gray"
               }
+              size="1"
               variant={
                 libraryPanelState.selectedTileIndex === tileIndex
                   ? "solid"
-                  : "outline"
+                  : "surface"
               }
-              fullWidth
+              style={{
+                width: "100%",
+                alignItems: "stretch",
+                justifyContent: "flex-start",
+                minHeight: "6rem",
+                padding: "0.75rem",
+                whiteSpace: "normal",
+              }}
               aria-label={`#${formatTileNumber(tileIndex)}`}
               aria-pressed={libraryPanelState.selectedTileIndex === tileIndex}
               onClick={() => {
@@ -88,7 +97,7 @@ export const BgModeLibraryPanel: React.FC<BgModeLibraryPanelProps> = ({
                 />
                 <span>{`#${formatTileNumber(tileIndex)}`}</span>
               </span>
-            </AppButton>
+            </Button>
           ))}
         </div>
       </div>

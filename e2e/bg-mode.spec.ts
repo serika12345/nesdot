@@ -12,6 +12,26 @@ import {
   readLogicalCanvasPixel,
 } from "./support/canvas";
 
+const expectLibraryButtonToUseCardLayout = async (
+  control: import("@playwright/test").Locator,
+): Promise<void> => {
+  const computedStyles = await control.evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return {
+      alignItems: styles.alignItems,
+      height: element.getBoundingClientRect().height,
+      justifyContent: styles.justifyContent,
+      whiteSpace: styles.whiteSpace,
+    };
+  });
+
+  expect(computedStyles.alignItems).toBe("stretch");
+  expect(computedStyles.justifyContent).toBe("flex-start");
+  expect(computedStyles.whiteSpace).toBe("normal");
+  expect(computedStyles.height).toBeGreaterThanOrEqual(90);
+};
+
 test("bg mode edits the selected background tile", async ({ page }) => {
   await gotoApp(page);
   await openMode(page, "BG編集");
@@ -25,6 +45,9 @@ test("bg mode edits the selected background tile", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "#000", exact: true }),
   ).toBeVisible();
+  await expectLibraryButtonToUseCardLayout(
+    page.getByRole("button", { name: "#000", exact: true }),
+  );
   const bgTile255Button = page.getByRole("button", {
     name: "#255",
     exact: true,

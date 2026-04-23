@@ -1,5 +1,5 @@
 import React from "react";
-import { AppButton } from "../../../common/ui/forms/AppControls";
+import { Button } from "@radix-ui/themes";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import styles from "../panels/BgModePanels.module.css";
 
@@ -26,47 +26,47 @@ export const BgModeToolMenu: React.FC<BgModeToolMenuProps> = ({
   return (
     <div className={styles.overlayMenu} id="bg-mode-canvas-tool-menu">
       <div className={styles.toolbar}>
-        <AppButton
+        <Button
           aria-label="ペンツール"
           aria-pressed={tool === "pen"}
-          size="small"
-          tone={tool === "pen" ? "accent" : "neutral"}
+          color={tool === "pen" ? "teal" : "gray"}
+          size="1"
           variant={tool === "pen" ? "solid" : "outline"}
           onClick={() => {
             onToolChange("pen");
           }}
         >
           ペン
-        </AppButton>
-        <AppButton
+        </Button>
+        <Button
           aria-label="消しゴムツール"
           aria-pressed={tool === "eraser"}
-          size="small"
-          tone={tool === "eraser" ? "accent" : "neutral"}
+          color={tool === "eraser" ? "teal" : "gray"}
+          size="1"
           variant={tool === "eraser" ? "solid" : "outline"}
           onClick={() => {
             onToolChange("eraser");
           }}
         >
           消しゴム
-        </AppButton>
+        </Button>
       </div>
 
       <div className={styles.toolbar}>
         {BG_PALETTE_OPTIONS.map((paletteIndex) => (
-          <AppButton
+          <Button
             key={`bg-mode-palette-${paletteIndex}`}
-            size="small"
             aria-label={`BGパレット ${paletteIndex}`}
             aria-pressed={activePaletteIndex === paletteIndex}
-            tone={activePaletteIndex === paletteIndex ? "accent" : "neutral"}
+            color={activePaletteIndex === paletteIndex ? "teal" : "gray"}
+            size="1"
             variant={activePaletteIndex === paletteIndex ? "solid" : "outline"}
             onClick={() => {
               onActivePaletteChange(paletteIndex);
             }}
           >
             {`Palette ${paletteIndex}`}
-          </AppButton>
+          </Button>
         ))}
       </div>
     </div>

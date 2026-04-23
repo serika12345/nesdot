@@ -1,11 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { Badge, Button, TextField } from "@radix-ui/themes";
 import React from "react";
-import {
-  AppBadge,
-  AppButton,
-  AppInput,
-} from "../../../common/ui/forms/AppControls";
 import {
   type CharacterDecompositionAnalysis,
   type CharacterDecompositionRegionAnalysis,
@@ -86,53 +82,59 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
       <PreviewHeaderLayout>
         <div className={styles.headerRow}>
           <span className={styles.title}>分解キャンバス</span>
-          <AppBadge tone="accent">
+          <Badge color="teal" size="2" variant="surface">
             {`${decompositionRegions.decompositionRegions.length} regions`}
-          </AppBadge>
+          </Badge>
         </div>
 
         <PreviewControlsRow>
           <StageInputContainer>
-            <AppInput
+            <TextField.Root
               type="number"
               value={stageSize.stageWidth}
               min={CHARACTER_MODE_STAGE_LIMITS.minWidth}
               max={CHARACTER_MODE_STAGE_LIMITS.maxWidth}
               step={8}
               aria-label="プレビューキャンバス幅"
+              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageWidthChange(event.target.value)
               }
             />
           </StageInputContainer>
           <StageInputContainer>
-            <AppInput
+            <TextField.Root
               type="number"
               value={stageSize.stageHeight}
               min={CHARACTER_MODE_STAGE_LIMITS.minHeight}
               max={CHARACTER_MODE_STAGE_LIMITS.maxHeight}
               step={8}
               aria-label="プレビューキャンバス高さ"
+              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageHeightChange(event.target.value)
               }
             />
           </StageInputContainer>
-          <AppBadge>{`${stageZoom.stageZoomLevel}x`}</AppBadge>
-          <AppButton
-            size="small"
+          <Badge color="gray" size="2" variant="surface">
+            {`${stageZoom.stageZoomLevel}x`}
+          </Badge>
+          <Button
+            color="gray"
+            size="1"
             variant="outline"
             onClick={stageZoom.handleZoomOut}
           >
             -
-          </AppButton>
-          <AppButton
-            size="small"
+          </Button>
+          <Button
+            color="gray"
+            size="1"
             variant="outline"
             onClick={stageZoom.handleZoomIn}
           >
             +
-          </AppButton>
+          </Button>
         </PreviewControlsRow>
       </PreviewHeaderLayout>
 
@@ -233,14 +235,20 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
                     toolMode={decompositionTool.decompositionTool}
                   >
                     <div className={styles.regionLabels}>
-                      <AppBadge tone={hasIssues === true ? "danger" : "accent"}>
+                      <Badge
+                        color={hasIssues === true ? "red" : "teal"}
+                        size="2"
+                        variant="surface"
+                      >
                         {`#${regionIndex}`}
-                      </AppBadge>
-                      <AppBadge
-                        tone={hasIssues === true ? "danger" : "neutral"}
+                      </Badge>
+                      <Badge
+                        color={hasIssues === true ? "red" : "gray"}
+                        size="2"
+                        variant="surface"
                       >
                         {getRegionStatusLabel(regionAnalysis)}
-                      </AppBadge>
+                      </Badge>
                     </div>
                   </RegionOverlayButton>
                 );

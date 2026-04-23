@@ -53,8 +53,8 @@ describe("CharacterMode sidebar cards", () => {
     expect(markup).toContain("編集モード 分解");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
-    expect(markup).toContain('data-tone="accent"');
-    expect(markup).toContain('data-tone="neutral"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain('data-accent-color="gray"');
   });
 
   it("renders sprite size actions without ToolButton wrapper attributes", () => {
@@ -66,7 +66,7 @@ describe("CharacterMode sidebar cards", () => {
     expect(markup).toContain("プロジェクトスプライトサイズ 8x16");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toMatch(/data-active=/);
-    expect(markup).toContain('data-tone="accent"');
-    expect(markup).toContain('data-tone="neutral"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain('data-accent-color="gray"');
   });
 });

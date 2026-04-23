@@ -1,12 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { Badge, Button, Dialog, Flex, TextField } from "@radix-ui/themes";
 import React from "react";
-import {
-  AppBadge,
-  AppButton,
-  AppDialog,
-  AppInput,
-} from "../../../common/ui/forms/AppControls";
 import { INSPECTOR_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import {
   getIssueLabel,
@@ -31,6 +26,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
   const spritePalettes = useCharacterModeSpritePalettes();
   const [isApplyFeedbackDialogOpen, setIsApplyFeedbackDialogOpen] =
     React.useState(false);
+  const titleId = React.useId();
 
   const handleCloseApplyFeedbackDialog = () => {
     setIsApplyFeedbackDialogOpen(false);
@@ -40,6 +36,52 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
     if (decompositionOverview.handleApplyDecomposition()) {
       setIsApplyFeedbackDialogOpen(true);
     }
+  };
+  const renderApplyFeedbackDialog = (): React.ReactNode => {
+    if (typeof document === "undefined") {
+      if (isApplyFeedbackDialogOpen === false) {
+        return <></>;
+      }
+
+      return (
+        <div aria-labelledby={titleId} aria-modal="true" role="dialog">
+          <h2 id={titleId}>現在のセットへ反映しました</h2>
+          <span>分解結果を現在のセットへ反映しました。</span>
+          <div>
+            <Button color="gray" variant="outline">
+              閉じる
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Dialog.Root
+        open={isApplyFeedbackDialogOpen}
+        onOpenChange={(open) => {
+          if (open === true) {
+            return;
+          }
+
+          handleCloseApplyFeedbackDialog();
+        }}
+      >
+        <Dialog.Content maxWidth="28rem">
+          <Dialog.Title>現在のセットへ反映しました</Dialog.Title>
+          <span>分解結果を現在のセットへ反映しました。</span>
+          <Flex gap="3" justify="end" mt="4" wrap="wrap">
+            <Button
+              color="gray"
+              variant="outline"
+              onClick={handleCloseApplyFeedbackDialog}
+            >
+              閉じる
+            </Button>
+          </Flex>
+        </Dialog.Content>
+      </Dialog.Root>
+    );
   };
 
   return (
@@ -64,31 +106,33 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           <div className={styles.infoCard}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>領域数</span>
-              <AppBadge tone="accent">
+              <Badge color="teal" size="2" variant="surface">
                 {decompositionOverview.decompositionAnalysis.regions.length}
-              </AppBadge>
+              </Badge>
             </div>
           </div>
           <div className={styles.infoCard}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>有効 / 無効</span>
-              <AppBadge
-                tone={
+              <Badge
+                color={
                   decompositionOverview.decompositionInvalidRegionCount > 0
-                    ? "danger"
-                    : "neutral"
+                    ? "red"
+                    : "gray"
                 }
+                size="2"
+                variant="surface"
               >
                 {`${decompositionOverview.decompositionValidRegionCount} / ${decompositionOverview.decompositionInvalidRegionCount}`}
-              </AppBadge>
+              </Badge>
             </div>
           </div>
           <div className={styles.infoCard}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>再利用 / 新規</span>
-              <AppBadge>
+              <Badge color="gray" size="2" variant="surface">
                 {`${decompositionOverview.decompositionAnalysis.reusableSpriteCount} / ${decompositionOverview.decompositionAnalysis.requiredNewSpriteCount}`}
-              </AppBadge>
+              </Badge>
             </div>
           </div>
         </div>
@@ -102,7 +146,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                 <SelectedRegionFieldGrid>
                   <label className={styles.fieldLabel}>
                     <span className={styles.fieldCaption}>x</span>
-                    <AppInput
+                    <TextField.Root
                       type="number"
                       value={regionAnalysis.region.x}
                       readOnly
@@ -111,7 +155,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                   </label>
                   <label className={styles.fieldLabel}>
                     <span className={styles.fieldCaption}>y</span>
-                    <AppInput
+                    <TextField.Root
                       type="number"
                       value={regionAnalysis.region.y}
                       readOnly
@@ -124,29 +168,31 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
                   <div className={styles.infoCard}>
                     <div className={styles.infoRow}>
                       <span className={styles.infoLabel}>状態</span>
-                      <AppBadge
-                        tone={
-                          regionAnalysis.issues.length > 0 ? "danger" : "accent"
+                      <Badge
+                        color={
+                          regionAnalysis.issues.length > 0 ? "red" : "teal"
                         }
+                        size="2"
+                        variant="surface"
                       >
                         {getRegionStatusLabel(regionAnalysis)}
-                      </AppBadge>
+                      </Badge>
                     </div>
                   </div>
                   <div className={styles.infoCard}>
                     <div className={styles.infoRow}>
                       <span className={styles.infoLabel}>issues</span>
-                      <AppBadge
-                        tone={
-                          regionAnalysis.issues.length > 0
-                            ? "danger"
-                            : "neutral"
+                      <Badge
+                        color={
+                          regionAnalysis.issues.length > 0 ? "red" : "gray"
                         }
+                        size="2"
+                        variant="surface"
                       >
                         {regionAnalysis.issues.length > 0
                           ? regionAnalysis.issues.map(getIssueLabel).join(", ")
                           : "none"}
-                      </AppBadge>
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -155,35 +201,23 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
           ),
         )}
 
-        <AppButton
-          fullWidth
-          size="small"
-          tone="accent"
+        <Button
+          color="teal"
           variant="solid"
           disabled={
             O.isNone(decompositionOverview.activeSet) ||
             decompositionOverview.decompositionAnalysis.regions.length === 0 ||
             decompositionOverview.decompositionAnalysis.canApply === false
           }
+          size="1"
+          style={{ width: "100%" }}
           onClick={handleApplyDecomposition}
         >
           分解して現在のセットへ反映
-        </AppButton>
+        </Button>
       </CharacterModeEditorCard>
 
-      <AppDialog
-        actions={
-          <AppButton variant="outline" onClick={handleCloseApplyFeedbackDialog}>
-            閉じる
-          </AppButton>
-        }
-        open={isApplyFeedbackDialogOpen}
-        size="small"
-        title="現在のセットへ反映しました"
-        onClose={handleCloseApplyFeedbackDialog}
-      >
-        <span>分解結果を現在のセットへ反映しました。</span>
-      </AppDialog>
+      {renderApplyFeedbackDialog()}
     </>
   );
 };

@@ -1,5 +1,5 @@
+import { Select } from "@radix-ui/themes";
 import React from "react";
-import { AppSelect } from "../../../common/ui/forms/AppControls";
 import { type SpriteModeSelectionFieldsState } from "../../logic/spriteModeEditorState";
 import styles from "./SpriteModeEditorSelectionFields.module.css";
 
@@ -13,6 +13,15 @@ interface SpriteModeEditorSelectionFieldsProps {
 export const SpriteModeEditorSelectionFields: React.FC<
   SpriteModeEditorSelectionFieldsProps
 > = ({ selectionFields }) => {
+  const paletteOptions = selectionFields.palettes.map((_, index) => ({
+    label: `パレット ${index}`,
+    value: String(index),
+  }));
+  const activePaletteLabel =
+    paletteOptions.find(
+      (option) => option.value === String(selectionFields.activePalette),
+    )?.label ?? "パレット";
+
   return (
     <div className={styles.root}>
       <label className={styles.field}>
@@ -32,24 +41,27 @@ export const SpriteModeEditorSelectionFields: React.FC<
       </label>
       <label className={styles.field}>
         <span className={styles.label}>パレット</span>
-        <AppSelect
-          className={styles.select}
-          value={selectionFields.activePalette}
-          aria-label="パレット"
-          onChange={(event) => {
-            const value = event.target.value;
-            if (typeof value !== "string" && typeof value !== "number") {
-              return;
-            }
-            selectionFields.handlePaletteChange(String(value));
+        <Select.Root
+          value={String(selectionFields.activePalette)}
+          onValueChange={(value) => {
+            selectionFields.handlePaletteChange(value);
           }}
         >
-          {selectionFields.palettes.map((_, index) => (
-            <option key={index} value={index}>
-              パレット {index}
-            </option>
-          ))}
-        </AppSelect>
+          <Select.Trigger aria-label="パレット" className={styles.select}>
+            {activePaletteLabel}
+          </Select.Trigger>
+          {typeof document !== "undefined" ? (
+            <Select.Content>
+              {paletteOptions.map((option) => (
+                <Select.Item key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          ) : (
+            <></>
+          )}
+        </Select.Root>
       </label>
     </div>
   );

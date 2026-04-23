@@ -178,6 +178,32 @@ const dragLibraryItemToStage = async (
   });
 };
 
+const expectLibraryButtonToUseCardLayout = async (
+  control: Locator,
+  minimumHeight: number,
+  maximumHeight?: number,
+): Promise<void> => {
+  const computedStyles = await control.evaluate((element) => {
+    const styles = window.getComputedStyle(element);
+
+    return {
+      alignItems: styles.alignItems,
+      height: element.getBoundingClientRect().height,
+      justifyContent: styles.justifyContent,
+      whiteSpace: styles.whiteSpace,
+    };
+  });
+
+  expect(computedStyles.alignItems).toBe("stretch");
+  expect(computedStyles.justifyContent).toBe("flex-start");
+  expect(computedStyles.whiteSpace).toBe("normal");
+  expect(computedStyles.height).toBeGreaterThanOrEqual(minimumHeight);
+
+  if (typeof maximumHeight === "number") {
+    expect(computedStyles.height).toBeLessThanOrEqual(maximumHeight);
+  }
+};
+
 const createCharacterSetFromUi = async (
   page: Page,
   setName: string,
@@ -599,6 +625,7 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
 
   await expect(stage).toBeVisible();
   await expect(spritePreview).toBeVisible();
+  await expectLibraryButtonToUseCardLayout(spritePreview, 90, 100);
   await expect(bgAddButton).toBeVisible();
   await expect(bgPaletteButton).toBeVisible();
   await expect(outlineToggle).toBeVisible();
@@ -886,6 +913,7 @@ test("screen mode supports character preview drop and grouped drag movement", as
 
   await expect(stage).toBeVisible();
   await expect(characterPreview).toBeVisible();
+  await expectLibraryButtonToUseCardLayout(characterPreview, 90);
 
   await dragLibraryItemToStage(characterPreview, stage, 51, {
     x: 96,

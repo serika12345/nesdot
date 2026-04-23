@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@radix-ui/themes";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
   type NesColorIndex,
@@ -6,7 +7,6 @@ import {
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import { AppButton } from "../../../common/ui/forms/AppControls";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { BgModeTileEditorCanvas } from "../canvas/BgModeTileEditorCanvas";
 import { BgModeToolMenu } from "../menu/BgModeToolMenu";
@@ -65,7 +65,7 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
         aria-label="BGタイル編集キャンバスビュー"
       >
         <div className={styles.overlayRoot}>
-          <AppButton
+          <Button
             type="button"
             aria-expanded={editorPanelState.isToolMenuOpen}
             aria-controls="bg-mode-canvas-tool-menu"
@@ -74,10 +74,8 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
                 ? "BGツールを閉じる"
                 : "BGツールを開く"
             }
-            size="small"
-            tone={
-              editorPanelState.isToolMenuOpen === true ? "accent" : "neutral"
-            }
+            color={editorPanelState.isToolMenuOpen === true ? "teal" : "gray"}
+            size="1"
             variant={
               editorPanelState.isToolMenuOpen === true ? "solid" : "outline"
             }
@@ -88,7 +86,7 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
               className={styles.chevron}
               data-open={editorPanelState.isToolMenuOpen}
             />
-          </AppButton>
+          </Button>
 
           {editorPanelState.isToolMenuOpen === true ? (
             <BgModeToolMenu

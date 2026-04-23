@@ -1,5 +1,5 @@
 import React from "react";
-import { AppButton, AppIconButton } from "../../../common/ui/forms/AppControls";
+import { Button, IconButton } from "@radix-ui/themes";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
 import styles from "./CharacterModeDecomposition.module.css";
@@ -14,22 +14,24 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
   return (
     <div className={styles.overlayRoot}>
       {isToolsOpen === true ? (
-        <AppButton
-          tone="accent"
+        <Button
+          color="teal"
           variant="solid"
           onClick={() => setIsToolsOpen((previous) => !previous)}
         >
           分解ツールを閉じる
           <ChevronDownIcon className={styles.chevron} data-open="true" />
-        </AppButton>
+        </Button>
       ) : (
-        <AppIconButton
+        <IconButton
           aria-label="分解ツールを開く"
           className={styles.collapsedToggle}
+          color="gray"
           onClick={() => setIsToolsOpen((previous) => !previous)}
+          variant="surface"
         >
           <ChevronDownIcon className={styles.chevron} data-open="false" />
-        </AppIconButton>
+        </IconButton>
       )}
 
       {isToolsOpen === true ? (

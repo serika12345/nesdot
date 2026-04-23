@@ -46,8 +46,9 @@ describe("CharacterModeDecompositionToolCard", () => {
     expect(markup).toContain("分解ツール");
     expect(markup).toContain("分解ツール 切り取り");
     expect(markup).toContain("分解描画パレット");
-    expect(markup).toContain('data-tone="accent"');
-    expect(markup).toContain('data-variant="solid"');
+    expect(markup).toContain('data-accent-color="teal"');
+    expect(markup).toContain("rt-variant-solid");
+    expect(markup).toContain("rt-SelectTrigger");
     expect(markup).not.toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-tool-button");

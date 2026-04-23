@@ -1,9 +1,10 @@
 import * as O from "fp-ts/Option";
+import { Badge, Button } from "@radix-ui/themes";
 import React from "react";
 import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
-import { AppBadge, AppButton } from "../../../common/ui/forms/AppControls";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../logic/characterModeEditorState";
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
@@ -14,14 +15,17 @@ const toBooleanDataValue = (value?: boolean): "true" | "false" =>
   value === true ? "true" : "false";
 
 interface CharacterModeSidebarLibraryContentProps {
-  draggingSpriteIndex: number;
   handleLibraryPointerDown: (
     event: React.PointerEvent<HTMLButtonElement>,
     spriteIndex: number,
   ) => void;
   id: string;
-  spritePalettes: NesSpritePalettes;
-  sprites: ReadonlyArray<SpriteTile>;
+  library: Readonly<{
+    draggingSpriteIndex: number;
+    interactive: boolean;
+    spritePalettes: NesSpritePalettes;
+    sprites: ReadonlyArray<SpriteTile>;
+  }>;
 }
 
 const areSameLibraryContentProps = (
@@ -29,78 +33,47 @@ const areSameLibraryContentProps = (
   next: CharacterModeSidebarLibraryContentProps,
 ): boolean =>
   previous.handleLibraryPointerDown === next.handleLibraryPointerDown &&
-  previous.draggingSpriteIndex === next.draggingSpriteIndex &&
   previous.id === next.id &&
-  previous.spritePalettes === next.spritePalettes &&
-  previous.sprites === next.sprites;
-
-type CharacterLibraryPreviewButtonProps = React.ComponentProps<
-  typeof AppButton
-> & {
-  dragging?: boolean;
-};
-
-const CharacterLibraryPreviewButton = React.forwardRef<
-  HTMLButtonElement,
-  CharacterLibraryPreviewButtonProps
->(function CharacterLibraryPreviewButton({ dragging, ...props }, ref) {
-  return (
-    <AppButton
-      ref={ref}
-      {...props}
-      className={styles.previewButton}
-      data-dragging-state={toBooleanDataValue(dragging)}
-      fullWidth
-      tone={dragging === true ? "accent" : "neutral"}
-      variant={dragging === true ? "solid" : "outline"}
-    >
-      {props.children}
-    </AppButton>
-  );
-});
+  previous.library.draggingSpriteIndex === next.library.draggingSpriteIndex &&
+  previous.library.interactive === next.library.interactive &&
+  previous.library.spritePalettes === next.library.spritePalettes &&
+  previous.library.sprites === next.library.sprites;
 
 const CharacterModeSidebarLibraryContent = React.memo(
   function CharacterModeSidebarLibraryContent({
     handleLibraryPointerDown,
-    draggingSpriteIndex,
     id,
-    spritePalettes,
-    sprites,
+    library,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
       <div className={styles.scrollArea} id={id}>
         <div className={styles.grid}>
-          {sprites.map((spriteTile, spriteIndex) => (
-            <CharacterLibraryPreviewButton
+          {library.sprites.map((spriteTile, spriteIndex) => (
+            <LibraryPreviewCard
               key={`library-sprite-${spriteIndex}`}
               type="button"
-              dragging={draggingSpriteIndex === spriteIndex}
-              data-dragging-state={toBooleanDataValue(
-                draggingSpriteIndex === spriteIndex,
-              )}
+              dragging={library.draggingSpriteIndex === spriteIndex}
+              interactive={library.interactive}
               draggable={false}
               aria-label={`ライブラリスプライト ${spriteIndex}`}
               onDragStart={(event) => event.preventDefault()}
               onPointerDown={(event) =>
                 handleLibraryPointerDown(event, spriteIndex)
               }
-            >
-              <div className={styles.previewContent}>
-                <span className={styles.spriteTitle}>
-                  {`Sprite ${spriteIndex}`}
-                </span>
-                <div className={styles.previewFrame}>
-                  <CharacterModeTilePreview
-                    scale={LIBRARY_PREVIEW_SCALE}
-                    spritePalettes={spritePalettes}
-                    tileOption={O.some(spriteTile)}
-                  />
-                </div>
-                <AppBadge tone="accent">
+              label={`Sprite ${spriteIndex}`}
+              preview={
+                <CharacterModeTilePreview
+                  scale={LIBRARY_PREVIEW_SCALE}
+                  spritePalettes={library.spritePalettes}
+                  tileOption={O.some(spriteTile)}
+                />
+              }
+              badge={
+                <Badge color="teal" size="2" variant="surface">
                   {`${spriteTile.width}×${spriteTile.height}`}
-                </AppBadge>
-              </div>
-            </CharacterLibraryPreviewButton>
+                </Badge>
+              }
+            />
           ))}
         </div>
       </div>
@@ -140,7 +113,7 @@ export const CharacterModeSidebarLibrary: React.FC<
     <CharacterModeEditorCard className={styles.root}>
       <div className={styles.headerRow}>
         <span className={styles.headerLabel}>スプライトライブラリ</span>
-        <AppButton
+        <Button
           aria-controls={libraryContentId}
           aria-expanded={isLibraryOpen}
           aria-label={
@@ -148,8 +121,8 @@ export const CharacterModeSidebarLibrary: React.FC<
               ? "スプライトライブラリを閉じる"
               : "スプライトライブラリを開く"
           }
-          size="small"
-          tone={isLibraryOpen === true ? "accent" : "neutral"}
+          color={isLibraryOpen === true ? "teal" : "gray"}
+          size="1"
           variant={isLibraryOpen === true ? "solid" : "outline"}
           onClick={() => setIsLibraryOpen((previous) => !previous)}
         >
@@ -158,7 +131,7 @@ export const CharacterModeSidebarLibrary: React.FC<
             className={styles.chevron}
             data-open={isLibraryOpen}
           />
-        </AppButton>
+        </Button>
       </div>
 
       <div
@@ -167,20 +140,19 @@ export const CharacterModeSidebarLibrary: React.FC<
         data-open-state={toBooleanDataValue(isLibraryOpen)}
         aria-hidden={isLibraryOpen === false}
       >
-        <div
-          className={styles.interactionRoot}
-          data-interactive-state={toBooleanDataValue(
-            spriteLibrary.isLibraryDraggable,
-          )}
-        >
-          <CharacterModeSidebarLibraryContent
-            draggingSpriteIndex={spriteLibrary.draggingSpriteIndex}
-            handleLibraryPointerDown={handleStableLibraryPointerDown}
-            id={`${libraryContentId}-scroll`}
-            spritePalettes={spriteLibrary.spritePalettes}
-            sprites={spriteLibrary.sprites}
-          />
-        </div>
+        <CharacterModeSidebarLibraryContent
+          library={{
+            draggingSpriteIndex:
+              spriteLibrary.isLibraryDraggable === true
+                ? spriteLibrary.draggingSpriteIndex
+                : -1,
+            interactive: spriteLibrary.isLibraryDraggable,
+            spritePalettes: spriteLibrary.spritePalettes,
+            sprites: spriteLibrary.sprites,
+          }}
+          handleLibraryPointerDown={handleStableLibraryPointerDown}
+          id={`${libraryContentId}-scroll`}
+        />
       </div>
     </CharacterModeEditorCard>
   );

@@ -1,6 +1,6 @@
+import { Button } from "@radix-ui/themes";
 import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
-import { AppButton } from "../../../common/ui/forms/AppControls";
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import {
   createCharacterStageViewportStyle,
@@ -53,9 +53,7 @@ type PositionedActionMenuProps = React.HTMLAttributes<HTMLDivElement> & {
   readonly ready: boolean;
 };
 
-type PositionedActionMenuButtonProps = React.ComponentProps<
-  typeof AppButton
-> & {
+type PositionedActionMenuButtonProps = React.ComponentProps<typeof Button> & {
   readonly danger?: boolean;
 };
 
@@ -334,16 +332,16 @@ export const PositionedActionMenuButton = React.forwardRef<
   PositionedActionMenuButtonProps
 >(function PositionedActionMenuButton({ danger, ...props }, ref) {
   return (
-    <AppButton
+    <Button
       {...props}
       ref={ref}
-      fullWidth
-      size="small"
-      tone={danger === true ? "danger" : "neutral"}
-      variant={danger === true ? "solid" : "outline"}
+      color={danger === true ? "red" : "gray"}
+      size="1"
+      style={{ width: "100%" }}
+      variant="surface"
     >
       {props.children}
-    </AppButton>
+    </Button>
   );
 });
 

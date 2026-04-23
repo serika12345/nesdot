@@ -1,8 +1,9 @@
 import * as O from "fp-ts/Option";
 import React from "react";
-import { AppBadge, AppButton } from "../../../common/ui/forms/AppControls";
+import { Badge, Button } from "@radix-ui/themes";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
@@ -10,11 +11,7 @@ import {
   LibrarySectionContent,
   SpriteLibraryGrid,
 } from "../primitives/ScreenModePrimitives";
-import {
-  isSpriteDragState,
-  ScreenLibraryPreviewButton,
-  toBooleanDataValue,
-} from "./ScreenModeGestureWorkspaceShared";
+import { isSpriteDragState } from "./ScreenModeGestureWorkspaceShared";
 import styles from "./ScreenModeLibraryPanels.module.css";
 
 interface ScreenModeSpriteLibraryPanelProps {
@@ -37,7 +34,7 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
       <div className={styles.headerRow}>
         <div className={styles.titleRow}>
           <span className={styles.label}>スプライトプレビュー</span>
-          <AppButton
+          <Button
             aria-controls="screen-mode-sprite-library-content"
             aria-expanded={isOpen}
             aria-label={
@@ -45,14 +42,14 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
                 ? "スプライトプレビューを閉じる"
                 : "スプライトプレビューを開く"
             }
-            size="small"
-            tone={isOpen === true ? "accent" : "neutral"}
+            color={isOpen === true ? "teal" : "gray"}
+            size="1"
             variant={isOpen === true ? "solid" : "outline"}
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
             <ChevronDownIcon className={styles.chevron} data-open={isOpen} />
-          </AppButton>
+          </Button>
         </div>
       </div>
 
@@ -64,16 +61,13 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
         <div className={styles.scrollArea} data-kind="sprite">
           <SpriteLibraryGrid>
             {sprites.map((sprite, spriteIndex) => (
-              <ScreenLibraryPreviewButton
+              <LibraryPreviewCard
                 key={`screen-library-sprite-${spriteIndex}`}
                 type="button"
                 aria-label={`スクリーンライブラリスプライト ${spriteIndex}`}
                 dragging={isSpriteDragState(
                   libraryState.dragState,
                   spriteIndex,
-                )}
-                data-dragging-state={toBooleanDataValue(
-                  isSpriteDragState(libraryState.dragState, spriteIndex),
                 )}
                 draggable={false}
                 onDragStart={(event: React.DragEvent<HTMLButtonElement>) =>
@@ -82,21 +76,20 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
                 onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) =>
                   libraryState.handleSpritePointerDown(event, spriteIndex)
                 }
-              >
-                <div className={styles.previewContent}>
+                label={`Sprite ${spriteIndex}`}
+                preview={
                   <CharacterModeTilePreview
                     scale={3}
                     spritePalettes={spritePalettes}
                     tileOption={O.some(sprite)}
                   />
-                  <span
-                    className={styles.previewLabel}
-                  >{`Sprite ${spriteIndex}`}</span>
-                  <AppBadge tone="accent">
+                }
+                badge={
+                  <Badge color="teal" size="2" variant="surface">
                     {`${sprite.width}×${sprite.height}`}
-                  </AppBadge>
-                </div>
-              </ScreenLibraryPreviewButton>
+                  </Badge>
+                }
+              />
             ))}
           </SpriteLibraryGrid>
         </div>

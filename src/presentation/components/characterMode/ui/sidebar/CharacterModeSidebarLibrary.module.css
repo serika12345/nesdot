@@ -31,14 +31,6 @@
     display: none;
   }
 
-  .interactionRoot {
-    cursor: default;
-  }
-
-  .interactionRoot[data-interactive-state="true"] {
-    cursor: grab;
-  }
-
   .scrollArea {
     flex: 1 1 0;
     min-height: 0;
@@ -51,46 +43,7 @@
   .grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2.5rem;
-  }
-
-  .previewButton {
-    width: 100%;
-    min-height: 7.375rem;
-    padding: 0.75rem;
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-  }
-
-  .previewButton[data-dragging-state="true"] {
-    cursor: grabbing;
-  }
-
-  .previewContent {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 0.625rem;
-    flex-direction: column;
-  }
-
-  .spriteTitle {
-    color: var(--ink-soft);
-    font-size: 0.6875rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-  }
-
-  .previewFrame {
-    display: flex;
-    width: 5.5rem;
-    min-height: 4rem;
-    align-items: center;
-    justify-content: center;
-    border: 0.0625rem solid var(--panel-border);
-    border-radius: 1rem;
-    background: var(--panel-surface);
+    gap: 1.25rem;
   }
 
   .chevron {

@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
+import { Button } from "@radix-ui/themes";
 import React from "react";
-import { AppButton } from "../../../common/ui/forms/AppControls";
 import {
   useCharacterModeSetSelection,
   useCharacterModeSpriteSize,
@@ -17,38 +17,38 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
 
   return (
     <div className={styles.toggleGrid}>
-      <AppButton
+      <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
-        fullWidth
-        size="small"
+        color={spriteSize.projectSpriteSize === 8 ? "teal" : "gray"}
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 8)
         }
-        tone={spriteSize.projectSpriteSize === 8 ? "accent" : "neutral"}
+        size="1"
+        style={{ width: "100%" }}
         variant={spriteSize.projectSpriteSize === 8 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(8)}
       >
         8×8
-      </AppButton>
-      <AppButton
+      </Button>
+      <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x16"
-        fullWidth
-        size="small"
+        color={spriteSize.projectSpriteSize === 16 ? "teal" : "gray"}
         disabled={
           isDisabled ||
           (spriteSize.projectSpriteSizeLocked === true &&
             spriteSize.projectSpriteSize !== 16)
         }
-        tone={spriteSize.projectSpriteSize === 16 ? "accent" : "neutral"}
+        size="1"
+        style={{ width: "100%" }}
         variant={spriteSize.projectSpriteSize === 16 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(16)}
       >
         8×16
-      </AppButton>
+      </Button>
     </div>
   );
 };
