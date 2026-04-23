@@ -1,4 +1,5 @@
 import React from "react";
+import { AppSelect } from "../../../common/ui/forms/AppControls";
 import { type SpriteModeSelectionFieldsState } from "../../logic/spriteModeEditorState";
 import styles from "./SpriteModeEditorSelectionFields.module.css";
 
@@ -31,7 +32,7 @@ export const SpriteModeEditorSelectionFields: React.FC<
       </label>
       <label className={styles.field}>
         <span className={styles.label}>パレット</span>
-        <select
+        <AppSelect
           className={styles.select}
           value={selectionFields.activePalette}
           aria-label="パレット"
@@ -48,7 +49,7 @@ export const SpriteModeEditorSelectionFields: React.FC<
               パレット {index}
             </option>
           ))}
-        </select>
+        </AppSelect>
       </label>
     </div>
   );

@@ -39,6 +39,10 @@
     box-shadow: inset 0 0.0625rem 0 var(--surface-quiet);
   }
 
+  .select {
+    padding-right: 2.5rem;
+  }
+
   .input:focus-visible,
   .select:focus-visible {
     outline: none;

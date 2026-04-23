@@ -48,6 +48,8 @@ describe("SpriteModePanels", () => {
 
     expect(markup).toContain("スプライト編集");
     expect(markup).toContain("スプライト編集パネル");
+    expect(markup).toContain('aria-label="パレット"');
+    expect(markup).toContain('viewBox="0 0 16 16"');
     expect(markup).not.toContain("app-panel");
   });
 
