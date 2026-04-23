@@ -137,7 +137,7 @@ This gives the repository:
 
 Use only when integrating with:
 
-- MUI-generated structural classes that must be targeted
+- component-library-generated structural classes that must be targeted
 - Radix state hooks that require external selectors
 - browser-native pseudo-structure not expressible locally
 
@@ -175,7 +175,7 @@ The migration should not depend on those features today. The design goal is only
 
 Prefer these state channels for styling:
 
-1. semantic MUI props when the component already supports them
+1. semantic component-library props when the component already supports them
 2. `data-*` attributes for local visual state
 3. explicit CSS Module class toggles
 

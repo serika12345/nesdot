@@ -14,6 +14,7 @@
 - the Tauri nonce bootstrap and `getCspNonce` helper are gone.
 - the legacy runtime styling packages have been removed from the application entry path and package manifest.
 - remaining work is limited to continuing the static CSS migration and avoiding new runtime style injection paths.
+- the phase list below is now mainly a historical record of the migration order; active work is guardrail maintenance and regression prevention.
 
 ## Why This Is A Separate Migration
 
@@ -99,7 +100,7 @@ Exit criteria:
 
 ### Phase 2: Migrate Low-Risk UI First
 
-Start with UI that is already close to stock MUI or static CSS:
+Start with UI that is already close to stock component-library controls or static CSS:
 
 1. common dialogs
 2. simple form rows and selectors
@@ -108,7 +109,7 @@ Start with UI that is already close to stock MUI or static CSS:
 
 Focus:
 
-- replace `styled(...)` wrappers with direct MUI composition plus CSS Modules
+- replace `styled(...)` wrappers with direct Radix Themes or static composition plus CSS Modules
 - keep behavior and accessibility unchanged
 - avoid touching canvas/editor geometry in the same patches
 
@@ -167,7 +168,7 @@ Exit criteria:
 ### Batch B
 
 - migrate common dialogs and simple form shells to CSS Modules
-- keep MUI theme tokens, remove local `styled(...)` usage where touched
+- keep shared static tokens and semantic component props, remove local `styled(...)` usage where touched
 
 ### Batch C
 
@@ -187,7 +188,7 @@ Exit criteria:
 ## Risks To Watch
 
 - accidental behavior drift while moving style ownership
-- hidden runtime style injection from MUI paths that are not yet migrated
+- hidden runtime style injection from newly introduced third-party UI paths
 - mixing static CSS migration with unrelated editor logic changes
 - overusing global selectors instead of component-local scope
 
@@ -202,13 +203,13 @@ Exit criteria:
 - visible/interaction changes: `pnpm test:e2e`
 - Tauri/CSP-related batches on macOS: `pnpm verify:tauri:csp`
 
-## First Implementation Target
+## First Implementation Targets (Historical)
 
-Start with shared UI that already behaves like ordinary application chrome:
+The first batch targeted shared UI that already behaved like ordinary application chrome. These files have since been migrated; this list remains only as the recorded first patch set:
 
-1. `src/presentation/components/common/ui/dialogs/PwaUpdateDialog/index.tsx`
-2. `src/presentation/components/common/ui/dialogs/DesktopAutoUpdateDialog/index.tsx`
-3. `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields/index.tsx`
-4. `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots/index.tsx`
+1. `src/presentation/components/common/ui/dialogs/PwaUpdateDialog.tsx`
+2. `src/presentation/components/common/ui/dialogs/DesktopAutoUpdateDialog.tsx`
+3. `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields.tsx`
+4. `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots.tsx`
 
 These files provide the lowest-risk path to remove `styled(...)` without mixing in editor geometry work.

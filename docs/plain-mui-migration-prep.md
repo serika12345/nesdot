@@ -18,7 +18,7 @@ The target state is:
 - static shared components are used directly for ordinary UI building blocks.
 - the global token layer lives in `src/assets/global.css`.
 - the legacy wrapper module is removed, and `styleClassNames.ts` is reduced to shared canvas helpers plus `mergeClassNames`.
-- App-specific visuals remain only where MUI has no meaningful stock equivalent.
+- App-specific visuals remain only where shared static controls have no meaningful stock equivalent.
 
 ## Current Status
 
@@ -78,7 +78,7 @@ The migration is not a redesign. The goal is to remove the custom design system 
 
 The repository now leans on static shared components plus CSS Modules:
 
-- `AppButton`, `AppInput`, `AppSelect`, `AppDialog`
+- Radix Themes primitives such as `Button`, `Dialog`, `Select`, and `TextField`
 - `SurfaceCard`
 - local icon components
 - colocated `*.module.css` files
@@ -119,15 +119,15 @@ These are not a design system by themselves. Most of them should remain if they 
 
 ## Classification for Migration
 
-### Replace With Static Shared UI First
+### Historical First-Wave Targets (Completed)
 
-These areas already use mostly stock MUI components and should be migrated first.
+These areas were the first low-risk migration targets because they were already close to shared static controls.
 
-| Area                  | Representative files                                                                                                                                                                      | Notes                                          |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Common dialogs        | `src/presentation/components/common/ui/dialogs/PwaUpdateDialog/index.tsx`, `src/presentation/components/common/ui/dialogs/DesktopAutoUpdateDialog.tsx`                                    | Move to `AppDialog` and local modules          |
-| Simple forms          | `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields/index.tsx`, `src/presentation/components/characterMode/ui/set/CharacterModeSetSelectionFields/index.tsx` | Move to `AppInput` / `AppSelect` / `AppButton` |
-| Basic inspector cards | `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots/index.tsx`                                                                                                        | Move to `SurfaceCard` and CSS Modules          |
+| Area                  | Representative files                                                                                                                                                          | Notes                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Common dialogs        | `src/presentation/components/common/ui/dialogs/PwaUpdateDialog.tsx`, `src/presentation/components/common/ui/dialogs/DesktopAutoUpdateDialog.tsx`                              | Now uses Radix `Dialog` + local CSS Modules |
+| Simple forms          | `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields.tsx`, `src/presentation/components/characterMode/ui/set/CharacterModeSetSelectionFields.tsx` | Now uses Radix form controls + local CSS    |
+| Basic inspector cards | `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots.tsx`                                                                                                  | Now uses `SurfaceCard` + CSS Modules        |
 
 ### Already Migrated Off Central Tokens
 
@@ -196,7 +196,7 @@ Start with areas that are already near shared static controls:
 
 ### Phase 3: Collapse Wrapper Primitives
 
-Once direct MUI usage is established in enough files:
+Once direct static component usage is established in enough files:
 
 1. delete corresponding class tokens from `styleClassNames.ts`
 2. remove matching selectors from the global CSS/token layer
@@ -222,20 +222,20 @@ This phase is complete under the current scope. The remaining global layer is in
 - [x] Custom-layer tests were rewritten away from removed screen/character local class tokens
 - [x] Verification plan was executed and is green
 
-## Recommended First Patch Set
+## Completed First Patch Set
 
-If implementation starts immediately, the smallest safe first batch is:
+The smallest safe first batch was:
 
-1. `src/presentation/components/common/ui/dialogs/PwaUpdateDialog/index.tsx`
+1. `src/presentation/components/common/ui/dialogs/PwaUpdateDialog.tsx`
 2. `src/presentation/components/common/ui/dialogs/DesktopAutoUpdateDialog.tsx`
-3. `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields/index.tsx`
-4. `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots/index.tsx`
+3. `src/presentation/components/spriteMode/ui/forms/SpriteModeEditorSelectionFields.tsx`
+4. `src/presentation/components/spriteMode/ui/forms/SpriteModePaletteSlots.tsx`
 
-These files are already mostly static UI and do not require solving the canvas-specific styling layer first.
+These files were already mostly static UI and did not require solving the canvas-specific styling layer first.
 
 ## Out of Scope for the First Implementation Wave
 
 - Rebuilding screen / character / BG editor visuals
 - Removing all local `style={...}` geometry code
-- Replacing editor-specific overlays with generic MUI surfaces
+- Replacing editor-specific overlays with generic shared surfaces
 - Changing CSP policy unless explicitly requested
