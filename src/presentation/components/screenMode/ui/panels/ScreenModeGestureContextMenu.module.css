@@ -9,8 +9,8 @@
     padding: 0.5rem;
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 1.25rem 2.75rem rgba(15, 23, 42, 0.16);
+    background: var(--panel-surface-strong);
+    box-shadow: var(--panel-shadow);
     backdrop-filter: blur(1rem);
   }
 
@@ -32,7 +32,7 @@
 
   .item:hover,
   .item:focus-visible {
-    background: rgba(15, 118, 110, 0.08);
+    background: var(--accent-soft);
     color: var(--accent-emphasis);
     outline: none;
   }

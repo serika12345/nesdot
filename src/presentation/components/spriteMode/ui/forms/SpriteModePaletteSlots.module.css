@@ -33,13 +33,16 @@
     width: 1.5rem;
     height: 1.5rem;
     border-radius: 0.5rem;
-    border: 0.0625rem solid rgba(15, 23, 42, 0.08);
+    border: 0.0625rem solid var(--panel-border);
     background: var(--nes-color);
   }
 
   .transparentSwatch {
-    border-color: rgba(148, 163, 184, 0.4);
-    background-image: repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%);
+    border-color: var(--panel-border);
+    background-image: repeating-conic-gradient(
+      var(--checkerboard-dark) 0% 25%,
+      var(--checkerboard-light) 0% 50%
+    );
     background-size: 0.5rem 0.5rem;
   }
 

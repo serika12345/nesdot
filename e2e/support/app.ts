@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-type AppMenuLabel = "作業モード" | "ファイル" | "編集" | "ヘルプ";
+type AppMenuLabel = "作業モード" | "ファイル" | "編集" | "表示" | "ヘルプ";
 
 const getAppMenuBar = (page: Page) =>
   page.getByRole("menubar", {

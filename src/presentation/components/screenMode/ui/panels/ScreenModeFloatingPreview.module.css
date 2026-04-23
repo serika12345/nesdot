@@ -2,8 +2,8 @@
   .card {
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1.125rem;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 1.125rem 2.125rem rgba(15, 23, 42, 0.18);
+    background: var(--panel-surface);
+    box-shadow: var(--panel-shadow);
     backdrop-filter: blur(0.9rem);
   }
 

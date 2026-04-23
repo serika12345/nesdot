@@ -90,7 +90,7 @@
     justify-content: center;
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--panel-surface);
   }
 
   .chevron {

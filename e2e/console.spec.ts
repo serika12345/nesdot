@@ -136,13 +136,19 @@ test("layout follows window resize", async ({ page }) => {
 test("shows global app menu controls", async ({ page }) => {
   await gotoApp(page);
 
-  type TopLevelTriggerLabel = "作業モード" | "編集" | "ファイル" | "ヘルプ";
+  type TopLevelTriggerLabel =
+    | "作業モード"
+    | "編集"
+    | "表示"
+    | "ファイル"
+    | "ヘルプ";
 
   const menuBar = page.getByRole("menubar", {
     name: "ファイル操作メニューバー",
   });
   const topLevelTriggerLabels: ReadonlyArray<TopLevelTriggerLabel> = [
     "作業モード",
+    "表示",
     "編集",
     "ファイル",
     "ヘルプ",
@@ -152,6 +158,7 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(getMenuTrigger(page, "作業モード")).toBeVisible();
   await expect(getMenuTrigger(page, "ファイル")).toBeVisible();
   await expect(getMenuTrigger(page, "編集")).toBeVisible();
+  await expect(getMenuTrigger(page, "表示")).toBeVisible();
   await expect(getMenuTrigger(page, "ヘルプ")).toBeVisible();
 
   const triggerPositions = await Promise.all(
@@ -182,6 +189,9 @@ test("shows global app menu controls", async ({ page }) => {
   expect(
     Math.abs((triggerPositions[3]?.y ?? -1) - firstTriggerY),
   ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs((triggerPositions[4]?.y ?? -1) - firstTriggerY),
+  ).toBeLessThanOrEqual(2);
   expect(triggerPositions[1]?.x ?? -1).toBeGreaterThan(
     triggerPositions[0]?.x ?? -1,
   );
@@ -190,6 +200,9 @@ test("shows global app menu controls", async ({ page }) => {
   );
   expect(triggerPositions[3]?.x ?? -1).toBeGreaterThan(
     triggerPositions[2]?.x ?? -1,
+  );
+  expect(triggerPositions[4]?.x ?? -1).toBeGreaterThan(
+    triggerPositions[3]?.x ?? -1,
   );
 
   await getMenuTrigger(page, "作業モード").click();
@@ -206,6 +219,12 @@ test("shows global app menu controls", async ({ page }) => {
   await expect(undoMenuItem).toContainText(/(Ctrl\+Z|⌘Z)/);
   await expect(redoMenuItem).toBeVisible();
   await expect(redoMenuItem).toContainText(/(Ctrl\+Shift\+Z|Ctrl\+Y|⇧⌘Z)/);
+  await page.keyboard.press("Escape");
+
+  await getMenuTrigger(page, "表示").click();
+  await expect(getVisibleMenuItem(page, "ライト")).toBeVisible();
+  await expect(getVisibleMenuItem(page, "ダーク")).toBeVisible();
+  await expect(getVisibleMenuItem(page, "システムに合わせる")).toBeVisible();
   await page.keyboard.press("Escape");
 
   await openFileMenu(page);

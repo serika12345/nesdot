@@ -63,6 +63,32 @@ export const ChevronRightIcon: React.FC<AppIconProps> = (props) => (
   </SvgIcon>
 );
 
+export const DesktopIcon: React.FC<AppIconProps> = (props) => (
+  <SvgIcon {...props}>
+    <rect
+      height="7.5"
+      rx="1.1"
+      stroke="currentColor"
+      strokeWidth="1.25"
+      width="11"
+      x="2.5"
+      y="2.75"
+    />
+    <path
+      d="M6 12H10"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M8 10.25V12"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+  </SvgIcon>
+);
+
 export const CodeIcon: React.FC<AppIconProps> = (props) => (
   <SvgIcon {...props}>
     <path
@@ -129,6 +155,18 @@ export const DashboardIcon: React.FC<AppIconProps> = (props) => (
   </SvgIcon>
 );
 
+export const MoonIcon: React.FC<AppIconProps> = (props) => (
+  <SvgIcon {...props}>
+    <path
+      d="M10.9 2.9C9.7 3.2 8.6 4 7.9 5C7.2 6 7 7.2 7.3 8.4C7.6 9.6 8.4 10.7 9.4 11.4C10.4 12.1 11.6 12.3 12.8 12C12 12.7 11 13.1 9.9 13.2C8.8 13.4 7.6 13.2 6.6 12.7C5.5 12.2 4.6 11.4 4 10.4C3.4 9.4 3.1 8.3 3.2 7.1C3.3 6 3.7 4.9 4.4 4C5.1 3.1 6.1 2.4 7.2 2C8.4 1.6 9.7 1.6 10.9 1.9"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.25"
+    />
+  </SvgIcon>
+);
+
 export const DrawIcon: React.FC<AppIconProps> = (props) => (
   <SvgIcon {...props}>
     <path
@@ -139,6 +177,60 @@ export const DrawIcon: React.FC<AppIconProps> = (props) => (
     />
     <path
       d="M9.5 4.5L11.5 6.5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+  </SvgIcon>
+);
+
+export const SunIcon: React.FC<AppIconProps> = (props) => (
+  <SvgIcon {...props}>
+    <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.25" />
+    <path
+      d="M8 2V3.5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M8 12.5V14"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M14 8H12.5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M3.5 8H2"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M12.25 3.75L11.2 4.8"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M4.8 11.2L3.75 12.25"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M12.25 12.25L11.2 11.2"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.25"
+    />
+    <path
+      d="M4.8 4.8L3.75 3.75"
       stroke="currentColor"
       strokeLinecap="round"
       strokeWidth="1.25"

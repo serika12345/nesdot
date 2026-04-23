@@ -9,31 +9,95 @@
 
 /* ---- Design tokens shared by static UI modules ---- */
 
-:root {
-  --ink-strong: #0f172a;
-  --ink: #1e293b;
-  --ink-soft: #64748b;
-  --panel-surface: rgba(255, 255, 255, 0.94);
-  --panel-surface-strong: rgba(255, 255, 255, 0.98);
-  --surface-muted: rgba(250, 250, 250, 0.84);
-  --surface-quiet: rgba(250, 250, 250, 0.92);
-  --accent-solid: #0f766e;
-  --accent-emphasis: #155e75;
-  --accent-contrast: #f0fdfa;
-  --accent-soft: rgba(15, 118, 110, 0.1);
-  --accent-soft-strong: rgba(15, 118, 110, 0.12);
-  --accent-border: rgba(15, 118, 110, 0.18);
-  --accent-border-strong: rgba(15, 118, 110, 0.22);
-  --accent-shadow: 0 1.125rem 1.875rem rgba(15, 118, 110, 0.12);
-  --danger-solid: #be123c;
-  --danger-emphasis: #9f1239;
-  --danger-contrast: #fff1f2;
-  --danger-soft: rgba(190, 18, 60, 0.1);
-  --danger-border: rgba(190, 18, 60, 0.16);
-  --panel-border: rgba(148, 163, 184, 0.22);
-  --panel-shadow: 0 1.5rem 3.75rem rgba(15, 23, 42, 0.18);
+.radix-themes {
+  --ink-strong: var(--gray-12);
+  --ink: var(--gray-11);
+  --ink-soft: var(--gray-10);
+  --panel-surface: var(--color-panel-translucent);
+  --panel-surface-strong: var(--color-panel-solid);
+  --surface-muted: var(--gray-a3);
+  --surface-quiet: var(--gray-a4);
+  --surface-quiet-strong: var(--gray-a5);
+  --accent-solid: var(--accent-9);
+  --accent-emphasis: var(--accent-11);
+  --accent-contrast: var(--accent-contrast);
+  --accent-soft: var(--accent-a3);
+  --accent-soft-strong: var(--accent-a4);
+  --accent-border: var(--accent-a5);
+  --accent-border-strong: var(--accent-a7);
+  --accent-shadow: var(--shadow-3);
+  --danger-solid: var(--red-9);
+  --danger-emphasis: var(--red-11);
+  --danger-contrast: var(--red-contrast);
+  --danger-soft: var(--red-a3);
+  --danger-soft-strong: var(--red-a4);
+  --danger-border: var(--red-a5);
+  --danger-shadow: var(--shadow-3);
+  --panel-border: var(--gray-a6);
+  --panel-shadow: var(--shadow-4);
   --canvas-shell: #081320;
   --canvas-shell-alt: #10253b;
+  --checkerboard-dark: var(--gray-5);
+  --checkerboard-light: var(--gray-3);
+  --dialog-overlay: var(--gray-a8);
+}
+
+.radix-themes[data-is-root-theme="true"] {
+  min-height: 100%;
+  position: relative;
+  isolation: isolate;
+  background: var(--app-page-background);
+}
+
+.radix-themes[data-is-root-theme="true"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--app-grid-overlay);
+  background-size: 1.75rem 1.75rem;
+  mask-image: var(--app-grid-mask);
+  pointer-events: none;
+}
+
+.radix-themes[data-is-root-theme="true"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+.radix-themes[data-is-root-theme="true"]:where(.light, .light-theme) {
+  --app-page-background:
+    radial-gradient(circle at 12% 12%, var(--accent-a4), transparent 24%),
+    radial-gradient(circle at 88% 18%, var(--accent-a3), transparent 20%),
+    linear-gradient(
+      180deg,
+      var(--gray-1) 0%,
+      var(--gray-2) 48%,
+      var(--gray-3) 100%
+    );
+  --app-grid-overlay:
+    linear-gradient(var(--gray-a4) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(90deg, var(--gray-a4) 0.0625rem, transparent 0.0625rem);
+  --app-grid-mask: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.24),
+    transparent 80%
+  );
+}
+
+.radix-themes[data-is-root-theme="true"]:where(.dark, .dark-theme) {
+  --app-page-background:
+    radial-gradient(circle at 12% 12%, var(--accent-a4), transparent 24%),
+    radial-gradient(circle at 88% 18%, var(--accent-a3), transparent 20%),
+    linear-gradient(180deg, var(--gray-1) 0%, #0d1726 48%, #101827 100%);
+  --app-grid-overlay:
+    linear-gradient(var(--gray-a4) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(90deg, var(--gray-a4) 0.0625rem, transparent 0.0625rem);
+  --app-grid-mask: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.48),
+    transparent 80%
+  );
 }
 
 * {
@@ -42,45 +106,17 @@
 
 html {
   height: 100%;
-  background:
-    radial-gradient(
-      circle at 12% 12%,
-      rgba(56, 189, 248, 0.18),
-      transparent 24%
-    ),
-    radial-gradient(
-      circle at 88% 18%,
-      rgba(45, 212, 191, 0.14),
-      transparent 20%
-    ),
-    linear-gradient(180deg, #07111d 0%, #0d1726 48%, #101827 100%);
+  background: #0d1726;
 }
 
 body {
   margin: 0;
   height: 100%;
   min-width: 0;
-  color: var(--ink);
   font-family:
     "Avenir Next", "SF Pro Display", "Segoe UI", "Helvetica Neue", sans-serif;
   background: transparent;
   overflow: hidden;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.05) 0.0625rem, transparent 0.0625rem),
-    linear-gradient(
-      90deg,
-      rgba(148, 163, 184, 0.05) 0.0625rem,
-      transparent 0.0625rem
-    );
-  background-size: 1.75rem 1.75rem;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 80%);
-  pointer-events: none;
 }
 
 button,
@@ -104,12 +140,15 @@ select {
   display: block;
   pointer-events: none;
   image-rendering: pixelated;
-  background-image: repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%);
+  background-image: repeating-conic-gradient(
+    var(--checkerboard-dark) 0% 25%,
+    var(--checkerboard-light) 0% 50%
+  );
   background-size: 0.5rem 0.5rem;
 }
 
-::selection {
-  background: rgba(45, 212, 191, 0.32);
+.radix-themes ::selection {
+  background: var(--accent-a5);
 }
 
 /* Tauri-only: disable text selection in the desktop app */

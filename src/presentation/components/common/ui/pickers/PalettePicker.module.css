@@ -75,13 +75,16 @@
     width: 2rem;
     height: 2rem;
     border-radius: 0.5rem;
-    border: 0.0625rem solid rgba(15, 23, 42, 0.08);
+    border: 0.0625rem solid var(--panel-border);
     background: var(--nes-color);
   }
 
   .transparentSwatch {
-    border-color: rgba(148, 163, 184, 0.4);
-    background-image: repeating-conic-gradient(#cbd5e1 0% 25%, #f8fafc 0% 50%);
+    border-color: var(--panel-border);
+    background-image: repeating-conic-gradient(
+      var(--checkerboard-dark) 0% 25%,
+      var(--checkerboard-light) 0% 50%
+    );
     background-size: 0.5rem 0.5rem;
   }
 
@@ -145,7 +148,7 @@
   .colorButton {
     width: 2.25rem;
     height: 2.25rem;
-    border: 0.125rem solid rgba(15, 23, 42, 0.18);
+    border: 0.125rem solid var(--panel-border);
     border-radius: 0.75rem;
     background: var(--nes-color);
     cursor: pointer;
@@ -166,8 +169,8 @@
   }
 
   .colorButtonActive {
-    border-color: rgba(15, 23, 42, 0.85);
-    box-shadow: 0 0 0 0.125rem rgba(255, 255, 255, 0.82);
+    border-color: var(--ink);
+    box-shadow: 0 0 0 0.125rem var(--panel-surface-strong);
   }
 
   .visuallyHidden {

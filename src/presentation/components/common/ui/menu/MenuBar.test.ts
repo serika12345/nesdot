@@ -117,26 +117,34 @@ vi.mock("../../../../../infrastructure/browser/updateCheck", () => {
 import { MenuBar } from "./MenuBar";
 
 describe("MenuBar", () => {
-  it("renders the application menu landmark and selected work mode as a radio item", () => {
+  it("renders the application menu landmark and selected work mode and theme as radio items", () => {
     mockedUpdateCheck.canRequestAvailableUpdateCheck.mockReturnValue(false);
 
     const markup = renderToStaticMarkup(
       React.createElement(MenuBar, {
-        editMode: "bg",
         fileMenuState: {
           restoreAction: O.none,
           shareActions: [],
         },
-        onEditModeSelect: vi.fn(),
+        modeMenuState: {
+          editMode: "bg",
+          onEditModeSelect: vi.fn(),
+        },
         onRedoSelect: vi.fn(),
         onUndoSelect: vi.fn(),
+        themeMenuState: {
+          onThemePreferenceSelect: vi.fn(),
+          themePreference: "system",
+        },
       }),
     );
 
     expect(markup).toContain('aria-label="アプリケーションメニュー"');
     expect(markup).toContain('role="menubar"');
     expect(markup).toContain('aria-label="作業モードメニュー"');
+    expect(markup).toContain('aria-label="表示メニュー"');
     expect(markup).toContain('value="bg"');
+    expect(markup).toContain('value="system"');
     expect(markup).toContain('aria-checked="true"');
     expect(markup).toContain('role="menuitemradio"');
   });

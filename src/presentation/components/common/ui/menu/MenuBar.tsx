@@ -8,6 +8,7 @@ import {
   canRequestAvailableUpdateCheck,
   requestAvailableUpdateCheck,
 } from "../../../../../infrastructure/browser/updateCheck";
+import { type ThemePreference } from "../../../../../infrastructure/browser/themePreference";
 import {
   type FileMenuState,
   type FileShareActionId,
@@ -17,13 +18,16 @@ import {
   ChevronRightIcon,
   CodeIcon,
   DashboardIcon,
+  DesktopIcon,
   DrawIcon,
   FileUploadIcon,
   ImageIcon,
   InfoIcon,
+  MoonIcon,
   RedoIcon,
   SaveIcon,
   ShareIcon,
+  SunIcon,
   TextureIcon,
   UndoIcon,
   UpdateIcon,
@@ -33,10 +37,16 @@ import styles from "./MenuBar.module.css";
 
 interface MenuBarProps {
   fileMenuState: FileMenuState;
-  editMode: WorkMode;
-  onEditModeSelect: (mode: WorkMode) => void;
   onUndoSelect: () => void;
   onRedoSelect: () => void;
+  modeMenuState: Readonly<{
+    editMode: WorkMode;
+    onEditModeSelect: (mode: WorkMode) => void;
+  }>;
+  themeMenuState: Readonly<{
+    onThemePreferenceSelect: (themePreference: ThemePreference) => void;
+    themePreference: ThemePreference;
+  }>;
 }
 
 const WORK_MODE_ITEMS: ReadonlyArray<{
@@ -63,6 +73,28 @@ const WORK_MODE_ITEMS: ReadonlyArray<{
     value: "screen",
     label: "画面配置",
     icon: <WallpaperIcon />,
+  },
+];
+
+const THEME_PREFERENCE_ITEMS: ReadonlyArray<{
+  value: ThemePreference;
+  label: string;
+  icon: React.ReactNode;
+}> = [
+  {
+    value: "light",
+    label: "ライト",
+    icon: <SunIcon />,
+  },
+  {
+    value: "dark",
+    label: "ダーク",
+    icon: <MoonIcon />,
+  },
+  {
+    value: "system",
+    label: "システムに合わせる",
+    icon: <DesktopIcon />,
   },
 ];
 
@@ -112,11 +144,15 @@ const getShareActionIcon = (actionId: FileShareActionId): React.JSX.Element => {
 
 export const MenuBar: React.FC<MenuBarProps> = ({
   fileMenuState,
-  editMode,
-  onEditModeSelect,
   onUndoSelect,
   onRedoSelect,
+  modeMenuState,
+  themeMenuState,
 }) => {
+  const editMode = modeMenuState.editMode;
+  const onEditModeSelect = modeMenuState.onEditModeSelect;
+  const onThemePreferenceSelect = themeMenuState.onThemePreferenceSelect;
+  const themePreference = themeMenuState.themePreference;
   const appVersion = import.meta.env.VITE_APP_VERSION;
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
@@ -215,6 +251,58 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                           <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
                           <span className={styles.menuItemTextLabel}>
                             {modeItem.label}
+                          </span>
+                        </MenuItemLabel>
+                        <MenuItemMeta>
+                          <MenuModeSelectionMarker>
+                            {isSelected === true ? <CheckIcon /> : <></>}
+                          </MenuModeSelectionMarker>
+                        </MenuItemMeta>
+                      </MenuItemContent>
+                    </Menubar.RadioItem>
+                  );
+                })}
+              </Menubar.RadioGroup>
+            </Menubar.Content>
+          </Menubar.Portal>
+        </Menubar.Menu>
+
+        <Menubar.Menu>
+          <Menubar.Trigger
+            className={styles.menuTriggerAction}
+            type="button"
+            aria-haspopup="menu"
+          >
+            表示
+          </Menubar.Trigger>
+
+          <Menubar.Portal>
+            <Menubar.Content
+              className={styles.menuContentSurface}
+              aria-label="表示メニュー"
+              align="start"
+              sideOffset={6}
+            >
+              <Menubar.RadioGroup value={themePreference}>
+                {THEME_PREFERENCE_ITEMS.map((themeItem) => {
+                  const isSelected = themeItem.value === themePreference;
+
+                  return (
+                    <Menubar.RadioItem
+                      key={themeItem.value}
+                      value={themeItem.value}
+                      className={styles.menuItemAction}
+                      aria-checked={isSelected}
+                      aria-label={`表示テーマ ${themeItem.label}`}
+                      onSelect={() => {
+                        onThemePreferenceSelect(themeItem.value);
+                      }}
+                    >
+                      <MenuItemContent>
+                        <MenuItemLabel>
+                          <MenuItemIconSlot>{themeItem.icon}</MenuItemIconSlot>
+                          <span className={styles.menuItemTextLabel}>
+                            {themeItem.label}
                           </span>
                         </MenuItemLabel>
                         <MenuItemMeta>

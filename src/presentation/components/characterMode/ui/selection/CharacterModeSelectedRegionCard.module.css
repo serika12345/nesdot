@@ -16,7 +16,7 @@
   .previewFrame {
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1.125rem;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--panel-surface);
   }
 
   .previewCenter {
@@ -35,7 +35,7 @@
   .infoCard {
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--panel-surface);
   }
 
   .infoRow {

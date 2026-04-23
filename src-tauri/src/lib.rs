@@ -6,7 +6,10 @@ use std::path::PathBuf;
 use tauri::Emitter;
 
 #[cfg(target_os = "macos")]
-use tauri::menu::{AboutMetadataBuilder, IsMenuItem, Menu, MenuItem, Submenu, SubmenuBuilder};
+use tauri::menu::{
+    AboutMetadataBuilder, CheckMenuItem, IsMenuItem, Menu, MenuItem, MenuItemKind, Submenu,
+    SubmenuBuilder,
+};
 
 const MENU_ID_SHARE_EXPORT_CHR: &str = "share-export-chr";
 const MENU_ID_SHARE_EXPORT_PNG: &str = "share-export-png";
@@ -20,6 +23,9 @@ const MENU_ID_MODE_SPRITE: &str = "mode-sprite";
 const MENU_ID_MODE_CHARACTER: &str = "mode-character";
 const MENU_ID_MODE_BG: &str = "mode-bg";
 const MENU_ID_MODE_SCREEN: &str = "mode-screen";
+const MENU_ID_VIEW_THEME_LIGHT: &str = "view-theme-light";
+const MENU_ID_VIEW_THEME_DARK: &str = "view-theme-dark";
+const MENU_ID_VIEW_THEME_SYSTEM: &str = "view-theme-system";
 const MENU_ID_HELP_CHECK_FOR_UPDATES: &str = "help-check-for-updates";
 
 const MENU_EVENT_SHARE_EXPORT_CHR: &str = "file-menu://share-export-chr";
@@ -34,6 +40,9 @@ const MENU_EVENT_MODE_SPRITE: &str = "mode-menu://switch-sprite";
 const MENU_EVENT_MODE_CHARACTER: &str = "mode-menu://switch-character";
 const MENU_EVENT_MODE_BG: &str = "mode-menu://switch-bg";
 const MENU_EVENT_MODE_SCREEN: &str = "mode-menu://switch-screen";
+const MENU_EVENT_VIEW_THEME_LIGHT: &str = "view-menu://set-theme-light";
+const MENU_EVENT_VIEW_THEME_DARK: &str = "view-menu://set-theme-dark";
+const MENU_EVENT_VIEW_THEME_SYSTEM: &str = "view-menu://set-theme-system";
 const MENU_EVENT_HELP_CHECK_FOR_UPDATES: &str = "help-menu://check-for-updates";
 const VERIFY_TAURI_CSP_DIAGNOSTICS_FILE_ENV: &str = "NESDOT_VERIFY_TAURI_CSP_DIAGNOSTICS_FILE";
 const VERIFY_TAURI_CSP_SELF_TEST_ENV: &str = "NESDOT_VERIFY_TAURI_CSP_SELF_TEST";
@@ -60,6 +69,30 @@ struct RuntimeDiagnosticPayload {
     message: String,
     details: Option<String>,
     time: String,
+}
+
+#[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum ThemePreference {
+    Light,
+    Dark,
+    System,
+}
+
+#[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum WorkModeSelection {
+    Sprite,
+    Character,
+    Bg,
+    Screen,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct NativeMenuSelectionState {
+    edit_mode: WorkModeSelection,
+    theme_preference: ThemePreference,
 }
 
 fn runtime_diagnostics_path() -> Option<PathBuf> {
@@ -111,6 +144,106 @@ fn record_runtime_diagnostic(payload: RuntimeDiagnosticPayload) -> Result<(), St
         .map_err(|error| format!("failed to write runtime diagnostic payload: {error}"))?;
 
     Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn find_check_menu_item_in_items<R: tauri::Runtime>(
+    items: &[MenuItemKind<R>],
+    id: &str,
+) -> Result<Option<CheckMenuItem<R>>, String> {
+    items.iter().try_fold(None, |found_item, item| {
+        if found_item.is_some() {
+            return Ok(found_item);
+        }
+
+        match item {
+            MenuItemKind::Check(check_menu_item) if check_menu_item.id() == id => {
+                Ok(Some(check_menu_item.clone()))
+            }
+            MenuItemKind::Submenu(submenu) => submenu
+                .items()
+                .map_err(|error| format!("failed to read native submenu items for `{id}`: {error}"))
+                .and_then(|submenu_items| find_check_menu_item_in_items(&submenu_items, id)),
+            _ => Ok(None),
+        }
+    })
+}
+
+#[cfg(target_os = "macos")]
+fn set_check_menu_item_state<R: tauri::Runtime>(
+    menu: &Menu<R>,
+    id: &str,
+    checked: bool,
+) -> Result<(), String> {
+    let menu_items = menu
+        .items()
+        .map_err(|error| format!("failed to read native menu items for `{id}`: {error}"))?;
+    let Some(check_menu_item) = find_check_menu_item_in_items(&menu_items, id)? else {
+        return Err(format!("missing native menu item: {id}"));
+    };
+
+    check_menu_item
+        .set_checked(checked)
+        .map_err(|error| format!("failed to update native menu item `{id}`: {error}"))
+}
+
+#[tauri::command]
+fn sync_native_menu_selection_state<R: tauri::Runtime>(
+    app_handle: tauri::AppHandle<R>,
+    state: NativeMenuSelectionState,
+) -> Result<(), String> {
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app_handle;
+        let _ = state;
+
+        Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let Some(menu) = app_handle.menu() else {
+            return Ok(());
+        };
+
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_MODE_SPRITE,
+            matches!(state.edit_mode, WorkModeSelection::Sprite),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_MODE_CHARACTER,
+            matches!(state.edit_mode, WorkModeSelection::Character),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_MODE_BG,
+            matches!(state.edit_mode, WorkModeSelection::Bg),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_MODE_SCREEN,
+            matches!(state.edit_mode, WorkModeSelection::Screen),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_VIEW_THEME_LIGHT,
+            matches!(state.theme_preference, ThemePreference::Light),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_VIEW_THEME_DARK,
+            matches!(state.theme_preference, ThemePreference::Dark),
+        )?;
+        set_check_menu_item_state(
+            &menu,
+            MENU_ID_VIEW_THEME_SYSTEM,
+            matches!(state.theme_preference, ThemePreference::System),
+        )?;
+
+        Ok(())
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -174,22 +307,56 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         true,
         Some("CmdOrCtrl+Shift+Z"),
     )?;
-    let mode_sprite = MenuItem::with_id(
+    let mode_sprite = CheckMenuItem::with_id(
         app,
         MENU_ID_MODE_SPRITE,
         "スプライト編集",
         true,
+        true,
         None::<&str>,
     )?;
-    let mode_character = MenuItem::with_id(
+    let mode_character = CheckMenuItem::with_id(
         app,
         MENU_ID_MODE_CHARACTER,
         "キャラクター編集",
         true,
+        false,
         None::<&str>,
     )?;
-    let mode_bg = MenuItem::with_id(app, MENU_ID_MODE_BG, "BG編集", true, None::<&str>)?;
-    let mode_screen = MenuItem::with_id(app, MENU_ID_MODE_SCREEN, "画面配置", true, None::<&str>)?;
+    let mode_bg =
+        CheckMenuItem::with_id(app, MENU_ID_MODE_BG, "BG編集", true, false, None::<&str>)?;
+    let mode_screen = CheckMenuItem::with_id(
+        app,
+        MENU_ID_MODE_SCREEN,
+        "画面配置",
+        true,
+        false,
+        None::<&str>,
+    )?;
+    let view_theme_light = CheckMenuItem::with_id(
+        app,
+        MENU_ID_VIEW_THEME_LIGHT,
+        "ライト",
+        true,
+        false,
+        None::<&str>,
+    )?;
+    let view_theme_dark = CheckMenuItem::with_id(
+        app,
+        MENU_ID_VIEW_THEME_DARK,
+        "ダーク",
+        true,
+        false,
+        None::<&str>,
+    )?;
+    let view_theme_system = CheckMenuItem::with_id(
+        app,
+        MENU_ID_VIEW_THEME_SYSTEM,
+        "システムに合わせる",
+        true,
+        true,
+        None::<&str>,
+    )?;
     let help_check_for_updates = MenuItem::with_id(
         app,
         MENU_ID_HELP_CHECK_FOR_UPDATES,
@@ -206,11 +373,14 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
     ];
     let mode_items: Vec<&(dyn IsMenuItem<R> + 'static)> =
         vec![&mode_sprite, &mode_character, &mode_bg, &mode_screen];
+    let view_items: Vec<&(dyn IsMenuItem<R> + 'static)> =
+        vec![&view_theme_light, &view_theme_dark, &view_theme_system];
     let edit_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&edit_undo, &edit_redo];
 
     let share_submenu = Submenu::with_items(app, "共有", true, share_items.as_slice())?;
 
     let mode_submenu = Submenu::with_items(app, "作業モード", true, mode_items.as_slice())?;
+    let view_submenu = Submenu::with_items(app, "表示", true, view_items.as_slice())?;
     let edit_submenu = Submenu::with_items(app, "編集", true, edit_items.as_slice())?;
     let file_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&share_submenu, &restore_import];
     let help_items: Vec<&(dyn IsMenuItem<R> + 'static)> = vec![&help_check_for_updates];
@@ -220,6 +390,7 @@ fn install_macos_native_menu<R: tauri::Runtime>(app: &mut tauri::App<R>) -> taur
         &app_submenu,
         &mode_submenu,
         &edit_submenu,
+        &view_submenu,
         &file_submenu,
         &help_submenu,
     ];
@@ -239,7 +410,8 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_runtime_diagnostics_config,
-            record_runtime_diagnostic
+            record_runtime_diagnostic,
+            sync_native_menu_selection_state
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -276,6 +448,13 @@ pub fn run() {
             MENU_ID_MODE_CHARACTER => emit_file_menu_event(app_handle, MENU_EVENT_MODE_CHARACTER),
             MENU_ID_MODE_BG => emit_file_menu_event(app_handle, MENU_EVENT_MODE_BG),
             MENU_ID_MODE_SCREEN => emit_file_menu_event(app_handle, MENU_EVENT_MODE_SCREEN),
+            MENU_ID_VIEW_THEME_LIGHT => {
+                emit_file_menu_event(app_handle, MENU_EVENT_VIEW_THEME_LIGHT)
+            }
+            MENU_ID_VIEW_THEME_DARK => emit_file_menu_event(app_handle, MENU_EVENT_VIEW_THEME_DARK),
+            MENU_ID_VIEW_THEME_SYSTEM => {
+                emit_file_menu_event(app_handle, MENU_EVENT_VIEW_THEME_SYSTEM)
+            }
             MENU_ID_HELP_CHECK_FOR_UPDATES => {
                 emit_file_menu_event(app_handle, MENU_EVENT_HELP_CHECK_FOR_UPDATES)
             }

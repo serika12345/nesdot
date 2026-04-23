@@ -14,6 +14,7 @@ import {
   useWorkbenchState,
   type WorkMode,
 } from "../application/state/workbenchStore";
+import { type ThemePreference } from "../infrastructure/browser/themePreference";
 import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUpdate";
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
 import styles from "./App.module.css";
@@ -86,10 +87,33 @@ const NATIVE_MODE_EVENT_BINDINGS: ReadonlyArray<{
   },
 ];
 
+const NATIVE_THEME_EVENT_BINDINGS: ReadonlyArray<{
+  eventName: string;
+  themePreference: ThemePreference;
+}> = [
+  {
+    eventName: "view-menu://set-theme-light",
+    themePreference: "light",
+  },
+  {
+    eventName: "view-menu://set-theme-dark",
+    themePreference: "dark",
+  },
+  {
+    eventName: "view-menu://set-theme-system",
+    themePreference: "system",
+  },
+];
+
 const NATIVE_RESTORE_EVENT_NAME = "file-menu://restore-import";
 const NATIVE_UNDO_EVENT_NAME = "edit-menu://undo";
 const NATIVE_REDO_EVENT_NAME = "edit-menu://redo";
 const NATIVE_UPDATE_CHECK_EVENT_NAME = "help-menu://check-for-updates";
+
+interface NativeMenuSelectionState {
+  readonly editMode: WorkMode;
+  readonly themePreference: ThemePreference;
+}
 
 const isEditableTarget = (target: EventTarget): boolean => {
   if (target instanceof HTMLInputElement) {
@@ -235,35 +259,61 @@ const runRestoreAction = (fileMenuState: FileMenuState): void => {
 };
 
 interface NativeMenuBindingsProps {
+  editMode: WorkMode;
   enabled: boolean;
   fileMenuState: FileMenuState;
   onEditModeSelect: (nextEditMode: WorkMode) => void;
   onRedoSelect: () => void;
+  onThemePreferenceSelect: (themePreference: ThemePreference) => void;
   onUndoSelect: () => void;
+  themePreference: ThemePreference;
   onUpdateCheck: () => void;
 }
 
+const syncNativeMenuSelectionState = async (
+  selectionState: NativeMenuSelectionState,
+): Promise<void> => {
+  try {
+    const coreModule = await import("@tauri-apps/api/core");
+    await coreModule.invoke("sync_native_menu_selection_state", {
+      state: selectionState,
+    });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.info(`[menu] native menu sync skipped: ${message}`);
+  }
+};
+
 const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
+  editMode,
   enabled,
   fileMenuState,
   onEditModeSelect,
   onRedoSelect,
+  onThemePreferenceSelect,
   onUndoSelect,
+  themePreference,
   onUpdateCheck,
 }) => {
   const runtimeRef = React.useRef({
+    editMode,
     fileMenuState,
     onEditModeSelect,
     onRedoSelect,
+    onThemePreferenceSelect,
     onUndoSelect,
+    themePreference,
     onUpdateCheck,
   });
 
   runtimeRef.current = {
+    editMode,
     fileMenuState,
     onEditModeSelect,
     onRedoSelect,
+    onThemePreferenceSelect,
     onUndoSelect,
+    themePreference,
     onUpdateCheck,
   };
 
@@ -291,6 +341,21 @@ const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
           NATIVE_MODE_EVENT_BINDINGS.map(({ eventName, mode }) =>
             eventModule.listen(eventName, () => {
               runtimeRef.current.onEditModeSelect(mode);
+              void syncNativeMenuSelectionState({
+                editMode: mode,
+                themePreference: runtimeRef.current.themePreference,
+              });
+            }),
+          ),
+        );
+        const themeUnlistenCallbacks = await Promise.all(
+          NATIVE_THEME_EVENT_BINDINGS.map(({ eventName, themePreference }) =>
+            eventModule.listen(eventName, () => {
+              runtimeRef.current.onThemePreferenceSelect(themePreference);
+              void syncNativeMenuSelectionState({
+                editMode: runtimeRef.current.editMode,
+                themePreference,
+              });
             }),
           ),
         );
@@ -326,6 +391,7 @@ const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
         return [
           ...shareUnlistenCallbacks,
           ...modeUnlistenCallbacks,
+          ...themeUnlistenCallbacks,
           restoreUnlistenCallback,
           undoUnlistenCallback,
           redoUnlistenCallback,
@@ -349,6 +415,17 @@ const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
     };
   }, [enabled]);
 
+  useEffect(() => {
+    if (enabled !== true) {
+      return;
+    }
+
+    void syncNativeMenuSelectionState({
+      editMode,
+      themePreference,
+    });
+  }, [editMode, enabled, themePreference]);
+
   return <></>;
 };
 
@@ -356,7 +433,15 @@ const NativeMenuBindings: React.FC<NativeMenuBindingsProps> = ({
  * アプリ全体の編集モード切り替えと共通レイアウトを描画します。
  * 各モード画面と共有パレットを束ね、最上位の画面構成責務だけを持つコンポーネントです。
  */
-const AppBody: React.FC = () => {
+interface AppBodyProps {
+  readonly onThemePreferenceSelect: (themePreference: ThemePreference) => void;
+  readonly themePreference: ThemePreference;
+}
+
+const AppBody: React.FC<AppBodyProps> = ({
+  onThemePreferenceSelect,
+  themePreference,
+}) => {
   const desktopAutoUpdate = useDesktopAutoUpdate();
   const pwaUpdate = usePwaUpdate();
   const handleDesktopAutoUpdateCheck = desktopAutoUpdate.onCheckNow;
@@ -497,11 +582,14 @@ const AppBody: React.FC = () => {
         onUpdateNow={pwaUpdate.onUpdateNow}
       />
       <NativeMenuBindings
+        editMode={editMode}
         enabled={isNativeMacMenu}
         fileMenuState={fileMenuState}
         onEditModeSelect={handleEditModeSelect}
         onRedoSelect={handleRedoSelect}
+        onThemePreferenceSelect={onThemePreferenceSelect}
         onUndoSelect={handleUndoSelect}
+        themePreference={themePreference}
         onUpdateCheck={handleDesktopAutoUpdateCheck}
       />
       <div className={styles.root}>
@@ -511,10 +599,16 @@ const AppBody: React.FC = () => {
           <header>
             <MenuBar
               fileMenuState={fileMenuState}
-              editMode={editMode}
-              onEditModeSelect={handleEditModeSelect}
-              onUndoSelect={handleUndoSelect}
+              modeMenuState={{
+                editMode,
+                onEditModeSelect: handleEditModeSelect,
+              }}
               onRedoSelect={handleRedoSelect}
+              onUndoSelect={handleUndoSelect}
+              themeMenuState={{
+                onThemePreferenceSelect,
+                themePreference,
+              }}
             />
           </header>
         )}
@@ -540,6 +634,19 @@ const AppBody: React.FC = () => {
   );
 };
 
-export const App: React.FC = () => {
-  return <AppBody />;
+interface AppProps {
+  readonly onThemePreferenceSelect: (themePreference: ThemePreference) => void;
+  readonly themePreference: ThemePreference;
+}
+
+export const App: React.FC<AppProps> = ({
+  onThemePreferenceSelect,
+  themePreference,
+}) => {
+  return (
+    <AppBody
+      onThemePreferenceSelect={onThemePreferenceSelect}
+      themePreference={themePreference}
+    />
+  );
 };
