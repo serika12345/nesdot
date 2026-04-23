@@ -135,48 +135,52 @@ Rules:
 - Put domain logic outside components unless the logic is inherently view-local.
 - Keep components focused on rendering and orchestration.
 
-## 8.1 MUI Styling Discipline
+## 8.1 UI Styling Discipline
 
-Use MUI, but keep styling decisions centralized and mechanically constrained.
+Use the repository's static styling architecture. The current default stack is `Radix Themes + CSS Modules + src/assets/global.css`, and [`docs/static-css-architecture.md`](./docs/static-css-architecture.md) is the style-layer reference.
 
-- Prefer theme configuration, `styled(...)`, shared wrapper components, and MUI layout primitives over per-call-site styling.
+- Prefer semantic Radix props, shared static UI components, CSS Modules, and theme-backed globals over per-call-site styling.
 - Treat `sx` as restricted, not as the default styling API.
+- Do not introduce new `styled(...)` wrappers or other runtime style injection paths.
 - Do not use `sx` for layout architecture, spacing system design, color decisions, typography decisions, breakpoint design, or repeated visual patterns.
-- Do not copy-paste large `sx` objects between components. If styling repeats, extract a shared component or theme override.
+- Do not copy-paste large `sx` objects between components. If styling repeats, extract a shared component, a CSS Module pattern, or a theme-backed variant.
 - Do not introduce raw hex colors, pixel constants, rem constants, ad hoc z-index values, or one-off breakpoint values inside `sx`.
-- Prefer tokens from the MUI theme for spacing, palette, typography, shadows, shape, and z-index.
-- Do not use fixed styling values when a theme token or MUI prop can express the same intent.
-- Do not use raw CSS for layout when the same structure can be expressed with MUI layout components.
+- Prefer repository tokens, CSS custom properties, and component-library theme scales for spacing, palette, typography, shadows, shape, and z-index.
+- Do not use fixed styling values when a shared token, semantic prop, or existing pattern can express the same intent.
+
+Note:
+The repository still has a mechanical `restrict-sx` lint rule with some historical wording that mentions `styled(...)`. Treat that rule as a guardrail for keeping `sx` tiny, not as permission to add new `styled(...)` code.
 
 ### 8.1.1 Layout ownership
 
-Layout must be expressed with MUI primitives first.
+Layout should be expressed with component structure and static styling first.
 
-- Prefer `Stack` for one-dimensional layout.
-- Prefer `Grid` for two-dimensional layout.
-- Prefer `Container` for page-width control and horizontal centering.
-- Use `Box` as a generic wrapper only when a more specific MUI layout primitive is not appropriate.
-- Do not build page layout primarily with `Box` plus large inline `sx` objects.
-- Do not use ad hoc flexbox CSS as the default layout mechanism if `Stack` or `Grid` can express the structure clearly.
+- Prefer an existing shared layout component when one already fits.
+- Prefer semantic component props and small compositional wrappers when the library already expresses the structure clearly.
+- Prefer colocated CSS Modules for feature-owned layout.
+- Use inline `style` only for narrow typed runtime geometry such as canvas size, stage metrics, or CSS custom properties carrying dynamic measurements.
+- Use `sx` only for small local integration glue when semantic props or CSS Modules would be heavier than the change.
+- Do not build page layout primarily with large inline `style` or `sx` objects.
+- Do not default to ad hoc flexbox style objects when the same structure can live in a local module or shared wrapper.
 
 Default layout preference order:
 
 1. existing shared layout component
-2. `Stack`
-3. `Grid`
-4. `Container`
-5. `Box`
-6. raw CSS layout
+2. semantic component props
+3. colocated CSS Modules
+4. narrow typed runtime geometry via CSS variables or `style`
+5. small inline `sx` or `style` integration glue
+6. raw inline layout styling as a last resort
 
 ### 8.1.2 Spacing rules
 
-Spacing must be consistent and theme-backed.
+Spacing must be consistent and token-backed.
 
-- All spacing decisions must use the MUI theme spacing scale.
+- All spacing decisions must use shared tokens, theme scales, or existing component-library spacing conventions.
 - Do not hardcode spacing with values such as `12px`, `14px`, `18px`, `1rem`, or similar one-off constants unless there is a documented exception.
 - Prefer parent-managed spacing over child-managed margins.
-- For vertical or horizontal item spacing, prefer `Stack spacing`.
-- For two-dimensional spacing, prefer `Grid` spacing or theme-backed `gap`.
+- For vertical or horizontal item spacing, prefer wrapper-managed `gap` or equivalent library spacing props.
+- For two-dimensional spacing, prefer grid or flex gaps driven by shared tokens.
 - Do not build repeated spacing patterns by assigning custom margins to each child.
 - Use local margin or padding only when the adjustment is specific to one call site and not part of a reusable pattern.
 
@@ -192,8 +196,9 @@ Allowed `sx` usage is limited to small, local, non-reusable adjustments when all
 Good examples of allowed `sx` usage:
 
 - one-off flex alignment for a single container,
-- a small gap adjustment using theme spacing,
-- temporary composition glue between existing shared components.
+- a small gap adjustment using theme-backed spacing,
+- temporary composition glue between existing shared components,
+- a narrow integration fix around third-party component structure when local CSS would be more invasive.
 
 Disallowed examples of `sx` usage:
 
@@ -208,7 +213,7 @@ Disallowed examples of `sx` usage:
 If `sx` is used, keep it small and shallow:
 
 - prefer a single short object,
-- avoid nested selectors unless required by MUI integration,
+- avoid nested selectors unless required by component-library integration,
 - avoid composing complex conditional styling logic inline,
 - do not pass `sx` through multiple abstraction layers unless that passthrough is already part of the public API.
 
@@ -223,7 +228,7 @@ When a component needs recurring styling, use one of these, in order:
 1. existing shared UI component,
 2. new wrapper component in the shared UI layer,
 3. theme component override or variant,
-4. `styled(...)` colocated with the component when the styling is still component-owned.
+4. colocated CSS Module or small helper component when the styling is still component-owned.
 
 If the same visual or layout pattern appears more than once, do not solve it twice with inline styling. Extract it.
 
@@ -239,14 +244,14 @@ Examples of patterns that should be extracted:
 
 ### 8.1.5 Theme-first visual rules
 
-Visual decisions must be represented through the theme whenever they are part of the product language.
+Visual decisions must be represented through shared tokens or the component-library theme whenever they are part of the product language.
 
-- Colors must come from `theme.palette`.
-- Typography choices must come from `theme.typography`.
-- Border radius must come from `theme.shape`.
-- Elevation must come from `theme.shadows`.
-- Layering must come from `theme.zIndex`.
-- Breakpoints must come from the MUI breakpoint system.
+- Colors must come from shared CSS custom properties or theme palette tokens.
+- Typography choices must come from the shared type scale or component-library defaults.
+- Border radius must come from shared tokens or theme shape values.
+- Elevation must come from shared tokens or theme shadows.
+- Layering must come from shared z-index tokens.
+- Breakpoints must follow the repository's existing responsive system; do not invent one-off breakpoint values inline.
 
 Do not encode product identity, shared component appearance, or repeated responsive behavior directly at the call site.
 
