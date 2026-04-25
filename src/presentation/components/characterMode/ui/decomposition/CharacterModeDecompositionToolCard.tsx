@@ -31,7 +31,6 @@ const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
     <button
       {...props}
       className={styles.slotButton}
-      data-selected-state={selectedState === true ? "true" : "false"}
       type={props.type ?? "button"}
       style={createPaletteSlotButtonStyle(
         style ?? {},

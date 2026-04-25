@@ -244,9 +244,6 @@ export const RegionOverlayButton = React.forwardRef<
       {...props}
       ref={ref}
       className={mergeClassNames(styles.resetButton ?? "", className ?? false)}
-      data-issue-state={toBooleanDataValue(issueState)}
-      data-selected-state={toBooleanDataValue(selectedState)}
-      data-tool-mode={toolMode}
       type={props.type ?? "button"}
       style={createRegionOverlayButtonStyle(
         style ?? {},
@@ -315,7 +312,6 @@ export const PositionedActionMenu = React.forwardRef<
         styles.positionedActionMenu ?? "",
         className ?? false,
       )}
-      data-ready={toBooleanDataValue(ready)}
       style={createPositionedActionMenuStyle(
         style ?? {},
         menuLeft,

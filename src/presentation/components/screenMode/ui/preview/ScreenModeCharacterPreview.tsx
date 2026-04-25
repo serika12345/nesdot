@@ -162,8 +162,6 @@ export const ScreenModeCharacterPreview: React.FC<
       ref={handleCanvasRef}
       width={previewMetrics.value.canvasWidth}
       height={previewMetrics.value.canvasHeight}
-      data-preview-width={previewMetrics.value.logicalWidth}
-      data-preview-height={previewMetrics.value.logicalHeight}
       style={createCharacterPreviewCanvasStyle(
         previewMetrics.value.displayWidth,
         previewMetrics.value.displayHeight,

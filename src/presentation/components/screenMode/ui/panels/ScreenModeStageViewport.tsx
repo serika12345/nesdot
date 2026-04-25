@@ -9,7 +9,6 @@ import {
   PreviewCanvasWrap,
   PreviewViewport,
 } from "../primitives/ScreenModePrimitives";
-import { toBooleanDataValue } from "./ScreenModeGestureWorkspaceShared";
 import {
   createSpriteOutlineStyle,
   createStageMarqueeStyle,
@@ -183,7 +182,6 @@ export const ScreenModeStageViewport: React.FC<
           <div
             ref={stageState.setStageRef}
             aria-label="スクリーン配置ステージ"
-            data-dragging-state={toBooleanDataValue(stageState.isDragging)}
             tabIndex={0}
             onContextMenu={handleStageContextMenuWithBackgroundEditing}
             onKeyDown={stageUiState.handleKeyDown}
@@ -211,12 +209,6 @@ export const ScreenModeStageViewport: React.FC<
               {screen.sprites.map((sprite, index) => (
                 <div
                   key={`screen-stage-sprite-outline-${index}`}
-                  data-outline-visible-state={toBooleanDataValue(
-                    stageUiState.displayState.isSpriteOutlineVisible,
-                  )}
-                  data-selected-state={toBooleanDataValue(
-                    stageState.selectedSpriteIndices.has(index),
-                  )}
                   data-stage-sprite-outline="true"
                   style={createSpriteOutlineStyle(
                     sprite.x,

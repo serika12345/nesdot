@@ -13,7 +13,7 @@ import {
 } from "./components/characterMode/ui/primitives/CharacterModePrimitives";
 
 describe("CharacterModePrimitives", () => {
-  it("maps boolean state props to data attributes", () => {
+  it("maps boolean state props to style and component variants", () => {
     const viewportMarkup = renderToStaticMarkup(
       <CharacterStageViewport dragging={true}>Preview</CharacterStageViewport>,
     );
@@ -38,8 +38,8 @@ describe("CharacterModePrimitives", () => {
     expect(viewportMarkup).toContain("cursor:grabbing");
     expect(viewportMarkup).not.toContain("character-stage-viewport");
     expect(viewportMarkup).not.toMatch(/\sdragging="/);
-    expect(menuMarkup).toContain('data-ready="false"');
     expect(menuMarkup).toContain("visibility:hidden");
+    expect(menuMarkup).not.toContain("data-ready=");
     expect(menuMarkup).not.toContain("character-positioned-action-menu");
     expect(menuMarkup).not.toMatch(/\smenuLeft="/);
     expect(menuMarkup).not.toMatch(/\smenuTop="/);
