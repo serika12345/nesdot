@@ -24,32 +24,6 @@ interface ScreenStageDebugState {
   }>;
 }
 
-const parseLayoutEntry = (
-  entry: string,
-): {
-  x: number;
-  y: number;
-} => {
-  const parts = entry.split(":");
-  const coordinates = (parts[1] ?? "0,0").split(",");
-
-  return {
-    x: Number(coordinates[0] ?? "0"),
-    y: Number(coordinates[1] ?? "0"),
-  };
-};
-
-const parseStageLayout = (
-  rawLayout: string,
-): ReadonlyArray<{
-  x: number;
-  y: number;
-}> =>
-  rawLayout
-    .split("|")
-    .filter((entry) => entry !== "")
-    .map(parseLayoutEntry);
-
 const getScreenStageDebugState = async (
   stage: Locator,
 ): Promise<ScreenStageDebugState> =>
@@ -66,8 +40,24 @@ const getScreenStageDebugState = async (
     .then((state) => ({
       spriteCount: state.spriteCount,
       selectedCount: state.selectedCount,
-      layout: parseStageLayout(state.rawLayout),
+      layout: state.rawLayout
+        .split("|")
+        .filter((entry) => entry !== "")
+        .map((entry) => {
+          const parts = entry.split(":");
+          const coordinates = (parts[1] ?? "0,0").split(",");
+
+          return {
+            x: Number(coordinates[0] ?? "0"),
+            y: Number(coordinates[1] ?? "0"),
+          };
+        }),
     }));
+
+const readCanvasRenderSignature = async (canvas: Locator): Promise<string> =>
+  canvas.evaluate((element) =>
+    element instanceof HTMLCanvasElement ? element.toDataURL() : "",
+  );
 
 const dragStageSelection = async (
   stage: Locator,
@@ -423,9 +413,8 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
   const screenCanvas = page.getByLabel("画面プレビューキャンバス", {
     exact: true,
   });
-  const beforeRenderSignature = await screenCanvas.getAttribute(
-    "data-render-signature",
-  );
+  const beforeTilePlacementSignature =
+    await readCanvasRenderSignature(screenCanvas);
 
   await expect(placementOverlay).toBeVisible();
   await expect
@@ -495,14 +484,12 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
   await clickLocatorWithMouseAtOffset(page, stage, { x: 84, y: 60 });
 
   await expect(placementOverlay).toHaveCount(0);
-  await expect(screenCanvas).not.toHaveAttribute(
-    "data-render-signature",
-    beforeRenderSignature ?? "",
-  );
+  await expect
+    .poll(async () => readCanvasRenderSignature(screenCanvas))
+    .not.toBe(beforeTilePlacementSignature);
 
-  const afterTilePlacementSignature = await screenCanvas.getAttribute(
-    "data-render-signature",
-  );
+  const afterTilePlacementSignature =
+    await readCanvasRenderSignature(screenCanvas);
 
   await page
     .getByRole("button", { name: "BGパレット変更", exact: true })
@@ -533,10 +520,9 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
 
   await dispatchPointerClickAtOffset(stage, 403, { x: 84, y: 60 });
 
-  await expect(screenCanvas).not.toHaveAttribute(
-    "data-render-signature",
-    afterTilePlacementSignature ?? "",
-  );
+  await expect
+    .poll(async () => readCanvasRenderSignature(screenCanvas))
+    .not.toBe(afterTilePlacementSignature);
 
   await expect(placementOverlay).toHaveCount(0);
   await expect(page.getByText("最後の仮配置", { exact: true })).toHaveCount(0);

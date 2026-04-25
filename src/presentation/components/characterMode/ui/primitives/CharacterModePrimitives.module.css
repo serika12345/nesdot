@@ -100,7 +100,7 @@
   cursor: default;
 }
 
-.characterStageViewport[data-dragging-state="true"] {
+.characterStageViewportDragging {
   cursor: grabbing;
 }
 
@@ -172,7 +172,7 @@
     box-shadow 160ms ease;
 }
 
-.characterStageSurface[data-active-drop="true"] {
+.characterStageSurfaceActiveDrop {
   border-color: var(--accent-border-strong);
   transform: scale(1.01);
 }

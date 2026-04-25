@@ -22,7 +22,7 @@ describe("CharacterModePrimitives", () => {
     expect(markup).not.toContain("MuiPaper-outlined");
   });
 
-  it("renders CharacterStageViewport with local drag state markers", () => {
+  it("renders CharacterStageViewport with local drag state styling", () => {
     const markup = renderToStaticMarkup(
       React.createElement(
         CharacterStageViewport,
@@ -33,9 +33,10 @@ describe("CharacterModePrimitives", () => {
       ),
     );
 
-    expect(markup).toContain('data-dragging-state="true"');
     expect(markup).toContain("viewport");
     expect(markup).toContain("characterStageViewport");
+    expect(markup).toContain("characterStageViewportDragging");
+    expect(markup).not.toContain("data-dragging-state=");
     expect(markup).not.toContain("MuiPaper-outlined");
   });
 });

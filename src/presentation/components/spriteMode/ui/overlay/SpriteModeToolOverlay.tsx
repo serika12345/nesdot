@@ -1,6 +1,7 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { type SpriteModeToolOverlayState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeToolMenu } from "../menu/SpriteModeToolMenu";
 import styles from "./SpriteModeToolOverlay.module.css";
@@ -27,8 +28,12 @@ export const SpriteModeToolOverlay: React.FC<SpriteModeToolOverlayProps> = ({
         >
           {toolOverlay.isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
           <ChevronDownIcon
-            className={styles.chevron}
-            data-open={toolOverlay.isToolsOpen}
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              toolOverlay.isToolsOpen === true
+                ? (styles.chevronOpen ?? "")
+                : false,
+            )}
           />
         </Button>
       </div>

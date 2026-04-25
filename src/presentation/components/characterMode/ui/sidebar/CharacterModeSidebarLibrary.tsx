@@ -5,14 +5,12 @@ import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../logic/characterModeEditorState";
 import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import styles from "./CharacterModeSidebarLibrary.module.css";
-
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
 
 interface CharacterModeSidebarLibraryContentProps {
   handleLibraryPointerDown: (
@@ -128,16 +126,20 @@ export const CharacterModeSidebarLibrary: React.FC<
         >
           {isLibraryOpen ? "閉じる" : "開く"}
           <ChevronDownIcon
-            className={styles.chevron}
-            data-open={isLibraryOpen}
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              isLibraryOpen === true ? (styles.chevronOpen ?? "") : false,
+            )}
           />
         </Button>
       </div>
 
       <div
-        className={styles.contentWrap}
+        className={mergeClassNames(
+          styles.contentWrap ?? "",
+          isLibraryOpen === false ? (styles.contentWrapClosed ?? "") : false,
+        )}
         id={libraryContentId}
-        data-open-state={toBooleanDataValue(isLibraryOpen)}
         aria-hidden={isLibraryOpen === false}
       >
         <CharacterModeSidebarLibraryContent

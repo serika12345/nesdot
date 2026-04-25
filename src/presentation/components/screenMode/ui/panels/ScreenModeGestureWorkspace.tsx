@@ -82,8 +82,7 @@ export const ScreenModeGestureWorkspace: React.FC<
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (
         event.target instanceof Element &&
-        event.target.closest('[data-screen-context-menu="true"]') instanceof
-          Element
+        event.target.closest('[role="menu"]') instanceof Element
       ) {
         return;
       }

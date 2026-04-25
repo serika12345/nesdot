@@ -36,7 +36,6 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
     LibraryPreviewCard: ({
       badge,
       children,
-      interactive,
       label,
       preview,
       selected,
@@ -54,8 +53,7 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
         "button",
         {
           ...props,
-          "data-selected-state": selected === true ? "true" : "false",
-          "data-interactive-state": interactive === true ? "true" : "false",
+          "aria-pressed": selected === true ? "true" : "false",
         },
         children,
         preview,
@@ -110,7 +108,7 @@ describe("SpriteModeLibraryPanel", () => {
     expect(markup).toContain("preview");
     expect(markup).toContain("Sprite 0");
     expect(markup).toContain("Sprite 1");
-    expect(markup).toContain('data-selected-state="true"');
-    expect(markup).toContain('data-selected-state="false"');
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain('aria-pressed="false"');
   });
 });

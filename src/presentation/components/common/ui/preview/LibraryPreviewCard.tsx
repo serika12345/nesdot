@@ -3,9 +3,6 @@ import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
 import styles from "./LibraryPreviewCard.module.css";
 
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
-
 const LIBRARY_PREVIEW_CARD_STYLE: React.CSSProperties = {
   width: "100%",
   alignItems: "stretch",
@@ -52,11 +49,11 @@ export const LibraryPreviewCard = React.forwardRef<
       {...props}
       className={mergeClassNames(
         styles.card ?? "",
+        interactive === true ? (styles.interactive ?? "") : false,
+        dragging === true ? (styles.dragging ?? "") : false,
         typeof className === "string" ? className : false,
       )}
-      data-dragging-state={toBooleanDataValue(dragging)}
-      data-interactive-state={toBooleanDataValue(interactive)}
-      data-selected-state={toBooleanDataValue(selected)}
+      aria-pressed={selected === true}
       color={isActive === true ? "teal" : "gray"}
       size="1"
       style={{ ...LIBRARY_PREVIEW_CARD_STYLE, ...(style ?? {}) }}

@@ -6,6 +6,7 @@ import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/Char
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { type SpriteModeLibraryPanelState } from "../../logic/spriteModeLibraryState";
 import styles from "./SpriteModeLibraryPanel.module.css";
 
@@ -47,16 +48,20 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
         >
           {isLibraryOpen ? "閉じる" : "開く"}
           <ChevronDownIcon
-            className={styles.chevron}
-            data-open={isLibraryOpen}
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              isLibraryOpen === true ? (styles.chevronOpen ?? "") : false,
+            )}
           />
         </Button>
       </div>
 
       <div
-        className={styles.contentWrap}
+        className={mergeClassNames(
+          styles.contentWrap ?? "",
+          isLibraryOpen === false ? (styles.contentWrapClosed ?? "") : false,
+        )}
         id={libraryContentId}
-        data-open-state={isLibraryOpen === true ? "true" : "false"}
         aria-hidden={isLibraryOpen === false}
       >
         <div className={styles.scrollArea} id={`${libraryContentId}-scroll`}>

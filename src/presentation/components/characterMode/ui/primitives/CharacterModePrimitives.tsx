@@ -74,9 +74,6 @@ type StageSurfaceProps = React.ComponentProps<"div"> & {
   readonly stageWidthPx: number;
 };
 
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
-
 const createLayout = (
   baseClassName: string,
 ): React.ForwardRefExoticComponent<
@@ -164,9 +161,11 @@ export const CharacterStageViewport = React.forwardRef<
       ref={ref}
       className={mergeClassNames(
         styles.characterStageViewport ?? "",
+        dragging === true
+          ? (styles.characterStageViewportDragging ?? "")
+          : false,
         className ?? false,
       )}
-      data-dragging-state={toBooleanDataValue(dragging)}
       style={createCharacterStageViewportStyle(style ?? {}, dragging === true)}
     />
   );
@@ -397,9 +396,11 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
       <div
         {...props}
         ref={ref}
-        data-active-drop={toBooleanDataValue(activeDrop)}
         className={mergeClassNames(
           styles.characterStageSurface ?? "",
+          activeDrop === true
+            ? (styles.characterStageSurfaceActiveDrop ?? "")
+            : false,
           className ?? false,
         )}
         style={createStageSurfaceStyle(

@@ -89,7 +89,6 @@ export const CharacterModeSpriteMenu: React.FC<
             return createPortal(
               <Theme asChild>
                 <PortalOverlay
-                  data-sprite-context-menu-root="true"
                   onContextMenu={handleComposeContextMenu}
                   onPointerDown={menuState.closeSpriteContextMenu}
                 >

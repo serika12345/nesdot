@@ -67,7 +67,7 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
     exact: true,
   });
   await expect(spriteZeroButton).toBeVisible();
-  await expect(spriteZeroButton).toHaveAttribute("data-selected-state", "true");
+  await expect(spriteZeroButton).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
     "パレット0",
   );
@@ -77,7 +77,7 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
     exact: true,
   });
   await spriteOneButton.click();
-  await expect(spriteOneButton).toHaveAttribute("data-selected-state", "true");
+  await expect(spriteOneButton).toHaveAttribute("aria-pressed", "true");
 
   await selectMaterialOption(page, "パレット", "パレット2");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(

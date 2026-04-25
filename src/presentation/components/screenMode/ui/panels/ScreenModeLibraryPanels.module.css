@@ -46,11 +46,11 @@
     scrollbar-gutter: stable;
   }
 
-  .scrollArea[data-kind="sprite"] {
+  .spriteScrollArea {
     max-height: 13.5rem;
   }
 
-  .scrollArea[data-kind="character"] {
+  .characterScrollArea {
     max-height: 15.5rem;
   }
 
@@ -67,7 +67,7 @@
     transition: transform 160ms ease;
   }
 
-  .chevron[data-open="true"] {
+  .chevronOpen {
     transform: rotate(180deg);
   }
 }

@@ -33,9 +33,9 @@ describe("CharacterModePrimitives", () => {
       </PositionedActionMenuButton>,
     );
 
-    expect(viewportMarkup).toContain('data-dragging-state="true"');
     expect(viewportMarkup).toContain("MuiPaper-outlined");
     expect(viewportMarkup).toContain("cursor:grabbing");
+    expect(viewportMarkup).not.toContain("data-dragging-state=");
     expect(viewportMarkup).not.toContain("character-stage-viewport");
     expect(viewportMarkup).not.toMatch(/\sdragging="/);
     expect(menuMarkup).toContain("visibility:hidden");
@@ -76,8 +76,8 @@ describe("CharacterModePrimitives", () => {
       <PixelPreviewCell pixelSize={3} colorHex="#123456" />,
     );
 
-    expect(stageMarkup).toContain('data-active-drop="true"');
     expect(stageMarkup).not.toContain("character-stage-surface");
+    expect(stageMarkup).not.toContain("data-active-drop=");
     expect(stageMarkup).not.toMatch(/\sactiveDrop="/);
     expect(stageMarkup).not.toMatch(/\sstageWidthPx="/);
     expect(stageMarkup).not.toMatch(/\sstageHeightPx="/);

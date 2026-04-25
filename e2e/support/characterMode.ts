@@ -160,10 +160,9 @@ export const clickCanvasPixel = async (
 ): Promise<void> => {
   const rect = await locator.evaluate((element) => {
     const bounds = element.getBoundingClientRect();
-    const stageWidth = Number(element.getAttribute("data-stage-width") ?? "0");
-    const stageHeight = Number(
-      element.getAttribute("data-stage-height") ?? "0",
-    );
+    const stageWidth = element instanceof HTMLCanvasElement ? element.width : 0;
+    const stageHeight =
+      element instanceof HTMLCanvasElement ? element.height : 0;
 
     return {
       width: bounds.width,

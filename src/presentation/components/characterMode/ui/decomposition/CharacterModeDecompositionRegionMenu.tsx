@@ -58,7 +58,6 @@ export const CharacterModeDecompositionRegionMenu: React.FC<
             return createPortal(
               <Theme asChild>
                 <PortalOverlay
-                  data-decomposition-region-context-menu-root="true"
                   onContextMenu={(event) => event.preventDefault()}
                   onPointerDown={menuState.closeDecompositionRegionContextMenu}
                 >

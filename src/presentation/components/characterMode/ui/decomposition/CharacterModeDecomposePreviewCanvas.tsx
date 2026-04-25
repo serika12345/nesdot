@@ -178,8 +178,6 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
             <DecompositionCanvasElement
               ref={decompositionHandlers.handleDecompositionCanvasRef}
               aria-label="分解描画キャンバス"
-              data-stage-width={stageSize.stageWidth}
-              data-stage-height={stageSize.stageHeight}
               width={stageSize.stageWidth}
               height={stageSize.stageHeight}
               onPointerDown={

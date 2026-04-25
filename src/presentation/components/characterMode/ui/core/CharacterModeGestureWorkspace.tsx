@@ -59,7 +59,7 @@ export const CharacterModeGestureWorkspace: React.FC = () => {
     const targetElement = event.target;
     const isInsideContextMenu =
       targetElement instanceof Element &&
-      targetElement.closest("[data-context-menu]") instanceof Element;
+      targetElement.closest('[role="menu"]') instanceof Element;
 
     if (isInsideContextMenu === true) {
       return;

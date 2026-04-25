@@ -38,7 +38,7 @@
     cursor: default;
   }
 
-  .previewViewport[data-active="true"] {
+  .previewViewportActive {
     cursor: grabbing;
   }
 
@@ -57,7 +57,7 @@
     min-height: 0;
   }
 
-  .librarySectionContent[data-open-state="false"] {
+  .librarySectionContentClosed {
     display: none;
   }
 

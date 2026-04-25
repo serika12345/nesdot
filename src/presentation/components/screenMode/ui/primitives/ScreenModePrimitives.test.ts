@@ -8,15 +8,16 @@ import {
 } from "./ScreenModePrimitives";
 
 describe("ScreenModePrimitives", () => {
-  it("maps the preview viewport active state to a data attribute", () => {
+  it("maps the preview viewport active state to a local class", () => {
     const markup = renderToStaticMarkup(
       React.createElement(PreviewViewport, { active: true }, "Preview"),
     );
 
-    expect(markup).toContain('data-active="true"');
     expect(markup).toContain("previewViewport");
+    expect(markup).toContain("previewViewportActive");
     expect(markup).not.toContain("screen-mode-preview-viewport");
     expect(markup).not.toContain("app-canvas-viewport");
+    expect(markup).not.toContain("data-active=");
     expect(markup).not.toMatch(/\sactive="/);
   });
 

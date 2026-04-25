@@ -10,9 +10,6 @@ interface PreviewViewportProps extends React.HTMLAttributes<HTMLDivElement> {
   readonly active?: boolean;
 }
 
-const toBooleanDataValue = (value?: boolean): "true" | "false" =>
-  value === true ? "true" : "false";
-
 const createLayout = (
   defaultClassName: string,
 ): React.ForwardRefExoticComponent<
@@ -49,9 +46,9 @@ export const PreviewViewport = React.forwardRef<
       ref={ref}
       className={mergeClassNames(
         styles.previewViewport ?? "",
+        active === true ? (styles.previewViewportActive ?? "") : false,
         className ?? false,
       )}
-      data-active={toBooleanDataValue(active)}
     />
   );
 });
@@ -68,9 +65,9 @@ export const LibrarySectionContent = React.forwardRef<
       ref={ref}
       className={mergeClassNames(
         styles.librarySectionContent ?? "",
+        open === false ? (styles.librarySectionContentClosed ?? "") : false,
         className ?? false,
       )}
-      data-open-state={toBooleanDataValue(open)}
     />
   );
 });

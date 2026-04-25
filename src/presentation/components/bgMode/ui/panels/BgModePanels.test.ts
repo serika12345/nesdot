@@ -98,6 +98,6 @@ describe("BgModePanels", () => {
     expect(markup).toContain('data-accent-color="teal"');
     expect(markup).toContain("rt-variant-solid");
     expect(markup).not.toContain("app-collapse-toggle");
-    expect(markup).toContain('data-open="true"');
+    expect(markup).toContain('aria-expanded="true"');
   });
 });

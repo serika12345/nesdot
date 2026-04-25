@@ -18,27 +18,6 @@ export const useScreenCanvas = ({
 }: UseCanvasParams) => {
   const canvasRef = useRef<O.Option<HTMLCanvasElement>>(O.none);
 
-  const renderSignature = (
-    hexGrid: ReadonlyArray<ReadonlyArray<string>>,
-  ): string =>
-    String(
-      hexGrid.reduce(
-        (gridChecksum, row) =>
-          row.reduce(
-            (rowChecksum, hex) =>
-              Array.from(hex).reduce(
-                (hexChecksum, character) =>
-                  (Math.imul(hexChecksum, 16777619) ^
-                    character.charCodeAt(0)) >>>
-                  0,
-                rowChecksum,
-              ),
-            gridChecksum,
-          ),
-        2166136261,
-      ),
-    );
-
   const drawAll = useCallback(() => {
     if (O.isNone(canvasRef.current)) return;
     const cvs = canvasRef.current.value;
@@ -56,9 +35,6 @@ export const useScreenCanvas = ({
     ctx.imageSmoothingEnabled = false;
 
     const hexGrid = renderScreenToHexArray(screen, nes);
-    Object.assign(cvs.dataset, {
-      renderSignature: renderSignature(hexGrid),
-    });
 
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {

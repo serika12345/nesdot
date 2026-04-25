@@ -8,6 +8,7 @@ import {
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { BgModeTileEditorCanvas } from "../canvas/BgModeTileEditorCanvas";
 import { BgModeToolMenu } from "../menu/BgModeToolMenu";
 import styles from "./BgModePanels.module.css";
@@ -83,8 +84,12 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
           >
             {editorPanelState.isToolMenuOpen ? "閉じる" : "開く"}
             <ChevronDownIcon
-              className={styles.chevron}
-              data-open={editorPanelState.isToolMenuOpen}
+              className={mergeClassNames(
+                styles.chevron ?? "",
+                editorPanelState.isToolMenuOpen === true
+                  ? (styles.chevronOpen ?? "")
+                  : false,
+              )}
             />
           </Button>
 

@@ -27,7 +27,7 @@
     min-height: 0;
   }
 
-  .contentWrap[data-open-state="false"] {
+  .contentWrapClosed {
     display: none;
   }
 
@@ -52,7 +52,7 @@
     transition: transform 160ms ease;
   }
 
-  .chevron[data-open="true"] {
+  .chevronOpen {
     transform: rotate(180deg);
   }
 }

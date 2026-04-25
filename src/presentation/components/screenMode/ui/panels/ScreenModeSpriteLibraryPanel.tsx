@@ -4,6 +4,7 @@ import { Badge, Button } from "@radix-ui/themes";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
@@ -48,7 +49,12 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-            <ChevronDownIcon className={styles.chevron} data-open={isOpen} />
+            <ChevronDownIcon
+              className={mergeClassNames(
+                styles.chevron ?? "",
+                isOpen === true ? (styles.chevronOpen ?? "") : false,
+              )}
+            />
           </Button>
         </div>
       </div>
@@ -58,7 +64,12 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
         open={isOpen}
         aria-hidden={isOpen === false}
       >
-        <div className={styles.scrollArea} data-kind="sprite">
+        <div
+          className={mergeClassNames(
+            styles.scrollArea ?? "",
+            styles.spriteScrollArea ?? "",
+          )}
+        >
           <SpriteLibraryGrid>
             {sprites.map((sprite, spriteIndex) => (
               <LibraryPreviewCard

@@ -3,6 +3,7 @@ import { Badge, Button } from "@radix-ui/themes";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { ScreenModeCharacterPreview } from "../preview/ScreenModeCharacterPreview";
 import {
@@ -48,7 +49,12 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-            <ChevronDownIcon className={styles.chevron} data-open={isOpen} />
+            <ChevronDownIcon
+              className={mergeClassNames(
+                styles.chevron ?? "",
+                isOpen === true ? (styles.chevronOpen ?? "") : false,
+              )}
+            />
           </Button>
         </div>
       </div>
@@ -59,7 +65,12 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
         aria-hidden={isOpen === false}
       >
         {libraryState.characterPreviewCards.length > 0 ? (
-          <div className={styles.scrollArea} data-kind="character">
+          <div
+            className={mergeClassNames(
+              styles.scrollArea ?? "",
+              styles.characterScrollArea ?? "",
+            )}
+          >
             <CharacterLibraryGrid>
               {libraryState.characterPreviewCards.map((characterCard) => (
                 <LibraryPreviewCard

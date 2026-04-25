@@ -275,16 +275,6 @@ export const useCharacterModeComposeBridge = (
       width: scaledWidth,
       height: scaledHeight,
     });
-    composeCanvas.wrapperEl.setAttribute("data-stage-width", `${stageWidth}`);
-    composeCanvas.wrapperEl.setAttribute("data-stage-height", `${stageHeight}`);
-    composeCanvas.upperCanvasEl.setAttribute(
-      "data-stage-width",
-      `${stageWidth}`,
-    );
-    composeCanvas.upperCanvasEl.setAttribute(
-      "data-stage-height",
-      `${stageHeight}`,
-    );
     composeCanvas.lowerCanvasEl.style.setProperty(
       "image-rendering",
       "pixelated",

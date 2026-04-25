@@ -25,7 +25,6 @@ export const ScreenModeGestureContextMenu: React.FC<
     <div
       aria-label="スクリーン配置コンテキストメニュー"
       className={styles.menu}
-      data-screen-context-menu="true"
       role="menu"
       style={{
         left: contextMenuPosition.value.left,

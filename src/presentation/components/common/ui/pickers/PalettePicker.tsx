@@ -3,6 +3,7 @@ import React from "react";
 import { SurfaceCard } from "../chrome/SurfaceCard";
 import { ChevronDownIcon } from "../icons/AppIcons";
 import paletteColors from "../palette/NesPaletteColors.module.css";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { type PalettePickerState } from "../../logic/palettePickerState";
 import styles from "./PalettePicker.module.css";
@@ -72,8 +73,12 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
             ? "パレットを閉じる"
             : "パレットを開く"}
           <ChevronDownIcon
-            className={styles.chevron}
-            data-open={palettePickerState.isPaletteListOpen}
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              palettePickerState.isPaletteListOpen === true
+                ? (styles.chevronOpen ?? "")
+                : false,
+            )}
           />
         </Button>
         <Button
@@ -88,8 +93,12 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
             ? "色ライブラリを閉じる"
             : "色ライブラリを開く"}
           <ChevronDownIcon
-            className={styles.chevron}
-            data-open={palettePickerState.isLibraryOpen}
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              palettePickerState.isLibraryOpen === true
+                ? (styles.chevronOpen ?? "")
+                : false,
+            )}
           />
         </Button>
       </div>

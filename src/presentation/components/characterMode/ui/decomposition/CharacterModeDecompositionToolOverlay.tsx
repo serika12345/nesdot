@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, IconButton } from "@radix-ui/themes";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { mergeClassNames } from "../../../../styleClassNames";
 import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
 import styles from "./CharacterModeDecomposition.module.css";
 
@@ -20,7 +21,12 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
           onClick={() => setIsToolsOpen((previous) => !previous)}
         >
           分解ツールを閉じる
-          <ChevronDownIcon className={styles.chevron} data-open="true" />
+          <ChevronDownIcon
+            className={mergeClassNames(
+              styles.chevron ?? "",
+              styles.chevronOpen ?? "",
+            )}
+          />
         </Button>
       ) : (
         <IconButton
@@ -30,7 +36,7 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
           onClick={() => setIsToolsOpen((previous) => !previous)}
           variant="surface"
         >
-          <ChevronDownIcon className={styles.chevron} data-open="false" />
+          <ChevronDownIcon className={styles.chevron} />
         </IconButton>
       )}
 
