@@ -61,6 +61,9 @@ describe("SpriteModePanels", () => {
     expect(markup).toContain("スプライトキャンバスパネル");
     expect(markup).toContain('aria-label="パレット"');
     expect(markup).toContain("rt-SelectTrigger");
+    expect(markup).not.toContain("現在のスロット");
+    expect(markup).toContain("パレット0");
+    expect(markup).not.toContain("パレット 0");
     expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-canvas-viewport");
   });

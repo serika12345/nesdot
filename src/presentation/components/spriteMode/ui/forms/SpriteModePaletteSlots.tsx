@@ -1,4 +1,4 @@
-import { Badge, Select, Text } from "@radix-ui/themes";
+import { Select } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
@@ -51,46 +51,34 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
   onPaletteClick,
 }) => {
   const paletteOptions = palettes.map((_, index) => ({
-    label: `パレット ${index}`,
+    label: `パレット${index}`,
     value: String(index),
   }));
-  const activePaletteLabel =
-    paletteOptions.find((option) => option.value === String(activePalette))
-      ?.label ?? "パレット";
+  const activePaletteLabel = `パレット${activePalette}`;
 
   return (
     <div className={styles.root}>
       <SurfaceCard className={styles.surface}>
         <div className={styles.content}>
-          <div className={styles.header}>
-            <Text size="2">現在のスロット</Text>
-            <Badge color="teal" size="2" variant="surface">
-              {`スロット ${activeSlot}`}
-            </Badge>
-          </div>
-
-          <label className={styles.paletteField}>
-            <span className={styles.label}>パレット</span>
-            <Select.Root
-              value={String(activePalette)}
-              onValueChange={handlePaletteChange}
-            >
-              <Select.Trigger aria-label="パレット" className={styles.select}>
-                {activePaletteLabel}
-              </Select.Trigger>
-              {typeof document !== "undefined" ? (
-                <Select.Content>
-                  {paletteOptions.map((option) => (
-                    <Select.Item key={option.value} value={option.value}>
-                      {option.label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              ) : (
-                <></>
-              )}
-            </Select.Root>
-          </label>
+          <Select.Root
+            value={String(activePalette)}
+            onValueChange={handlePaletteChange}
+          >
+            <Select.Trigger aria-label="パレット" className={styles.select}>
+              {activePaletteLabel}
+            </Select.Trigger>
+            {typeof document !== "undefined" ? (
+              <Select.Content>
+                {paletteOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            ) : (
+              <></>
+            )}
+          </Select.Root>
 
           <div className={styles.row}>
             {palettes[activePalette].map((colorIndex, slotIndex) => {

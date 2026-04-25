@@ -69,7 +69,7 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
   await expect(spriteZeroButton).toBeVisible();
   await expect(spriteZeroButton).toHaveAttribute("data-selected-state", "true");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
-    "パレット 0",
+    "パレット0",
   );
 
   const spriteOneButton = page.getByRole("button", {
@@ -79,9 +79,9 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
   await spriteOneButton.click();
   await expect(spriteOneButton).toHaveAttribute("data-selected-state", "true");
 
-  await selectMaterialOption(page, "パレット", "パレット 2");
+  await selectMaterialOption(page, "パレット", "パレット2");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
-    "パレット 2",
+    "パレット2",
   );
 
   await page.getByRole("button", { name: "ツールを開く" }).click();
