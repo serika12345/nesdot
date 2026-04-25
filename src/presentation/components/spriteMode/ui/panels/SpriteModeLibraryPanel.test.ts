@@ -107,12 +107,9 @@ describe("SpriteModeLibraryPanel", () => {
     );
 
     expect(markup).toContain("スプライトライブラリ");
-    expect(markup).toContain("2 sprites");
-    expect(markup).toContain("Project Sprite Size 8x8");
     expect(markup).toContain("preview");
     expect(markup).toContain("Sprite 0");
     expect(markup).toContain("Sprite 1");
-    expect(markup).toContain("選択中 8×16");
     expect(markup).toContain('data-selected-state="true"');
     expect(markup).toContain('data-selected-state="false"');
   });

@@ -31,16 +31,6 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
       <div className={styles.headerRow}>
         <div className={styles.titleRow}>
           <h2 className={styles.label}>スプライトライブラリ</h2>
-          <div className={styles.badgeRow}>
-            <Badge color="gray" size="2" variant="surface">
-              {`${libraryPanelState.sprites.length} sprites`}
-            </Badge>
-            <Badge color="teal" size="2" variant="surface">
-              {libraryPanelState.projectSpriteSize === 8
-                ? "Project Sprite Size 8x8"
-                : "Project Sprite Size 8x16"}
-            </Badge>
-          </div>
         </div>
         <Button
           aria-controls={libraryContentId}
@@ -99,9 +89,7 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
                       size="2"
                       variant="surface"
                     >
-                      {isSelected === true
-                        ? `選択中 ${spriteTile.width}×${spriteTile.height}`
-                        : `${spriteTile.width}×${spriteTile.height}`}
+                      {`${spriteTile.width}×${spriteTile.height}`}
                     </Badge>
                   }
                 />

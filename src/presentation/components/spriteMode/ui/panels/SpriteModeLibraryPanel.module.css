@@ -6,6 +6,15 @@
     flex-direction: column;
     gap: 0.875rem;
     padding: 1rem;
+    overflow: hidden;
+  }
+
+  @media (min-width: 1200px) {
+    .panel {
+      flex: 0 0 17.5rem;
+      width: 17.5rem;
+      max-width: 17.5rem;
+    }
   }
 
   .headerRow {

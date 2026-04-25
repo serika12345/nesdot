@@ -117,8 +117,13 @@ test("sprite canvas panel stretches to the bottom of the workspace", async ({
     canvasPanel.evaluate((element) => element.getBoundingClientRect().bottom),
   ]);
   const bottomGap = leftPaneBottom - canvasPanelBottom;
+  const leftPaneWidth = await leftPane.evaluate(
+    (element) => element.getBoundingClientRect().width,
+  );
 
   expect(bottomGap).toBeLessThanOrEqual(24);
+  expect(leftPaneWidth).toBeGreaterThanOrEqual(240);
+  expect(leftPaneWidth).toBeLessThanOrEqual(320);
 });
 
 test("sprite mode paints pixels and supports global undo and redo shortcuts", async ({
