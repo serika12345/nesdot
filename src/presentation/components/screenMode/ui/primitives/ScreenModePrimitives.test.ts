@@ -17,7 +17,6 @@ describe("ScreenModePrimitives", () => {
     expect(markup).toContain("previewViewportActive");
     expect(markup).not.toContain("screen-mode-preview-viewport");
     expect(markup).not.toContain("app-canvas-viewport");
-    expect(markup).not.toContain("data-active=");
     expect(markup).not.toMatch(/\sactive="/);
   });
 

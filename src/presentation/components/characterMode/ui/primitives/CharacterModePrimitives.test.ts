@@ -36,7 +36,6 @@ describe("CharacterModePrimitives", () => {
     expect(markup).toContain("viewport");
     expect(markup).toContain("characterStageViewport");
     expect(markup).toContain("characterStageViewportDragging");
-    expect(markup).not.toContain("data-dragging-state=");
     expect(markup).not.toContain("MuiPaper-outlined");
   });
 });

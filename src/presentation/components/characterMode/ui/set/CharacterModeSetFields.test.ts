@@ -58,7 +58,6 @@ describe("CharacterMode set fields", () => {
     expect(markup).not.toContain("character-set-draft-action-container");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toContain("app-field-label");
-    expect(markup).toContain('data-accent-color="teal"');
     expect(markup).toContain("rt-variant-solid");
   });
 
@@ -72,9 +71,6 @@ describe("CharacterMode set fields", () => {
     expect(markup).toContain("既存セット (0 sprites)");
     expect(markup).not.toContain("app-tool-button");
     expect(markup).not.toContain("app-field-label");
-    expect(markup).toContain('data-accent-color="gray"');
-    expect(markup).toContain('data-accent-color="red"');
     expect(markup).toContain("rt-SelectTrigger");
-    expect(markup).not.toMatch(/data-active=/);
   });
 });

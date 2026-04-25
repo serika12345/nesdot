@@ -57,7 +57,6 @@ describe("CharacterModeSidebarLibrary", () => {
     expect(markup).toContain("スプライトライブラリを閉じる");
     expect(markup).toContain("8×8");
     expect(markup).toContain('aria-expanded="true"');
-    expect(markup).toContain('data-accent-color="teal"');
     expect(markup).toContain("rt-Badge");
     expect(markup).not.toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");

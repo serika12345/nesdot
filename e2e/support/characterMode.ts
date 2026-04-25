@@ -51,17 +51,22 @@ export const seedDiagonalSprite = async (page: Page): Promise<void> => {
 
 export const getStageDebugState = async (
   locator: Locator,
-): Promise<StageDebugState> =>
-  locator.evaluate((element) => ({
-    activeSetName: element.getAttribute("data-active-set-name") ?? "",
-    selectedSpriteIndex:
-      element.getAttribute("data-selected-sprite-index") ?? "",
-    selectedSpriteLayer:
-      element.getAttribute("data-selected-sprite-layer") ?? "",
-    selectedSpriteX: element.getAttribute("data-selected-sprite-x") ?? "",
-    selectedSpriteY: element.getAttribute("data-selected-sprite-y") ?? "",
-    stageSpriteCount: element.getAttribute("data-stage-sprite-count") ?? "",
-  }));
+): Promise<StageDebugState> => {
+  const text = (await locator.getByRole("status").textContent()) ?? "";
+  const match = text.match(
+    /^キャラクターステージ状態: セット (.*); スプライト数 ([0-9]+); 選択スプライト ([^;]+); レイヤー ([^;]+); X ([^;]+); Y ([^;]+)$/u,
+  );
+  const normalize = (value: string): string => (value === "なし" ? "" : value);
+
+  return {
+    activeSetName: normalize(match?.[1] ?? ""),
+    stageSpriteCount: normalize(match?.[2] ?? ""),
+    selectedSpriteIndex: normalize(match?.[3] ?? ""),
+    selectedSpriteLayer: normalize(match?.[4] ?? ""),
+    selectedSpriteX: normalize(match?.[5] ?? ""),
+    selectedSpriteY: normalize(match?.[6] ?? ""),
+  };
+};
 
 export const getStageGridState = async (
   locator: Locator,
@@ -76,7 +81,9 @@ export const clickComposeCanvasAtPosition = async (
   stageY: number,
   pointerId: number,
 ): Promise<void> => {
-  const fabricCanvas = locator.locator('[data-fabric="top"]');
+  const fabricCanvas = locator.getByLabel("合成描画キャンバス操作レイヤー", {
+    exact: true,
+  });
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(target, stageX, stageY);
 
@@ -115,7 +122,9 @@ export const openComposeCanvasSpriteContextMenu = async (
   sprite: { x: number; y: number },
   scale: number,
 ): Promise<void> => {
-  const fabricCanvas = locator.locator('[data-fabric="top"]');
+  const fabricCanvas = locator.getByLabel("合成描画キャンバス操作レイヤー", {
+    exact: true,
+  });
   const target = (await fabricCanvas.count()) > 0 ? fabricCanvas : locator;
   const point = await getLocatorPoint(
     target,

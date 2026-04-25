@@ -28,30 +28,23 @@ const getScreenStageDebugState = async (
   stage: Locator,
 ): Promise<ScreenStageDebugState> =>
   stage
-    .evaluate((element) => ({
-      spriteCount: Number(
-        element.getAttribute("data-stage-sprite-count") ?? "0",
-      ),
-      selectedCount: Number(
-        element.getAttribute("data-selected-sprite-count") ?? "0",
-      ),
-      rawLayout: element.getAttribute("data-stage-sprite-layout") ?? "",
-    }))
-    .then((state) => ({
-      spriteCount: state.spriteCount,
-      selectedCount: state.selectedCount,
-      layout: state.rawLayout
-        .split("|")
-        .filter((entry) => entry !== "")
-        .map((entry) => {
-          const parts = entry.split(":");
-          const coordinates = (parts[1] ?? "0,0").split(",");
+    .getByRole("img", { name: /配置スプライト/u })
+    .evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute("aria-label") ?? ""),
+    )
+    .then((labels) => ({
+      spriteCount: labels.length,
+      selectedCount: labels.filter((label) => label.includes("選択中")).length,
+      layout: labels.map((label) => {
+        const match = label.match(
+          /^配置スプライト [0-9]+: X ([0-9]+); Y ([0-9]+)/u,
+        );
 
-          return {
-            x: Number(coordinates[0] ?? "0"),
-            y: Number(coordinates[1] ?? "0"),
-          };
-        }),
+        return {
+          x: Number(match?.[1] ?? "0"),
+          y: Number(match?.[2] ?? "0"),
+        };
+      }),
     }));
 
 const readCanvasRenderSignature = async (canvas: Locator): Promise<string> =>
@@ -654,7 +647,9 @@ test("screen mode toggles sprite outlines from the zoom row", async ({
     .poll(async () => (await getScreenStageDebugState(stage)).spriteCount)
     .toBe(1);
 
-  const stageOutline = stage.locator("[data-stage-sprite-outline='true']");
+  const stageOutline = stage.getByRole("img", {
+    name: /配置スプライト 0/u,
+  });
 
   await expect(stageOutline).toHaveCount(1);
 

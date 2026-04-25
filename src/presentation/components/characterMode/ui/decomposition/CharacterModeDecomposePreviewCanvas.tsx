@@ -20,6 +20,7 @@ import {
   useCharacterModeViewportPan,
 } from "../../logic/characterModeEditorState";
 import {
+  CharacterStageStatus,
   CharacterStageViewport,
   DecompositionCanvasElement,
   PreviewControlsRow,
@@ -159,16 +160,6 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
           <StageSurface
             ref={stageHandlers.handleStageRef}
             aria-label="キャラクターステージ"
-            data-active-set-name={stageDisplay.activeSetName}
-            data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
-            data-selected-sprite-index={
-              stageDisplay.selectedSpriteStageMetadata.index
-            }
-            data-selected-sprite-layer={
-              stageDisplay.selectedSpriteStageMetadata.layer
-            }
-            data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
-            data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
             tabIndex={-1}
             activeDrop={stageDisplay.isStageDropActive}
             stageWidthPx={stageSize.stageWidth * stageSize.stageScale}
@@ -184,6 +175,11 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
                 decompositionHandlers.handleDecompositionCanvasPointerDown
               }
               cursorStyle={decompositionCanvas.decompositionCanvasCursor}
+            />
+            <CharacterStageStatus
+              activeSetName={stageDisplay.activeSetName}
+              selectedSprite={stageDisplay.selectedSpriteStageMetadata}
+              spriteCount={stageDisplay.activeSetSpriteCount}
             />
 
             {decompositionAnalysis.regions.map(

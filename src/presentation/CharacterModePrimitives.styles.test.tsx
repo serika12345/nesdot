@@ -35,11 +35,9 @@ describe("CharacterModePrimitives", () => {
 
     expect(viewportMarkup).toContain("MuiPaper-outlined");
     expect(viewportMarkup).toContain("cursor:grabbing");
-    expect(viewportMarkup).not.toContain("data-dragging-state=");
     expect(viewportMarkup).not.toContain("character-stage-viewport");
     expect(viewportMarkup).not.toMatch(/\sdragging="/);
     expect(menuMarkup).toContain("visibility:hidden");
-    expect(menuMarkup).not.toContain("data-ready=");
     expect(menuMarkup).not.toContain("character-positioned-action-menu");
     expect(menuMarkup).not.toMatch(/\smenuLeft="/);
     expect(menuMarkup).not.toMatch(/\smenuTop="/);
@@ -77,7 +75,6 @@ describe("CharacterModePrimitives", () => {
     );
 
     expect(stageMarkup).not.toContain("character-stage-surface");
-    expect(stageMarkup).not.toContain("data-active-drop=");
     expect(stageMarkup).not.toMatch(/\sactiveDrop="/);
     expect(stageMarkup).not.toMatch(/\sstageWidthPx="/);
     expect(stageMarkup).not.toMatch(/\sstageHeightPx="/);

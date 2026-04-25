@@ -199,35 +199,31 @@ const dragLibrarySpriteToStage = async (
 const hasVisibleComposePixels = async (
   composeCanvas: Locator,
 ): Promise<boolean> =>
-  composeCanvas.evaluate((element) => {
-    if (element instanceof HTMLElement === false) {
-      return false;
-    }
+  composeCanvas
+    .getByLabel("合成描画キャンバス表示レイヤー", { exact: true })
+    .evaluate((candidate) => {
+      if (candidate instanceof HTMLCanvasElement === false) {
+        return false;
+      }
 
-    const candidate = element.querySelector('[data-fabric="main"]');
+      const context = candidate.getContext("2d");
+      if (context instanceof CanvasRenderingContext2D === false) {
+        return false;
+      }
 
-    if (candidate instanceof HTMLCanvasElement === false) {
-      return false;
-    }
+      const alphaStep = 4;
+      const alphaChannelOffset = 3;
+      const pixelData = context.getImageData(
+        0,
+        0,
+        candidate.width,
+        candidate.height,
+      );
 
-    const context = candidate.getContext("2d");
-    if (context instanceof CanvasRenderingContext2D === false) {
-      return false;
-    }
-
-    const alphaStep = 4;
-    const alphaChannelOffset = 3;
-    const pixelData = context.getImageData(
-      0,
-      0,
-      candidate.width,
-      candidate.height,
-    );
-
-    return pixelData.data.some(
-      (value, index) => index % alphaStep === alphaChannelOffset && value > 0,
-    );
-  });
+      return pixelData.data.some(
+        (value, index) => index % alphaStep === alphaChannelOffset && value > 0,
+      );
+    });
 
 const paintSpriteModePixel = async (
   page: Page,
@@ -588,9 +584,7 @@ test("character mode redraws compose canvas immediately after switching modes", 
     .poll(async () => (await getStageDebugState(composeStage)).stageSpriteCount)
     .toBe("1");
 
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
   await expect(composeCanvas).toBeVisible();
   await clickComposeCanvasAtPosition(composeCanvas, 500, 500, 88);
   await expect
@@ -600,9 +594,9 @@ test("character mode redraws compose canvas immediately after switching modes", 
   await openMode(page, "スプライト編集");
   await openMode(page, "キャラクター編集");
 
-  const returnedComposeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const returnedComposeCanvas = page.getByLabel("合成描画キャンバス", {
+    exact: true,
+  });
   const returnedStage = page.getByLabel("キャラクターステージ");
 
   await expect(returnedComposeCanvas).toBeVisible();
@@ -735,9 +729,7 @@ test("character mode supports drag and drop placement and stage movement", async
 
   const viewport = page.getByLabel("プレビューキャンバスビュー");
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
   const librarySprite = page.getByRole("button", {
     name: "ライブラリスプライト 0",
   });
@@ -1310,9 +1302,7 @@ test("character compose mode deletes selected sprite with Delete key", async ({
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 40, { x: 160, y: 140 });
   await expect
@@ -1343,9 +1333,7 @@ test("character compose mode deletes selected sprite with Backspace key", async 
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 50, { x: 200, y: 200 });
   await expect
@@ -1376,9 +1364,7 @@ test("character compose mode nudges selected sprite in all four directions", asy
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 60, { x: 160, y: 160 });
   await expect
@@ -1427,9 +1413,7 @@ test("character compose mode closes sprite context menu with Escape key", async 
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 70, { x: 160, y: 140 });
   await expect
@@ -1474,9 +1458,7 @@ test("character compose mode shifts sprite layer down via context menu", async (
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 80, { x: 160, y: 140 });
   await expect
@@ -1533,9 +1515,7 @@ test("character compose mode auto-selects next sprite after keyboard deletion", 
   await waitForCharacterWorkspaceUnlock(page);
 
   const stage = page.getByLabel("キャラクターステージ");
-  const composeCanvas = page.locator(
-    '[data-fabric="wrapper"][aria-label="合成描画キャンバス"]',
-  );
+  const composeCanvas = page.getByLabel("合成描画キャンバス", { exact: true });
 
   await dragLibrarySpriteToStage(page, 0, 90, { x: 160, y: 140 });
   await dragLibrarySpriteToStage(page, 0, 91, { x: 250, y: 250 });

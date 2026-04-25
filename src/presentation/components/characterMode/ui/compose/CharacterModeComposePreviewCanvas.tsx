@@ -12,6 +12,7 @@ import {
 import { CHARACTER_MODE_STAGE_LIMITS } from "../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import {
+  CharacterStageStatus,
   CharacterStageViewport,
   ComposeCanvasMount,
   PreviewControlsRow,
@@ -137,16 +138,6 @@ export const CharacterModeComposePreviewCanvas: React.FC<
           <StageSurface
             ref={stageHandlers.handleStageRef}
             aria-label="キャラクターステージ"
-            data-active-set-name={stageDisplay.activeSetName}
-            data-stage-sprite-count={stageDisplay.activeSetSpriteCount}
-            data-selected-sprite-index={
-              stageDisplay.selectedSpriteStageMetadata.index
-            }
-            data-selected-sprite-layer={
-              stageDisplay.selectedSpriteStageMetadata.layer
-            }
-            data-selected-sprite-x={stageDisplay.selectedSpriteStageMetadata.x}
-            data-selected-sprite-y={stageDisplay.selectedSpriteStageMetadata.y}
             tabIndex={0}
             onContextMenu={composeHandlers.handleComposeContextMenu}
             onKeyDown={composeHandlers.handleStageKeyDown}
@@ -157,6 +148,11 @@ export const CharacterModeComposePreviewCanvas: React.FC<
           >
             <ComposeCanvasMount
               onCanvasRef={composeHandlers.handleComposeCanvasRef}
+            />
+            <CharacterStageStatus
+              activeSetName={stageDisplay.activeSetName}
+              selectedSprite={stageDisplay.selectedSpriteStageMetadata}
+              spriteCount={stageDisplay.activeSetSpriteCount}
             />
 
             {pipe(

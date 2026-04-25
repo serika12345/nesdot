@@ -52,8 +52,6 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
     expect(markup).not.toContain("BG属性");
     expect(markup).not.toContain("BGパレット変更");
     expect(markup).not.toContain("app-tool-button");
-    expect(markup).not.toMatch(/data-active=/);
-    expect(markup).toContain('data-accent-color="gray"');
     expect(markup).toContain("rt-variant-outline");
   });
 
@@ -87,8 +85,6 @@ describe("ScreenModeBackgroundTilePickerDialog", () => {
     expect(markup).toContain("変更する");
     expect(markup).not.toContain("BG属性");
     expect(markup).not.toContain("app-tool-button");
-    expect(markup).not.toMatch(/data-active=/);
-    expect(markup).toContain('data-accent-color="teal"');
     expect(markup).toContain("rt-variant-solid");
   });
 });

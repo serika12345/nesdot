@@ -74,6 +74,20 @@ type StageSurfaceProps = React.ComponentProps<"div"> & {
   readonly stageWidthPx: number;
 };
 
+type CharacterStageStatusProps = {
+  readonly activeSetName: string;
+  readonly selectedSprite: {
+    readonly index: string;
+    readonly layer: string;
+    readonly x: string;
+    readonly y: string;
+  };
+  readonly spriteCount: number;
+};
+
+const formatStageStatusValue = (value: string): string =>
+  value === "" ? "なし" : value;
+
 const createLayout = (
   baseClassName: string,
 ): React.ForwardRefExoticComponent<
@@ -415,3 +429,15 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
     );
   },
 );
+
+export const CharacterStageStatus: React.FC<CharacterStageStatusProps> = ({
+  activeSetName,
+  selectedSprite,
+  spriteCount,
+}) => {
+  return (
+    <div className={styles.visuallyHidden} role="status">
+      {`キャラクターステージ状態: セット ${formatStageStatusValue(activeSetName)}; スプライト数 ${spriteCount}; 選択スプライト ${formatStageStatusValue(selectedSprite.index)}; レイヤー ${formatStageStatusValue(selectedSprite.layer)}; X ${formatStageStatusValue(selectedSprite.x)}; Y ${formatStageStatusValue(selectedSprite.y)}`}
+    </div>
+  );
+};

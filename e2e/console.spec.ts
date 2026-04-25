@@ -12,7 +12,7 @@ const isMenuItemDisabled = async (locator: Locator): Promise<boolean> =>
   locator.evaluate((element) => {
     const ariaDisabled = element.getAttribute("aria-disabled");
 
-    return ariaDisabled === "true" || element.hasAttribute("data-disabled");
+    return ariaDisabled === "true";
   });
 
 const expectFileMenuState = async (

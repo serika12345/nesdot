@@ -190,9 +190,6 @@ export const ScreenModeStageViewport: React.FC<
             onPointerUp={handleStagePointerEndWithBackgroundEditing}
             onPointerCancel={handleStagePointerEndWithBackgroundEditing}
             onClick={handleStageClick}
-            data-stage-sprite-count={screen.sprites.length}
-            data-selected-sprite-count={stageState.selectedSpriteCount}
-            data-stage-sprite-layout={stageState.spriteLayout}
             style={createStageSurfaceStyle(
               stageWidth,
               stageHeight,
@@ -205,11 +202,16 @@ export const ScreenModeStageViewport: React.FC<
               showGrid={true}
             />
 
-            <div aria-hidden="true" className={styles.interactionLayer}>
+            <div className={styles.interactionLayer}>
               {screen.sprites.map((sprite, index) => (
                 <div
                   key={`screen-stage-sprite-outline-${index}`}
-                  data-stage-sprite-outline="true"
+                  aria-label={`配置スプライト ${index}: X ${sprite.x}; Y ${sprite.y}${
+                    stageState.selectedSpriteIndices.has(index) === true
+                      ? "; 選択中"
+                      : ""
+                  }`}
+                  role="img"
                   style={createSpriteOutlineStyle(
                     sprite.x,
                     sprite.y,

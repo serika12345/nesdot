@@ -225,7 +225,11 @@ export const useCharacterModeComposeBridge = (
     });
     composeCanvas.upperCanvasEl.setAttribute(
       "aria-label",
-      "合成描画キャンバス",
+      "合成描画キャンバス操作レイヤー",
+    );
+    composeCanvas.lowerCanvasEl.setAttribute(
+      "aria-label",
+      "合成描画キャンバス表示レイヤー",
     );
     composeCanvas.wrapperEl.setAttribute("aria-label", "合成描画キャンバス");
     composeCanvas.lowerCanvasEl.style.setProperty(
