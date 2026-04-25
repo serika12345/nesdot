@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockedHooks = vi.hoisted(() => {
   return {
     useSpriteModeCanvasPanelState: vi.fn(),
-    useSpriteModeEditorPanelState: vi.fn(),
+    useSpriteModeLibraryPanelState: vi.fn(),
   };
 });
 
@@ -15,9 +15,9 @@ vi.mock("../../logic/spriteModeCanvasState", () => {
   };
 });
 
-vi.mock("../../logic/spriteModeEditorState", () => {
+vi.mock("../../logic/spriteModeLibraryState", () => {
   return {
-    useSpriteModeEditorPanelState: mockedHooks.useSpriteModeEditorPanelState,
+    useSpriteModeLibraryPanelState: mockedHooks.useSpriteModeLibraryPanelState,
   };
 });
 
@@ -28,10 +28,10 @@ vi.mock("../panels/SpriteModeCanvasPanel", () => {
   };
 });
 
-vi.mock("../panels/SpriteModeEditorPanel", () => {
+vi.mock("../panels/SpriteModeLibraryPanel", () => {
   return {
-    SpriteModeEditorPanel: () =>
-      React.createElement("div", {}, "sprite-editor-panel"),
+    SpriteModeLibraryPanel: () =>
+      React.createElement("div", {}, "sprite-library-panel"),
   };
 });
 
@@ -41,20 +41,24 @@ describe("SpriteModeScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockedHooks.useSpriteModeEditorPanelState.mockReturnValue({
+    mockedHooks.useSpriteModeLibraryPanelState.mockReturnValue({
+      activeSprite: 0,
+      handleSpriteSelect: vi.fn(),
       projectSpriteSize: 8,
-      selectionFields: {
-        activePalette: 0,
-        activeSprite: 0,
-        handlePaletteChange: vi.fn(),
-        handleSpriteChange: vi.fn(),
-        palettes: [
-          [0, 1, 2, 3],
-          [0, 1, 2, 3],
-          [0, 1, 2, 3],
-          [0, 1, 2, 3],
-        ],
-      },
+      spritePalettes: [
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+        [0, 1, 2, 3],
+      ],
+      sprites: [
+        {
+          height: 8,
+          paletteIndex: 0,
+          pixels: [[0]],
+          width: 8,
+        },
+      ],
     });
     mockedHooks.useSpriteModeCanvasPanelState.mockReturnValue({
       canvasSurface: {
@@ -68,6 +72,7 @@ describe("SpriteModeScreen", () => {
       paletteSlots: {
         activePalette: 0,
         activeSlot: 1,
+        handlePaletteChange: vi.fn(),
         handlePaletteClick: vi.fn(),
         palettes: [
           [0, 1, 2, 3],
@@ -93,7 +98,8 @@ describe("SpriteModeScreen", () => {
   it("renders both sprite mode panels through the screen boundary", () => {
     const markup = renderToStaticMarkup(React.createElement(SpriteModeScreen));
 
-    expect(markup).toContain("sprite-editor-panel");
+    expect(markup).toContain("sprite-library-panel");
     expect(markup).toContain("sprite-canvas-panel");
+    expect(markup).not.toContain("sprite-editor-panel");
   });
 });

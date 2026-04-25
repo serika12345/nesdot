@@ -23,6 +23,7 @@ interface LibraryPreviewCardProps extends Omit<
   readonly dragging?: boolean;
   readonly interactive?: boolean;
   readonly label: React.ReactNode;
+  readonly selected?: boolean;
   readonly preview: React.ReactNode;
 }
 
@@ -37,11 +38,14 @@ export const LibraryPreviewCard = React.forwardRef<
     interactive = true,
     label,
     preview,
+    selected,
     style,
     ...props
   },
   ref,
 ) {
+  const isActive = selected === true || dragging === true;
+
   return (
     <Button
       ref={ref}
@@ -52,10 +56,11 @@ export const LibraryPreviewCard = React.forwardRef<
       )}
       data-dragging-state={toBooleanDataValue(dragging)}
       data-interactive-state={toBooleanDataValue(interactive)}
-      color={dragging === true ? "teal" : "gray"}
+      data-selected-state={toBooleanDataValue(selected)}
+      color={isActive === true ? "teal" : "gray"}
       size="1"
       style={{ ...LIBRARY_PREVIEW_CARD_STYLE, ...(style ?? {}) }}
-      variant={dragging === true ? "solid" : "surface"}
+      variant={isActive === true ? "solid" : "surface"}
     >
       <span className={styles.content}>
         {preview}

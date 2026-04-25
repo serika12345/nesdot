@@ -57,18 +57,27 @@ test("sprite mode keeps form controls and tool panel interactions working", asyn
   await openMode(page, "スプライト編集");
 
   await expect(
-    page.getByRole("heading", { name: "スプライト編集" }),
+    page.getByRole("heading", { name: "スプライトライブラリ" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "スプライトキャンバス", exact: true }),
   ).toHaveCount(0);
-  await expect(page.getByLabel("スプライト番号")).toHaveValue("0");
+  const spriteZeroButton = page.getByRole("button", {
+    name: "スプライト 0",
+    exact: true,
+  });
+  await expect(spriteZeroButton).toBeVisible();
+  await expect(spriteZeroButton).toHaveAttribute("data-selected-state", "true");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
     "パレット 0",
   );
 
-  await page.getByLabel("スプライト番号").fill("12");
-  await expect(page.getByLabel("スプライト番号")).toHaveValue("12");
+  const spriteOneButton = page.getByRole("button", {
+    name: "スプライト 1",
+    exact: true,
+  });
+  await spriteOneButton.click();
+  await expect(spriteOneButton).toHaveAttribute("data-selected-state", "true");
 
   await selectMaterialOption(page, "パレット", "パレット 2");
   await expect(page.getByRole("combobox", { name: "パレット" })).toContainText(
@@ -95,7 +104,7 @@ test("sprite canvas panel stretches to the bottom of the workspace", async ({
   await gotoApp(page);
   await openMode(page, "スプライト編集");
 
-  const leftPane = page.getByRole("region", { name: "スプライト編集パネル" });
+  const leftPane = page.getByRole("region", { name: "スプライトライブラリ" });
   const canvasPanel = page.getByRole("region", {
     name: "スプライトキャンバスパネル",
   });

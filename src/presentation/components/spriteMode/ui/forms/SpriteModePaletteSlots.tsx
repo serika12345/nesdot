@@ -1,9 +1,7 @@
-import { Badge, Text } from "@radix-ui/themes";
+import { Badge, Select, Text } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import paletteColors from "../../../common/ui/palette/NesPaletteColors.module.css";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
@@ -11,6 +9,8 @@ import {
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { NES_PALETTE_HEX } from "../../../../../domain/nes/palette";
 import { getArrayItem } from "../../../../../shared/arrayAccess";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import paletteColors from "../../../common/ui/palette/NesPaletteColors.module.css";
 import styles from "./SpriteModePaletteSlots.module.css";
 
 const resolvePaletteColorClassName = (index: number): string =>
@@ -34,6 +34,7 @@ const resolvePaletteColorClassName = (index: number): string =>
 interface SpriteModePaletteSlotsProps {
   activePalette: PaletteIndex;
   activeSlot: ColorIndexOfPalette;
+  handlePaletteChange: (index: string) => void;
   palettes: NesSpritePalettes;
   onPaletteClick: (slot: number) => void;
 }
@@ -45,9 +46,18 @@ interface SpriteModePaletteSlotsProps {
 export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
   activePalette,
   activeSlot,
+  handlePaletteChange,
   palettes,
   onPaletteClick,
 }) => {
+  const paletteOptions = palettes.map((_, index) => ({
+    label: `パレット ${index}`,
+    value: String(index),
+  }));
+  const activePaletteLabel =
+    paletteOptions.find((option) => option.value === String(activePalette))
+      ?.label ?? "パレット";
+
   return (
     <div className={styles.root}>
       <SurfaceCard className={styles.surface}>
@@ -55,9 +65,32 @@ export const SpriteModePaletteSlots: React.FC<SpriteModePaletteSlotsProps> = ({
           <div className={styles.header}>
             <Text size="2">現在のスロット</Text>
             <Badge color="teal" size="2" variant="surface">
-              {`パレット ${activePalette}`}
+              {`スロット ${activeSlot}`}
             </Badge>
           </div>
+
+          <label className={styles.paletteField}>
+            <span className={styles.label}>パレット</span>
+            <Select.Root
+              value={String(activePalette)}
+              onValueChange={handlePaletteChange}
+            >
+              <Select.Trigger aria-label="パレット" className={styles.select}>
+                {activePaletteLabel}
+              </Select.Trigger>
+              {typeof document !== "undefined" ? (
+                <Select.Content>
+                  {paletteOptions.map((option) => (
+                    <Select.Item key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              ) : (
+                <></>
+              )}
+            </Select.Root>
+          </label>
 
           <div className={styles.row}>
             {palettes[activePalette].map((colorIndex, slotIndex) => {

@@ -1,8 +1,8 @@
 import React from "react";
 import { useSpriteModeCanvasPanelState } from "../../logic/spriteModeCanvasState";
-import { useSpriteModeEditorPanelState } from "../../logic/spriteModeEditorState";
+import { useSpriteModeLibraryPanelState } from "../../logic/spriteModeLibraryState";
 import { SpriteModeCanvasPanel } from "../panels/SpriteModeCanvasPanel";
-import { SpriteModeEditorPanel } from "../panels/SpriteModeEditorPanel";
+import { SpriteModeLibraryPanel } from "../panels/SpriteModeLibraryPanel";
 import { SpriteModeWorkspace } from "./SpriteModeWorkspace";
 
 /**
@@ -10,16 +10,16 @@ import { SpriteModeWorkspace } from "./SpriteModeWorkspace";
  * focused hook をここで組み立て、子コンポーネントへは役割単位の props だけを渡します。
  */
 export const SpriteModeScreen: React.FC = () => {
-  const editorPanelState = useSpriteModeEditorPanelState();
+  const libraryPanelState = useSpriteModeLibraryPanelState();
   const canvasPanelState = useSpriteModeCanvasPanelState();
 
   return (
     <SpriteModeWorkspace
+      libraryPanel={
+        <SpriteModeLibraryPanel libraryPanelState={libraryPanelState} />
+      }
       canvasPanel={
         <SpriteModeCanvasPanel canvasPanelState={canvasPanelState} />
-      }
-      editorPanel={
-        <SpriteModeEditorPanel editorPanelState={editorPanelState} />
       }
     />
   );

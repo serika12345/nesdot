@@ -26,6 +26,7 @@ export const SpriteModeCanvasPanel: React.FC<SpriteModeCanvasPanelProps> = ({
       <SpriteModePaletteSlots
         activePalette={canvasPanelState.paletteSlots.activePalette}
         activeSlot={canvasPanelState.paletteSlots.activeSlot}
+        handlePaletteChange={canvasPanelState.paletteSlots.handlePaletteChange}
         palettes={canvasPanelState.paletteSlots.palettes}
         onPaletteClick={canvasPanelState.paletteSlots.handlePaletteClick}
       />

@@ -15,9 +15,18 @@ import {
   useSpriteModeTileChangeAction,
 } from "./spriteModeShared";
 
+const toPaletteIndex = (index: number): PaletteIndex | false => {
+  if (index === 0 || index === 1 || index === 2 || index === 3) {
+    return index;
+  }
+
+  return false;
+};
+
 export interface SpriteModePaletteSlotsState {
   activePalette: PaletteIndex;
   activeSlot: ColorIndexOfPalette;
+  handlePaletteChange: (index: string) => void;
   handlePaletteClick: (slot: number) => void;
   palettes: ProjectStoreState["nes"]["spritePalettes"];
 }
@@ -71,6 +80,9 @@ export const useSpriteModeCanvasPanelState = (): SpriteModeCanvasPanelState => {
   const setActiveSlot = useWorkbenchState(
     (state) => state.setSpriteModeActiveSlot,
   );
+  const setActivePalette = useWorkbenchState(
+    (state) => state.setSpriteModeActivePalette,
+  );
   const toggleToolsOpen = useWorkbenchState(
     (state) => state.toggleSpriteModeToolsOpen,
   );
@@ -101,6 +113,21 @@ export const useSpriteModeCanvasPanelState = (): SpriteModeCanvasPanelState => {
     [setTool],
   );
 
+  const handlePaletteChange = useCallback(
+    (index: string): void => {
+      const nextIndex = Number.parseInt(index, 10);
+      const paletteIndex = toPaletteIndex(nextIndex);
+
+      if (paletteIndex === false) {
+        return;
+      }
+
+      setActivePalette(paletteIndex);
+      handleTileChange({ ...activeTile, paletteIndex }, activeSprite);
+    },
+    [activeSprite, activeTile, handleTileChange, setActivePalette],
+  );
+
   const handleClearSprite = useCallback(async (): Promise<void> => {
     const message = "本当にクリアしますか？";
     const shouldClear = await tauriConfirm(message, {
@@ -121,6 +148,7 @@ export const useSpriteModeCanvasPanelState = (): SpriteModeCanvasPanelState => {
     paletteSlots: {
       activePalette,
       activeSlot,
+      handlePaletteChange,
       handlePaletteClick,
       palettes,
     },

@@ -341,7 +341,7 @@ test("file menu availability follows the current work mode", async ({
   await gotoApp(page);
 
   await expect(
-    page.getByRole("region", { name: "スプライト編集パネル" }),
+    page.getByRole("region", { name: "スプライトライブラリ" }),
   ).toBeVisible();
   await expectFileMenuState(page, {
     shareDisabled: false,

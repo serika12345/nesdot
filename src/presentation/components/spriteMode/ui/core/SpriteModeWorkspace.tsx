@@ -3,7 +3,7 @@ import styles from "./SpriteModeWorkspace.module.css";
 
 interface SpriteModeWorkspaceProps {
   canvasPanel: React.ReactNode;
-  editorPanel: React.ReactNode;
+  libraryPanel: React.ReactNode;
 }
 
 /**
@@ -11,11 +11,11 @@ interface SpriteModeWorkspaceProps {
  */
 export const SpriteModeWorkspace: React.FC<SpriteModeWorkspaceProps> = ({
   canvasPanel,
-  editorPanel,
+  libraryPanel,
 }) => {
   return (
     <section className={styles.root} aria-label="スプライト編集ワークスペース">
-      {editorPanel}
+      {libraryPanel}
       {canvasPanel}
     </section>
   );
