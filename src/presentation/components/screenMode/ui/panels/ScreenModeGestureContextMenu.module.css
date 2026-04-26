@@ -11,7 +11,6 @@
     border-radius: 1rem;
     background: var(--panel-surface-strong);
     box-shadow: var(--panel-shadow);
-    backdrop-filter: blur(1rem);
   }
 
   .item {

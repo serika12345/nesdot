@@ -302,6 +302,62 @@ test("clicking the same menu trigger closes it without keeping the open styling"
     });
 });
 
+test("work mode menu stays above the workspace and keeps a distinct surface", async ({
+  page,
+}) => {
+  await gotoApp(page);
+
+  await getMenuTrigger(page, "作業モード").click();
+
+  const bgModeItem = page.getByRole("menuitemradio", {
+    name: "作業モード BG編集",
+  });
+
+  await expect(bgModeItem).toBeVisible();
+
+  await expect
+    .poll(async () =>
+      bgModeItem.evaluate((element) => {
+        const menuSurface = element.closest('[class*="menuContentSurface"]');
+
+        if (!(menuSurface instanceof HTMLElement)) {
+          return {
+            backgroundImage: "",
+            hasOpaqueSurface: false,
+            zIndex: "",
+          };
+        }
+
+        const computedStyle = window.getComputedStyle(menuSurface);
+
+        return {
+          backgroundImage: computedStyle.backgroundImage,
+          hasOpaqueSurface:
+            computedStyle.backgroundColor !== "rgba(0, 0, 0, 0)",
+          zIndex: computedStyle.zIndex,
+        };
+      }),
+    )
+    .toEqual({
+      backgroundImage: "none",
+      hasOpaqueSurface: true,
+      zIndex: "1200",
+    });
+
+  const isMenuItemTopmost = await bgModeItem.evaluate((element) => {
+    const { left, top, width, height } = element.getBoundingClientRect();
+    const topElement = document.elementFromPoint(
+      left + width / 2,
+      top + height / 2,
+    );
+    const menuItem = topElement?.closest('[role="menuitemradio"]');
+
+    return menuItem?.getAttribute("aria-label") === "作業モード BG編集";
+  });
+
+  expect(isMenuItemTopmost).toBe(true);
+});
+
 test("shows update checks inside tauri runtime", async ({ page }) => {
   await emulateTauriRuntime(page);
   await gotoApp(page);

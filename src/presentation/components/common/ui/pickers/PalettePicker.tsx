@@ -37,7 +37,7 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
   return (
     <div className={styles.root}>
       <div className={styles.currentRow}>
-        <Heading as="h3" size="4">
+        <Heading as="h3" size="3">
           パレット {palettePickerState.activePalette} / スロット{" "}
           {palettePickerState.activeSlot}
         </Heading>
@@ -123,10 +123,14 @@ export const PalettePicker: React.FC<PalettePickerProps> = ({
         })}
       </div>
 
-      <SurfaceCard className={styles.sectionCard}>
+      <SurfaceCard
+        aria-label="色ライブラリ"
+        className={`${styles.sectionCard} ${styles.librarySectionCard}`}
+        role="region"
+      >
         <div className={styles.libraryCard}>
           <div className={styles.libraryHeader}>
-            <Text size="2" weight="medium">
+            <Text size="1" weight="medium">
               色ライブラリ
             </Text>
           </div>

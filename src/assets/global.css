@@ -13,11 +13,11 @@
   --ink-strong: var(--gray-12);
   --ink: var(--gray-11);
   --ink-soft: var(--gray-10);
-  --panel-surface: var(--color-panel-translucent);
+  --panel-surface: var(--color-panel-solid);
   --panel-surface-strong: var(--color-panel-solid);
-  --surface-muted: var(--gray-a3);
-  --surface-quiet: var(--gray-a4);
-  --surface-quiet-strong: var(--gray-a5);
+  --surface-muted: var(--gray-3);
+  --surface-quiet: var(--gray-4);
+  --surface-quiet-strong: var(--gray-5);
   --accent-solid: var(--accent-9);
   --accent-emphasis: var(--accent-11);
   --accent-contrast: var(--accent-contrast);
@@ -25,16 +25,16 @@
   --accent-soft-strong: var(--accent-a4);
   --accent-border: var(--accent-a5);
   --accent-border-strong: var(--accent-a7);
-  --accent-shadow: var(--shadow-3);
+  --accent-shadow: none;
   --danger-solid: var(--red-9);
   --danger-emphasis: var(--red-11);
   --danger-contrast: var(--red-contrast);
   --danger-soft: var(--red-a3);
   --danger-soft-strong: var(--red-a4);
   --danger-border: var(--red-a5);
-  --danger-shadow: var(--shadow-3);
-  --panel-border: var(--gray-a6);
-  --panel-shadow: var(--shadow-4);
+  --danger-shadow: none;
+  --panel-border: var(--gray-6);
+  --panel-shadow: none;
   --canvas-shell: #081320;
   --canvas-shell-alt: #10253b;
   --checkerboard-dark: var(--gray-5);
@@ -44,60 +44,12 @@
 
 .radix-themes[data-is-root-theme="true"] {
   min-height: 100%;
-  position: relative;
-  isolation: isolate;
-  background: var(--app-page-background);
+  background-color: var(--color-background);
+  background-image: none;
 }
 
 .radix-themes[data-is-root-theme="true"]::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-image: var(--app-grid-overlay);
-  background-size: 1.75rem 1.75rem;
-  mask-image: var(--app-grid-mask);
-  pointer-events: none;
-}
-
-.radix-themes[data-is-root-theme="true"] > * {
-  position: relative;
-  z-index: 1;
-}
-
-.radix-themes[data-is-root-theme="true"]:where(.light, .light-theme) {
-  --app-page-background:
-    radial-gradient(circle at 12% 12%, var(--accent-a4), transparent 24%),
-    radial-gradient(circle at 88% 18%, var(--accent-a3), transparent 20%),
-    linear-gradient(
-      180deg,
-      var(--gray-1) 0%,
-      var(--gray-2) 48%,
-      var(--gray-3) 100%
-    );
-  --app-grid-overlay:
-    linear-gradient(var(--gray-a4) 0.0625rem, transparent 0.0625rem),
-    linear-gradient(90deg, var(--gray-a4) 0.0625rem, transparent 0.0625rem);
-  --app-grid-mask: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.24),
-    transparent 80%
-  );
-}
-
-.radix-themes[data-is-root-theme="true"]:where(.dark, .dark-theme) {
-  --app-page-background:
-    radial-gradient(circle at 12% 12%, var(--accent-a4), transparent 24%),
-    radial-gradient(circle at 88% 18%, var(--accent-a3), transparent 20%),
-    linear-gradient(180deg, var(--gray-1) 0%, #0d1726 48%, #101827 100%);
-  --app-grid-overlay:
-    linear-gradient(var(--gray-a4) 0.0625rem, transparent 0.0625rem),
-    linear-gradient(90deg, var(--gray-a4) 0.0625rem, transparent 0.0625rem);
-  --app-grid-mask: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.48),
-    transparent 80%
-  );
+  content: none;
 }
 
 * {

@@ -1,6 +1,6 @@
+import * as O from "fp-ts/Option";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import * as O from "fp-ts/Option";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@radix-ui/react-menubar", () => {
@@ -81,6 +81,10 @@ vi.mock("@radix-ui/themes", () => {
     ...props
   }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"button">>) =>
     React.createElement("button", props, children);
+  const Theme = ({
+    children,
+  }: React.PropsWithChildren<Record<string, never>>) =>
+    React.createElement(React.Fragment, {}, children);
   const Root = ({ children }: React.PropsWithChildren<Record<string, never>>) =>
     React.createElement(React.Fragment, {}, children);
   const Content = ({
@@ -95,6 +99,7 @@ vi.mock("@radix-ui/themes", () => {
 
   return {
     Button,
+    Theme,
     Dialog: {
       Root,
       Content,

@@ -1,14 +1,14 @@
 import * as Menubar from "@radix-ui/react-menubar";
-import { Button, Dialog } from "@radix-ui/themes";
+import { Button, Dialog, Theme } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { type WorkMode } from "../../../../../application/state/workbenchStore";
+import { type ThemePreference } from "../../../../../infrastructure/browser/themePreference";
 import {
   canRequestAvailableUpdateCheck,
   requestAvailableUpdateCheck,
 } from "../../../../../infrastructure/browser/updateCheck";
-import { type ThemePreference } from "../../../../../infrastructure/browser/themePreference";
 import {
   type FileMenuState,
   type FileShareActionId,
@@ -225,45 +225,47 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Trigger>
 
           <Menubar.Portal>
-            <Menubar.Content
-              className={styles.menuContentSurface}
-              aria-label="作業モードメニュー"
-              align="start"
-              sideOffset={6}
-            >
-              <Menubar.RadioGroup value={editMode}>
-                {WORK_MODE_ITEMS.map((modeItem) => {
-                  const isSelected = modeItem.value === editMode;
+            <Theme asChild>
+              <Menubar.Content
+                className={styles.menuContentSurface}
+                aria-label="作業モードメニュー"
+                align="start"
+                sideOffset={6}
+              >
+                <Menubar.RadioGroup value={editMode}>
+                  {WORK_MODE_ITEMS.map((modeItem) => {
+                    const isSelected = modeItem.value === editMode;
 
-                  return (
-                    <Menubar.RadioItem
-                      key={modeItem.value}
-                      value={modeItem.value}
-                      className={styles.menuItemAction}
-                      aria-checked={isSelected}
-                      aria-label={`作業モード ${modeItem.label}`}
-                      onSelect={() => {
-                        onEditModeSelect(modeItem.value);
-                      }}
-                    >
-                      <MenuItemContent>
-                        <MenuItemLabel>
-                          <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
-                          <span className={styles.menuItemTextLabel}>
-                            {modeItem.label}
-                          </span>
-                        </MenuItemLabel>
-                        <MenuItemMeta>
-                          <MenuModeSelectionMarker>
-                            {isSelected === true ? <CheckIcon /> : <></>}
-                          </MenuModeSelectionMarker>
-                        </MenuItemMeta>
-                      </MenuItemContent>
-                    </Menubar.RadioItem>
-                  );
-                })}
-              </Menubar.RadioGroup>
-            </Menubar.Content>
+                    return (
+                      <Menubar.RadioItem
+                        key={modeItem.value}
+                        value={modeItem.value}
+                        className={styles.menuItemAction}
+                        aria-checked={isSelected}
+                        aria-label={`作業モード ${modeItem.label}`}
+                        onSelect={() => {
+                          onEditModeSelect(modeItem.value);
+                        }}
+                      >
+                        <MenuItemContent>
+                          <MenuItemLabel>
+                            <MenuItemIconSlot>{modeItem.icon}</MenuItemIconSlot>
+                            <span className={styles.menuItemTextLabel}>
+                              {modeItem.label}
+                            </span>
+                          </MenuItemLabel>
+                          <MenuItemMeta>
+                            <MenuModeSelectionMarker>
+                              {isSelected === true ? <CheckIcon /> : <></>}
+                            </MenuModeSelectionMarker>
+                          </MenuItemMeta>
+                        </MenuItemContent>
+                      </Menubar.RadioItem>
+                    );
+                  })}
+                </Menubar.RadioGroup>
+              </Menubar.Content>
+            </Theme>
           </Menubar.Portal>
         </Menubar.Menu>
 
@@ -277,45 +279,49 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Trigger>
 
           <Menubar.Portal>
-            <Menubar.Content
-              className={styles.menuContentSurface}
-              aria-label="表示メニュー"
-              align="start"
-              sideOffset={6}
-            >
-              <Menubar.RadioGroup value={themePreference}>
-                {THEME_PREFERENCE_ITEMS.map((themeItem) => {
-                  const isSelected = themeItem.value === themePreference;
+            <Theme asChild>
+              <Menubar.Content
+                className={styles.menuContentSurface}
+                aria-label="表示メニュー"
+                align="start"
+                sideOffset={6}
+              >
+                <Menubar.RadioGroup value={themePreference}>
+                  {THEME_PREFERENCE_ITEMS.map((themeItem) => {
+                    const isSelected = themeItem.value === themePreference;
 
-                  return (
-                    <Menubar.RadioItem
-                      key={themeItem.value}
-                      value={themeItem.value}
-                      className={styles.menuItemAction}
-                      aria-checked={isSelected}
-                      aria-label={`表示テーマ ${themeItem.label}`}
-                      onSelect={() => {
-                        onThemePreferenceSelect(themeItem.value);
-                      }}
-                    >
-                      <MenuItemContent>
-                        <MenuItemLabel>
-                          <MenuItemIconSlot>{themeItem.icon}</MenuItemIconSlot>
-                          <span className={styles.menuItemTextLabel}>
-                            {themeItem.label}
-                          </span>
-                        </MenuItemLabel>
-                        <MenuItemMeta>
-                          <MenuModeSelectionMarker>
-                            {isSelected === true ? <CheckIcon /> : <></>}
-                          </MenuModeSelectionMarker>
-                        </MenuItemMeta>
-                      </MenuItemContent>
-                    </Menubar.RadioItem>
-                  );
-                })}
-              </Menubar.RadioGroup>
-            </Menubar.Content>
+                    return (
+                      <Menubar.RadioItem
+                        key={themeItem.value}
+                        value={themeItem.value}
+                        className={styles.menuItemAction}
+                        aria-checked={isSelected}
+                        aria-label={`表示テーマ ${themeItem.label}`}
+                        onSelect={() => {
+                          onThemePreferenceSelect(themeItem.value);
+                        }}
+                      >
+                        <MenuItemContent>
+                          <MenuItemLabel>
+                            <MenuItemIconSlot>
+                              {themeItem.icon}
+                            </MenuItemIconSlot>
+                            <span className={styles.menuItemTextLabel}>
+                              {themeItem.label}
+                            </span>
+                          </MenuItemLabel>
+                          <MenuItemMeta>
+                            <MenuModeSelectionMarker>
+                              {isSelected === true ? <CheckIcon /> : <></>}
+                            </MenuModeSelectionMarker>
+                          </MenuItemMeta>
+                        </MenuItemContent>
+                      </Menubar.RadioItem>
+                    );
+                  })}
+                </Menubar.RadioGroup>
+              </Menubar.Content>
+            </Theme>
           </Menubar.Portal>
         </Menubar.Menu>
 
@@ -329,52 +335,54 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Trigger>
 
           <Menubar.Portal>
-            <Menubar.Content
-              className={styles.menuContentSurface}
-              aria-label="編集メニュー"
-              align="start"
-              sideOffset={6}
-            >
-              <Menubar.Item
-                className={styles.menuItemAction}
-                aria-keyshortcuts={shortcutLabels.undoShortcut}
-                onSelect={onUndoSelect}
+            <Theme asChild>
+              <Menubar.Content
+                className={styles.menuContentSurface}
+                aria-label="編集メニュー"
+                align="start"
+                sideOffset={6}
               >
-                <MenuItemContent>
-                  <MenuItemLabel>
-                    <MenuItemIconSlot>
-                      <UndoIcon />
-                    </MenuItemIconSlot>
-                    <span className={styles.menuItemTextLabel}>アンドゥ</span>
-                  </MenuItemLabel>
-                  <MenuItemMeta>
-                    <span className={styles.menuItemShortcutText}>
-                      {shortcutLabels.undoLabel}
-                    </span>
-                  </MenuItemMeta>
-                </MenuItemContent>
-              </Menubar.Item>
+                <Menubar.Item
+                  className={styles.menuItemAction}
+                  aria-keyshortcuts={shortcutLabels.undoShortcut}
+                  onSelect={onUndoSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <MenuItemIconSlot>
+                        <UndoIcon />
+                      </MenuItemIconSlot>
+                      <span className={styles.menuItemTextLabel}>アンドゥ</span>
+                    </MenuItemLabel>
+                    <MenuItemMeta>
+                      <span className={styles.menuItemShortcutText}>
+                        {shortcutLabels.undoLabel}
+                      </span>
+                    </MenuItemMeta>
+                  </MenuItemContent>
+                </Menubar.Item>
 
-              <Menubar.Item
-                className={styles.menuItemAction}
-                aria-keyshortcuts={shortcutLabels.redoShortcut}
-                onSelect={onRedoSelect}
-              >
-                <MenuItemContent>
-                  <MenuItemLabel>
-                    <MenuItemIconSlot>
-                      <RedoIcon />
-                    </MenuItemIconSlot>
-                    <span className={styles.menuItemTextLabel}>リドゥ</span>
-                  </MenuItemLabel>
-                  <MenuItemMeta>
-                    <span className={styles.menuItemShortcutText}>
-                      {shortcutLabels.redoLabel}
-                    </span>
-                  </MenuItemMeta>
-                </MenuItemContent>
-              </Menubar.Item>
-            </Menubar.Content>
+                <Menubar.Item
+                  className={styles.menuItemAction}
+                  aria-keyshortcuts={shortcutLabels.redoShortcut}
+                  onSelect={onRedoSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <MenuItemIconSlot>
+                        <RedoIcon />
+                      </MenuItemIconSlot>
+                      <span className={styles.menuItemTextLabel}>リドゥ</span>
+                    </MenuItemLabel>
+                    <MenuItemMeta>
+                      <span className={styles.menuItemShortcutText}>
+                        {shortcutLabels.redoLabel}
+                      </span>
+                    </MenuItemMeta>
+                  </MenuItemContent>
+                </Menubar.Item>
+              </Menubar.Content>
+            </Theme>
           </Menubar.Portal>
         </Menubar.Menu>
 
@@ -388,78 +396,82 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Trigger>
 
           <Menubar.Portal>
-            <Menubar.Content
-              className={styles.menuContentSurface}
-              aria-label="ファイルメニュー"
-              align="start"
-              sideOffset={6}
-            >
-              <Menubar.Sub>
-                <Menubar.SubTrigger
-                  className={styles.menuSubTriggerAction}
-                  disabled={hasShareActions === false}
+            <Theme asChild>
+              <Menubar.Content
+                className={styles.menuContentSurface}
+                aria-label="ファイルメニュー"
+                align="start"
+                sideOffset={6}
+              >
+                <Menubar.Sub>
+                  <Menubar.SubTrigger
+                    className={styles.menuSubTriggerAction}
+                    disabled={hasShareActions === false}
+                  >
+                    <MenuItemContent>
+                      <MenuItemLabel>
+                        <MenuItemIconSlot>
+                          <ShareIcon />
+                        </MenuItemIconSlot>
+                        <span className={styles.menuItemTextLabel}>共有</span>
+                      </MenuItemLabel>
+                      <MenuItemMeta>
+                        <ChevronRightIcon />
+                      </MenuItemMeta>
+                    </MenuItemContent>
+                  </Menubar.SubTrigger>
+
+                  <Menubar.Portal>
+                    <Theme asChild>
+                      <Menubar.SubContent
+                        className={styles.menuContentSurface}
+                        aria-label="共有サブメニュー"
+                        sideOffset={4}
+                        alignOffset={-4}
+                      >
+                        {fileMenuState.shareActions.map((action) => (
+                          <Menubar.Item
+                            key={action.id}
+                            className={styles.menuItemAction}
+                            onSelect={() => {
+                              action.onSelect();
+                            }}
+                          >
+                            <MenuItemContent>
+                              <MenuItemLabel>
+                                <MenuItemIconSlot>
+                                  {getShareActionIcon(action.id)}
+                                </MenuItemIconSlot>
+                                <span className={styles.menuItemTextLabel}>
+                                  {action.label}
+                                </span>
+                              </MenuItemLabel>
+                            </MenuItemContent>
+                          </Menubar.Item>
+                        ))}
+                      </Menubar.SubContent>
+                    </Theme>
+                  </Menubar.Portal>
+                </Menubar.Sub>
+
+                <Menubar.Separator className={styles.menuSeparatorLine} />
+
+                <Menubar.Item
+                  className={styles.menuItemAction}
+                  disabled={hasRestoreAction === false}
+                  onSelect={handleRestoreSelect}
                 >
                   <MenuItemContent>
                     <MenuItemLabel>
                       <MenuItemIconSlot>
-                        <ShareIcon />
+                        <FileUploadIcon />
                       </MenuItemIconSlot>
-                      <span className={styles.menuItemTextLabel}>共有</span>
+                      <span className={styles.menuItemTextLabel}>復元</span>
                     </MenuItemLabel>
-                    <MenuItemMeta>
-                      <ChevronRightIcon />
-                    </MenuItemMeta>
                   </MenuItemContent>
-                </Menubar.SubTrigger>
-
-                <Menubar.Portal>
-                  <Menubar.SubContent
-                    className={styles.menuContentSurface}
-                    aria-label="共有サブメニュー"
-                    sideOffset={4}
-                    alignOffset={-4}
-                  >
-                    {fileMenuState.shareActions.map((action) => (
-                      <Menubar.Item
-                        key={action.id}
-                        className={styles.menuItemAction}
-                        onSelect={() => {
-                          action.onSelect();
-                        }}
-                      >
-                        <MenuItemContent>
-                          <MenuItemLabel>
-                            <MenuItemIconSlot>
-                              {getShareActionIcon(action.id)}
-                            </MenuItemIconSlot>
-                            <span className={styles.menuItemTextLabel}>
-                              {action.label}
-                            </span>
-                          </MenuItemLabel>
-                        </MenuItemContent>
-                      </Menubar.Item>
-                    ))}
-                  </Menubar.SubContent>
-                </Menubar.Portal>
-              </Menubar.Sub>
-
-              <Menubar.Separator className={styles.menuSeparatorLine} />
-
-              <Menubar.Item
-                className={styles.menuItemAction}
-                disabled={hasRestoreAction === false}
-                onSelect={handleRestoreSelect}
-              >
-                <MenuItemContent>
-                  <MenuItemLabel>
-                    <MenuItemIconSlot>
-                      <FileUploadIcon />
-                    </MenuItemIconSlot>
-                    <span className={styles.menuItemTextLabel}>復元</span>
-                  </MenuItemLabel>
-                </MenuItemContent>
-              </Menubar.Item>
-            </Menubar.Content>
+                </Menubar.Item>
+              </Menubar.Content>
+            </Theme>
           </Menubar.Portal>
         </Menubar.Menu>
 
@@ -473,50 +485,52 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Trigger>
 
           <Menubar.Portal>
-            <Menubar.Content
-              className={styles.menuContentSurface}
-              aria-label="ヘルプメニュー"
-              align="start"
-              sideOffset={6}
-            >
-              {canCheckForUpdates === true ? (
-                <>
-                  <Menubar.Item
-                    className={styles.menuItemAction}
-                    onSelect={handleUpdateCheckSelect}
-                  >
-                    <MenuItemContent>
-                      <MenuItemLabel>
-                        <MenuItemIconSlot>
-                          <UpdateIcon />
-                        </MenuItemIconSlot>
-                        <span className={styles.menuItemTextLabel}>
-                          更新を確認
-                        </span>
-                      </MenuItemLabel>
-                    </MenuItemContent>
-                  </Menubar.Item>
-
-                  <Menubar.Separator className={styles.menuSeparatorLine} />
-                </>
-              ) : (
-                <></>
-              )}
-
-              <Menubar.Item
-                className={styles.menuItemAction}
-                onSelect={handleAboutSelect}
+            <Theme asChild>
+              <Menubar.Content
+                className={styles.menuContentSurface}
+                aria-label="ヘルプメニュー"
+                align="start"
+                sideOffset={6}
               >
-                <MenuItemContent>
-                  <MenuItemLabel>
-                    <MenuItemIconSlot>
-                      <InfoIcon />
-                    </MenuItemIconSlot>
-                    <span className={styles.menuItemTextLabel}>About</span>
-                  </MenuItemLabel>
-                </MenuItemContent>
-              </Menubar.Item>
-            </Menubar.Content>
+                {canCheckForUpdates === true ? (
+                  <>
+                    <Menubar.Item
+                      className={styles.menuItemAction}
+                      onSelect={handleUpdateCheckSelect}
+                    >
+                      <MenuItemContent>
+                        <MenuItemLabel>
+                          <MenuItemIconSlot>
+                            <UpdateIcon />
+                          </MenuItemIconSlot>
+                          <span className={styles.menuItemTextLabel}>
+                            更新を確認
+                          </span>
+                        </MenuItemLabel>
+                      </MenuItemContent>
+                    </Menubar.Item>
+
+                    <Menubar.Separator className={styles.menuSeparatorLine} />
+                  </>
+                ) : (
+                  <></>
+                )}
+
+                <Menubar.Item
+                  className={styles.menuItemAction}
+                  onSelect={handleAboutSelect}
+                >
+                  <MenuItemContent>
+                    <MenuItemLabel>
+                      <MenuItemIconSlot>
+                        <InfoIcon />
+                      </MenuItemIconSlot>
+                      <span className={styles.menuItemTextLabel}>About</span>
+                    </MenuItemLabel>
+                  </MenuItemContent>
+                </Menubar.Item>
+              </Menubar.Content>
+            </Theme>
           </Menubar.Portal>
         </Menubar.Menu>
       </Menubar.Root>

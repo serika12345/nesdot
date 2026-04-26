@@ -33,8 +33,7 @@
     border: 0.0625rem solid var(--panel-border);
     border-radius: 1.125rem;
     background: var(--panel-surface);
-    box-shadow: var(--shadow-3, var(--panel-shadow));
-    backdrop-filter: blur(1rem);
+    box-shadow: var(--panel-shadow);
     cursor: default;
   }
 

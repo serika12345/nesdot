@@ -1,9 +1,9 @@
-import "./infrastructure/browser/tauriRuntimeDiagnostics";
-import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
+import "@radix-ui/themes/styles.css";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./assets/global.css";
+import "./infrastructure/browser/tauriRuntimeDiagnostics";
 import { useThemePreference } from "./infrastructure/browser/themePreference";
 import { App } from "./presentation/App";
 
@@ -18,8 +18,8 @@ const RootThemeApp: React.FC = () => {
       accentColor="teal"
       appearance={resolvedThemeAppearance}
       grayColor="slate"
-      hasBackground={false}
-      panelBackground="translucent"
+      hasBackground
+      panelBackground="solid"
       radius="large"
       scaling="100%"
     >

@@ -615,9 +615,13 @@ const AppBody: React.FC<AppBodyProps> = ({
         <main className={styles.content}>
           <section className={styles.panel}>{appPanel}</section>
 
-          <aside className={styles.sidebar}>
+          <aside aria-label="パレット編集サイドバー" className={styles.sidebar}>
             <SurfaceCard className={styles.paletteCard}>
-              <div className={styles.paletteScroll}>
+              <div
+                aria-label="パレット編集スクロール領域"
+                className={styles.paletteScroll}
+                role="region"
+              >
                 <PalettePicker palettePickerState={palettePickerState} />
               </div>
             </SurfaceCard>

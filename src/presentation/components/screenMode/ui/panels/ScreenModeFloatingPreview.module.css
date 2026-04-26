@@ -4,7 +4,6 @@
     border-radius: 1.125rem;
     background: var(--panel-surface);
     box-shadow: var(--panel-shadow);
-    backdrop-filter: blur(0.9rem);
   }
 
   .stack {
