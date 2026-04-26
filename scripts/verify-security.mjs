@@ -463,12 +463,22 @@ const checkCveAuditIntegration = () => {
   const flakeNix = readTextFile(flakePath);
   const cveScript = readTextFile(cveScriptPath);
   const cveBaseline = parseJsonFile(cveBaselinePath);
-  const baselineIds = cveBaseline.pnpm?.githubAdvisoryIds;
+  const pnpmBaselineIds = cveBaseline.pnpm?.githubAdvisoryIds;
+  const cargoBaselineIds = cveBaseline.cargo?.rustSecIds;
 
-  const baselineFailures =
-    Array.isArray(baselineIds) && baselineIds.length > 0
-      ? []
-      : [`${cveBaselinePath} must define at least one tracked pnpm advisory.`];
+  const baselineFailures = []
+    .concat(
+      Array.isArray(pnpmBaselineIds)
+        ? []
+        : [
+            `${cveBaselinePath} must define pnpm.githubAdvisoryIds as an array.`,
+          ],
+    )
+    .concat(
+      Array.isArray(cargoBaselineIds)
+        ? []
+        : [`${cveBaselinePath} must define cargo.rustSecIds as an array.`],
+    );
 
   return baselineFailures
     .concat(

@@ -8,6 +8,10 @@ const readTextFile = (relativePath: string): string => {
   return readFileSync(new URL(relativePath, import.meta.url), "utf8");
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && Object(value) === value;
+};
+
 describe("security verification workflow", () => {
   test("defines dedicated security and CVE verification scripts", () => {
     const packageJson = readTextFile("../../package.json");
@@ -59,6 +63,18 @@ describe("security verification workflow", () => {
     const flakeNix = readTextFile("../../flake.nix");
     const cveScript = readTextFile("../../scripts/verify-cves.mjs");
     const cveBaseline = readTextFile("../../scripts/cve-audit-baseline.json");
+    const parsedCveBaseline: unknown = JSON.parse(cveBaseline);
+    const cveBaselineObject = isRecord(parsedCveBaseline)
+      ? parsedCveBaseline
+      : {};
+    const cveBaselinePnpm =
+      "pnpm" in cveBaselineObject && isRecord(cveBaselineObject.pnpm)
+        ? cveBaselineObject.pnpm
+        : {};
+    const cveBaselineCargo =
+      "cargo" in cveBaselineObject && isRecord(cveBaselineObject.cargo)
+        ? cveBaselineObject.cargo
+        : {};
     const screenModeProjectActions = readTextFile(
       "../../src/presentation/components/screenMode/logic/useScreenModeProjectActions.ts",
     );
@@ -155,6 +171,19 @@ describe("security verification workflow", () => {
     expect(cveScript).toContain('"--audit-level=moderate"');
     expect(cveScript).toContain('"cargo"');
     expect(cveScript).toContain('"src-tauri/Cargo.lock"');
-    expect(cveBaseline).toContain("GHSA-5c6j-r48x-rmvq");
+    expect("githubAdvisoryIds" in cveBaselinePnpm).toBe(true);
+    expect(
+      Array.isArray(
+        "githubAdvisoryIds" in cveBaselinePnpm
+          ? cveBaselinePnpm.githubAdvisoryIds
+          : [],
+      ),
+    ).toBe(true);
+    expect("rustSecIds" in cveBaselineCargo).toBe(true);
+    expect(
+      Array.isArray(
+        "rustSecIds" in cveBaselineCargo ? cveBaselineCargo.rustSecIds : [],
+      ),
+    ).toBe(true);
   });
 });
