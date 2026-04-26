@@ -1,9 +1,9 @@
-import React from "react";
 import { Badge, Button } from "@radix-ui/themes";
-import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
-import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
+import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { ScreenModeCharacterPreview } from "../preview/ScreenModeCharacterPreview";
 import {
@@ -32,9 +32,6 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
       <div className={styles.headerRow}>
         <span className={styles.label}>キャラクタープレビュー</span>
         <div className={styles.badgeRow}>
-          <Badge color="gray" size="2" variant="surface">
-            {`${libraryState.characterPreviewCards.length} sets`}
-          </Badge>
           <Button
             aria-controls="screen-mode-character-library-content"
             aria-expanded={isOpen}

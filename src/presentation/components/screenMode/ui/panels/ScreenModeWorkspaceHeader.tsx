@@ -1,16 +1,16 @@
-import React from "react";
 import { Badge, Button, Switch } from "@radix-ui/themes";
+import React from "react";
 import { type ScreenModeWorkspaceBackgroundEditingStateResult } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import {
   WorkspaceHeaderActionCluster,
   ZoomControlsRow,
 } from "../primitives/ScreenModePrimitives";
-import styles from "./ScreenModeWorkspaceHeader.module.css";
 import {
   type ScreenModeGestureWorkspaceDisplayState,
   type ScreenModeWorkspaceHeaderSummary,
   type ScreenModeWorkspaceZoomActions,
 } from "./ScreenModeGestureWorkspaceTypes";
+import styles from "./ScreenModeWorkspaceHeader.module.css";
 
 interface ScreenModeDisplaySwitchProps {
   checked: boolean;
@@ -77,12 +77,6 @@ export const ScreenModeWorkspaceHeader: React.FC<
     >
       +
     </Button>
-    <Badge color="gray" size="2" variant="surface">
-      {`${summary.spriteCount} sprites`}
-    </Badge>
-    <Badge color="teal" size="2" variant="surface">
-      {`${summary.selectedSpriteCount} selected`}
-    </Badge>
     <div className={styles.spacer} />
     <WorkspaceHeaderActionCluster>
       <Button
