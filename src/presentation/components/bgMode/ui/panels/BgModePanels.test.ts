@@ -77,6 +77,7 @@ describe("BgModePanels", () => {
             activePaletteIndex: 0,
             activeSlot: 3,
             backgroundPalettes,
+            handleFlushPaint: vi.fn(),
             handlePaintPixel: vi.fn(),
             selectedTile: createBackgroundTile(),
             slotColorIndices: [0, 1, 2, 3],

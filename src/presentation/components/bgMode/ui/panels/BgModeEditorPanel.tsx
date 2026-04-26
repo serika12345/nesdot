@@ -8,6 +8,7 @@ import {
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { resolveBgModePaintColorIndex } from "../../logic/bgModeWorkspaceEditingState";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { CanvasToolOverlay } from "../../../common/ui/overlay/CanvasToolOverlay";
 import { PaletteSlotSelector } from "../../../common/ui/palette/PaletteSlotSelector";
@@ -29,6 +30,7 @@ interface BgModeEditorCanvasState {
   activePaletteIndex: PaletteIndex;
   activeSlot: ColorIndexOfPalette;
   backgroundPalettes: ReadonlyArray<NesSubPalette>;
+  handleFlushPaint: () => void;
   handlePaintPixel: (pixelX: number, pixelY: number) => void;
   selectedTile: BackgroundTile;
   slotColorIndices: ReadonlyArray<NesColorIndex>;
@@ -119,7 +121,14 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
               universalBackgroundColor={
                 editorPanelState.canvasState.universalBackgroundColor
               }
-              onPaintPixel={editorPanelState.canvasState.handlePaintPixel}
+              canvasActions={{
+                onFlushPaint: editorPanelState.canvasState.handleFlushPaint,
+                onPaintPixel: editorPanelState.canvasState.handlePaintPixel,
+              }}
+              paintColorIndex={resolveBgModePaintColorIndex(
+                editorPanelState.toolMenuState.tool,
+                editorPanelState.canvasState.activeSlot,
+              )}
             />
           </div>
         </div>

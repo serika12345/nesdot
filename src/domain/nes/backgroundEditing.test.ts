@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   decodeBackgroundTileAtIndex,
   replaceBackgroundTilePixel,
+  replaceBackgroundTilePixels,
   setAttributeTablePaletteAtPixel,
   setNameTableTileAtPixel,
 } from "./backgroundEditing";
@@ -55,6 +56,49 @@ describe("backgroundEditing", () => {
     }
   });
 
+  it("replaces multiple pixels inside a background tile CHR block", () => {
+    const chrBytes = Array.from({ length: 4096 }, () => 0);
+
+    const result = replaceBackgroundTilePixels(chrBytes, 2, [
+      { pixelX: 0, pixelY: 0, nextColorIndex: 1 },
+      { pixelX: 7, pixelY: 0, nextColorIndex: 2 },
+      { pixelX: 3, pixelY: 4, nextColorIndex: 3 },
+    ]);
+
+    expect(E.isRight(result)).toBe(true);
+
+    if (E.isRight(result)) {
+      const tile = decodeBackgroundTileAtIndex(result.right, 2);
+
+      expect(E.isRight(tile)).toBe(true);
+      if (E.isRight(tile)) {
+        expect(tile.right.pixels[0]?.[0]).toBe(1);
+        expect(tile.right.pixels[0]?.[7]).toBe(2);
+        expect(tile.right.pixels[4]?.[3]).toBe(3);
+      }
+    }
+  });
+
+  it("uses the last queued background pixel write for duplicate coordinates", () => {
+    const chrBytes = Array.from({ length: 4096 }, () => 0);
+
+    const result = replaceBackgroundTilePixels(chrBytes, 0, [
+      { pixelX: 1, pixelY: 1, nextColorIndex: 1 },
+      { pixelX: 1, pixelY: 1, nextColorIndex: 2 },
+    ]);
+
+    expect(E.isRight(result)).toBe(true);
+
+    if (E.isRight(result)) {
+      const tile = decodeBackgroundTileAtIndex(result.right, 0);
+
+      expect(E.isRight(tile)).toBe(true);
+      if (E.isRight(tile)) {
+        expect(tile.right.pixels[1]?.[1]).toBe(2);
+      }
+    }
+  });
+
   it("updates the name table tile index at a pixel position", () => {
     const nameTable = createEmptyNameTable();
 
@@ -89,6 +133,16 @@ describe("backgroundEditing", () => {
     const chrBytes = Array.from({ length: 4096 }, () => 0);
 
     const result = replaceBackgroundTilePixel(chrBytes, 0, 8, 0, 1);
+
+    expect(E.isLeft(result)).toBe(true);
+  });
+
+  it("rejects batched tile pixel writes outside 8x8 bounds", () => {
+    const chrBytes = Array.from({ length: 4096 }, () => 0);
+
+    const result = replaceBackgroundTilePixels(chrBytes, 0, [
+      { pixelX: 1, pixelY: 8, nextColorIndex: 1 },
+    ]);
 
     expect(E.isLeft(result)).toBe(true);
   });

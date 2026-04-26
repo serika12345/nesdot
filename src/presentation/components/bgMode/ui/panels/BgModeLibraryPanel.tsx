@@ -34,6 +34,78 @@ interface BgModeLibraryPanelProps {
   libraryPanelState: BgModeLibraryPanelState;
 }
 
+interface BgModeLibraryTileButtonState {
+  activePaletteIndex: PaletteIndex;
+  backgroundPalettes: ReadonlyArray<NesSubPalette>;
+  isSelected: boolean;
+  tile: BackgroundTile;
+  tileIndex: number;
+  universalBackgroundColor: NesColorIndex;
+}
+
+interface BgModeLibraryTileButtonProps {
+  handleSelectTile: (tileIndex: number) => void;
+  tileButtonState: BgModeLibraryTileButtonState;
+}
+
+const areSameBgModeLibraryTileButtonProps = (
+  previous: BgModeLibraryTileButtonProps,
+  next: BgModeLibraryTileButtonProps,
+): boolean =>
+  previous.handleSelectTile === next.handleSelectTile &&
+  previous.tileButtonState.activePaletteIndex ===
+    next.tileButtonState.activePaletteIndex &&
+  previous.tileButtonState.backgroundPalettes ===
+    next.tileButtonState.backgroundPalettes &&
+  previous.tileButtonState.isSelected === next.tileButtonState.isSelected &&
+  previous.tileButtonState.tile === next.tileButtonState.tile &&
+  previous.tileButtonState.tileIndex === next.tileButtonState.tileIndex &&
+  previous.tileButtonState.universalBackgroundColor ===
+    next.tileButtonState.universalBackgroundColor;
+
+const BgModeLibraryTileButtonComponent: React.FC<
+  BgModeLibraryTileButtonProps
+> = ({ handleSelectTile, tileButtonState }) => (
+  <Button
+    className={styles.tileButton}
+    type="button"
+    color={tileButtonState.isSelected ? "teal" : "gray"}
+    size="1"
+    variant={tileButtonState.isSelected ? "solid" : "surface"}
+    style={{
+      width: "100%",
+      alignItems: "stretch",
+      justifyContent: "flex-start",
+      minHeight: "6rem",
+      padding: "0.75rem",
+      whiteSpace: "normal",
+    }}
+    aria-label={`#${formatTileNumber(tileButtonState.tileIndex)}`}
+    aria-pressed={tileButtonState.isSelected}
+    onClick={() => {
+      handleSelectTile(tileButtonState.tileIndex);
+    }}
+  >
+    <span className={styles.tileButtonContent}>
+      <BackgroundTilePreview
+        scale={6}
+        tile={tileButtonState.tile}
+        palette={resolveActivePalette(
+          tileButtonState.backgroundPalettes,
+          tileButtonState.activePaletteIndex,
+        )}
+        universalBackgroundColor={tileButtonState.universalBackgroundColor}
+      />
+      <span>{`#${formatTileNumber(tileButtonState.tileIndex)}`}</span>
+    </span>
+  </Button>
+);
+
+const BgModeLibraryTileButton = React.memo(
+  BgModeLibraryTileButtonComponent,
+  areSameBgModeLibraryTileButtonProps,
+);
+
 /**
  * BG タイル一覧の panel です。
  * 選択状態と preview 表示だけを扱います。
@@ -54,50 +126,19 @@ export const BgModeLibraryPanel: React.FC<BgModeLibraryPanelProps> = ({
       <div className={styles.scrollArea}>
         <div className={styles.tileGrid}>
           {libraryPanelState.tiles.map((tile, tileIndex) => (
-            <Button
+            <BgModeLibraryTileButton
               key={`bg-tile-preview-${tileIndex}`}
-              className={styles.tileButton}
-              type="button"
-              color={
-                libraryPanelState.selectedTileIndex === tileIndex
-                  ? "teal"
-                  : "gray"
-              }
-              size="1"
-              variant={
-                libraryPanelState.selectedTileIndex === tileIndex
-                  ? "solid"
-                  : "surface"
-              }
-              style={{
-                width: "100%",
-                alignItems: "stretch",
-                justifyContent: "flex-start",
-                minHeight: "6rem",
-                padding: "0.75rem",
-                whiteSpace: "normal",
+              handleSelectTile={libraryPanelState.handleSelectTile}
+              tileButtonState={{
+                activePaletteIndex: libraryPanelState.activePaletteIndex,
+                backgroundPalettes: libraryPanelState.backgroundPalettes,
+                isSelected: libraryPanelState.selectedTileIndex === tileIndex,
+                tile,
+                tileIndex,
+                universalBackgroundColor:
+                  libraryPanelState.universalBackgroundColor,
               }}
-              aria-label={`#${formatTileNumber(tileIndex)}`}
-              aria-pressed={libraryPanelState.selectedTileIndex === tileIndex}
-              onClick={() => {
-                libraryPanelState.handleSelectTile(tileIndex);
-              }}
-            >
-              <span className={styles.tileButtonContent}>
-                <BackgroundTilePreview
-                  scale={6}
-                  tile={tile}
-                  palette={resolveActivePalette(
-                    libraryPanelState.backgroundPalettes,
-                    libraryPanelState.activePaletteIndex,
-                  )}
-                  universalBackgroundColor={
-                    libraryPanelState.universalBackgroundColor
-                  }
-                />
-                <span>{`#${formatTileNumber(tileIndex)}`}</span>
-              </span>
-            </Button>
+            />
           ))}
         </div>
       </div>

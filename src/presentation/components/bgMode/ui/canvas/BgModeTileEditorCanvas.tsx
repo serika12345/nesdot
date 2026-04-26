@@ -8,14 +8,44 @@ import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../../styleClassNames";
 
-interface BgModeTileEditorCanvasProps {
+interface BgModeTileEditorCanvasActions {
+  onFlushPaint: () => void;
   onPaintPixel: (pixelX: number, pixelY: number) => void;
+}
+
+interface BgModeTileEditorCanvasProps {
+  canvasActions: BgModeTileEditorCanvasActions;
   palette: NesSubPalette;
+  paintColorIndex: number;
   tile: BackgroundTile;
   universalBackgroundColor: NesColorIndex;
 }
 
 const EDITOR_TILE_SCALE = 24;
+
+const trySetPointerCapture = (
+  target: HTMLCanvasElement,
+  pointerId: number,
+): void => {
+  try {
+    target.setPointerCapture(pointerId);
+  } catch {
+    // Synthetic pointer events used in tests may not have a capturable pointer.
+  }
+};
+
+const tryReleasePointerCapture = (
+  target: HTMLCanvasElement,
+  pointerId: number,
+): void => {
+  try {
+    if (target.hasPointerCapture(pointerId)) {
+      target.releasePointerCapture(pointerId);
+    }
+  } catch {
+    // The browser may already have released capture for cancelled pointers.
+  }
+};
 
 const resolvePixelHex = (
   palette: NesSubPalette,
@@ -115,6 +145,64 @@ const drawEditorCanvas = (
   );
 };
 
+const drawEditorCanvasGridCell = (
+  context: CanvasRenderingContext2D,
+  pixelX: number,
+  pixelY: number,
+): void => {
+  Object.assign(context, {
+    strokeStyle: "rgba(148, 163, 184, 0.24)",
+    lineWidth: 1,
+  });
+
+  [pixelX, pixelX + 1].forEach((gridX) => {
+    context.beginPath();
+    context.moveTo(gridX * EDITOR_TILE_SCALE + 0.5, pixelY * EDITOR_TILE_SCALE);
+    context.lineTo(
+      gridX * EDITOR_TILE_SCALE + 0.5,
+      (pixelY + 1) * EDITOR_TILE_SCALE,
+    );
+    context.stroke();
+  });
+
+  [pixelY, pixelY + 1].forEach((gridY) => {
+    context.beginPath();
+    context.moveTo(pixelX * EDITOR_TILE_SCALE, gridY * EDITOR_TILE_SCALE + 0.5);
+    context.lineTo(
+      (pixelX + 1) * EDITOR_TILE_SCALE,
+      gridY * EDITOR_TILE_SCALE + 0.5,
+    );
+    context.stroke();
+  });
+};
+
+const drawEditorCanvasPixel = (
+  canvasElement: HTMLCanvasElement,
+  pixelX: number,
+  pixelY: number,
+  palette: NesSubPalette,
+  universalBackgroundColor: NesColorIndex,
+  colorIndex: number,
+): void => {
+  const context = canvasElement.getContext("2d");
+
+  if (context instanceof CanvasRenderingContext2D === false) {
+    return;
+  }
+
+  Object.assign(context, { imageSmoothingEnabled: false });
+  Object.assign(context, {
+    fillStyle: resolvePixelHex(palette, universalBackgroundColor, colorIndex),
+  });
+  context.fillRect(
+    pixelX * EDITOR_TILE_SCALE,
+    pixelY * EDITOR_TILE_SCALE,
+    EDITOR_TILE_SCALE,
+    EDITOR_TILE_SCALE,
+  );
+  drawEditorCanvasGridCell(context, pixelX, pixelY);
+};
+
 const resolveTilePixelFromPointerEvent = (
   event: React.PointerEvent<HTMLCanvasElement>,
 ): { pixelX: number; pixelY: number } => {
@@ -130,7 +218,13 @@ const resolveTilePixelFromPointerEvent = (
 
 const BgModeTileEditorCanvasComponent: React.FC<
   BgModeTileEditorCanvasProps
-> = ({ onPaintPixel, palette, tile, universalBackgroundColor }) => {
+> = ({
+  canvasActions,
+  paintColorIndex,
+  palette,
+  tile,
+  universalBackgroundColor,
+}) => {
   const canvasElementRef = React.useRef<O.Option<HTMLCanvasElement>>(O.none);
   const isPaintingRef = React.useRef(false);
   const lastPaintedPixelRef = React.useRef<O.Option<string>>(O.none);
@@ -168,14 +262,25 @@ const BgModeTileEditorCanvasComponent: React.FC<
       }
 
       lastPaintedPixelRef.current = O.some(nextPixelKey);
-      onPaintPixel(pixelX, pixelY);
+      if (O.isSome(canvasElementRef.current)) {
+        drawEditorCanvasPixel(
+          canvasElementRef.current.value,
+          pixelX,
+          pixelY,
+          palette,
+          universalBackgroundColor,
+          paintColorIndex,
+        );
+      }
+      canvasActions.onPaintPixel(pixelX, pixelY);
     },
-    [onPaintPixel],
+    [canvasActions, paintColorIndex, palette, universalBackgroundColor],
   );
 
   const handlePointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       isPaintingRef.current = true;
+      trySetPointerCapture(event.currentTarget, event.pointerId);
 
       const tilePixel = resolveTilePixelFromPointerEvent(event);
 
@@ -197,10 +302,22 @@ const BgModeTileEditorCanvasComponent: React.FC<
     [paintResolvedPixel],
   );
 
-  const handlePointerEnd = React.useCallback(() => {
+  const handlePointerEnd = React.useCallback(
+    (event: React.PointerEvent<HTMLCanvasElement>) => {
+      tryReleasePointerCapture(event.currentTarget, event.pointerId);
+
+      isPaintingRef.current = false;
+      lastPaintedPixelRef.current = O.none;
+      canvasActions.onFlushPaint();
+    },
+    [canvasActions],
+  );
+
+  const handleLostPointerCapture = React.useCallback(() => {
     isPaintingRef.current = false;
     lastPaintedPixelRef.current = O.none;
-  }, []);
+    canvasActions.onFlushPaint();
+  }, [canvasActions]);
 
   return (
     <canvas
@@ -213,6 +330,7 @@ const BgModeTileEditorCanvasComponent: React.FC<
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
+      onLostPointerCapture={handleLostPointerCapture}
       onContextMenu={(event) => {
         event.preventDefault();
       }}

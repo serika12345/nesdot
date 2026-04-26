@@ -77,8 +77,12 @@ export const BgModeScreen: React.FC = () => {
   const universalBackgroundColor = useProjectState(
     (state) => state.nes.universalBackgroundColor,
   );
-  const { handlePaintPixel, selectedTile, visibleBackgroundTiles } =
-    useBgModeTileEditorState();
+  const {
+    handleFlushPaint,
+    handlePaintPixel,
+    selectedTile,
+    visibleBackgroundTiles,
+  } = useBgModeTileEditorState();
   const deferredVisibleBackgroundTiles = React.useDeferredValue(
     visibleBackgroundTiles,
   );
@@ -121,6 +125,7 @@ export const BgModeScreen: React.FC = () => {
       activePaletteIndex,
       activeSlot,
       backgroundPalettes,
+      handleFlushPaint,
       handlePaintPixel,
       selectedTile,
       slotColorIndices,

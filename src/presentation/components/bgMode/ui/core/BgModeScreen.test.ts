@@ -83,6 +83,7 @@ describe("BgModeScreen", () => {
     });
 
     mockedModules.useBgModeTileEditorState.mockReturnValue({
+      handleFlushPaint: vi.fn(),
       handlePaintPixel: vi.fn(),
       selectedTile: createBackgroundTile(),
       visibleBackgroundTiles: [createBackgroundTile()],
