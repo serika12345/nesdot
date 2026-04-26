@@ -1,4 +1,3 @@
-import { Heading } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -618,11 +617,6 @@ const AppBody: React.FC<AppBodyProps> = ({
 
           <aside className={styles.sidebar}>
             <SurfaceCard className={styles.paletteCard}>
-              <div className={styles.paletteHeader}>
-                <Heading as="h2" size="5">
-                  NES パレット
-                </Heading>
-              </div>
               <div className={styles.paletteScroll}>
                 <PalettePicker palettePickerState={palettePickerState} />
               </div>

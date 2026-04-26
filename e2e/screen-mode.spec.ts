@@ -335,9 +335,6 @@ test("screen mode shows BG tile placement flow", async ({ page }) => {
   );
 
   await page
-    .getByRole("button", { name: "パレットを開く", exact: true })
-    .click();
-  await page
     .getByRole("button", { name: "背景パレット 1 スロット 1", exact: true })
     .click();
   await page.getByRole("button", { name: "NES色 #02", exact: true }).click();

@@ -62,11 +62,7 @@ export interface PalettePickerState {
   activePalette: NesPaletteIndex;
   activeSlot: ColorIndexOfPalette;
   handleColorSelect: (nextColorIndex: NesColorIndex) => void;
-  handleLibraryToggle: () => void;
-  handlePaletteListToggle: () => void;
   handlePaletteSlotSelect: (paletteIndex: number, slotIndex: number) => void;
-  isLibraryOpen: boolean;
-  isPaletteListOpen: boolean;
   palettes: NesBackgroundPalettes;
 }
 
@@ -103,8 +99,6 @@ export const usePalettePickerState = (): PalettePickerState => {
   const palettes = useProjectState((state) => state.nes.backgroundPalettes);
   const [activePalette, setActivePalette] = useState<NesPaletteIndex>(0);
   const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
-  const [isPaletteListOpen, setIsPaletteListOpen] = useState(false);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   const handlePaletteSlotSelect = useCallback(
     (paletteIndex: number, slotIndex: number): void => {
@@ -117,18 +111,9 @@ export const usePalettePickerState = (): PalettePickerState => {
 
       setActivePalette(paletteIndex);
       setActiveSlot(slotIndex);
-      setIsLibraryOpen(true);
     },
     [],
   );
-
-  const handlePaletteListToggle = useCallback((): void => {
-    setIsPaletteListOpen((previous) => previous === false);
-  }, []);
-
-  const handleLibraryToggle = useCallback((): void => {
-    setIsLibraryOpen((previous) => previous === false);
-  }, []);
 
   const handleColorSelect = useCallback(
     (nextColorIndex: NesColorIndex): void => {
@@ -152,11 +137,7 @@ export const usePalettePickerState = (): PalettePickerState => {
     activePalette,
     activeSlot,
     handleColorSelect,
-    handleLibraryToggle,
-    handlePaletteListToggle,
     handlePaletteSlotSelect,
-    isLibraryOpen,
-    isPaletteListOpen,
     palettes,
   };
 };
