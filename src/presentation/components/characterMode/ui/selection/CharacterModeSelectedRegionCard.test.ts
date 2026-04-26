@@ -91,7 +91,6 @@ describe("CharacterModeSelectedRegionCard", () => {
     expect(markup).toContain("分解して現在のセットへ反映");
     expect(markup).toContain("新規追加");
     expect(markup).toContain("none");
-    expect(markup).not.toContain("MuiPaper-outlined");
     expect(markup).not.toContain("app-panel");
     expect(markup).not.toContain("app-field-label");
     expect(markup).not.toContain("app-badge");

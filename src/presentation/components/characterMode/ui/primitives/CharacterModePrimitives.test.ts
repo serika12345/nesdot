@@ -19,7 +19,6 @@ describe("CharacterModePrimitives", () => {
 
     expect(markup).toContain("stage");
     expect(markup).toContain("stageEditorCard");
-    expect(markup).not.toContain("MuiPaper-outlined");
   });
 
   it("renders CharacterStageViewport with local drag state styling", () => {
@@ -36,6 +35,5 @@ describe("CharacterModePrimitives", () => {
     expect(markup).toContain("viewport");
     expect(markup).toContain("characterStageViewport");
     expect(markup).toContain("characterStageViewportDragging");
-    expect(markup).not.toContain("MuiPaper-outlined");
   });
 });

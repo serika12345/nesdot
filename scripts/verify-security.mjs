@@ -514,7 +514,7 @@ const checkInlineStyleAttributeBoundaries = () => {
   });
 };
 
-const checkEmotionBootstrapRemoval = () => {
+const checkStyleRuntimeBoundaries = () => {
   const mainPath = "src/main.tsx";
   const indexPath = "src/index.html";
   const nonceHelperPath = "src/infrastructure/browser/getCspNonce.ts";
@@ -525,7 +525,9 @@ const checkEmotionBootstrapRemoval = () => {
 
   const nonceHelperFailures =
     existsSync(resolve(repoRoot, nonceHelperPath)) === true
-      ? [`${nonceHelperPath} must be removed once Emotion bootstrap is gone.`]
+      ? [
+          `${nonceHelperPath} must be removed once the legacy style bootstrap is gone.`,
+        ]
       : [];
 
   return forbidTextFragments(mainPath, mainSource, [
@@ -625,7 +627,7 @@ const failures = checkSupplyChainPolicy().concat(
   checkTauriSecurityConfiguration(),
   checkDangerousApiLinting(),
   checkInlineStyleAttributeBoundaries(),
-  checkEmotionBootstrapRemoval(),
+  checkStyleRuntimeBoundaries(),
   checkTauriStartupLazyBoundaries(),
   checkApplicationJsonBoundaries(),
   checkCveAuditIntegration(),

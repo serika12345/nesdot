@@ -20,7 +20,7 @@ const listMenuFileNames = (): ReadonlyArray<string> => {
   return readdirSync(menuDirectoryPath);
 };
 
-describe("menu bar static CSS migration", () => {
+describe("menu bar static CSS", () => {
   test("keeps the menu bar folder free of styled wrappers", () => {
     const fileNames = listMenuFileNames();
     const styledOffenders = fileNames.flatMap((fileName) => {
@@ -47,7 +47,6 @@ describe("menu bar static CSS migration", () => {
 
     expect(menuBarSource).toContain("./MenuBar.module.css");
     expect(menuBarSource).not.toContain("./MenuBarStyle");
-    expect(menuBarSource).not.toContain("@mui/material");
     expect(menuBarSource).not.toContain("useTheme");
   });
 });

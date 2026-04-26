@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
-const lintedFilePath = "tests/repo/fixtures/mui-sx-rule-fixture.tsx";
+const lintedFilePath = "tests/repo/fixtures/restrict-sx-rule-fixture.tsx";
 const lintTestTimeoutMs = 15_000;
 const eslint = new ESLint({
   cwd: projectRoot,
@@ -21,7 +21,7 @@ const lintSnippet = async (
   return results.flatMap((result) => result.messages);
 };
 
-const getMuiRuleMessages = async (
+const getRuleMessages = async (
   source: string,
 ): Promise<ReadonlyArray<string>> => {
   const messages = await lintSnippet(source);
@@ -36,7 +36,7 @@ describe("ui-style-guidance/restrict-sx", () => {
     "allows a short shallow sx object",
     async () => {
       await expect(
-        getMuiRuleMessages(`
+        getRuleMessages(`
         export const Example = () => (
           <Box sx={{ alignItems: "center", gap: 1, flexShrink: 0 }} />
         );
@@ -50,7 +50,7 @@ describe("ui-style-guidance/restrict-sx", () => {
     "rejects extracted sx objects",
     async () => {
       await expect(
-        getMuiRuleMessages(`
+        getRuleMessages(`
         const sharedSx = { gap: 1 };
 
         export const Example = () => <Box sx={sharedSx} />;
@@ -66,7 +66,7 @@ describe("ui-style-guidance/restrict-sx", () => {
     "rejects oversized sx objects",
     async () => {
       await expect(
-        getMuiRuleMessages(`
+        getRuleMessages(`
         export const Example = () => (
           <Box
             sx={{
@@ -91,14 +91,14 @@ describe("ui-style-guidance/restrict-sx", () => {
     "rejects nested selectors and raw style literals",
     async () => {
       await expect(
-        getMuiRuleMessages(`
+        getRuleMessages(`
         export const Example = () => (
           <Box
             sx={{
               color: "#ff00aa",
               border: "1px solid",
               zIndex: 1300,
-              "& .MuiButton-root": {
+              "& .preview": {
                 color: "primary.main",
               },
             }}

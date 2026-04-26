@@ -21,7 +21,7 @@ const listFilesRecursively = (directoryPath: string): ReadonlyArray<string> => {
   });
 };
 
-describe("emotion styled usage", () => {
+describe("style wrapper usage", () => {
   test("keeps application source free of styled wrappers", () => {
     const styledOffenders = listFilesRecursively(srcRoot)
       .filter((filePath) => /\.(ts|tsx)$/u.test(filePath))
