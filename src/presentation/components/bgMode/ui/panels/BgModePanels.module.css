@@ -24,6 +24,16 @@
     flex: 1 1 0;
   }
 
+  .canvasSurface {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+    padding: 1.125rem;
+  }
+
   .headingWrap {
     position: relative;
     z-index: 1;
@@ -77,46 +87,10 @@
   }
 
   .canvasViewport {
-    position: relative;
     flex: 1 1 0;
     min-height: 0;
     overflow: auto;
-    padding: 1.125rem;
-    border: 0.0625rem solid var(--panel-border);
-    border-radius: 1.125rem;
-    background: var(--panel-surface-strong);
-    box-shadow: inset 0 0.0625rem 0 var(--surface-quiet);
-  }
-
-  .overlayRoot {
-    position: absolute;
-    left: 2.25rem;
-    top: 2.25rem;
-    z-index: 2;
-    pointer-events: auto;
-  }
-
-  .overlayMenu {
     display: flex;
-    width: 20rem;
-    max-width: calc(100vw - 4rem);
-    margin-top: 1rem;
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-    pointer-events: auto;
-    border-radius: 1.125rem;
-    background: var(--panel-surface-strong);
-    border: 0.0625rem solid var(--panel-border);
-    box-shadow: var(--panel-shadow);
-    backdrop-filter: blur(1.125rem);
-  }
-
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    flex-wrap: wrap;
   }
 
   .canvasWrap {
@@ -127,16 +101,6 @@
     height: 100%;
     align-items: center;
     justify-content: center;
-  }
-
-  .chevron {
-    width: 1rem;
-    height: 1rem;
-    transition: transform 160ms ease;
-  }
-
-  .chevronOpen {
-    transform: rotate(180deg);
   }
 
   @media (min-width: 40rem) {

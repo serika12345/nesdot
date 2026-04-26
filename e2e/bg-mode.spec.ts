@@ -60,15 +60,26 @@ test("bg mode edits the selected background tile", async ({ page }) => {
     exact: true,
   });
   const bgCanvas = page.getByLabel("BGタイル編集キャンバス", { exact: true });
+  const slotOneButton = page.getByRole("button", {
+    name: "スロット1",
+    exact: true,
+  });
+  const slotThreeButton = page.getByRole("button", {
+    name: "スロット3",
+    exact: true,
+  });
 
   await bgTileFiveButton.click();
   await expect(bgTileFiveButton).toHaveAttribute("aria-pressed", "true");
   await expect(bgCanvas).toBeVisible();
+  await expect(slotOneButton).toBeVisible();
+  await expect(slotThreeButton).toBeVisible();
 
   const initialPixel = formatCanvasPixelColor(
     await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
   );
 
+  await slotOneButton.click();
   await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
 
   await expect
@@ -79,16 +90,29 @@ test("bg mode edits the selected background tile", async ({ page }) => {
     )
     .not.toBe(initialPixel);
 
+  const slotOnePixel = formatCanvasPixelColor(
+    await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+  );
+
+  await slotThreeButton.click();
+  await clickLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8);
+
+  await expect
+    .poll(async () =>
+      formatCanvasPixelColor(
+        await readLogicalCanvasPixel(bgCanvas, 1, 1, 8, 8),
+      ),
+    )
+    .not.toBe(slotOnePixel);
+
   await expect(
-    page.getByRole("button", { name: "BGツールを開く", exact: true }),
+    page.getByRole("button", { name: "ツールを開く", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "消しゴムツール", exact: true }),
   ).toHaveCount(0);
 
-  await page
-    .getByRole("button", { name: "BGツールを開く", exact: true })
-    .click();
+  await page.getByRole("button", { name: "ツールを開く", exact: true }).click();
 
   await page
     .getByRole("button", { name: "消しゴムツール", exact: true })
@@ -108,7 +132,7 @@ test("bg mode edits the selected background tile", async ({ page }) => {
     .toBe(initialPixel);
 
   await expect(
-    page.getByRole("button", { name: "BGツールを閉じる", exact: true }),
+    page.getByRole("button", { name: "ツールを閉じる", exact: true }),
   ).toBeVisible();
 
   await expect(page.getByText("ACTIVE TOOL", { exact: true })).toHaveCount(0);

@@ -32,11 +32,13 @@ interface WorkbenchState {
     selectedTileIndex: number;
     tool: BgTool;
     activePaletteIndex: PaletteIndex;
+    activeSlot: ColorIndexOfPalette;
     isToolMenuOpen: boolean;
   };
   setBgModeSelectedTileIndex: (nextSelectedTileIndex: number) => void;
   setBgModeTool: (nextTool: BgTool) => void;
   setBgModeActivePaletteIndex: (nextActivePaletteIndex: PaletteIndex) => void;
+  setBgModeActiveSlot: (nextActiveSlot: ColorIndexOfPalette) => void;
   setBgModeToolMenuOpen: (nextIsToolMenuOpen: boolean) => void;
   screenMode: {
     selectedSpriteIndex: O.Option<number>;
@@ -116,6 +118,7 @@ export const useWorkbenchState = create<WorkbenchState>()((set) => ({
     selectedTileIndex: 0,
     tool: "pen",
     activePaletteIndex: 0,
+    activeSlot: 1,
     isToolMenuOpen: false,
   },
   setBgModeSelectedTileIndex: (nextSelectedTileIndex) => {
@@ -139,6 +142,14 @@ export const useWorkbenchState = create<WorkbenchState>()((set) => ({
       bgMode: {
         ...state.bgMode,
         activePaletteIndex: nextActivePaletteIndex,
+      },
+    }));
+  },
+  setBgModeActiveSlot: (nextActiveSlot) => {
+    set((state) => ({
+      bgMode: {
+        ...state.bgMode,
+        activeSlot: nextActiveSlot,
       },
     }));
   },

@@ -75,16 +75,24 @@ describe("BgModePanels", () => {
         editorPanelState: {
           canvasState: {
             activePaletteIndex: 0,
+            activeSlot: 3,
             backgroundPalettes,
             handlePaintPixel: vi.fn(),
             selectedTile: createBackgroundTile(),
+            slotColorIndices: [0, 1, 2, 3],
             universalBackgroundColor: 0,
           },
           handleToolMenuToggle: vi.fn(),
           isToolMenuOpen: true,
-          toolMenuState: {
+          paletteState: {
             activePaletteIndex: 0,
+            activeSlot: 3,
+            backgroundPalettes,
             handlePaletteChange: vi.fn(),
+            handleSlotClick: vi.fn(),
+            slotColorIndices: [0, 1, 2, 3],
+          },
+          toolMenuState: {
             handleToolChange: vi.fn(),
             tool: "eraser",
           },
@@ -95,6 +103,8 @@ describe("BgModePanels", () => {
     expect(markup).toContain("bg-tool-menu");
     expect(markup).toContain("BGタイル編集キャンバス");
     expect(markup).toContain("rt-variant-solid");
+    expect(markup).toContain('aria-label="パレット"');
+    expect(markup).toContain("スロット3");
     expect(markup).not.toContain("app-collapse-toggle");
     expect(markup).toContain('aria-expanded="true"');
   });

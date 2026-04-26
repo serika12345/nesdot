@@ -69,10 +69,6 @@ const drawEditorCanvas = (
 
   tile.pixels.forEach((row, rowIndex) => {
     row.forEach((colorIndex, columnIndex) => {
-      if (colorIndex === 0) {
-        return;
-      }
-
       Object.assign(context, {
         fillStyle: resolvePixelHex(
           palette,

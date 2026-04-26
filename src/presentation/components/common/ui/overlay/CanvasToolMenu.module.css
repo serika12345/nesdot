@@ -1,0 +1,22 @@
+@layer components {
+  .root {
+    position: absolute;
+    top: 4.25rem;
+    left: 1.125rem;
+    bottom: 1.125rem;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .surface {
+    width: 8.5rem;
+    padding: 0.75rem;
+    pointer-events: auto;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

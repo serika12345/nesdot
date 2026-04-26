@@ -1,7 +1,10 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { useProjectState } from "../../../../application/state/projectStore";
+import {
+  useProjectState,
+  type ColorIndexOfPalette,
+} from "../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import {
   decodeBackgroundTileAtIndex,
@@ -36,6 +39,11 @@ const replaceVisibleBackgroundTileAtIndex = (
 ): ReadonlyArray<BackgroundTile> =>
   tiles.map((tile, index) => (index === tileIndex ? nextTile : tile));
 
+export const resolveBgModePaintColorIndex = (
+  tool: "pen" | "eraser",
+  activeSlot: ColorIndexOfPalette,
+): ColorIndexOfPalette => (tool === "eraser" ? 0 : activeSlot);
+
 export const useBgModeSelectedTile = (): BackgroundTile => {
   const chrBytes = useProjectState((state) => state.nes.chrBytes);
   const selectedTileIndex = useWorkbenchState(
@@ -58,6 +66,7 @@ export const useBgModeTileEditorState = (): Readonly<{
     (state) => state.bgMode.selectedTileIndex,
   );
   const tool = useWorkbenchState((state) => state.bgMode.tool);
+  const activeSlot = useWorkbenchState((state) => state.bgMode.activeSlot);
   const selectedTile = useBgModeSelectedTile();
   const locallyEditedTileIndexRef = React.useRef<O.Option<number>>(O.none);
   const visibleBackgroundTilesCacheRef = React.useRef<
@@ -94,7 +103,7 @@ export const useBgModeTileEditorState = (): Readonly<{
 
   const handlePaintPixel = React.useCallback(
     (pixelX: number, pixelY: number): void => {
-      const nextColorIndex = tool === "eraser" ? 0 : 1;
+      const nextColorIndex = resolveBgModePaintColorIndex(tool, activeSlot);
 
       if (selectedTile.pixels[pixelY]?.[pixelX] === nextColorIndex) {
         return;
@@ -133,7 +142,7 @@ export const useBgModeTileEditorState = (): Readonly<{
         },
       });
     },
-    [chrBytes, selectedTile, selectedTileIndex, tool],
+    [activeSlot, chrBytes, selectedTile, selectedTileIndex, tool],
   );
 
   return {

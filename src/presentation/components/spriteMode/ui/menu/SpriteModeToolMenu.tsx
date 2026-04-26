@@ -1,10 +1,11 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import styles from "../../../common/ui/overlay/CanvasToolMenu.module.css";
 import { type SpriteModeToolMenuState } from "../../logic/spriteModeCanvasState";
-import styles from "./SpriteModeToolMenu.module.css";
 
 interface SpriteModeToolMenuProps {
+  id?: string;
   toolMenu: SpriteModeToolMenuState;
 }
 
@@ -12,10 +13,15 @@ interface SpriteModeToolMenuProps {
  * スプライトキャンバスのツールメニューです。
  */
 export const SpriteModeToolMenu: React.FC<SpriteModeToolMenuProps> = ({
+  id,
   toolMenu,
 }) => {
   return (
-    <section className={styles.root} aria-label="スプライト編集ツールメニュー">
+    <section
+      className={styles.root}
+      id={id}
+      aria-label="スプライト編集ツールメニュー"
+    >
       <SurfaceCard className={styles.surface}>
         <div className={styles.actions} role="toolbar" aria-label="描画ツール">
           <Button

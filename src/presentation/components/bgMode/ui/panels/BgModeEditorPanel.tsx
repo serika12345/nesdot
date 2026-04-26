@@ -1,14 +1,16 @@
 import React from "react";
-import { Button } from "@radix-ui/themes";
-import { type PaletteIndex } from "../../../../../application/state/projectStore";
+import {
+  type ColorIndexOfPalette,
+  type PaletteIndex,
+} from "../../../../../application/state/projectStore";
 import {
   type NesColorIndex,
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/projectV2";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
-import { mergeClassNames } from "../../../../styleClassNames";
+import { CanvasToolOverlay } from "../../../common/ui/overlay/CanvasToolOverlay";
+import { PaletteSlotSelector } from "../../../common/ui/palette/PaletteSlotSelector";
 import { BgModeTileEditorCanvas } from "../canvas/BgModeTileEditorCanvas";
 import { BgModeToolMenu } from "../menu/BgModeToolMenu";
 import styles from "./BgModePanels.module.css";
@@ -25,15 +27,24 @@ const resolveActivePalette = (
 
 interface BgModeEditorCanvasState {
   activePaletteIndex: PaletteIndex;
+  activeSlot: ColorIndexOfPalette;
   backgroundPalettes: ReadonlyArray<NesSubPalette>;
   handlePaintPixel: (pixelX: number, pixelY: number) => void;
   selectedTile: BackgroundTile;
+  slotColorIndices: ReadonlyArray<NesColorIndex>;
   universalBackgroundColor: NesColorIndex;
 }
 
-interface BgModeEditorToolMenuState {
+interface BgModeEditorPaletteState {
   activePaletteIndex: PaletteIndex;
-  handlePaletteChange: (paletteIndex: PaletteIndex) => void;
+  activeSlot: ColorIndexOfPalette;
+  backgroundPalettes: ReadonlyArray<NesSubPalette>;
+  handlePaletteChange: (value: string) => void;
+  handleSlotClick: (slot: ColorIndexOfPalette) => void;
+  slotColorIndices: ReadonlyArray<NesColorIndex>;
+}
+
+interface BgModeEditorToolMenuState {
   handleToolChange: (nextTool: BgModeTool) => void;
   tool: BgModeTool;
 }
@@ -42,6 +53,7 @@ export interface BgModeEditorPanelState {
   canvasState: BgModeEditorCanvasState;
   handleToolMenuToggle: () => void;
   isToolMenuOpen: boolean;
+  paletteState: BgModeEditorPaletteState;
   toolMenuState: BgModeEditorToolMenuState;
 }
 
@@ -61,68 +73,57 @@ export const BgModeEditorPanel: React.FC<BgModeEditorPanelProps> = ({
       className={`${styles.panel} ${styles.editorPanel}`}
       aria-label="BGタイルエディター"
     >
-      <div
-        className={styles.canvasViewport}
-        aria-label="BGタイル編集キャンバスビュー"
-      >
-        <div className={styles.overlayRoot}>
-          <Button
-            type="button"
-            aria-expanded={editorPanelState.isToolMenuOpen}
-            aria-controls="bg-mode-canvas-tool-menu"
-            aria-label={
-              editorPanelState.isToolMenuOpen
-                ? "BGツールを閉じる"
-                : "BGツールを開く"
-            }
-            color={editorPanelState.isToolMenuOpen === true ? "teal" : "gray"}
-            size="1"
-            variant={
-              editorPanelState.isToolMenuOpen === true ? "solid" : "outline"
-            }
-            onClick={editorPanelState.handleToolMenuToggle}
-          >
-            {editorPanelState.isToolMenuOpen ? "閉じる" : "開く"}
-            <ChevronDownIcon
-              className={mergeClassNames(
-                styles.chevron ?? "",
-                editorPanelState.isToolMenuOpen === true
-                  ? (styles.chevronOpen ?? "")
-                  : false,
-              )}
-            />
-          </Button>
+      <PaletteSlotSelector
+        paletteState={{
+          activePalette: editorPanelState.paletteState.activePaletteIndex,
+          activeSlot: editorPanelState.paletteState.activeSlot,
+          handlePaletteChange:
+            editorPanelState.paletteState.handlePaletteChange,
+          handleSlotClick: editorPanelState.paletteState.handleSlotClick,
+        }}
+        palettes={editorPanelState.paletteState.backgroundPalettes}
+        slotColorIndices={editorPanelState.paletteState.slotColorIndices}
+      />
 
-          {editorPanelState.isToolMenuOpen === true ? (
+      <SurfaceCard className={styles.canvasSurface}>
+        <CanvasToolOverlay
+          controlsId="bg-mode-canvas-tool-menu"
+          labels={{
+            close: "ツールを閉じる",
+            open: "ツールを開く",
+          }}
+          toggleState={{
+            isOpen: editorPanelState.isToolMenuOpen,
+            onToggle: editorPanelState.handleToolMenuToggle,
+          }}
+          menu={
             <BgModeToolMenu
-              activePaletteIndex={
-                editorPanelState.toolMenuState.activePaletteIndex
-              }
+              id="bg-mode-canvas-tool-menu"
               tool={editorPanelState.toolMenuState.tool}
-              onActivePaletteChange={
-                editorPanelState.toolMenuState.handlePaletteChange
-              }
               onToolChange={editorPanelState.toolMenuState.handleToolChange}
             />
-          ) : (
-            <></>
-          )}
-        </div>
+          }
+        />
 
-        <div className={styles.canvasWrap}>
-          <BgModeTileEditorCanvas
-            tile={editorPanelState.canvasState.selectedTile}
-            palette={resolveActivePalette(
-              editorPanelState.canvasState.backgroundPalettes,
-              editorPanelState.canvasState.activePaletteIndex,
-            )}
-            universalBackgroundColor={
-              editorPanelState.canvasState.universalBackgroundColor
-            }
-            onPaintPixel={editorPanelState.canvasState.handlePaintPixel}
-          />
+        <div
+          className={styles.canvasViewport}
+          aria-label="BGタイル編集キャンバスビュー"
+        >
+          <div className={styles.canvasWrap}>
+            <BgModeTileEditorCanvas
+              tile={editorPanelState.canvasState.selectedTile}
+              palette={resolveActivePalette(
+                editorPanelState.canvasState.backgroundPalettes,
+                editorPanelState.canvasState.activePaletteIndex,
+              )}
+              universalBackgroundColor={
+                editorPanelState.canvasState.universalBackgroundColor
+              }
+              onPaintPixel={editorPanelState.canvasState.handlePaintPixel}
+            />
+          </div>
         </div>
-      </div>
+      </SurfaceCard>
     </SurfaceCard>
   );
 };

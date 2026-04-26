@@ -1,0 +1,16 @@
+@layer components {
+  .root {
+    position: absolute;
+    top: 1.125rem;
+    left: 1.125rem;
+    z-index: 4;
+  }
+
+  .chevron {
+    transition: transform 160ms ease;
+  }
+
+  .chevronOpen {
+    transform: rotate(180deg);
+  }
+}

@@ -1,10 +1,7 @@
-import { Button } from "@radix-ui/themes";
 import React from "react";
-import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
-import { mergeClassNames } from "../../../../styleClassNames";
+import { CanvasToolOverlay } from "../../../common/ui/overlay/CanvasToolOverlay";
 import { type SpriteModeToolOverlayState } from "../../logic/spriteModeCanvasState";
 import { SpriteModeToolMenu } from "../menu/SpriteModeToolMenu";
-import styles from "./SpriteModeToolOverlay.module.css";
 
 interface SpriteModeToolOverlayProps {
   toolOverlay: SpriteModeToolOverlayState;
@@ -18,31 +15,22 @@ export const SpriteModeToolOverlay: React.FC<SpriteModeToolOverlayProps> = ({
   toolOverlay,
 }) => {
   return (
-    <>
-      <div className={styles.root}>
-        <Button
-          type="button"
-          color={toolOverlay.isToolsOpen === true ? "teal" : "gray"}
-          variant={toolOverlay.isToolsOpen === true ? "solid" : "surface"}
-          onClick={toolOverlay.handleToggleTools}
-        >
-          {toolOverlay.isToolsOpen ? "ツールを閉じる" : "ツールを開く"}
-          <ChevronDownIcon
-            className={mergeClassNames(
-              styles.chevron ?? "",
-              toolOverlay.isToolsOpen === true
-                ? (styles.chevronOpen ?? "")
-                : false,
-            )}
-          />
-        </Button>
-      </div>
-
-      {toolOverlay.isToolsOpen === true ? (
-        <SpriteModeToolMenu toolMenu={toolOverlay.toolMenu} />
-      ) : (
-        <></>
-      )}
-    </>
+    <CanvasToolOverlay
+      controlsId="sprite-mode-canvas-tool-menu"
+      labels={{
+        close: "ツールを閉じる",
+        open: "ツールを開く",
+      }}
+      toggleState={{
+        isOpen: toolOverlay.isToolsOpen,
+        onToggle: toolOverlay.handleToggleTools,
+      }}
+      menu={
+        <SpriteModeToolMenu
+          id="sprite-mode-canvas-tool-menu"
+          toolMenu={toolOverlay.toolMenu}
+        />
+      }
+    />
   );
 };

@@ -1,74 +1,50 @@
-import React from "react";
 import { Button } from "@radix-ui/themes";
-import { type PaletteIndex } from "../../../../../application/state/projectStore";
-import styles from "../panels/BgModePanels.module.css";
+import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import styles from "../../../common/ui/overlay/CanvasToolMenu.module.css";
 
 type BgModeTool = "pen" | "eraser";
 
 interface BgModeToolMenuProps {
-  activePaletteIndex: PaletteIndex;
+  id?: string;
   tool: BgModeTool;
-  onActivePaletteChange: (paletteIndex: PaletteIndex) => void;
   onToolChange: (nextTool: BgModeTool) => void;
 }
 
-const BG_PALETTE_OPTIONS: ReadonlyArray<PaletteIndex> = [0, 1, 2, 3];
-
 /**
- * BG editor のツールとパレット切り替えメニューです。
+ * BG editor の描画ツール切り替えメニューです。
  */
 export const BgModeToolMenu: React.FC<BgModeToolMenuProps> = ({
-  activePaletteIndex,
+  id,
   tool,
-  onActivePaletteChange,
   onToolChange,
 }) => {
   return (
-    <div className={styles.overlayMenu} id="bg-mode-canvas-tool-menu">
-      <div className={styles.toolbar}>
-        <Button
-          aria-label="ペンツール"
-          aria-pressed={tool === "pen"}
-          color={tool === "pen" ? "teal" : "gray"}
-          size="1"
-          variant={tool === "pen" ? "solid" : "outline"}
-          onClick={() => {
-            onToolChange("pen");
-          }}
-        >
-          ペン
-        </Button>
-        <Button
-          aria-label="消しゴムツール"
-          aria-pressed={tool === "eraser"}
-          color={tool === "eraser" ? "teal" : "gray"}
-          size="1"
-          variant={tool === "eraser" ? "solid" : "outline"}
-          onClick={() => {
-            onToolChange("eraser");
-          }}
-        >
-          消しゴム
-        </Button>
-      </div>
-
-      <div className={styles.toolbar}>
-        {BG_PALETTE_OPTIONS.map((paletteIndex) => (
+    <section className={styles.root} id={id} aria-label="BG編集ツールメニュー">
+      <SurfaceCard className={styles.surface}>
+        <div className={styles.actions} role="toolbar" aria-label="描画ツール">
           <Button
-            key={`bg-mode-palette-${paletteIndex}`}
-            aria-label={`BGパレット ${paletteIndex}`}
-            aria-pressed={activePaletteIndex === paletteIndex}
-            color={activePaletteIndex === paletteIndex ? "teal" : "gray"}
-            size="1"
-            variant={activePaletteIndex === paletteIndex ? "solid" : "outline"}
-            onClick={() => {
-              onActivePaletteChange(paletteIndex);
-            }}
+            type="button"
+            aria-label="ペンツール"
+            aria-pressed={tool === "pen"}
+            color={tool === "pen" ? "teal" : "gray"}
+            variant={tool === "pen" ? "solid" : "surface"}
+            onClick={() => onToolChange("pen")}
           >
-            {`Palette ${paletteIndex}`}
+            ペン
           </Button>
-        ))}
-      </div>
-    </div>
+          <Button
+            type="button"
+            aria-label="消しゴムツール"
+            aria-pressed={tool === "eraser"}
+            color={tool === "eraser" ? "teal" : "gray"}
+            variant={tool === "eraser" ? "solid" : "surface"}
+            onClick={() => onToolChange("eraser")}
+          >
+            消しゴム
+          </Button>
+        </div>
+      </SurfaceCard>
+    </section>
   );
 };
