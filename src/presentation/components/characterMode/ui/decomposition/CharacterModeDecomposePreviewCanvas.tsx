@@ -1,6 +1,6 @@
+import { Badge, Button, TextField } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { Badge, Button, TextField } from "@radix-ui/themes";
 import React from "react";
 import {
   type CharacterDecompositionAnalysis,
@@ -12,13 +12,14 @@ import {
   useCharacterModeDecompositionRegions,
   useCharacterModeDecompositionTool,
 } from "../../logic/characterModeDecompositionState";
-import { getRegionStatusLabel } from "../../logic/decomposition/decompositionRegionRules";
 import {
   useCharacterModeStageDisplay,
   useCharacterModeStageSize,
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "../../logic/characterModeEditorState";
+import { getRegionStatusLabel } from "../../logic/decomposition/decompositionRegionRules";
+import styles from "../compose/CharacterModeCanvasPanels.module.css";
 import {
   CharacterStageStatus,
   CharacterStageViewport,
@@ -32,7 +33,6 @@ import {
   ViewportCenterWrap,
 } from "../primitives/CharacterModePrimitives";
 import { CharacterModeDecompositionToolOverlay } from "./CharacterModeDecompositionToolOverlay";
-import styles from "../compose/CharacterModeCanvasPanels.module.css";
 
 interface CharacterModeDecompositionCanvasHandlers {
   handleDecompositionCanvasPointerDown: React.PointerEventHandler<HTMLCanvasElement>;
@@ -83,9 +83,6 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
       <PreviewHeaderLayout>
         <div className={styles.headerRow}>
           <span className={styles.title}>分解キャンバス</span>
-          <Badge color="teal" size="2" variant="surface">
-            {`${decompositionRegions.decompositionRegions.length} regions`}
-          </Badge>
         </div>
 
         <PreviewControlsRow>
