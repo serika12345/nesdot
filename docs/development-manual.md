@@ -730,9 +730,10 @@ VS Code 標準フロー:
 - [`README.md`](../README.md)
 - [`docs/release-checklist.md`](./release-checklist.md)
 - [`docs/static-css-architecture.md`](./static-css-architecture.md)
+- [`docs/static-styling-status.md`](./static-styling-status.md)
+- [`docs/style-runtime-transition-notes.md`](./style-runtime-transition-notes.md)
 - [`docs/bg-edit-mode-design.md`](./bg-edit-mode-design.md)
 - [`docs/nesdev-screen-rendering-context.md`](./nesdev-screen-rendering-context.md)
-- [`docs/emotion-removal-migration-plan.md`](./emotion-removal-migration-plan.md)
 - [`docs/csp-style-src-hardening-todo.md`](./csp-style-src-hardening-todo.md)
 
 この文書に足りない情報が見つかったら、README に追記する前に「人が次に迷うのはどこか」を考えて、このマニュアルへ戻していくのがよいです。

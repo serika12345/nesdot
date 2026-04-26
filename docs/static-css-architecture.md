@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the target styling architecture for the repository after Emotion removal work begins.
+This document defines the styling architecture for the repository now that the static CSS path is established.
 
 It exists to answer two questions consistently:
 
@@ -100,8 +100,7 @@ Rules:
 
 ## Disallowed Mechanisms For New Code
 
-- new imports from `@emotion/cache`
-- new imports from `@emotion/react`
+- new imports from removed runtime-style packages
 - new application-owned `styled(...)` wrappers
 - new repository-specific visual rules in a runtime theme file
 - ad hoc global selectors for feature-owned UI
