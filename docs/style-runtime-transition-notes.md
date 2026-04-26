@@ -137,7 +137,7 @@ Keep dynamic geometry separate from static skinning:
 
 ### Batch C
 
-- migrate menu bar styling from its old wrapper layer
+- menu bar styling has already moved off its old wrapper layer and now lives beside the `MenuBar` component
 - keep interaction logic unchanged
 
 ### Batch D

@@ -27,7 +27,7 @@ The repository direction is:
 - `styleClassNames.ts` now contains only shared canvas helper class names plus `mergeClassNames`.
 - `src/assets/global.css` owns app-shell globals and shared visual tokens.
 - Local editor-specific styles live beside their owning TSX files in feature CSS Modules and narrow geometry helpers.
-- Full verification is green: format, lint, type safety, security, unit tests, console E2E, and full E2E all pass.
+- Verification should be rerun before this snapshot is treated as current: format, lint, type safety, security, unit tests, console E2E, and full E2E.
 - There is no remaining implementation blocker for the current static styling path.
 
 ## Hard Constraints
@@ -68,8 +68,8 @@ The current work is not a redesign. The goal is to keep the UI on static, mainta
 
 | Metric                                                  | Count |
 | ------------------------------------------------------- | ----: |
-| Files importing `styleClassNames`                       |     7 |
-| `styles.ts` modules under `src/presentation/components` |    18 |
+| Files importing `styleClassNames`                       |    13 |
+| `styles.ts` modules under `src/presentation/components` |     0 |
 | `styleClassNames.ts` exported constants                 |     2 |
 | Legacy runtime theme selector lines                     |     0 |
 | Runtime style-engine entry points                       |     0 |
@@ -178,4 +178,4 @@ Representative files:
 - [x] Shared UI stays on explicit shared components and CSS Modules.
 - [x] `styleClassNames.ts` is limited to shared canvas concerns and `mergeClassNames`.
 - [x] Feature-local visuals are owned beside the component.
-- [x] Verification remains green.
+- [ ] Verification snapshot is current.
