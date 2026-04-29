@@ -2,16 +2,14 @@ import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import { getMatrixItem } from "../../shared/arrayAccess";
 import {
-  ColorIndexOfPalette,
-  SpriteInScreen,
-  SpriteTile,
-} from "../project/project";
-import {
-  createDefaultProjectStateV2,
+  createDefaultProjectState,
   createEmptyBackgroundTile,
   type BackgroundTile,
-  type ProjectStateV2,
-} from "../project/projectV2";
+  type ColorIndexOfPalette,
+  type ProjectState,
+  type SpriteInScreen,
+  type SpriteTile,
+} from "../project/project";
 import {
   createDefaultNesProjectState,
   NES_EMPTY_BACKGROUND_TILE_INDEX,
@@ -22,7 +20,7 @@ import { nesIndexToCssHex } from "./palette";
 import { buildNesProjection } from "./projection";
 import {
   renderBackgroundTileToHexArray,
-  renderProjectStateV2ToHexArray,
+  renderProjectStateToHexArray,
   type RenderScreen,
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
@@ -466,15 +464,15 @@ describe("renderScreenToHexArray", () => {
     expectRenderedHex(rendered, 0, 0, 45);
   });
 
-  it("renders background from the normalized v2 project state through NES projection", () => {
-    const state = createDefaultProjectStateV2();
-    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+  it("renders background from the normalized project state through NES projection", () => {
+    const state = createDefaultProjectState();
+    const nextBackgroundPalettes: ProjectState["palettes"]["background"] = [
       state.palettes.background[0],
       state.palettes.background[1],
       [45, 5, 6, 7],
       state.palettes.background[3],
     ];
-    const nextState: ProjectStateV2 = {
+    const nextState: ProjectState = {
       ...state,
       backgroundTiles: state.backgroundTiles.map((tile, tileIndex) =>
         tileIndex === 0 ? setTilePixel(tile, 0, 0, 3) : tile,
@@ -511,15 +509,15 @@ describe("renderScreenToHexArray", () => {
     expectRenderedHex(rendered, 0, 1, 45);
   });
 
-  it("renders directly from a normalized v2 project state", () => {
-    const state = createDefaultProjectStateV2();
-    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+  it("renders directly from a normalized project state", () => {
+    const state = createDefaultProjectState();
+    const nextBackgroundPalettes: ProjectState["palettes"]["background"] = [
       state.palettes.background[0],
       state.palettes.background[1],
       [45, 5, 6, 7],
       state.palettes.background[3],
     ];
-    const nextState: ProjectStateV2 = {
+    const nextState: ProjectState = {
       ...state,
       backgroundTiles: state.backgroundTiles.map((tile, tileIndex) =>
         tileIndex === 0 ? setTilePixel(tile, 0, 0, 3) : tile,
@@ -543,7 +541,7 @@ describe("renderScreenToHexArray", () => {
       },
     };
 
-    const rendered = renderProjectStateV2ToHexArray(nextState);
+    const rendered = renderProjectStateToHexArray(nextState);
 
     expectRenderedHex(rendered, 0, 0, 7);
     expectRenderedHex(rendered, 0, 1, 45);

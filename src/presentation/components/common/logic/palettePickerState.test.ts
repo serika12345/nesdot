@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProjectStateV2 } from "../../../../domain/project/projectV2";
+import { createDefaultProjectState } from "../../../../domain/project/project";
 import { applyPalettePickerColorSelection } from "./palettePickerState";
 
 describe("applyPalettePickerColorSelection", () => {
   it("updates the selected slot in both background and sprite palettes", () => {
-    const palettes = createDefaultProjectStateV2().palettes;
+    const palettes = createDefaultProjectState().palettes;
 
     const nextPalettes = applyPalettePickerColorSelection(palettes, 2, 3, 15);
 
@@ -17,7 +17,7 @@ describe("applyPalettePickerColorSelection", () => {
   });
 
   it("preserves unrelated palette state fields", () => {
-    const palettes = createDefaultProjectStateV2().palettes;
+    const palettes = createDefaultProjectState().palettes;
 
     const nextPalettes = applyPalettePickerColorSelection(palettes, 1, 1, 22);
 

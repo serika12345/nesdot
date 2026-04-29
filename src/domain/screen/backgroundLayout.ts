@@ -4,7 +4,7 @@ import {
   SCREEN_BACKGROUND_HEIGHT_TILES,
   SCREEN_BACKGROUND_WIDTH_TILES,
   type ScreenBackground,
-} from "../project/projectV2";
+} from "../project/project";
 
 const SCREEN_BACKGROUND_TILE_SIZE = 8;
 const SCREEN_BACKGROUND_WIDTH_PIXELS =

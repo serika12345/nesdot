@@ -10,11 +10,11 @@ import {
 import { tile8x16ToChr, tile8x8ToChr } from "../../domain/nes/chr";
 import { nesIndexToCssHex } from "../../domain/nes/palette";
 import {
-  ColorIndexOfPalette,
-  PaletteIndex,
-  SpriteTile,
+  type ColorIndexOfPalette,
+  type PaletteIndex,
+  type ProjectState,
+  type SpriteTile,
 } from "../../domain/project/project";
-import type { ProjectStateV2 } from "../../domain/project/projectV2";
 import { getArrayItem, getMatrixItem } from "../../shared/arrayAccess";
 
 type FileFilter = {
@@ -292,12 +292,12 @@ export default function useExportImage() {
     URL.revokeObjectURL(url);
   };
 
-  const exportJSON = async (projectState: ProjectStateV2) => {
+  const exportJSON = async (projectState: ProjectState) => {
     const characterJson = toCharacterJsonData({
       characterSets: useCharacterState.getState().characterSets,
       selectedCharacterId: useCharacterState.getState().selectedCharacterId,
     });
-    const exportedProjectState: ProjectStateV2 = {
+    const exportedProjectState: ProjectState = {
       formatVersion: projectState.formatVersion,
       spriteSize: projectState.spriteSize,
       spriteTiles: projectState.spriteTiles,

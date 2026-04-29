@@ -7,7 +7,7 @@ import {
   type NesColorIndex,
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 import { resolveBgModePaintColorIndex } from "../../logic/bgModeWorkspaceEditingState";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { CanvasToolOverlay } from "../../../common/ui/overlay/CanvasToolOverlay";

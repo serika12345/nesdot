@@ -338,13 +338,13 @@ export const RedoIcon: React.FC<AppIconProps> = (props) => (
 export const SaveIcon: React.FC<AppIconProps> = (props) => (
   <SvgIcon {...props}>
     <path
-      d="M3 2.5H11L13 4.5V13.5H3V2.5Z"
+      d="M3 2.5H11L13 4.5V13.5H3V 2.5Z"
       stroke="currentColor"
       strokeLinejoin="round"
       strokeWidth="1.25"
     />
     <path
-      d="M5 2.5V6H10V2.5"
+      d="M5 2.5V6H10V 2.5"
       stroke="currentColor"
       strokeLinejoin="round"
       strokeWidth="1.25"

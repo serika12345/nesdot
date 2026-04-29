@@ -1,8 +1,11 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { getMatrixItem } from "../../shared/arrayAccess";
-import { ColorIndexOfPalette, SpriteTile } from "../project/project";
-import { type BackgroundTile } from "../project/projectV2";
+import type {
+  BackgroundTile,
+  ColorIndexOfPalette,
+  SpriteTile,
+} from "../project/project";
 
 const toColorIndexOfPalette = (value: number): ColorIndexOfPalette => {
   if (value === 0) {

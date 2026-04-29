@@ -2,11 +2,12 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import type {
+  BackgroundTile,
+  ProjectState,
   SpriteInScreen,
   SpritePriority,
   SpriteTile,
 } from "../project/project";
-import type { BackgroundTile, ProjectStateV2 } from "../project/projectV2";
 import {
   getNameTableLinearIndex,
   NES_EMPTY_BACKGROUND_TILE_INDEX,
@@ -122,11 +123,11 @@ export function renderScreenToHexArray(
 }
 
 /**
- * 正規化済み v2 project state からスクリーン全体の色グリッドを生成します。
+ * 正規化済み project state からスクリーン全体の色グリッドを生成します。
  * UI 側が NES projection を意識せずに背景とスプライトの合成結果を取得する入口です。
  */
-export function renderProjectStateV2ToHexArray(
-  projectState: ProjectStateV2,
+export function renderProjectStateToHexArray(
+  projectState: ProjectState,
 ): string[][] {
   return renderScreenToHexArray(
     {

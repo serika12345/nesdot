@@ -1,12 +1,12 @@
-import { type SpriteInScreen } from "../project/project";
 import {
   PROJECT_BACKGROUND_TILE_COUNT,
   SCREEN_BACKGROUND_PALETTE_HEIGHT,
   SCREEN_BACKGROUND_PALETTE_WIDTH,
   createEmptyBackgroundTile,
-  type ProjectStateV2,
+  type ProjectState,
   type ScreenBackground,
-} from "../project/projectV2";
+  type SpriteInScreen,
+} from "../project/project";
 import { toOamEntryFromScreenSprite } from "../screen/oamSync";
 import { encodeBackgroundTilesToChrBytes } from "./chr";
 import {
@@ -54,7 +54,7 @@ const resolveBackgroundPaletteRegion = (
 };
 
 const buildChrBytes = (
-  backgroundTiles: ProjectStateV2["backgroundTiles"],
+  backgroundTiles: ProjectState["backgroundTiles"],
 ): number[] =>
   Array.from(
     encodeBackgroundTilesToChrBytes(
@@ -108,7 +108,7 @@ export const buildOamFromScreenSprites = (
 ): OamSpriteEntry[] => sprites.map(toOamEntryFromScreenSprite);
 
 export const buildNesProjection = (
-  projectState: ProjectStateV2,
+  projectState: ProjectState,
 ): NesProjectState => ({
   chrBytes: buildChrBytes(projectState.backgroundTiles),
   nameTable: buildNameTable(projectState.screen.background),

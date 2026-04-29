@@ -8,19 +8,19 @@
 
 ## 実装の現在地
 
-- プロジェクト状態の正本は [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts) の `ProjectStateV2` です。
-- Zustand store は [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) で `ProjectStateV2` を保持します。
+- プロジェクト状態の正本は [../src/domain/project/project.ts](../src/domain/project/project.ts) の `ProjectState` です。
+- Zustand store は [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) で `ProjectState` を保持します。
 - スプライトタイルは `spriteTiles`、BG タイルは `backgroundTiles`、画面上の背景配置と属性は `screen.background` にあります。
 - NES raw state は保存せず、[../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) が `chrBytes` / `nameTable` / `attributeTable` / `oam` を導出します。
-- 画面プレビューは [../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx](../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、[../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderProjectStateV2ToHexArray` で描画しています。
+- 画面プレビューは [../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx](../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、[../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderProjectStateToHexArray` で描画しています。
 - PNG/SVG エクスポートも [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) の `getHexArrayForScreen` から同じ合成ロジックを使います。
-- スプライト制約チェックは [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) の `scanProjectStateV2SpriteConstraints` で、v2 state から導出した OAM 相当の情報を使って判定します。
+- スプライト制約チェックは [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) の `scanProjectStateSpriteConstraints` で、project state から導出した OAM 相当の情報を使って判定します。
 
 ## 実装済みの NES 寄り制約
 
 ### 1. 背景は `32x30` の nametable と `16x16` の attribute 領域で扱う
 
-v2 state では、背景配置は `screen.background.tileIndices`、背景 palette 領域は `screen.background.paletteIndices` で保持します。NES raw state が必要なときだけ projection で `nameTable` と `attributeTable` を組み立てます。
+project state では、背景配置は `screen.background.tileIndices`、背景 palette 領域は `screen.background.paletteIndices` で保持します。NES raw state が必要なときだけ projection で `nameTable` と `attributeTable` を組み立てます。
 
 - タイル座標の一次元化は [../src/domain/screen/backgroundLayout.ts](../src/domain/screen/backgroundLayout.ts)
 - 背景 palette 領域の一次元化と pixel からの解決は [../src/domain/screen/backgroundPalette.ts](../src/domain/screen/backgroundPalette.ts)
@@ -51,7 +51,7 @@ v2 state では、背景配置は `screen.background.tileIndices`、背景 palet
 - [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) は `64` 枚上限、1 scanline `8` 枚上限、`spriteSize` を使った scanline 判定を実装済みです
 - screen mode では [../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts](../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts) からこの検査結果を UI に出しています
 
-### 5. BG 編集と画面配置 BG 編集は v2 state に接続済み
+### 5. BG 編集と画面配置 BG 編集は project state に接続済み
 
 - BG 編集モード: `backgroundTiles` の 256 タイルを直接編集
 - 画面配置モード: `screen.background.tileIndices` へ BG タイル配置、`screen.background.paletteIndices` へ BG 属性ペイント
@@ -59,7 +59,7 @@ v2 state では、背景配置は `screen.background.tileIndices`、背景 palet
 
 ## 保存形式
 
-プロジェクト JSON は [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts) の `formatVersion: 2` だけを受け付けます。
+プロジェクト JSON は [../src/domain/project/projectSchema.ts](../src/domain/project/projectSchema.ts) の `formatVersion: 2` だけを受け付けます。
 
 - `spriteTiles` と `backgroundTiles` は編集可能な tile library です
 - `screen.background` と `screen.sprites` は画面配置です
@@ -78,7 +78,7 @@ v2 state では、背景配置は `screen.background.tileIndices`、背景 palet
 
 ### 3. pattern table bank の実効利用
 
-`ppuControl.backgroundPatternTable` / `spritePatternTable` は v2 state にありますが、renderer は bank 切り替えをまだ使っていません。現在の CHR projection は `backgroundTiles` から単一の 4096 byte 相当を組み立てます。
+`ppuControl.backgroundPatternTable` / `spritePatternTable` は project state にありますが、renderer は bank 切り替えをまだ使っていません。現在の CHR projection は `backgroundTiles` から単一の 4096 byte 相当を組み立てます。
 
 ### 4. 実機タイミング依存の PPU 挙動
 
@@ -94,8 +94,8 @@ v2 state では、背景配置は `screen.background.tileIndices`、背景 palet
 ## 次に見るべきファイル
 
 - [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts)
-- [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts)
-- [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts)
+- [../src/domain/project/project.ts](../src/domain/project/project.ts)
+- [../src/domain/project/projectSchema.ts](../src/domain/project/projectSchema.ts)
 - [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts)
 - [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts)
 - [../src/domain/screen/backgroundLayout.ts](../src/domain/screen/backgroundLayout.ts)

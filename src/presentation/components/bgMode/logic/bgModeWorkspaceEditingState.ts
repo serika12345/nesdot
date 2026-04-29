@@ -8,7 +8,7 @@ import { useWorkbenchState } from "../../../../application/state/workbenchStore"
 import {
   createEmptyBackgroundTile,
   type BackgroundTile,
-} from "../../../../domain/project/projectV2";
+} from "../../../../domain/project/project";
 
 interface BackgroundTilePixelWrite {
   nextColorIndex: ColorIndexOfPalette;

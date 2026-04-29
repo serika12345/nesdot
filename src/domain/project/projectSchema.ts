@@ -6,7 +6,7 @@ import {
   PROJECT_SPRITE_TILE_COUNT,
   SCREEN_BACKGROUND_PALETTE_INDEX_COUNT,
   SCREEN_BACKGROUND_TILE_INDEX_COUNT,
-} from "./projectV2";
+} from "./project";
 
 const ColorIndexOfPaletteSchema = z.union([
   z.literal(0),
@@ -71,7 +71,7 @@ const Palette4ColorsSchema = z.tuple([
   NesColorIndexSchema,
 ]);
 
-export const ProjectStateV2Schema = z
+export const ProjectStateSchema = z
   .object({
     formatVersion: z.literal(PROJECT_FORMAT_VERSION),
     spriteSize: z.union([z.literal(8), z.literal(16)]),
@@ -120,7 +120,7 @@ export const ProjectStateV2Schema = z
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "ProjectStateV2 spriteTiles must match project spriteSize",
+        message: "ProjectState spriteTiles must match project spriteSize",
         path: ["spriteTiles"],
       });
     }
@@ -130,7 +130,7 @@ export const ProjectStateV2Schema = z
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "ProjectStateV2 screen sprites must match project spriteSize",
+        message: "ProjectState screen sprites must match project spriteSize",
         path: ["screen", "sprites"],
       });
     }

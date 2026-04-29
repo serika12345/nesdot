@@ -3,7 +3,7 @@ import {
   type PaletteIndex,
   type SpriteTile,
 } from "../../../../application/state/projectStore";
-import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../domain/project/project";
 import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 
 const formatTileNumber = (tileIndex: number): string =>

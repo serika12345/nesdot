@@ -4,7 +4,7 @@ import {
   type NesBackgroundPalettes,
   type NesColorIndex,
 } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
 import styles from "./ScreenModeBackgroundTilePickerDialog.module.css";
 

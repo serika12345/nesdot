@@ -3,7 +3,7 @@ import {
   type NesColorIndex,
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
 import {
   backgroundPlacementOverlayStyle,

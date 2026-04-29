@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useProjectState } from "../../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../../application/state/workbenchStore";
 import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 
 const mockedModules = vi.hoisted(() => {
   return {

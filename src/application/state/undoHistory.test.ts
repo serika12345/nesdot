@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createDefaultProjectStateV2 } from "../../domain/project/projectV2";
+import { createDefaultProjectState } from "../../domain/project/project";
 import { useCharacterState } from "./characterStore";
 import { useProjectState } from "./projectStore";
 import {
@@ -18,7 +18,7 @@ const flushMicrotasks = async (): Promise<void> => {
 };
 
 const resetStores = (): void => {
-  useProjectState.setState(createDefaultProjectStateV2(), true);
+  useProjectState.setState(createDefaultProjectState(), true);
 
   useCharacterState.setState({
     characterSets: [],

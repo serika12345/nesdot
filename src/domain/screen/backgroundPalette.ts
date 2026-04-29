@@ -1,11 +1,11 @@
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
-import { type PaletteIndex } from "../project/project";
 import {
   SCREEN_BACKGROUND_PALETTE_HEIGHT,
   SCREEN_BACKGROUND_PALETTE_WIDTH,
+  type PaletteIndex,
   type ScreenBackground,
-} from "../project/projectV2";
+} from "../project/project";
 
 const SCREEN_BACKGROUND_PALETTE_REGION_SIZE = 16;
 const SCREEN_BACKGROUND_WIDTH_PIXELS =

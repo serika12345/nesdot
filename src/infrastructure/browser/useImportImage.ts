@@ -7,8 +7,8 @@ import {
   CharacterJsonData,
   useCharacterState,
 } from "../../application/state/characterStore";
-import type { ProjectStateV2 } from "../../domain/project/projectV2";
-import { ProjectStateV2Schema } from "../../domain/project/projectV2Schema";
+import type { ProjectState } from "../../domain/project/project";
+import { ProjectStateSchema } from "../../domain/project/projectSchema";
 
 const CharacterSpriteSchema = z.object({
   spriteIndex: z.number().int().min(0).max(63),
@@ -28,7 +28,7 @@ const CharacterJsonDataSchema = z.object({
   selectedCharacterId: z.string().optional(),
 });
 
-const ProjectImportSchema = ProjectStateV2Schema.extend({
+const ProjectImportSchema = ProjectStateSchema.extend({
   characters: CharacterJsonDataSchema.optional(),
 });
 
@@ -36,7 +36,7 @@ const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
 const normalizeProjectState = (
   state: z.infer<typeof ProjectImportSchema>,
-): ProjectStateV2 => ({
+): ProjectState => ({
   formatVersion: state.formatVersion,
   spriteSize: state.spriteSize,
   spriteTiles: state.spriteTiles,
@@ -60,7 +60,7 @@ const normalizeCharacterJsonData = (
 });
 
 interface ParsedProjectImport {
-  projectState: ProjectStateV2;
+  projectState: ProjectState;
   characterData: CharacterJsonData;
 }
 
@@ -189,7 +189,7 @@ export default function useImportImage() {
   };
 
   const importJSON = async (
-    onImport: (data: ProjectStateV2) => void,
+    onImport: (data: ProjectState) => void,
   ): Promise<boolean> => {
     const nativeResult = await readJsonWithNativeDialog();
 

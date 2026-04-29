@@ -1,45 +1,41 @@
 import { create } from "zustand";
 import {
   renderBackgroundTileToHexArray,
-  renderProjectStateV2ToHexArray,
+  renderProjectStateToHexArray,
   renderSpriteTileToHexArray,
 } from "../../domain/nes/rendering";
 import { buildNesProjection } from "../../domain/nes/projection";
 import type { NesProjectState } from "../../domain/nes/nesProject";
 import {
+  createDefaultProjectState,
+  type BackgroundTile,
   type PaletteIndex,
+  type ProjectState,
   type SpriteTile,
 } from "../../domain/project/project";
-import {
-  createDefaultProjectStateV2,
-  type BackgroundTile,
-  type ProjectStateV2,
-} from "../../domain/project/projectV2";
 
 export type {
+  BackgroundTile,
   ColorIndexOfPalette,
   PaletteIndex,
   ProjectSpriteSize,
+  ProjectState,
+  ScreenBackground,
   SpriteInScreen,
   SpritePriority,
   SpriteTile,
 } from "../../domain/project/project";
-export type {
-  BackgroundTile,
-  ProjectStateV2,
-  ScreenBackground,
-} from "../../domain/project/projectV2";
 
-export type Screen = ProjectStateV2["screen"];
+export type Screen = ProjectState["screen"];
 
-export type ProjectStoreState = ProjectStateV2;
+export type ProjectStoreState = ProjectState;
 
 /**
  * プロジェクト全体の状態を保持する Zustand ストアです。
- * 正規化済み v2 project state を正本にし、NES raw state は projection として導出します。
+ * 正規化済み project state を正本にし、NES raw state は projection として導出します。
  */
 export const useProjectState = create<ProjectStoreState>()(() =>
-  createDefaultProjectStateV2(),
+  createDefaultProjectState(),
 );
 
 /**
@@ -74,7 +70,7 @@ export const getHexArrayForBackgroundTile = (
  */
 export const getHexArrayForScreen = (screen: Screen): string[][] => {
   const state = useProjectState.getState();
-  return renderProjectStateV2ToHexArray({
+  return renderProjectStateToHexArray({
     ...state,
     screen,
   });

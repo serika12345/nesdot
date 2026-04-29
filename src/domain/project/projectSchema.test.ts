@@ -1,18 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProjectStateV2 } from "./projectV2";
-import { ProjectStateV2Schema } from "./projectV2Schema";
+import { createDefaultProjectState } from "./project";
+import { ProjectStateSchema } from "./projectSchema";
 
-describe("ProjectStateV2Schema", () => {
-  it("accepts the normalized v2 project shape", () => {
-    const result = ProjectStateV2Schema.safeParse(
-      createDefaultProjectStateV2(),
-    );
+describe("ProjectStateSchema", () => {
+  it("accepts the normalized project shape", () => {
+    const result = ProjectStateSchema.safeParse(createDefaultProjectState());
 
     expect(result.success).toBe(true);
   });
 
   it("rejects screen background palette arrays with an invalid cell count", () => {
-    const state = createDefaultProjectStateV2();
+    const state = createDefaultProjectState();
     const invalidState = {
       ...state,
       screen: {
@@ -24,7 +22,7 @@ describe("ProjectStateV2Schema", () => {
       },
     };
 
-    const result = ProjectStateV2Schema.safeParse(invalidState);
+    const result = ProjectStateSchema.safeParse(invalidState);
 
     expect(result.success).toBe(false);
     if (result.success === true) {

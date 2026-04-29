@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { getMatrixItem } from "../../shared/arrayAccess";
-import { createEmptySpriteTile } from "../project/project";
 import {
-  BackgroundTile,
-  ProjectStateV2,
-  createDefaultProjectStateV2,
+  createDefaultProjectState,
+  createEmptySpriteTile,
   createEmptyBackgroundTile,
-} from "../project/projectV2";
+  type BackgroundTile,
+  type ProjectState,
+} from "../project/project";
 import { nesIndexToCssHex } from "./palette";
 import {
   buildAttributeTable,
@@ -31,10 +31,10 @@ const setBackgroundTilePixel = (
 });
 
 const updateBackgroundTile = (
-  state: ProjectStateV2,
+  state: ProjectState,
   tileIndex: number,
   nextTile: BackgroundTile,
-): ProjectStateV2 => ({
+): ProjectState => ({
   ...state,
   backgroundTiles: state.backgroundTiles.map((tile, index) =>
     index === tileIndex ? nextTile : tile,
@@ -58,7 +58,7 @@ const expectRenderedHex = (
 
 describe("projection", () => {
   it("builds a name table directly from normalized screen background tiles", () => {
-    const state = createDefaultProjectStateV2();
+    const state = createDefaultProjectState();
     const nextState = {
       ...state,
       screen: {
@@ -79,7 +79,7 @@ describe("projection", () => {
   });
 
   it("packs 16x16 palette regions into NES attribute bytes", () => {
-    const state = createDefaultProjectStateV2();
+    const state = createDefaultProjectState();
     const nextState = {
       ...state,
       screen: {
@@ -110,7 +110,7 @@ describe("projection", () => {
   });
 
   it("fills off-screen quadrants with palette 0 when deriving the last attribute row", () => {
-    const state = createDefaultProjectStateV2();
+    const state = createDefaultProjectState();
     const nextState = {
       ...state,
       screen: {
@@ -160,8 +160,8 @@ describe("projection", () => {
     ]);
   });
 
-  it("renders background pixels from a normalized v2 project via NES projection", () => {
-    const state = createDefaultProjectStateV2();
+  it("renders background pixels from a normalized project via NES projection", () => {
+    const state = createDefaultProjectState();
     const highlightedTile = setBackgroundTilePixel(
       state.backgroundTiles[0] ?? createEmptyBackgroundTile(),
       0,
@@ -169,13 +169,13 @@ describe("projection", () => {
       3,
     );
     const withTile = updateBackgroundTile(state, 0, highlightedTile);
-    const nextBackgroundPalettes: ProjectStateV2["palettes"]["background"] = [
+    const nextBackgroundPalettes: ProjectState["palettes"]["background"] = [
       withTile.palettes.background[0],
       withTile.palettes.background[1],
       [45, 5, 6, 7],
       withTile.palettes.background[3],
     ];
-    const nextScreenSprites: ProjectStateV2["screen"]["sprites"] = [
+    const nextScreenSprites: ProjectState["screen"]["sprites"] = [
       {
         ...createEmptySpriteTile(8, 0),
         x: 12,
@@ -186,7 +186,7 @@ describe("projection", () => {
         flipV: false,
       },
     ];
-    const withPalette: ProjectStateV2 = {
+    const withPalette: ProjectState = {
       ...withTile,
       palettes: {
         ...withTile.palettes,

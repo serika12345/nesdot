@@ -1,6 +1,6 @@
 import { isLeft, isRight } from "fp-ts/Either";
 import { describe, expect, it } from "vitest";
-import { createEmptyScreenBackground } from "../project/projectV2";
+import { createEmptyScreenBackground } from "../project/project";
 import {
   getScreenBackgroundTileLinearIndex,
   getScreenBackgroundTilePlacementFromPixel,

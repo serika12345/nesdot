@@ -2,7 +2,7 @@ import * as O from "fp-ts/Option";
 import { afterEach, describe, expect, it } from "vitest";
 import { useCharacterState } from "../../../../application/state/characterStore";
 import { useProjectState } from "../../../../application/state/projectStore";
-import { createDefaultProjectStateV2 } from "../../../../domain/project/projectV2";
+import { createDefaultProjectState } from "../../../../domain/project/project";
 import { useCharacterModeComposeStore } from "./characterModeComposeStore";
 import { useCharacterModeDecompositionStore } from "./characterModeDecompositionStore";
 import { useCharacterModeProjectStore } from "./characterModeProjectStore";
@@ -21,7 +21,7 @@ const resetStores = () => {
     characterSets: [],
     selectedCharacterId: O.none,
   });
-  useProjectState.setState(createDefaultProjectStateV2());
+  useProjectState.setState(createDefaultProjectState());
 };
 
 afterEach(resetStores);

@@ -2,7 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { type NesBackgroundPalettes } from "../../../../../domain/nes/nesProject";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 
 type ColorIndexOfPalette = 0 | 1 | 2 | 3;
 

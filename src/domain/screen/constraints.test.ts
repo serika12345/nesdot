@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultNesProjectState } from "../nes/nesProject";
-import { createEmptySpriteTile, type SpriteInScreen } from "../project/project";
-import { createDefaultProjectStateV2 } from "../project/projectV2";
+import {
+  createDefaultProjectState,
+  createEmptySpriteTile,
+  type SpriteInScreen,
+} from "../project/project";
 import {
   MAX_SCREEN_SPRITES,
   MAX_SPRITES_PER_SCANLINE,
   scanNesSpriteConstraints,
-  scanProjectStateV2SpriteConstraints,
+  scanProjectStateSpriteConstraints,
 } from "./constraints";
 
 describe("scanNesSpriteConstraints", () => {
@@ -82,9 +85,9 @@ describe("scanNesSpriteConstraints", () => {
   });
 });
 
-describe("scanProjectStateV2SpriteConstraints", () => {
+describe("scanProjectStateSpriteConstraints", () => {
   it("reports scanline overflow from normalized screen sprites", () => {
-    const state = createDefaultProjectStateV2();
+    const state = createDefaultProjectState();
     const nextSprites: ReadonlyArray<SpriteInScreen> = Array.from(
       { length: 9 },
       (_, index) => ({
@@ -105,7 +108,7 @@ describe("scanProjectStateV2SpriteConstraints", () => {
       },
     };
 
-    const result = scanProjectStateV2SpriteConstraints(nextState);
+    const result = scanProjectStateSpriteConstraints(nextState);
 
     expect(result.ok).toBe(false);
     expect(result.ok === false ? result.errors[0] : "").toContain(

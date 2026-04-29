@@ -2,14 +2,14 @@
 
 ## この文書の役割
 
-このファイルは、BG 関連機能の現在の実装境界を整理するためのメモです。現在のアプリは正規化済み `ProjectStateV2` をプロジェクト状態の正本にし、NES raw state は描画や export 用の projection として導出します。
+このファイルは、BG 関連機能の現在の実装境界を整理するためのメモです。現在のアプリは正規化済み `ProjectState` をプロジェクト状態の正本にし、NES raw state は描画や export 用の projection として導出します。
 
 ## 現在のアーキテクチャ
 
 - `WorkMode` には `bg` が追加済みで、[../src/presentation/App.tsx](../src/presentation/App.tsx)、[../src/presentation/components/common/ui/menu/MenuBar.tsx](../src/presentation/components/common/ui/menu/MenuBar.tsx)、[../src-tauri/src/lib.rs](../src-tauri/src/lib.rs) から切り替えられます。
 - BG モード本体は [../src/presentation/components/bgMode/ui/core/BgMode.tsx](../src/presentation/components/bgMode/ui/core/BgMode.tsx) / [../src/presentation/components/bgMode/ui/core/BgModeScreen.tsx](../src/presentation/components/bgMode/ui/core/BgModeScreen.tsx) / [../src/presentation/components/bgMode/ui/core/BgModeWorkspace.tsx](../src/presentation/components/bgMode/ui/core/BgModeWorkspace.tsx) です。
 - 画面配置モードの BG 編集は [../src/presentation/components/screenMode/ui/panels/ScreenModeWorkspacePanel.tsx](../src/presentation/components/screenMode/ui/panels/ScreenModeWorkspacePanel.tsx) と [../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts](../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts) が担当します。
-- 実アプリのストアは [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) の `ProjectStateV2` です。背景タイルの正本は `backgroundTiles`、画面上の背景配置と属性は `screen.background` です。
+- 実アプリのストアは [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) の `ProjectState` です。背景タイルの正本は `backgroundTiles`、画面上の背景配置と属性は `screen.background` です。
 - NES の `chrBytes` / `nameTable` / `attributeTable` / `oam` は [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) で導出します。UI や保存形式は raw NES state を直接持ちません。
 
 ## 実装済みの振る舞い
@@ -21,7 +21,7 @@ BG 編集モードは `backgroundTiles` に直接接続されています。
 - 256 枚の BG タイル一覧を表示し、選択中タイルを編集できます
 - タイル編集は選択中 `BackgroundTile` の pixel matrix を不変更新し、`backgroundTiles` に書き戻します
 - UI としてはツールメニューの開閉、`pen` / `eraser` の切り替え、プレビュー用パレット切り替えがあります
-- 選択中タイルの CHR / PNG / SVG export は、v2 正本から導出したタイルと palette を使います
+- 選択中タイルの CHR / PNG / SVG export は、project state から導出したタイルと palette を使います
 - E2E は [../e2e/bg-mode.spec.ts](../e2e/bg-mode.spec.ts) が担当します
 
 ### 2. BG モードで現在できること / できないこと
@@ -60,20 +60,20 @@ BG 編集モードは `backgroundTiles` に直接接続されています。
 
 ## domain 側の主要部品
 
-- [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts): `backgroundTiles` と `screen.background` を持つ正規化 state
-- [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts): v2 JSON schema
+- [../src/domain/project/project.ts](../src/domain/project/project.ts): `backgroundTiles` と `screen.background` を持つ正規化 state
+- [../src/domain/project/projectSchema.ts](../src/domain/project/projectSchema.ts): project JSON schema
 - [../src/domain/screen/backgroundLayout.ts](../src/domain/screen/backgroundLayout.ts): `screen.background.tileIndices` の配置 helper
 - [../src/domain/screen/backgroundPalette.ts](../src/domain/screen/backgroundPalette.ts): `screen.background.paletteIndices` の palette helper
-- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts): v2 state から NES raw state を導出
-- [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts): v2 state / projection を使った最終描画
-- [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts): `scanProjectStateV2SpriteConstraints`
+- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts): project state から NES raw state を導出
+- [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts): project state / projection を使った最終描画
+- [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts): `scanProjectStateSpriteConstraints`
 
 ## 現在の保存形式
 
-プロジェクト JSON は `formatVersion: 2` の `ProjectStateV2` です。
+プロジェクト JSON は `formatVersion: 2` の `ProjectState` です。
 
 - [../src/infrastructure/browser/useExportImage.ts](../src/infrastructure/browser/useExportImage.ts) の `exportJSON` は `spriteTiles` / `backgroundTiles` / `screen` / `palettes` / `ppuControl` を保存します
-- [../src/infrastructure/browser/useImportImage.ts](../src/infrastructure/browser/useImportImage.ts) は `ProjectStateV2Schema` で検証した v2 JSON だけを読み込みます
+- [../src/infrastructure/browser/useImportImage.ts](../src/infrastructure/browser/useImportImage.ts) は `ProjectStateSchema` で検証した project JSON だけを読み込みます
 - 旧 `sprites` / `nes` 形状の JSON 互換 importer はありません
 - キャラクターセットは既存導線との互換のため、project JSON に任意の `characters` として同梱できます
 
@@ -83,7 +83,7 @@ BG 関連は複数層でテストされています。
 
 - BG モード E2E: [../e2e/bg-mode.spec.ts](../e2e/bg-mode.spec.ts)
 - 画面配置 BG 導線 E2E: [../e2e/screen-mode.spec.ts](../e2e/screen-mode.spec.ts)
-- 正規化レイヤーの test: [../src/domain/screen/backgroundLayout.test.ts](../src/domain/screen/backgroundLayout.test.ts), [../src/domain/screen/backgroundPalette.test.ts](../src/domain/screen/backgroundPalette.test.ts), [../src/domain/nes/projection.test.ts](../src/domain/nes/projection.test.ts), [../src/domain/project/projectV2Schema.test.ts](../src/domain/project/projectV2Schema.test.ts)
+- 正規化レイヤーの test: [../src/domain/screen/backgroundLayout.test.ts](../src/domain/screen/backgroundLayout.test.ts), [../src/domain/screen/backgroundPalette.test.ts](../src/domain/screen/backgroundPalette.test.ts), [../src/domain/nes/projection.test.ts](../src/domain/nes/projection.test.ts), [../src/domain/project/projectSchema.test.ts](../src/domain/project/projectSchema.test.ts)
 
 ## 今後の課題
 

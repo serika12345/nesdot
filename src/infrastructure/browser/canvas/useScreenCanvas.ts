@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useProjectState } from "../../../application/state/projectStore";
-import { renderProjectStateV2ToHexArray } from "../../../domain/nes/rendering";
+import { renderProjectStateToHexArray } from "../../../domain/nes/rendering";
 
 interface UseCanvasParams {
   scale?: number; // ピクセル拡大倍率
@@ -33,7 +33,7 @@ export const useScreenCanvas = ({
     cvs.height = height * scale;
     ctx.imageSmoothingEnabled = false;
 
-    const hexGrid = renderProjectStateV2ToHexArray(state);
+    const hexGrid = renderProjectStateToHexArray(state);
 
     Array.from({ length: height }, (_, y) => y).forEach((y) => {
       Array.from({ length: width }, (_, x) => x).forEach((x) => {

@@ -4,8 +4,10 @@ import {
   type ProjectStoreState,
   useProjectState,
 } from "../../../../application/state/projectStore";
-import { type SpriteInScreen } from "../../../../domain/project/project";
-import { createDefaultProjectStateV2 } from "../../../../domain/project/projectV2";
+import {
+  createDefaultProjectState,
+  type SpriteInScreen,
+} from "../../../../domain/project/project";
 import { makeTile } from "../../../../domain/tiles/utils";
 import { createScreenModeProjectActions } from "./useScreenModeProjectActions";
 
@@ -13,7 +15,7 @@ const createProjectStateWithScreenSprite = (
   fill: 0 | 1 | 2 | 3,
   paletteIndex: 0 | 1 | 2 | 3,
 ): ProjectStoreState => {
-  const baseState = createDefaultProjectStateV2();
+  const baseState = createDefaultProjectState();
   const sprite = makeTile(8, paletteIndex, fill);
   const screenSprite: SpriteInScreen = {
     ...sprite,

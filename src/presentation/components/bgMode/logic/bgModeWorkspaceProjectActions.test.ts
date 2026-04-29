@@ -8,9 +8,9 @@ import {
 import { type NesColorIndex } from "../../../../domain/nes/nesProject";
 import {
   createEmptyBackgroundTile,
-  createDefaultProjectStateV2,
+  createDefaultProjectState,
   type BackgroundTile,
-} from "../../../../domain/project/projectV2";
+} from "../../../../domain/project/project";
 import { createBgModeWorkspaceProjectActions } from "./bgModeWorkspaceProjectActions";
 
 const setBackgroundTilePixel = (
@@ -32,7 +32,7 @@ const createProjectStateWithBackgroundPalette = (
   paletteIndex: PaletteIndex,
   palette: ProjectStoreState["palettes"]["background"][PaletteIndex],
 ): ProjectStoreState => {
-  const baseState = createDefaultProjectStateV2();
+  const baseState = createDefaultProjectState();
   const backgroundPalettes: ProjectStoreState["palettes"]["background"] = [
     paletteIndex === 0 ? palette : baseState.palettes.background[0],
     paletteIndex === 1 ? palette : baseState.palettes.background[1],

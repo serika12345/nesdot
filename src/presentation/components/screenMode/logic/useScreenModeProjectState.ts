@@ -9,11 +9,11 @@ import {
   useProjectState,
 } from "../../../../application/state/projectStore";
 import { type CharacterSet } from "../../../../domain/characters/characterSet";
-import { scanProjectStateV2SpriteConstraints } from "../../../../domain/screen/constraints";
-import { type BackgroundTile } from "../../../../domain/project/projectV2";
+import { scanProjectStateSpriteConstraints } from "../../../../domain/screen/constraints";
+import { type BackgroundTile } from "../../../../domain/project/project";
 
 export type ScreenModeScanReport = ReturnType<
-  typeof scanProjectStateV2SpriteConstraints
+  typeof scanProjectStateSpriteConstraints
 >;
 
 export interface ScreenModeProjectStateResult {
@@ -100,7 +100,7 @@ const useScreenModeProjectActions = (): Readonly<{
 }> => {
   const scan = useCallback(
     (checkeeScreen = useProjectState.getState().screen): ScreenModeScanReport =>
-      scanProjectStateV2SpriteConstraints({
+      scanProjectStateSpriteConstraints({
         ...useProjectState.getState(),
         screen: checkeeScreen,
       }),

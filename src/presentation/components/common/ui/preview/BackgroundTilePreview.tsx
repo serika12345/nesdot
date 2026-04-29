@@ -5,7 +5,7 @@ import {
   type NesSubPalette,
 } from "../../../../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
-import { type BackgroundTile } from "../../../../../domain/project/projectV2";
+import { type BackgroundTile } from "../../../../../domain/project/project";
 import { BACKGROUND_TILE_PREVIEW_CANVAS_CLASS_NAME } from "../../../../styleClassNames";
 
 interface BackgroundTilePreviewProps {

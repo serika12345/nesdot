@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { createEmptyBackgroundTile } from "../../../../../domain/project/projectV2";
+import { createEmptyBackgroundTile } from "../../../../../domain/project/project";
 import { type ScreenModeWorkspaceBackgroundEditingStateResult } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import { useScreenModeContextMenuState } from "../../logic/useScreenModeContextMenuState";
 import { useScreenModeLibraryState } from "../../logic/useScreenModeLibraryState";

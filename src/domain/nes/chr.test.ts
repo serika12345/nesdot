@@ -1,7 +1,10 @@
 import { isLeft, isRight } from "fp-ts/Either";
 import { describe, expect, it } from "vitest";
-import { ColorIndexOfPalette, SpriteTile } from "../project/project";
-import { BackgroundTile } from "../project/projectV2";
+import type {
+  BackgroundTile,
+  ColorIndexOfPalette,
+  SpriteTile,
+} from "../project/project";
 import {
   decodeBackgroundTile,
   encodeBackgroundTile,
