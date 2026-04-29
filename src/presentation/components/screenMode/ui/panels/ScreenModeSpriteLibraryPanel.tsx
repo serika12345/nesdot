@@ -75,6 +75,7 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
               <LibraryPreviewCard
                 key={`screen-library-sprite-${spriteIndex}`}
                 type="button"
+                previewFrame="sprite"
                 aria-label={`スクリーンライブラリスプライト ${spriteIndex}`}
                 dragging={isSpriteDragState(
                   libraryState.dragState,

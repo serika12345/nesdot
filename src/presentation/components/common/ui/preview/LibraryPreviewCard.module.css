@@ -10,6 +10,16 @@
     white-space: normal;
   }
 
+  button.spriteFrame {
+    --library-preview-card-content-gap: 0.25rem;
+    --library-preview-card-height: 6.25rem;
+    --library-preview-card-preview-height: 2.25rem;
+
+    height: var(--library-preview-card-height);
+    max-height: var(--library-preview-card-height);
+    overflow: hidden;
+  }
+
   button.interactive {
     touch-action: none;
     user-select: none;
@@ -28,6 +38,29 @@
     justify-content: center;
     gap: 0.375rem;
     flex-direction: column;
+  }
+
+  button.spriteFrame .content {
+    gap: var(--library-preview-card-content-gap);
+  }
+
+  .preview {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  button.spriteFrame .preview {
+    height: var(--library-preview-card-preview-height);
+    min-height: var(--library-preview-card-preview-height);
+  }
+
+  button.spriteFrame .preview canvas,
+  button.spriteFrame .preview > * {
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .label {

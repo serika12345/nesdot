@@ -38,6 +38,7 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
       children,
       label,
       preview,
+      previewFrame,
       selected,
       ...props
     }: React.PropsWithChildren<
@@ -46,6 +47,7 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
         label?: React.ReactNode;
         interactive?: boolean;
         preview?: React.ReactNode;
+        previewFrame?: "sprite";
         selected?: boolean;
       }
     >) => {
@@ -54,6 +56,7 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
         {
           ...props,
           "aria-pressed": selected === true ? "true" : "false",
+          "data-preview-frame": previewFrame,
         },
         children,
         preview,
@@ -110,5 +113,6 @@ describe("SpriteModeLibraryPanel", () => {
     expect(markup).toContain("Sprite 1");
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-pressed="false"');
+    expect(markup).toContain('data-preview-frame="sprite"');
   });
 });

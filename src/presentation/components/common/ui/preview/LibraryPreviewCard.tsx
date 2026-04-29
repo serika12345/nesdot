@@ -20,6 +20,7 @@ interface LibraryPreviewCardProps extends Omit<
   readonly dragging?: boolean;
   readonly interactive?: boolean;
   readonly label: React.ReactNode;
+  readonly previewFrame?: "sprite";
   readonly selected?: boolean;
   readonly preview: React.ReactNode;
 }
@@ -35,6 +36,7 @@ export const LibraryPreviewCard = React.forwardRef<
     interactive = true,
     label,
     preview,
+    previewFrame,
     selected,
     style,
     ...props
@@ -49,6 +51,7 @@ export const LibraryPreviewCard = React.forwardRef<
       {...props}
       className={mergeClassNames(
         styles.card ?? "",
+        previewFrame === "sprite" ? (styles.spriteFrame ?? "") : false,
         interactive === true ? (styles.interactive ?? "") : false,
         dragging === true ? (styles.dragging ?? "") : false,
         typeof className === "string" ? className : false,
@@ -60,7 +63,7 @@ export const LibraryPreviewCard = React.forwardRef<
       variant={isActive === true ? "solid" : "surface"}
     >
       <span className={styles.content}>
-        {preview}
+        <span className={styles.preview}>{preview}</span>
         <span className={styles.label}>{label}</span>
         {badge}
       </span>

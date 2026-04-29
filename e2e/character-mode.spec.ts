@@ -17,6 +17,7 @@ import {
   seedDiagonalSprite,
 } from "./support/characterMode";
 import {
+  expectLocatorContentInsideFrame,
   getLocatorPoint,
   getLocatorRect,
   panViewportWithMiddleMouse,
@@ -132,45 +133,6 @@ const expectLibraryButtonToUseCardLayout = async (
   if (typeof maximumHeight === "number") {
     expect(computedStyles.height).toBeLessThanOrEqual(maximumHeight);
   }
-};
-
-const expectLibraryButtonContentToStayInsideFrame = async (
-  control: Locator,
-): Promise<void> => {
-  const overflowMetrics = await control.evaluate((element) => {
-    const controlRect = element.getBoundingClientRect();
-    const childRects = Array.from(element.querySelectorAll("*"), (child) =>
-      child.getBoundingClientRect(),
-    );
-    const childLeft = Math.min(
-      controlRect.left,
-      ...childRects.map((rect) => rect.left),
-    );
-    const childRight = Math.max(
-      controlRect.right,
-      ...childRects.map((rect) => rect.right),
-    );
-    const childTop = Math.min(
-      controlRect.top,
-      ...childRects.map((rect) => rect.top),
-    );
-    const childBottom = Math.max(
-      controlRect.bottom,
-      ...childRects.map((rect) => rect.bottom),
-    );
-
-    return {
-      bottom: childBottom - controlRect.bottom,
-      left: controlRect.left - childLeft,
-      right: childRight - controlRect.right,
-      top: controlRect.top - childTop,
-    };
-  });
-
-  expect(overflowMetrics.bottom).toBeLessThanOrEqual(1);
-  expect(overflowMetrics.left).toBeLessThanOrEqual(1);
-  expect(overflowMetrics.right).toBeLessThanOrEqual(1);
-  expect(overflowMetrics.top).toBeLessThanOrEqual(1);
 };
 
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
@@ -592,7 +554,7 @@ test("character mode keeps sprite library card frames fixed across sprite sizes"
 
   await expect(librarySprite).toBeVisible();
   await expect(librarySprite.getByText("8×8", { exact: true })).toBeVisible();
-  await expectLibraryButtonContentToStayInsideFrame(librarySprite);
+  await expectLocatorContentInsideFrame(librarySprite);
 
   const defaultSpriteBox = await getLocatorRect(librarySprite);
 
@@ -600,7 +562,7 @@ test("character mode keeps sprite library card frames fixed across sprite sizes"
   await size16Button.click();
 
   await expect(librarySprite.getByText("8×16", { exact: true })).toBeVisible();
-  await expectLibraryButtonContentToStayInsideFrame(librarySprite);
+  await expectLocatorContentInsideFrame(librarySprite);
 
   const tallSpriteBox = await getLocatorRect(librarySprite);
 

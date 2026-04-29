@@ -1,4 +1,4 @@
-import { type Locator, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 interface LocatorPoint {
   clientX: number;
@@ -38,6 +38,45 @@ export const getLocatorRect = async (locator: Locator): Promise<LocatorRect> =>
       height: rect.height,
     };
   });
+
+export const expectLocatorContentInsideFrame = async (
+  locator: Locator,
+): Promise<void> => {
+  const overflowMetrics = await locator.evaluate((element) => {
+    const controlRect = element.getBoundingClientRect();
+    const childRects = Array.from(element.querySelectorAll("*"), (child) =>
+      child.getBoundingClientRect(),
+    );
+    const childLeft = Math.min(
+      controlRect.left,
+      ...childRects.map((rect) => rect.left),
+    );
+    const childRight = Math.max(
+      controlRect.right,
+      ...childRects.map((rect) => rect.right),
+    );
+    const childTop = Math.min(
+      controlRect.top,
+      ...childRects.map((rect) => rect.top),
+    );
+    const childBottom = Math.max(
+      controlRect.bottom,
+      ...childRects.map((rect) => rect.bottom),
+    );
+
+    return {
+      bottom: childBottom - controlRect.bottom,
+      left: controlRect.left - childLeft,
+      right: childRight - controlRect.right,
+      top: controlRect.top - childTop,
+    };
+  });
+
+  expect(overflowMetrics.bottom).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.left).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.right).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.top).toBeLessThanOrEqual(1);
+};
 
 export const getCanvasSize = async (
   locator: Locator,

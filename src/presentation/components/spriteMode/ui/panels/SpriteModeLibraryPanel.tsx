@@ -73,6 +73,7 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
                 <LibraryPreviewCard
                   key={`sprite-library-sprite-${spriteIndex}`}
                   type="button"
+                  previewFrame="sprite"
                   aria-label={`スプライト ${spriteIndex}`}
                   selected={isSelected}
                   interactive={false}

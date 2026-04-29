@@ -4,7 +4,11 @@ import {
   formatCanvasPixelColor,
   readLogicalCanvasPixel,
 } from "./support/canvas";
-import { getLocatorPoint, getLocatorRect } from "./support/pointer";
+import {
+  expectLocatorContentInsideFrame,
+  getLocatorPoint,
+  getLocatorRect,
+} from "./support/pointer";
 
 const getSpriteCanvas = (page: Page): Locator =>
   page.getByLabel("スプライト編集キャンバス", { exact: true });
@@ -124,6 +128,61 @@ test("sprite canvas panel stretches to the bottom of the workspace", async ({
   expect(bottomGap).toBeLessThanOrEqual(24);
   expect(leftPaneWidth).toBeGreaterThanOrEqual(240);
   expect(leftPaneWidth).toBeLessThanOrEqual(320);
+});
+
+test("sprite mode keeps library card frames fixed across sprite sizes", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await page.setViewportSize({ width: 1800, height: 1200 });
+  await openMode(page, "スプライト編集");
+
+  const spriteZeroButton = page.getByRole("button", {
+    name: "スプライト 0",
+    exact: true,
+  });
+
+  await expect(spriteZeroButton).toBeVisible();
+  await expect(
+    spriteZeroButton.getByText("8×8", { exact: true }),
+  ).toBeVisible();
+  await expectLocatorContentInsideFrame(spriteZeroButton);
+
+  const defaultSpriteBox = await getLocatorRect(spriteZeroButton);
+
+  await openMode(page, "キャラクター編集");
+  await page.getByRole("button", { name: "セットを作成" }).click();
+
+  const createDialog = page.getByRole("dialog", {
+    name: "キャラクターセットを作成",
+  });
+  await expect(createDialog).toBeVisible();
+  await createDialog
+    .getByRole("textbox", { name: "新規セット名" })
+    .fill("Sprite Library Frame Hero");
+  await createDialog.getByRole("button", { name: "作成する" }).click();
+  await expect(createDialog).toHaveCount(0);
+
+  const size16Button = page.getByRole("button", {
+    name: "プロジェクトスプライトサイズ 8x16",
+  });
+  await expect(size16Button).toBeEnabled();
+  await size16Button.click();
+
+  await openMode(page, "スプライト編集");
+  await expect(
+    spriteZeroButton.getByText("8×16", { exact: true }),
+  ).toBeVisible();
+  await expectLocatorContentInsideFrame(spriteZeroButton);
+
+  const tallSpriteBox = await getLocatorRect(spriteZeroButton);
+
+  expect(Math.abs(defaultSpriteBox.width - tallSpriteBox.width)).toBeLessThan(
+    2,
+  );
+  expect(Math.abs(defaultSpriteBox.height - tallSpriteBox.height)).toBeLessThan(
+    2,
+  );
 });
 
 test("sprite mode paints pixels and supports global undo and redo shortcuts", async ({
