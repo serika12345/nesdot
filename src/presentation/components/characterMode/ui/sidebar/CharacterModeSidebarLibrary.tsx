@@ -6,11 +6,11 @@ import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { mergeClassNames } from "../../../../styleClassNames";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import libraryPanelStyles from "../../../common/ui/preview/LibraryPanel.module.css";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../logic/characterModeEditorState";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
-import styles from "./CharacterModeSidebarLibrary.module.css";
 
 interface CharacterModeSidebarLibraryContentProps {
   handleLibraryPointerDown: (
@@ -44,8 +44,8 @@ const CharacterModeSidebarLibraryContent = React.memo(
     library,
   }: CharacterModeSidebarLibraryContentProps) {
     return (
-      <div className={styles.scrollArea} id={id}>
-        <div className={styles.grid}>
+      <div className={libraryPanelStyles.scrollArea} id={id}>
+        <div className={libraryPanelStyles.grid}>
           {library.sprites.map((spriteTile, spriteIndex) => (
             <LibraryPreviewCard
               key={`library-sprite-${spriteIndex}`}
@@ -109,9 +109,9 @@ export const CharacterModeSidebarLibrary: React.FC<
   );
 
   return (
-    <SurfaceCard className={styles.root}>
-      <div className={styles.headerRow}>
-        <span className={styles.headerLabel}>スプライトライブラリ</span>
+    <SurfaceCard className={libraryPanelStyles.root}>
+      <div className={libraryPanelStyles.headerRow}>
+        <span className={libraryPanelStyles.label}>スプライトライブラリ</span>
         <Button
           aria-controls={libraryContentId}
           aria-expanded={isLibraryOpen}
@@ -128,8 +128,10 @@ export const CharacterModeSidebarLibrary: React.FC<
           {isLibraryOpen ? "閉じる" : "開く"}
           <ChevronDownIcon
             className={mergeClassNames(
-              styles.chevron ?? "",
-              isLibraryOpen === true ? (styles.chevronOpen ?? "") : false,
+              libraryPanelStyles.chevron ?? "",
+              isLibraryOpen === true
+                ? (libraryPanelStyles.chevronOpen ?? "")
+                : false,
             )}
           />
         </Button>
@@ -137,8 +139,10 @@ export const CharacterModeSidebarLibrary: React.FC<
 
       <div
         className={mergeClassNames(
-          styles.contentWrap ?? "",
-          isLibraryOpen === false ? (styles.contentWrapClosed ?? "") : false,
+          libraryPanelStyles.contentWrap ?? "",
+          isLibraryOpen === false
+            ? (libraryPanelStyles.contentWrapClosed ?? "")
+            : false,
         )}
         id={libraryContentId}
         aria-hidden={isLibraryOpen === false}

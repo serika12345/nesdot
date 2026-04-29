@@ -15,7 +15,14 @@
     flex-wrap: nowrap;
   }
 
-  .headerLabel {
+  .titleRow {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.3125rem;
+  }
+
+  .label {
     flex: 1 1 auto;
     min-width: 0;
     color: var(--ink);
@@ -24,6 +31,8 @@
   }
 
   .contentWrap {
+    display: flex;
+    flex: 1 1 auto;
     min-height: 0;
   }
 

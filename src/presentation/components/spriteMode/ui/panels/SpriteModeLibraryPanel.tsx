@@ -5,6 +5,7 @@ import { LIBRARY_PREVIEW_SCALE } from "../../../characterMode/logic/characterMod
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import libraryPanelStyles from "../../../common/ui/preview/LibraryPanel.module.css";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { mergeClassNames } from "../../../../styleClassNames";
 import { type SpriteModeLibraryPanelState } from "../../logic/spriteModeLibraryState";
@@ -25,13 +26,16 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
 
   return (
     <SurfaceCard
-      className={styles.panel}
+      className={mergeClassNames(
+        libraryPanelStyles.root ?? "",
+        styles.panelFrame ?? "",
+      )}
       role="region"
       aria-label="スプライトライブラリ"
     >
-      <div className={styles.headerRow}>
-        <div className={styles.titleRow}>
-          <h2 className={styles.label}>スプライトライブラリ</h2>
+      <div className={libraryPanelStyles.headerRow}>
+        <div className={libraryPanelStyles.titleRow}>
+          <h2 className={libraryPanelStyles.label}>スプライトライブラリ</h2>
         </div>
         <Button
           aria-controls={libraryContentId}
@@ -49,8 +53,10 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
           {isLibraryOpen ? "閉じる" : "開く"}
           <ChevronDownIcon
             className={mergeClassNames(
-              styles.chevron ?? "",
-              isLibraryOpen === true ? (styles.chevronOpen ?? "") : false,
+              libraryPanelStyles.chevron ?? "",
+              isLibraryOpen === true
+                ? (libraryPanelStyles.chevronOpen ?? "")
+                : false,
             )}
           />
         </Button>
@@ -58,14 +64,19 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
 
       <div
         className={mergeClassNames(
-          styles.contentWrap ?? "",
-          isLibraryOpen === false ? (styles.contentWrapClosed ?? "") : false,
+          libraryPanelStyles.contentWrap ?? "",
+          isLibraryOpen === false
+            ? (libraryPanelStyles.contentWrapClosed ?? "")
+            : false,
         )}
         id={libraryContentId}
         aria-hidden={isLibraryOpen === false}
       >
-        <div className={styles.scrollArea} id={`${libraryContentId}-scroll`}>
-          <div className={styles.grid}>
+        <div
+          className={libraryPanelStyles.scrollArea}
+          id={`${libraryContentId}-scroll`}
+        >
+          <div className={libraryPanelStyles.grid}>
             {libraryPanelState.sprites.map((spriteTile, spriteIndex) => {
               const isSelected = libraryPanelState.activeSprite === spriteIndex;
 
