@@ -1,9 +1,8 @@
-import React from "react";
 import { Button, IconButton } from "@radix-ui/themes";
+import React from "react";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
-import { mergeClassNames } from "../../../../styleClassNames";
-import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
 import styles from "./CharacterModeDecomposition.module.css";
+import { CharacterModeDecompositionToolCard } from "./CharacterModeDecompositionToolCard";
 
 /**
  * 分解キャンバス上に重なるツールメニューを描画します。
@@ -11,6 +10,12 @@ import styles from "./CharacterModeDecomposition.module.css";
  */
 export const CharacterModeDecompositionToolOverlay: React.FC = () => {
   const [isToolsOpen, setIsToolsOpen] = React.useState(false);
+  const chevronClassName = [
+    styles.chevron ?? "",
+    isToolsOpen === true ? (styles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
 
   return (
     <div className={styles.overlayRoot}>
@@ -21,12 +26,7 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
           onClick={() => setIsToolsOpen((previous) => !previous)}
         >
           分解ツールを閉じる
-          <ChevronDownIcon
-            className={mergeClassNames(
-              styles.chevron ?? "",
-              styles.chevronOpen ?? "",
-            )}
-          />
+          <ChevronDownIcon className={chevronClassName} />
         </Button>
       ) : (
         <IconButton
@@ -36,7 +36,7 @@ export const CharacterModeDecompositionToolOverlay: React.FC = () => {
           onClick={() => setIsToolsOpen((previous) => !previous)}
           variant="surface"
         >
-          <ChevronDownIcon className={styles.chevron} />
+          <ChevronDownIcon className={chevronClassName} />
         </IconButton>
       )}
 

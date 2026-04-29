@@ -18,7 +18,7 @@
     white-space: normal;
   }
 
-  button.card[data-active="true"] {
+  button.card.cardActive {
     background: var(--accent-solid);
     box-shadow: none;
     color: var(--accent-contrast);
@@ -34,7 +34,7 @@
     opacity: 0.55;
   }
 
-  button.spriteFrame {
+  button.card.cardSpriteFrame {
     --library-preview-card-content-gap: 0.25rem;
     --library-preview-card-height: 6.25rem;
     --library-preview-card-preview-height: 2.25rem;
@@ -44,13 +44,13 @@
     overflow: hidden;
   }
 
-  button.interactive {
+  button.card.cardInteractive {
     touch-action: none;
     user-select: none;
     cursor: grab;
   }
 
-  button.dragging {
+  button.card.cardDragging {
     cursor: grabbing;
   }
 
@@ -64,7 +64,7 @@
     flex-direction: column;
   }
 
-  button.spriteFrame .content {
+  button.card.cardSpriteFrame .content {
     gap: var(--library-preview-card-content-gap);
   }
 
@@ -76,13 +76,13 @@
     justify-content: center;
   }
 
-  button.spriteFrame .preview {
+  button.card.cardSpriteFrame .preview {
     height: var(--library-preview-card-preview-height);
     min-height: var(--library-preview-card-preview-height);
   }
 
-  button.spriteFrame .preview canvas,
-  button.spriteFrame .preview > * {
+  button.card.cardSpriteFrame .preview canvas,
+  button.card.cardSpriteFrame .preview > * {
     max-width: 100%;
     max-height: 100%;
   }
@@ -95,7 +95,7 @@
     text-align: center;
   }
 
-  button.card[data-active="true"] .label {
+  button.card.cardActive .label {
     color: var(--accent-contrast);
   }
 }

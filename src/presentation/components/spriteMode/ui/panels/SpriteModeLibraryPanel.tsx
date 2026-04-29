@@ -7,7 +7,6 @@ import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import libraryPanelStyles from "../../../common/ui/preview/LibraryPanel.module.css";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { type SpriteModeLibraryPanelState } from "../../logic/spriteModeLibraryState";
 import styles from "./SpriteModeLibraryPanel.module.css";
 
@@ -23,13 +22,23 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
 }) => {
   const [isLibraryOpen, setIsLibraryOpen] = React.useState(true);
   const libraryContentId = React.useId();
+  const panelClassName = `${libraryPanelStyles.root ?? ""} ${styles.panelFrame ?? ""}`;
+  const chevronClassName = [
+    libraryPanelStyles.chevron ?? "",
+    isLibraryOpen === true ? (libraryPanelStyles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
+  const contentWrapClassName = [
+    libraryPanelStyles.contentWrap ?? "",
+    isLibraryOpen === true ? "" : (libraryPanelStyles.contentWrapClosed ?? ""),
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
 
   return (
     <SurfaceCard
-      className={mergeClassNames(
-        libraryPanelStyles.root ?? "",
-        styles.panelFrame ?? "",
-      )}
+      className={panelClassName}
       role="region"
       aria-label="スプライトライブラリ"
     >
@@ -51,24 +60,12 @@ export const SpriteModeLibraryPanel: React.FC<SpriteModeLibraryPanelProps> = ({
           onClick={() => setIsLibraryOpen((previous) => !previous)}
         >
           {isLibraryOpen ? "閉じる" : "開く"}
-          <ChevronDownIcon
-            className={mergeClassNames(
-              libraryPanelStyles.chevron ?? "",
-              isLibraryOpen === true
-                ? (libraryPanelStyles.chevronOpen ?? "")
-                : false,
-            )}
-          />
+          <ChevronDownIcon className={chevronClassName} />
         </Button>
       </div>
 
       <div
-        className={mergeClassNames(
-          libraryPanelStyles.contentWrap ?? "",
-          isLibraryOpen === false
-            ? (libraryPanelStyles.contentWrapClosed ?? "")
-            : false,
-        )}
+        className={contentWrapClassName}
         id={libraryContentId}
         aria-hidden={isLibraryOpen === false}
       >

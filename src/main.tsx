@@ -17,6 +17,7 @@ const RootThemeApp: React.FC = () => {
     <Theme
       accentColor="teal"
       appearance={resolvedThemeAppearance}
+      className="app-root-theme"
       grayColor="slate"
       hasBackground
       panelBackground="solid"

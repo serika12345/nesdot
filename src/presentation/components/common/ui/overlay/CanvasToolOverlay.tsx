@@ -1,6 +1,5 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { ChevronDownIcon } from "../icons/AppIcons";
 import styles from "./CanvasToolOverlay.module.css";
 
@@ -28,6 +27,13 @@ export const CanvasToolOverlay: React.FC<CanvasToolOverlayProps> = ({
   menu,
   toggleState,
 }) => {
+  const chevronClassName = [
+    styles.chevron ?? "",
+    toggleState.isOpen === true ? (styles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
+
   return (
     <>
       <div className={styles.root}>
@@ -41,12 +47,7 @@ export const CanvasToolOverlay: React.FC<CanvasToolOverlayProps> = ({
           onClick={toggleState.onToggle}
         >
           {toggleState.isOpen === true ? labels.close : labels.open}
-          <ChevronDownIcon
-            className={mergeClassNames(
-              styles.chevron ?? "",
-              toggleState.isOpen === true ? (styles.chevronOpen ?? "") : false,
-            )}
-          />
+          <ChevronDownIcon className={chevronClassName} />
         </Button>
       </div>
 

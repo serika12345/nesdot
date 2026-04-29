@@ -99,7 +99,7 @@
   background: var(--menu-trigger-hover-background);
 }
 
-.menuTriggerAction[data-state="open"] {
+.menuTriggerActionOpen {
   color: var(--menu-trigger-open-color);
   border-color: var(--menu-trigger-open-border-color);
   background: var(--menu-trigger-open-background);
@@ -153,15 +153,17 @@
   box-sizing: border-box;
 }
 
-.menuItemAction[data-highlighted],
-.menuSubTriggerAction[data-highlighted],
-.menuSubTriggerAction[data-state="open"] {
+.menuItemAction:hover,
+.menuItemAction:focus-visible,
+.menuSubTriggerAction:hover,
+.menuSubTriggerAction:focus-visible,
+.menuSubTriggerActionOpen {
   background: var(--menu-highlight-background);
   color: var(--menu-highlight-color);
 }
 
-.menuItemAction[data-disabled],
-.menuSubTriggerAction[data-disabled] {
+.menuItemActionDisabled,
+.menuSubTriggerActionDisabled {
   color: var(--menu-text-secondary);
   opacity: 0.56;
   cursor: not-allowed;

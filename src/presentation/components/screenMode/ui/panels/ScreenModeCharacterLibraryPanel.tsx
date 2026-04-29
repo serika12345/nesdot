@@ -1,6 +1,5 @@
 import { Badge, Button } from "@radix-ui/themes";
 import React from "react";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
@@ -22,6 +21,18 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
   ScreenModeCharacterLibraryPanelProps
 > = ({ libraryState }) => {
   const [isOpen, setIsOpen] = React.useState(true);
+  const chevronClassName = [
+    styles.chevron ?? "",
+    isOpen === true ? (styles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
+  const scrollAreaClassName = [
+    styles.scrollArea ?? "",
+    styles.scrollAreaCharacter ?? "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
 
   return (
     <SurfaceCard
@@ -46,12 +57,7 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-            <ChevronDownIcon
-              className={mergeClassNames(
-                styles.chevron ?? "",
-                isOpen === true ? (styles.chevronOpen ?? "") : false,
-              )}
-            />
+            <ChevronDownIcon className={chevronClassName} />
           </Button>
         </div>
       </div>
@@ -62,12 +68,7 @@ export const ScreenModeCharacterLibraryPanel: React.FC<
         aria-hidden={isOpen === false}
       >
         {libraryState.characterPreviewCards.length > 0 ? (
-          <div
-            className={mergeClassNames(
-              styles.scrollArea ?? "",
-              styles.characterScrollArea ?? "",
-            )}
-          >
+          <div className={scrollAreaClassName}>
             <CharacterLibraryGrid>
               {libraryState.characterPreviewCards.map((characterCard) => (
                 <LibraryPreviewCard

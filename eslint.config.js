@@ -41,6 +41,38 @@ const getTemplateLiteralValue = (node) => {
 
 const uiStyleGuidancePlugin = {
   rules: {
+    "no-jsx-data-attributes": {
+      meta: {
+        type: "suggestion",
+        docs: {
+          description:
+            "Disallow custom data attributes in JSX in favor of className-based state and semantic attributes.",
+        },
+        schema: [],
+        messages: {
+          noDataAttribute:
+            "Do not use custom `data-*` attributes in JSX. Express UI state through className changes or semantic attributes instead.",
+        },
+      },
+      create: (context) => {
+        return {
+          JSXAttribute: (node) => {
+            if (node.name.type !== "JSXIdentifier") {
+              return;
+            }
+
+            if (node.name.name.startsWith("data-") === false) {
+              return;
+            }
+
+            context.report({
+              node,
+              messageId: "noDataAttribute",
+            });
+          },
+        };
+      },
+    },
     "restrict-sx": {
       meta: {
         type: "suggestion",
@@ -362,6 +394,7 @@ const config = [
       "functional/no-let": "error",
       "functional/no-throw-statements": "error",
 
+      "ui-style-guidance/no-jsx-data-attributes": "error",
       "ui-style-guidance/restrict-sx": "error",
 
       "no-restricted-syntax": [

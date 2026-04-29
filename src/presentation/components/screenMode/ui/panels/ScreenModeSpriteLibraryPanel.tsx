@@ -1,11 +1,10 @@
+import { Badge, Button } from "@radix-ui/themes";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { Badge, Button } from "@radix-ui/themes";
-import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
-import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
-import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
+import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
 import {
@@ -25,6 +24,18 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
   ScreenModeSpriteLibraryPanelProps
 > = ({ libraryState, spritePalettes, sprites }) => {
   const [isOpen, setIsOpen] = React.useState(true);
+  const chevronClassName = [
+    styles.chevron ?? "",
+    isOpen === true ? (styles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
+  const scrollAreaClassName = [
+    styles.scrollArea ?? "",
+    styles.scrollAreaSprite ?? "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
 
   return (
     <SurfaceCard
@@ -49,12 +60,7 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
             onClick={() => setIsOpen((previous) => previous === false)}
           >
             {isOpen ? "閉じる" : "開く"}
-            <ChevronDownIcon
-              className={mergeClassNames(
-                styles.chevron ?? "",
-                isOpen === true ? (styles.chevronOpen ?? "") : false,
-              )}
-            />
+            <ChevronDownIcon className={chevronClassName} />
           </Button>
         </div>
       </div>
@@ -64,12 +70,7 @@ export const ScreenModeSpriteLibraryPanel: React.FC<
         open={isOpen}
         aria-hidden={isOpen === false}
       >
-        <div
-          className={mergeClassNames(
-            styles.scrollArea ?? "",
-            styles.spriteScrollArea ?? "",
-          )}
-        >
+        <div className={scrollAreaClassName}>
           <SpriteLibraryGrid>
             {sprites.map((sprite, spriteIndex) => (
               <LibraryPreviewCard

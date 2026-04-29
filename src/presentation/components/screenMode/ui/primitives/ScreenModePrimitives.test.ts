@@ -8,7 +8,7 @@ import {
 } from "./ScreenModePrimitives";
 
 describe("ScreenModePrimitives", () => {
-  it("maps the preview viewport active state to a local class", () => {
+  it("maps the preview viewport active state to a state class", () => {
     const markup = renderToStaticMarkup(
       React.createElement(PreviewViewport, { active: true }, "Preview"),
     );
@@ -17,10 +17,10 @@ describe("ScreenModePrimitives", () => {
     expect(markup).toContain("previewViewportActive");
     expect(markup).not.toContain("screen-mode-preview-viewport");
     expect(markup).not.toContain("app-canvas-viewport");
-    expect(markup).not.toMatch(/\sactive="/);
+    expect(markup).not.toContain("data-active");
   });
 
-  it("merges screen primitive class names", () => {
+  it("keeps custom class names on screen primitives", () => {
     const editorContentMarkup = renderToStaticMarkup(
       React.createElement(
         ScreenModeEditorContent,

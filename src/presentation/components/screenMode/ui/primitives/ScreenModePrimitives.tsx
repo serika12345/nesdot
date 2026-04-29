@@ -1,5 +1,4 @@
 import React from "react";
-import { mergeClassNames } from "../../../../styleClassNames";
 import styles from "./ScreenModePrimitives.module.css";
 
 interface LibrarySectionContentProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,13 +16,12 @@ const createLayout = (
 > => {
   return React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     function LayoutComponent({ className, ...props }, ref) {
-      return (
-        <div
-          {...props}
-          ref={ref}
-          className={mergeClassNames(defaultClassName, className ?? false)}
-        />
-      );
+      const combinedClassName =
+        typeof className === "string" && className.length > 0
+          ? `${defaultClassName} ${className}`
+          : defaultClassName;
+
+      return <div {...props} ref={ref} className={combinedClassName} />;
     },
   );
 };
@@ -40,17 +38,16 @@ export const PreviewViewport = React.forwardRef<
   HTMLDivElement,
   PreviewViewportProps
 >(function PreviewViewport({ active, className, ...props }, ref) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={mergeClassNames(
-        styles.previewViewport ?? "",
-        active === true ? (styles.previewViewportActive ?? "") : false,
-        className ?? false,
-      )}
-    />
-  );
+  const baseClassName = styles.previewViewport ?? "";
+  const activeClassName =
+    active === true ? (styles.previewViewportActive ?? "") : "";
+  const combinedClassName = [baseClassName, activeClassName, className]
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    )
+    .join(" ");
+
+  return <div {...props} ref={ref} className={combinedClassName} />;
 });
 
 export const PreviewCanvasWrap = createLayout(styles.previewCanvasWrap ?? "");
@@ -59,17 +56,16 @@ export const LibrarySectionContent = React.forwardRef<
   HTMLDivElement,
   LibrarySectionContentProps
 >(function LibrarySectionContent({ open, className, ...props }, ref) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={mergeClassNames(
-        styles.librarySectionContent ?? "",
-        open === false ? (styles.librarySectionContentClosed ?? "") : false,
-        className ?? false,
-      )}
-    />
-  );
+  const baseClassName = styles.librarySectionContent ?? "";
+  const closedClassName =
+    open === true ? "" : (styles.librarySectionContentClosed ?? "");
+  const combinedClassName = [baseClassName, closedClassName, className]
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    )
+    .join(" ");
+
+  return <div {...props} ref={ref} className={combinedClassName} />;
 });
 
 export const SpriteLibraryGrid = createLayout(styles.spriteLibraryGrid ?? "");

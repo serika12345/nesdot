@@ -36,6 +36,7 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
     LibraryPreviewCard: ({
       badge,
       children,
+      className,
       label,
       preview,
       previewFrame,
@@ -55,8 +56,13 @@ vi.mock("../../../common/ui/preview/LibraryPreviewCard", () => {
         "button",
         {
           ...props,
+          className: [
+            typeof className === "string" ? className : "",
+            previewFrame === "sprite" ? "cardSpriteFrame" : "",
+          ]
+            .filter((value) => value.length > 0)
+            .join(" "),
           "aria-pressed": selected === true ? "true" : "false",
-          "data-preview-frame": previewFrame,
         },
         children,
         preview,
@@ -113,6 +119,6 @@ describe("SpriteModeLibraryPanel", () => {
     expect(markup).toContain("Sprite 1");
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain('aria-pressed="false"');
-    expect(markup).toContain('data-preview-frame="sprite"');
+    expect(markup).toContain("cardSpriteFrame");
   });
 });

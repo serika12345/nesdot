@@ -1,5 +1,4 @@
 import React from "react";
-import { mergeClassNames } from "../../../../styleClassNames";
 import styles from "./LibraryPreviewCard.module.css";
 
 interface LibraryPreviewCardProps extends Omit<
@@ -34,20 +33,26 @@ export const LibraryPreviewCard = React.forwardRef<
   ref,
 ) {
   const isActive = selected === true || dragging === true;
+  const baseClassName = styles.card ?? "";
+  const cardClassName = [
+    baseClassName,
+    isActive === true ? (styles.cardActive ?? "") : "",
+    dragging === true ? (styles.cardDragging ?? "") : "",
+    interactive === true ? (styles.cardInteractive ?? "") : "",
+    previewFrame === "sprite" ? (styles.cardSpriteFrame ?? "") : "",
+    className,
+  ]
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    )
+    .join(" ");
 
   return (
     <button
       ref={ref}
       {...props}
-      className={mergeClassNames(
-        styles.card ?? "",
-        previewFrame === "sprite" ? (styles.spriteFrame ?? "") : false,
-        interactive === true ? (styles.interactive ?? "") : false,
-        dragging === true ? (styles.dragging ?? "") : false,
-        typeof className === "string" ? className : false,
-      )}
+      className={cardClassName}
       aria-pressed={selected === true}
-      data-active={isActive === true ? "true" : "false"}
       type={type}
     >
       <span className={styles.content}>

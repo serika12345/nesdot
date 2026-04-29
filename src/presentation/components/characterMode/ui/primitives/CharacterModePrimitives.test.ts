@@ -21,7 +21,7 @@ describe("CharacterModePrimitives", () => {
     expect(markup).toContain("stageEditorCard");
   });
 
-  it("renders CharacterStageViewport with local drag state styling", () => {
+  it("renders CharacterStageViewport with a drag state class", () => {
     const markup = renderToStaticMarkup(
       React.createElement(
         CharacterStageViewport,
@@ -35,5 +35,6 @@ describe("CharacterModePrimitives", () => {
     expect(markup).toContain("viewport");
     expect(markup).toContain("characterStageViewport");
     expect(markup).toContain("characterStageViewportDragging");
+    expect(markup).not.toContain("data-dragging");
   });
 });

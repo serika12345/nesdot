@@ -3,7 +3,6 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import libraryPanelStyles from "../../../common/ui/preview/LibraryPanel.module.css";
@@ -107,6 +106,18 @@ export const CharacterModeSidebarLibrary: React.FC<
     },
     [],
   );
+  const chevronClassName = [
+    libraryPanelStyles.chevron ?? "",
+    isLibraryOpen === true ? (libraryPanelStyles.chevronOpen ?? "") : "",
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
+  const contentWrapClassName = [
+    libraryPanelStyles.contentWrap ?? "",
+    isLibraryOpen === true ? "" : (libraryPanelStyles.contentWrapClosed ?? ""),
+  ]
+    .filter((value): value is string => value.length > 0)
+    .join(" ");
 
   return (
     <SurfaceCard className={libraryPanelStyles.root}>
@@ -126,24 +137,12 @@ export const CharacterModeSidebarLibrary: React.FC<
           onClick={() => setIsLibraryOpen((previous) => !previous)}
         >
           {isLibraryOpen ? "閉じる" : "開く"}
-          <ChevronDownIcon
-            className={mergeClassNames(
-              libraryPanelStyles.chevron ?? "",
-              isLibraryOpen === true
-                ? (libraryPanelStyles.chevronOpen ?? "")
-                : false,
-            )}
-          />
+          <ChevronDownIcon className={chevronClassName} />
         </Button>
       </div>
 
       <div
-        className={mergeClassNames(
-          libraryPanelStyles.contentWrap ?? "",
-          isLibraryOpen === false
-            ? (libraryPanelStyles.contentWrapClosed ?? "")
-            : false,
-        )}
+        className={contentWrapClassName}
         id={libraryContentId}
         aria-hidden={isLibraryOpen === false}
       >

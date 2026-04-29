@@ -3,13 +3,37 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+type MockMenubarRootProps = React.ComponentPropsWithoutRef<"div"> & {
+  readonly onValueChange?: (value: string) => void;
+  readonly value?: string;
+};
+
+type MockMenubarContentProps = React.ComponentPropsWithoutRef<"div"> & {
+  readonly align?: string;
+  readonly alignOffset?: number;
+  readonly sideOffset?: number;
+};
+
+type MockDialogContentProps = React.ComponentPropsWithoutRef<"div"> & {
+  readonly maxWidth?: string;
+};
+
 vi.mock("@radix-ui/react-menubar", () => {
   const Root = ({
     children,
     ...props
-  }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"div">>) =>
-    React.createElement("div", { role: "menubar", ...props }, children);
-  const Menu = ({ children }: React.PropsWithChildren<Record<string, never>>) =>
+  }: React.PropsWithChildren<MockMenubarRootProps>) => {
+    const { onValueChange, value, ...domProps } = props;
+    void onValueChange;
+    void value;
+
+    return React.createElement(
+      "div",
+      { role: "menubar", ...domProps },
+      children,
+    );
+  };
+  const Menu = ({ children }: React.PropsWithChildren<{ value?: string }>) =>
     React.createElement(React.Fragment, {}, children);
   const Trigger = ({
     children,
@@ -23,15 +47,25 @@ vi.mock("@radix-ui/react-menubar", () => {
   const Content = ({
     children,
     ...props
-  }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"div">>) =>
-    React.createElement("div", { role: "menu", ...props }, children);
+  }: React.PropsWithChildren<MockMenubarContentProps>) => {
+    const { align, alignOffset, sideOffset, ...domProps } = props;
+    void align;
+    void alignOffset;
+    void sideOffset;
+
+    return React.createElement("div", { role: "menu", ...domProps }, children);
+  };
   const Item = ({
     children,
     ...props
   }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"button">>) =>
     React.createElement("button", { role: "menuitem", ...props }, children);
-  const Sub = ({ children }: React.PropsWithChildren<Record<string, never>>) =>
-    React.createElement(React.Fragment, {}, children);
+  const Sub = ({
+    children,
+  }: React.PropsWithChildren<{
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }>) => React.createElement(React.Fragment, {}, children);
   const SubTrigger = ({
     children,
     ...props
@@ -40,8 +74,13 @@ vi.mock("@radix-ui/react-menubar", () => {
   const SubContent = ({
     children,
     ...props
-  }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"div">>) =>
-    React.createElement("div", { role: "menu", ...props }, children);
+  }: React.PropsWithChildren<MockMenubarContentProps>) => {
+    const { alignOffset, sideOffset, ...domProps } = props;
+    void alignOffset;
+    void sideOffset;
+
+    return React.createElement("div", { role: "menu", ...domProps }, children);
+  };
   const Separator = (props: React.ComponentPropsWithoutRef<"hr">) =>
     React.createElement("hr", props);
   const RadioGroup = ({
@@ -90,8 +129,12 @@ vi.mock("@radix-ui/themes", () => {
   const Content = ({
     children,
     ...props
-  }: React.PropsWithChildren<React.ComponentPropsWithoutRef<"div">>) =>
-    React.createElement("div", props, children);
+  }: React.PropsWithChildren<MockDialogContentProps>) => {
+    const { maxWidth, ...domProps } = props;
+    void maxWidth;
+
+    return React.createElement("div", domProps, children);
+  };
   const Title = ({
     children,
   }: React.PropsWithChildren<Record<string, never>>) =>

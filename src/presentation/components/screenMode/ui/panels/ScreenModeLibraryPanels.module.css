@@ -46,11 +46,11 @@
     scrollbar-gutter: stable;
   }
 
-  .spriteScrollArea {
+  .scrollAreaSprite {
     max-height: 13.5rem;
   }
 
-  .characterScrollArea {
+  .scrollAreaCharacter {
     max-height: 15.5rem;
   }
 

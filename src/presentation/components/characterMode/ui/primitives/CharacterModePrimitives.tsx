@@ -1,6 +1,5 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import styles from "./CharacterModePrimitives.module.css";
 import {
@@ -95,13 +94,12 @@ const createLayout = (
 > => {
   return React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
     function LayoutComponent({ className, ...props }, ref) {
-      return (
-        <div
-          {...props}
-          ref={ref}
-          className={mergeClassNames(baseClassName, className ?? false)}
-        />
-      );
+      const combinedClassName =
+        typeof className === "string" && className.length > 0
+          ? `${baseClassName} ${className}`
+          : baseClassName;
+
+      return <div {...props} ref={ref} className={combinedClassName} />;
     },
   );
 };
@@ -136,16 +134,13 @@ export const StageEditorCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(function StageEditorCard({ className, ...props }, ref) {
-  return (
-    <SurfaceCard
-      {...props}
-      ref={ref}
-      className={mergeClassNames(
-        styles.stageEditorCard ?? "",
-        className ?? false,
-      )}
-    />
-  );
+  const baseClassName = styles.stageEditorCard ?? "";
+  const combinedClassName =
+    typeof className === "string" && className.length > 0
+      ? `${baseClassName} ${className}`
+      : baseClassName;
+
+  return <SurfaceCard {...props} ref={ref} className={combinedClassName} />;
 });
 
 export const PaletteControlRow = createLayout(styles.paletteControlRow ?? "");
@@ -169,17 +164,20 @@ export const CharacterStageViewport = React.forwardRef<
   { dragging, className, style, ...props },
   ref,
 ) {
+  const baseClassName = styles.characterStageViewport ?? "";
+  const draggingClassName =
+    dragging === true ? (styles.characterStageViewportDragging ?? "") : "";
+  const combinedClassName = [baseClassName, draggingClassName, className]
+    .filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
+    )
+    .join(" ");
+
   return (
     <div
       {...props}
       ref={ref}
-      className={mergeClassNames(
-        styles.characterStageViewport ?? "",
-        dragging === true
-          ? (styles.characterStageViewportDragging ?? "")
-          : false,
-        className ?? false,
-      )}
+      className={combinedClassName}
       style={createCharacterStageViewportStyle(style ?? {}, dragging === true)}
     />
   );
@@ -208,14 +206,17 @@ export const DecompositionCanvasElement = React.forwardRef<
   { className, cursorStyle, style, ...props },
   ref,
 ) {
+  const baseClassName = styles.decompositionCanvasElement ?? "";
+  const combinedClassName =
+    typeof className === "string" && className.length > 0
+      ? `${baseClassName} ${className}`
+      : baseClassName;
+
   return (
     <canvas
       {...props}
       ref={ref}
-      className={mergeClassNames(
-        styles.decompositionCanvasElement ?? "",
-        className ?? false,
-      )}
+      className={combinedClassName}
       style={createDecompositionCanvasStyle(style ?? {}, cursorStyle)}
     />
   );
@@ -252,11 +253,17 @@ export const RegionOverlayButton = React.forwardRef<
   },
   ref,
 ) {
+  const baseClassName = styles.resetButton ?? "";
+  const combinedClassName =
+    typeof className === "string" && className.length > 0
+      ? `${baseClassName} ${className}`
+      : baseClassName;
+
   return (
     <button
       {...props}
       ref={ref}
-      className={mergeClassNames(styles.resetButton ?? "", className ?? false)}
+      className={combinedClassName}
       type={props.type ?? "button"}
       style={createRegionOverlayButtonStyle(
         style ?? {},
@@ -297,14 +304,17 @@ export const PortalOverlay = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(function PortalOverlay({ className, style, ...props }, ref) {
+  const baseClassName = styles.portalOverlay ?? "";
+  const combinedClassName =
+    typeof className === "string" && className.length > 0
+      ? `${baseClassName} ${className}`
+      : baseClassName;
+
   return (
     <div
       {...props}
       ref={ref}
-      className={mergeClassNames(
-        styles.portalOverlay ?? "",
-        className ?? false,
-      )}
+      className={combinedClassName}
       style={createPortalOverlayStyle(style ?? {})}
     />
   );
@@ -317,14 +327,17 @@ export const PositionedActionMenu = React.forwardRef<
   { className, menuLeft, menuTop, menuWidth, ready, style, ...props },
   ref,
 ) {
+  const baseClassName = styles.positionedActionMenu ?? "";
+  const combinedClassName =
+    typeof className === "string" && className.length > 0
+      ? `${baseClassName} ${className}`
+      : baseClassName;
+
   return (
     <div
       {...props}
       ref={ref}
-      className={mergeClassNames(
-        styles.positionedActionMenu ?? "",
-        className ?? false,
-      )}
+      className={combinedClassName}
       style={createPositionedActionMenuStyle(
         style ?? {},
         menuLeft,
@@ -406,17 +419,21 @@ export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
     },
     ref,
   ) {
+    const baseClassName = styles.characterStageSurface ?? "";
+    const activeDropClassName =
+      activeDrop === true ? (styles.characterStageSurfaceActiveDrop ?? "") : "";
+    const combinedClassName = [baseClassName, activeDropClassName, className]
+      .filter(
+        (value): value is string =>
+          typeof value === "string" && value.length > 0,
+      )
+      .join(" ");
+
     return (
       <div
         {...props}
         ref={ref}
-        className={mergeClassNames(
-          styles.characterStageSurface ?? "",
-          activeDrop === true
-            ? (styles.characterStageSurfaceActiveDrop ?? "")
-            : false,
-          className ?? false,
-        )}
+        className={combinedClassName}
         style={createStageSurfaceStyle(
           style ?? {},
           stageWidthPx,

@@ -98,6 +98,16 @@ const THEME_PREFERENCE_ITEMS: ReadonlyArray<{
   },
 ];
 
+type TopLevelMenuValue = "edit-mode" | "edit" | "file" | "help" | "view";
+
+const joinClassNames = (
+  ...classNames: ReadonlyArray<string | false>
+): string => {
+  return classNames
+    .filter((value): value is string => value !== false && value.length > 0)
+    .join(" ");
+};
+
 const MenuItemContent: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => <div className={styles.menuItemContent}>{children}</div>;
@@ -156,6 +166,8 @@ export const MenuBar: React.FC<MenuBarProps> = ({
   const appVersion = import.meta.env.VITE_APP_VERSION;
   const aboutIconSrc = `${import.meta.env.BASE_URL}pwa-192x192.png`;
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
+  const [isShareSubmenuOpen, setIsShareSubmenuOpen] = React.useState(false);
+  const [openMenuValue, setOpenMenuValue] = React.useState("");
   const canCheckForUpdates = React.useMemo(
     () => canRequestAvailableUpdateCheck(),
     [],
@@ -206,6 +218,40 @@ export const MenuBar: React.FC<MenuBarProps> = ({
     requestAvailableUpdateCheck();
   };
 
+  const handleMenuValueChange = (nextValue: string): void => {
+    setOpenMenuValue(nextValue);
+
+    if (nextValue !== "file") {
+      setIsShareSubmenuOpen(false);
+    }
+  };
+
+  const getMenuTriggerClassName = (menuValue: TopLevelMenuValue): string => {
+    return joinClassNames(
+      styles.menuTriggerAction ?? "",
+      openMenuValue === menuValue
+        ? (styles.menuTriggerActionOpen ?? "")
+        : false,
+    );
+  };
+
+  const getMenuItemClassName = (disabled: boolean): string => {
+    return joinClassNames(
+      styles.menuItemAction ?? "",
+      disabled === true ? (styles.menuItemActionDisabled ?? "") : false,
+    );
+  };
+
+  const shareSubTriggerClassName = joinClassNames(
+    styles.menuSubTriggerAction ?? "",
+    hasShareActions === false
+      ? (styles.menuSubTriggerActionDisabled ?? "")
+      : false,
+    isShareSubmenuOpen === true
+      ? (styles.menuSubTriggerActionOpen ?? "")
+      : false,
+  );
+
   return (
     <nav
       className={styles.menuBarSurface}
@@ -214,10 +260,12 @@ export const MenuBar: React.FC<MenuBarProps> = ({
       <Menubar.Root
         className={styles.menuBarRoot}
         aria-label="ファイル操作メニューバー"
+        value={openMenuValue}
+        onValueChange={handleMenuValueChange}
       >
-        <Menubar.Menu>
+        <Menubar.Menu value="edit-mode">
           <Menubar.Trigger
-            className={styles.menuTriggerAction}
+            className={getMenuTriggerClassName("edit-mode")}
             type="button"
             aria-haspopup="menu"
           >
@@ -269,9 +317,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Portal>
         </Menubar.Menu>
 
-        <Menubar.Menu>
+        <Menubar.Menu value="view">
           <Menubar.Trigger
-            className={styles.menuTriggerAction}
+            className={getMenuTriggerClassName("view")}
             type="button"
             aria-haspopup="menu"
           >
@@ -325,9 +373,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Portal>
         </Menubar.Menu>
 
-        <Menubar.Menu>
+        <Menubar.Menu value="edit">
           <Menubar.Trigger
-            className={styles.menuTriggerAction}
+            className={getMenuTriggerClassName("edit")}
             type="button"
             aria-haspopup="menu"
           >
@@ -343,7 +391,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 sideOffset={6}
               >
                 <Menubar.Item
-                  className={styles.menuItemAction}
+                  className={getMenuItemClassName(false)}
                   aria-keyshortcuts={shortcutLabels.undoShortcut}
                   onSelect={onUndoSelect}
                 >
@@ -363,7 +411,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 </Menubar.Item>
 
                 <Menubar.Item
-                  className={styles.menuItemAction}
+                  className={getMenuItemClassName(false)}
                   aria-keyshortcuts={shortcutLabels.redoShortcut}
                   onSelect={onRedoSelect}
                 >
@@ -386,9 +434,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Portal>
         </Menubar.Menu>
 
-        <Menubar.Menu>
+        <Menubar.Menu value="file">
           <Menubar.Trigger
-            className={styles.menuTriggerAction}
+            className={getMenuTriggerClassName("file")}
             type="button"
             aria-haspopup="menu"
           >
@@ -403,9 +451,12 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 align="start"
                 sideOffset={6}
               >
-                <Menubar.Sub>
+                <Menubar.Sub
+                  open={isShareSubmenuOpen}
+                  onOpenChange={setIsShareSubmenuOpen}
+                >
                   <Menubar.SubTrigger
-                    className={styles.menuSubTriggerAction}
+                    className={shareSubTriggerClassName}
                     disabled={hasShareActions === false}
                   >
                     <MenuItemContent>
@@ -432,7 +483,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                         {fileMenuState.shareActions.map((action) => (
                           <Menubar.Item
                             key={action.id}
-                            className={styles.menuItemAction}
+                            className={getMenuItemClassName(false)}
                             onSelect={() => {
                               action.onSelect();
                             }}
@@ -457,7 +508,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 <Menubar.Separator className={styles.menuSeparatorLine} />
 
                 <Menubar.Item
-                  className={styles.menuItemAction}
+                  className={getMenuItemClassName(hasRestoreAction === false)}
                   disabled={hasRestoreAction === false}
                   onSelect={handleRestoreSelect}
                 >
@@ -475,9 +526,9 @@ export const MenuBar: React.FC<MenuBarProps> = ({
           </Menubar.Portal>
         </Menubar.Menu>
 
-        <Menubar.Menu>
+        <Menubar.Menu value="help">
           <Menubar.Trigger
-            className={styles.menuTriggerAction}
+            className={getMenuTriggerClassName("help")}
             type="button"
             aria-haspopup="menu"
           >
@@ -495,7 +546,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 {canCheckForUpdates === true ? (
                   <>
                     <Menubar.Item
-                      className={styles.menuItemAction}
+                      className={getMenuItemClassName(false)}
                       onSelect={handleUpdateCheckSelect}
                     >
                       <MenuItemContent>
@@ -517,7 +568,7 @@ export const MenuBar: React.FC<MenuBarProps> = ({
                 )}
 
                 <Menubar.Item
-                  className={styles.menuItemAction}
+                  className={getMenuItemClassName(false)}
                   onSelect={handleAboutSelect}
                 >
                   <MenuItemContent>
