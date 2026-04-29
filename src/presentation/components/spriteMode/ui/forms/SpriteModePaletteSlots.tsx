@@ -1,7 +1,7 @@
 import React from "react";
 import {
-  ColorIndexOfPalette,
-  PaletteIndex,
+  type ColorIndexOfPalette,
+  type PaletteIndex,
 } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { PaletteSlotSelector } from "../../../common/ui/palette/PaletteSlotSelector";

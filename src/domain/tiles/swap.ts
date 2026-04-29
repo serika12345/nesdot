@@ -1,5 +1,5 @@
 import * as O from "fp-ts/Option";
-import { ColorIndexOfPalette } from "../project/project";
+import { type ColorIndexOfPalette } from "../project/project";
 import { getMatrixItem } from "../../shared/arrayAccess";
 
 /**

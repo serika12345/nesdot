@@ -1,10 +1,11 @@
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
-import React, { useCallback, useEffect, useRef } from "react";
+import type React from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
-  ColorIndexOfPalette,
-  PaletteIndex,
-  SpriteTile,
+  type ColorIndexOfPalette,
+  type PaletteIndex,
+  type SpriteTile,
   useProjectState,
 } from "../../../application/state/projectStore";
 import { nesIndexToCssHex } from "../../../domain/nes/palette";

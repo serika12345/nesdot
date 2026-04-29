@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
 import { z } from "zod";
 import {
-  CharacterJsonData,
+  type CharacterJsonData,
   useCharacterState,
 } from "../../application/state/characterStore";
 import type { ProjectState } from "../../domain/project/project";

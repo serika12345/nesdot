@@ -1,5 +1,5 @@
-import * as O from "fp-ts/Option";
-import React from "react";
+import type * as O from "fp-ts/Option";
+import type React from "react";
 
 export interface ScreenModeGestureWorkspaceDisplayState {
   isSpriteIndexVisible: boolean;

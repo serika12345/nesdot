@@ -1,9 +1,9 @@
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { NesSpritePalettes } from "../nes/nesProject";
+import { type NesSpritePalettes } from "../nes/nesProject";
 import { renderSpriteTileToHexArray } from "../nes/rendering";
-import { SpriteInScreen, SpriteTile } from "../project/project";
+import { type SpriteInScreen, type SpriteTile } from "../project/project";
 
 export interface CharacterSprite {
   spriteIndex: number;

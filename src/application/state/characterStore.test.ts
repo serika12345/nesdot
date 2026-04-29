@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import {
-  CharacterJsonData,
+  type CharacterJsonData,
   fromCharacterJsonData,
   toCharacterJsonData,
 } from "./characterStore";

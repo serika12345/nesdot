@@ -1,5 +1,5 @@
 import * as O from "fp-ts/Option";
-import { SpriteInScreen } from "../project/project";
+import { type SpriteInScreen } from "../project/project";
 
 interface GroupBounds {
   minX: number;

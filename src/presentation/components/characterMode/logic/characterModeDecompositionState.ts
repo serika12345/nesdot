@@ -1,4 +1,4 @@
-import * as O from "fp-ts/Option";
+import type * as O from "fp-ts/Option";
 import { useMemo } from "react";
 import type {
   CharacterDecompositionAnalysis,

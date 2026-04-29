@@ -1,8 +1,11 @@
 import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
-import { NesSpritePalettes } from "../../../domain/nes/nesProject";
+import { type NesSpritePalettes } from "../../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../../domain/nes/palette";
-import { PaletteIndex, SpriteTile } from "../../../domain/project/project";
+import {
+  type PaletteIndex,
+  type SpriteTile,
+} from "../../../domain/project/project";
 import { getArrayItem, getMatrixItem } from "../../../shared/arrayAccess";
 
 /**

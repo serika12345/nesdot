@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SpriteInScreen } from "../project/project";
+import { type SpriteInScreen } from "../project/project";
 import {
   getGroupBounds,
   isValidGroupMovement,

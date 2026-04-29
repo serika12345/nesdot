@@ -1,4 +1,4 @@
-import { NesProjectState } from "../nes/nesProject";
+import { type NesProjectState } from "../nes/nesProject";
 import { buildNesProjection } from "../nes/projection";
 import { type ProjectState } from "../project/project";
 

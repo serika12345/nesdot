@@ -11,8 +11,8 @@ import type {
 import {
   getNameTableLinearIndex,
   NES_EMPTY_BACKGROUND_TILE_INDEX,
-  NesProjectState,
-  NesSpritePalettes,
+  type NesProjectState,
+  type NesSpritePalettes,
   resolveBackgroundPaletteIndex,
 } from "./nesProject";
 import { NES_PALETTE_HEX } from "./palette";

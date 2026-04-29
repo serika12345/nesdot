@@ -2,12 +2,12 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { getArrayItem, getMatrixItem } from "../../shared/arrayAccess";
 import {
-  PaletteIndex,
-  ProjectSpriteSize,
-  SpriteTile,
+  type PaletteIndex,
+  type ProjectSpriteSize,
+  type SpriteTile,
   createEmptySpriteTile,
 } from "../project/project";
-import { CharacterSprite } from "./characterSet";
+import { type CharacterSprite } from "./characterSet";
 
 export type CharacterDecompositionPixel =
   | { kind: "transparent" }

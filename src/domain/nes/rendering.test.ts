@@ -13,8 +13,8 @@ import {
 import {
   createDefaultNesProjectState,
   NES_EMPTY_BACKGROUND_TILE_INDEX,
-  NesBackgroundPalettes,
-  NesSpritePalettes,
+  type NesBackgroundPalettes,
+  type NesSpritePalettes,
 } from "./nesProject";
 import { nesIndexToCssHex } from "./palette";
 import { buildNesProjection } from "./projection";

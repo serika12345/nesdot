@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import { ColorIndexOfPalette } from "../project/project";
+import { type ColorIndexOfPalette } from "../project/project";
 import { getMatrixItem } from "../../shared/arrayAccess";
 import { swap8x8Blocks } from "./swap";
 

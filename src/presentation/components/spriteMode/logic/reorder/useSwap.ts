@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { ColorIndexOfPalette } from "../../../../../domain/project/project";
+import { type ColorIndexOfPalette } from "../../../../../domain/project/project";
 import { swap8x8Blocks } from "../../../../../domain/tiles/swap";
 
 /**

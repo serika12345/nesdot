@@ -2,13 +2,13 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import {
-  PaletteIndex,
-  SpriteTile,
+  type PaletteIndex,
+  type SpriteTile,
   createEmptySpriteTile,
 } from "../project/project";
 import {
-  CharacterDecompositionCanvas,
-  CharacterDecompositionPixel,
+  type CharacterDecompositionCanvas,
+  type CharacterDecompositionPixel,
   analyzeCharacterDecomposition,
   applyCharacterDecomposition,
 } from "./characterDecomposition";

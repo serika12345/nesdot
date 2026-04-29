@@ -2,8 +2,8 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { create } from "zustand";
 import {
-  CharacterSet,
-  CharacterSprite,
+  type CharacterSet,
+  type CharacterSprite,
   addCharacterSprite,
   createCharacterSet,
   removeCharacterSprite,

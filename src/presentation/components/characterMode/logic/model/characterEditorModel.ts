@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { CharacterSprite } from "../../../../../domain/characters/characterSet";
+import { type CharacterSprite } from "../../../../../domain/characters/characterSet";
 
 interface CharacterLayerEntry {
   index: number;

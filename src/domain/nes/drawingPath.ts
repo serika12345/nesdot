@@ -1,4 +1,4 @@
-import { NesProjectState, NesSpritePalettes } from "./nesProject";
+import { type NesProjectState, type NesSpritePalettes } from "./nesProject";
 
 /**
  * スクリーン描画で使う背景パレット群を取り出します。
