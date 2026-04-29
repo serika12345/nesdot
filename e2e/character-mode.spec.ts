@@ -134,6 +134,45 @@ const expectLibraryButtonToUseCardLayout = async (
   }
 };
 
+const expectLibraryButtonContentToStayInsideFrame = async (
+  control: Locator,
+): Promise<void> => {
+  const overflowMetrics = await control.evaluate((element) => {
+    const controlRect = element.getBoundingClientRect();
+    const childRects = Array.from(element.querySelectorAll("*"), (child) =>
+      child.getBoundingClientRect(),
+    );
+    const childLeft = Math.min(
+      controlRect.left,
+      ...childRects.map((rect) => rect.left),
+    );
+    const childRight = Math.max(
+      controlRect.right,
+      ...childRects.map((rect) => rect.right),
+    );
+    const childTop = Math.min(
+      controlRect.top,
+      ...childRects.map((rect) => rect.top),
+    );
+    const childBottom = Math.max(
+      controlRect.bottom,
+      ...childRects.map((rect) => rect.bottom),
+    );
+
+    return {
+      bottom: childBottom - controlRect.bottom,
+      left: controlRect.left - childLeft,
+      right: childRight - controlRect.right,
+      top: controlRect.top - childTop,
+    };
+  });
+
+  expect(overflowMetrics.bottom).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.left).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.right).toBeLessThanOrEqual(1);
+  expect(overflowMetrics.top).toBeLessThanOrEqual(1);
+};
+
 const closeDecompositionAppliedDialog = async (page: Page): Promise<void> => {
   const feedbackDialog = page.getByRole("dialog", {
     name: "現在のセットへ反映しました",
@@ -532,6 +571,45 @@ test("character mode lets the sprite library collapse and expand", async ({
 
   await expect(closeLibraryButton).toBeVisible();
   await expect(librarySprite).toHaveCount(1);
+});
+
+test("character mode keeps sprite library card frames fixed across sprite sizes", async ({
+  page,
+}) => {
+  await gotoApp(page);
+  await page.setViewportSize({ width: 1800, height: 1200 });
+  await openMode(page, "キャラクター編集");
+
+  await createCharacterSet(page, "Fixed Library Frame Hero");
+  await waitForCharacterWorkspaceUnlock(page);
+
+  const librarySprite = page.getByRole("button", {
+    name: "ライブラリスプライト 0",
+  });
+  const size16Button = page.getByRole("button", {
+    name: "プロジェクトスプライトサイズ 8x16",
+  });
+
+  await expect(librarySprite).toBeVisible();
+  await expect(librarySprite.getByText("8×8", { exact: true })).toBeVisible();
+  await expectLibraryButtonContentToStayInsideFrame(librarySprite);
+
+  const defaultSpriteBox = await getLocatorRect(librarySprite);
+
+  await expect(size16Button).toBeEnabled();
+  await size16Button.click();
+
+  await expect(librarySprite.getByText("8×16", { exact: true })).toBeVisible();
+  await expectLibraryButtonContentToStayInsideFrame(librarySprite);
+
+  const tallSpriteBox = await getLocatorRect(librarySprite);
+
+  expect(Math.abs(defaultSpriteBox.width - tallSpriteBox.width)).toBeLessThan(
+    2,
+  );
+  expect(Math.abs(defaultSpriteBox.height - tallSpriteBox.height)).toBeLessThan(
+    2,
+  );
 });
 
 test("character mode preserves sprite library visibility across editor mode switches", async ({

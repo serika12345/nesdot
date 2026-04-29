@@ -49,6 +49,7 @@ const CharacterModeSidebarLibraryContent = React.memo(
           {library.sprites.map((spriteTile, spriteIndex) => (
             <LibraryPreviewCard
               key={`library-sprite-${spriteIndex}`}
+              className={styles.spriteCard}
               type="button"
               dragging={library.draggingSpriteIndex === spriteIndex}
               interactive={library.interactive}
@@ -60,11 +61,13 @@ const CharacterModeSidebarLibraryContent = React.memo(
               }
               label={`Sprite ${spriteIndex}`}
               preview={
-                <CharacterModeTilePreview
-                  scale={LIBRARY_PREVIEW_SCALE}
-                  spritePalettes={library.spritePalettes}
-                  tileOption={O.some(spriteTile)}
-                />
+                <span className={styles.previewSlot}>
+                  <CharacterModeTilePreview
+                    scale={LIBRARY_PREVIEW_SCALE}
+                    spritePalettes={library.spritePalettes}
+                    tileOption={O.some(spriteTile)}
+                  />
+                </span>
               }
               badge={
                 <Badge color="teal" size="2" variant="surface">

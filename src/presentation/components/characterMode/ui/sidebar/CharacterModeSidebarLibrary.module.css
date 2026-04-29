@@ -1,5 +1,9 @@
 @layer components {
   .root {
+    --character-library-card-height: 6.25rem;
+    --character-library-card-content-gap: 0.25rem;
+    --character-library-preview-height: 2.25rem;
+
     display: flex;
     min-height: 0;
     flex-direction: column;
@@ -44,6 +48,31 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.25rem;
+  }
+
+  .spriteCard {
+    height: var(--character-library-card-height);
+    max-height: var(--character-library-card-height);
+    overflow: hidden;
+  }
+
+  .spriteCard > span {
+    gap: var(--character-library-card-content-gap);
+  }
+
+  .previewSlot {
+    display: flex;
+    width: 100%;
+    height: var(--character-library-preview-height);
+    min-height: var(--character-library-preview-height);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .previewSlot canvas,
+  .previewSlot > * {
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .chevron {
