@@ -11,9 +11,10 @@ import {
 } from "react";
 import { useCharacterState } from "../../../../application/state/characterStore";
 import { useProjectState } from "../../../../application/state/projectStore";
-import { selectActiveSet } from "./characterModeSelectors";
+import { trySetPointerCapture } from "../../common/logic/pointerCapture";
 import { useCharacterModeComposeStore } from "./characterModeComposeStore";
 import { useCharacterModeProjectStore } from "./characterModeProjectStore";
+import { selectActiveSet } from "./characterModeSelectors";
 import { useCharacterModeStageStore } from "./characterModeStageStore";
 import {
   createComposeSpriteSource,
@@ -22,7 +23,6 @@ import {
   isSameOptionalNumber,
 } from "./compose/composeCanvasHelpers";
 import { clamp } from "./geometry/characterModeBounds";
-import { trySetPointerCapture } from "./input/pointerCapture";
 import {
   ensureSelectedCharacterSpriteIndex,
   getCharacterLayerEntriesBackToFront,

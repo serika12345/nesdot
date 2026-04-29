@@ -3,11 +3,11 @@ import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useState } from "react";
 import { useProjectState } from "../../../../application/state/projectStore";
 import type { CharacterDecompositionRegion } from "../../../../domain/characters/characterDecomposition";
+import { trySetPointerCapture } from "../../common/logic/pointerCapture";
 import { useCharacterModeDecompositionStore } from "./characterModeDecompositionStore";
 import { useCharacterModeProjectStore } from "./characterModeProjectStore";
 import { useCharacterModeStageStore } from "./characterModeStageStore";
 import { createDecompositionCanvasRgba } from "./decomposition/decompositionCanvas";
-import { trySetPointerCapture } from "./input/pointerCapture";
 import { resolveCharacterStageScale } from "./model/characterEditorModel";
 
 // ---------------------------------------------------------------------------

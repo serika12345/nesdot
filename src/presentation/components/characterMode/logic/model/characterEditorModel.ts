@@ -1,6 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { type CharacterSprite } from "../../../../../domain/characters/characterSet";
+import { clamp } from "../../../../../shared/clamp";
 
 interface CharacterLayerEntry {
   index: number;
@@ -30,9 +31,6 @@ interface OrderedCharacterLayerEntry extends CharacterLayerEntry {
 const CHARACTER_PREVIEW_STANDARD_SIZE = 16;
 const CHARACTER_PREVIEW_STANDARD_AREA =
   CHARACTER_PREVIEW_STANDARD_SIZE * CHARACTER_PREVIEW_STANDARD_SIZE;
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(max, value));
 
 const shouldComeBefore = (
   next: OrderedCharacterLayerEntry,

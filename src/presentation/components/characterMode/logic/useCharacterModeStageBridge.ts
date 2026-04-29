@@ -1,10 +1,10 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useRef } from "react";
+import { trySetPointerCapture } from "../../common/logic/pointerCapture";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 import { useCharacterModeStageStore } from "./characterModeStageStore";
 import { clamp } from "./geometry/characterModeBounds";
-import { trySetPointerCapture } from "./input/pointerCapture";
 import {
   resolveCharacterStagePoint,
   resolveCharacterStageScale,

@@ -9,9 +9,9 @@ vi.mock("../canvas/SpriteModeCanvasSurface", () => {
   };
 });
 
-vi.mock("../overlay/SpriteModeToolOverlay", () => {
+vi.mock("../../../common/ui/overlay/CanvasToolOverlay", () => {
   return {
-    SpriteModeToolOverlay: () => React.createElement("div", {}, "tool-overlay"),
+    CanvasToolOverlay: () => React.createElement("div", {}, "tool-overlay"),
   };
 });
 

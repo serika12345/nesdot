@@ -18,9 +18,9 @@ import { useDesktopAutoUpdate } from "../infrastructure/browser/useDesktopAutoUp
 import { usePwaUpdate } from "../infrastructure/browser/usePwaUpdate";
 import styles from "./App.module.css";
 import { useBgModeFileMenuState } from "./components/bgMode/logic/useBgModeFileMenuState";
-import { BgMode } from "./components/bgMode/ui/core/BgMode";
+import { BgModeScreen } from "./components/bgMode/ui/core/BgModeScreen";
 import { useCharacterModeProjectActions } from "./components/characterMode/logic/characterModeProjectActions";
-import { CharacterMode } from "./components/characterMode/ui/core/CharacterMode";
+import { CharacterModeScreen } from "./components/characterMode/ui/core/CharacterModeScreen";
 import { usePalettePickerState } from "./components/common/logic/palettePickerState";
 import {
   emptyFileMenuState,
@@ -34,9 +34,9 @@ import { PwaUpdateDialog } from "./components/common/ui/dialogs/PwaUpdateDialog"
 import { MenuBar } from "./components/common/ui/menu/MenuBar";
 import { PalettePicker } from "./components/common/ui/pickers/PalettePicker";
 import { useScreenModeFileMenuState } from "./components/screenMode/logic/useScreenModeFileMenuState";
-import { ScreenMode } from "./components/screenMode/ui/core/ScreenMode";
+import { ScreenModeWorkspacePanel } from "./components/screenMode/ui/panels/ScreenModeWorkspacePanel";
 import { useSpriteModeProjectActions } from "./components/spriteMode/logic/spriteModeProjectActions";
-import { SpriteMode } from "./components/spriteMode/ui/core/SpriteMode";
+import { SpriteModeScreen } from "./components/spriteMode/ui/core/SpriteModeScreen";
 
 const NATIVE_SHARE_EVENT_BINDINGS: ReadonlyArray<{
   eventName: string;
@@ -555,15 +555,15 @@ const AppBody: React.FC<AppBodyProps> = ({
 
   const appPanel = (() => {
     if (editMode === "sprite") {
-      return <SpriteMode />;
+      return <SpriteModeScreen />;
     }
     if (editMode === "bg") {
-      return <BgMode />;
+      return <BgModeScreen />;
     }
     if (editMode === "character") {
-      return <CharacterMode />;
+      return <CharacterModeScreen />;
     }
-    return <ScreenMode />;
+    return <ScreenModeWorkspacePanel />;
   })();
 
   return (

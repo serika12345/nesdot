@@ -31,17 +31,6 @@ interface SpriteModeProjectActionsResult {
   projectActions: ReadonlyArray<ProjectActionItem>;
 }
 
-type ImportImageService = ReturnType<
-  (typeof import("../../../../infrastructure/browser/useImportImage"))["default"]
->;
-
-const loadImportImageService = async (): Promise<ImportImageService> => {
-  const module =
-    await import("../../../../infrastructure/browser/useImportImage");
-
-  return module.default();
-};
-
 export const createSpriteModeProjectActions = ({
   exportChr,
   exportPng,
@@ -130,7 +119,9 @@ export const useSpriteModeProjectActions =
 
     const handleImport = useCallback(async (): Promise<void> => {
       try {
-        const { importJSON } = await loadImportImageService();
+        const { default: createImportImageService } =
+          await import("../../../../infrastructure/browser/useImportImage");
+        const { importJSON } = createImportImageService();
 
         await importJSON((data) => {
           useProjectState.setState(data);

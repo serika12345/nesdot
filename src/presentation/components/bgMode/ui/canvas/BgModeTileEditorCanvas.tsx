@@ -7,6 +7,7 @@ import {
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
 import { type BackgroundTile } from "../../../../../domain/project/project";
 import { APP_INTERACTIVE_PIXEL_CANVAS_CLASS_NAME } from "../../../../styleClassNames";
+import { trySetPointerCapture } from "../../../common/logic/pointerCapture";
 
 interface BgModeTileEditorCanvasActions {
   onFlushPaint: () => void;
@@ -22,17 +23,6 @@ interface BgModeTileEditorCanvasProps {
 }
 
 const EDITOR_TILE_SCALE = 24;
-
-const trySetPointerCapture = (
-  target: HTMLCanvasElement,
-  pointerId: number,
-): void => {
-  try {
-    target.setPointerCapture(pointerId);
-  } catch {
-    // Synthetic pointer events used in tests may not have a capturable pointer.
-  }
-};
 
 const tryReleasePointerCapture = (
   target: HTMLCanvasElement,

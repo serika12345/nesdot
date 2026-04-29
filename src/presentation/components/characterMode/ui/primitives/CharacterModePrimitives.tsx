@@ -1,7 +1,8 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import styles from "./CharacterModePrimitives.module.css";
 import {
   createCharacterStageViewportStyle,
   createDecompositionCanvasStyle,
@@ -14,7 +15,6 @@ import {
   createStageDragPreviewStyle,
   createStageSurfaceStyle,
 } from "./CharacterModePrimitivesStyle";
-import styles from "./CharacterModePrimitives.module.css";
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
@@ -137,7 +137,7 @@ export const StageEditorCard = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(function StageEditorCard({ className, ...props }, ref) {
   return (
-    <CharacterModeEditorCard
+    <SurfaceCard
       {...props}
       ref={ref}
       className={mergeClassNames(

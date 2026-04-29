@@ -1,18 +1,18 @@
+import { Badge, Button, Dialog, Flex, TextField } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { Badge, Button, Dialog, Flex, TextField } from "@radix-ui/themes";
 import React from "react";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { INSPECTOR_PREVIEW_SCALE } from "../../logic/characterModeConstants";
-import {
-  getIssueLabel,
-  getRegionStatusLabel,
-} from "../../logic/decomposition/decompositionRegionRules";
 import {
   useCharacterModeDecompositionOverview,
   useCharacterModeSelectedRegion,
 } from "../../logic/characterModeDecompositionState";
 import { useCharacterModeSpritePalettes } from "../../logic/characterModeShared";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
+import {
+  getIssueLabel,
+  getRegionStatusLabel,
+} from "../../logic/decomposition/decompositionRegionRules";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import { SelectedRegionFieldGrid } from "../primitives/CharacterModePrimitives";
 import styles from "./CharacterModeSelectedRegionCard.module.css";
@@ -86,7 +86,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
 
   return (
     <>
-      <CharacterModeEditorCard className={styles.root}>
+      <SurfaceCard className={styles.root}>
         <span className={styles.title}>選択中の領域</span>
 
         <div className={styles.previewFrame}>
@@ -215,7 +215,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
         >
           分解して現在のセットへ反映
         </Button>
-      </CharacterModeEditorCard>
+      </SurfaceCard>
 
       {renderApplyFeedbackDialog()}
     </>

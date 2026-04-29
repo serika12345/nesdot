@@ -1,20 +1,19 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { useCharacterModeComposeStore } from "../../logic/characterModeComposeStore";
+import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
+import { useCharacterModeDecompositionStore } from "../../logic/characterModeDecompositionStore";
 import {
   useCharacterModeEditorModeValue,
   useCharacterModeLibraryDragPreview,
   useCharacterModeSetSelection,
 } from "../../logic/characterModeEditorState";
-import { useCharacterModeComposeStore } from "../../logic/characterModeComposeStore";
-import { useCharacterModeDecompositionStore } from "../../logic/characterModeDecompositionStore";
-import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeComposeBridge } from "../../logic/useCharacterModeComposeBridge";
 import { useCharacterModeDecompositionBridge } from "../../logic/useCharacterModeDecompositionBridge";
 import { useCharacterModeStageBridge } from "../../logic/useCharacterModeStageBridge";
 import { CharacterModeComposePreviewCanvas } from "../compose/CharacterModeComposePreviewCanvas";
 import { CharacterModeDecomposePreviewCanvas } from "../decomposition/CharacterModeDecomposePreviewCanvas";
-import { CharacterModeDecompositionInspector } from "../decomposition/CharacterModeDecompositionInspector";
 import { CharacterModeDecompositionRegionMenu } from "../decomposition/CharacterModeDecompositionRegionMenu";
 import { CharacterModeSpriteMenu } from "../menu/CharacterModeSpriteMenu";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
@@ -22,9 +21,10 @@ import {
   CharacterWorkspaceRoot,
   FloatingLibraryPreview,
 } from "../primitives/CharacterModePrimitives";
+import { CharacterModeSelectedRegionCard } from "../selection/CharacterModeSelectedRegionCard";
 import { CharacterModeSidebar } from "../sidebar/CharacterModeSidebar";
-import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 import styles from "./CharacterModeShell.module.css";
+import { CharacterModeWorkspace } from "./CharacterModeWorkspace";
 
 /**
  * CharacterMode の DOM bridge と gesture 系イベントをこの境界で組み立てます。
@@ -114,7 +114,7 @@ export const CharacterModeGestureWorkspace: React.FC = () => {
             handleLibraryPointerDown={handleLibraryPointerDown}
           >
             {editorMode === "decompose" ? (
-              <CharacterModeDecompositionInspector />
+              <CharacterModeSelectedRegionCard />
             ) : (
               <></>
             )}

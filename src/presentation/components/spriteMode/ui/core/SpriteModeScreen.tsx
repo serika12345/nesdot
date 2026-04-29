@@ -3,7 +3,7 @@ import { useSpriteModeCanvasPanelState } from "../../logic/spriteModeCanvasState
 import { useSpriteModeLibraryPanelState } from "../../logic/spriteModeLibraryState";
 import { SpriteModeCanvasPanel } from "../panels/SpriteModeCanvasPanel";
 import { SpriteModeLibraryPanel } from "../panels/SpriteModeLibraryPanel";
-import { SpriteModeWorkspace } from "./SpriteModeWorkspace";
+import styles from "./SpriteModeScreen.module.css";
 
 /**
  * spriteMode の state と UI を接続する画面境界です。
@@ -14,13 +14,9 @@ export const SpriteModeScreen: React.FC = () => {
   const canvasPanelState = useSpriteModeCanvasPanelState();
 
   return (
-    <SpriteModeWorkspace
-      libraryPanel={
-        <SpriteModeLibraryPanel libraryPanelState={libraryPanelState} />
-      }
-      canvasPanel={
-        <SpriteModeCanvasPanel canvasPanelState={canvasPanelState} />
-      }
-    />
+    <section className={styles.root} aria-label="スプライト編集ワークスペース">
+      <SpriteModeLibraryPanel libraryPanelState={libraryPanelState} />
+      <SpriteModeCanvasPanel canvasPanelState={canvasPanelState} />
+    </section>
   );
 };

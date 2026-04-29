@@ -1,14 +1,14 @@
-import * as O from "fp-ts/Option";
 import { Badge, Button } from "@radix-ui/themes";
+import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
+import { mergeClassNames } from "../../../../styleClassNames";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { ChevronDownIcon } from "../../../common/ui/icons/AppIcons";
 import { LibraryPreviewCard } from "../../../common/ui/preview/LibraryPreviewCard";
-import { mergeClassNames } from "../../../../styleClassNames";
 import { LIBRARY_PREVIEW_SCALE } from "../../logic/characterModeConstants";
 import { useCharacterModeSpriteLibrary } from "../../logic/characterModeEditorState";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import styles from "./CharacterModeSidebarLibrary.module.css";
 
@@ -108,7 +108,7 @@ export const CharacterModeSidebarLibrary: React.FC<
   );
 
   return (
-    <CharacterModeEditorCard className={styles.root}>
+    <SurfaceCard className={styles.root}>
       <div className={styles.headerRow}>
         <span className={styles.headerLabel}>スプライトライブラリ</span>
         <Button
@@ -156,6 +156,6 @@ export const CharacterModeSidebarLibrary: React.FC<
           id={`${libraryContentId}-scroll`}
         />
       </div>
-    </CharacterModeEditorCard>
+    </SurfaceCard>
   );
 };

@@ -28,5 +28,4 @@ export const toNumber = (value: string): O.Option<number> => {
  * 数値を指定した最小値と最大値の範囲に丸め込みます。
  * ステージ寸法や座標更新が許容範囲を超えないようにする基本ユーティリティです。
  */
-export const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(max, value));
+export { clamp } from "../../../../../shared/clamp";

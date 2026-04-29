@@ -30,17 +30,6 @@ interface ScreenModeProjectActionsResult {
   handleImport: () => Promise<void>;
 }
 
-type ImportImageService = ReturnType<
-  (typeof import("../../../../infrastructure/browser/useImportImage"))["default"]
->;
-
-const loadImportImageService = async (): Promise<ImportImageService> => {
-  const module =
-    await import("../../../../infrastructure/browser/useImportImage");
-
-  return module.default();
-};
-
 export const createScreenModeProjectActions = ({
   exportPng,
   exportSvgSimple,
@@ -81,7 +70,9 @@ export const useScreenModeProjectActions = ({
 
   const handleImport = useCallback(async (): Promise<void> => {
     try {
-      const { importJSON } = await loadImportImageService();
+      const { default: createImportImageService } =
+        await import("../../../../infrastructure/browser/useImportImage");
+      const { importJSON } = createImportImageService();
 
       await importJSON((data) => {
         useProjectState.setState(data);

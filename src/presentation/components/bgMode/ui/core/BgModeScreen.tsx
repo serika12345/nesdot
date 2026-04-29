@@ -18,7 +18,7 @@ import {
   BgModeLibraryPanel,
   type BgModeLibraryPanelState,
 } from "../panels/BgModeLibraryPanel";
-import { BgModeWorkspace } from "./BgModeWorkspace";
+import styles from "../panels/BgModePanels.module.css";
 
 const DEFAULT_BG_PALETTE: NesSubPalette = [0, 0, 0, 0];
 
@@ -157,11 +157,9 @@ export const BgModeScreen: React.FC = () => {
   };
 
   return (
-    <BgModeWorkspace
-      editorPanel={<BgModeEditorPanel editorPanelState={editorPanelState} />}
-      libraryPanel={
-        <BgModeLibraryPanel libraryPanelState={libraryPanelState} />
-      }
-    />
+    <section className={styles.workspace} aria-label="BG編集ワークスペース">
+      <BgModeLibraryPanel libraryPanelState={libraryPanelState} />
+      <BgModeEditorPanel editorPanelState={editorPanelState} />
+    </section>
   );
 };

@@ -3,7 +3,7 @@ import * as O from "fp-ts/Option";
 import React from "react";
 import { type SpriteInScreen } from "../../../../application/state/projectStore";
 import { expandCharacterToScreenSprites } from "../../../../domain/characters/characterSet";
-import { trySetPointerCapture } from "../../characterMode/logic/input/pointerCapture";
+import { trySetPointerCapture } from "../../common/logic/pointerCapture";
 import {
   createScreenModeCharacterPreviewCards,
   type ScreenModeCharacterPreviewCard,

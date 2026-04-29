@@ -1,20 +1,20 @@
 import { Badge, Button, Select } from "@radix-ui/themes";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
+import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
   useCharacterModeDecompositionTool,
 } from "../../logic/characterModeDecompositionState";
-import { CharacterModeEditorCard } from "../editor/CharacterModeEditorCard";
 import {
   DecompositionToolGrid,
   PaletteControlContainer,
   PaletteControlRow,
   PaletteSlotGrid,
 } from "../primitives/CharacterModePrimitives";
-import { createPaletteSlotButtonStyle } from "./CharacterModeDecompositionToolCardStyle";
 import styles from "./CharacterModeDecomposition.module.css";
+import { createPaletteSlotButtonStyle } from "./CharacterModeDecompositionToolCardStyle";
 
 type PaletteSlotButtonProps = React.ComponentProps<"button"> & {
   colorHex: string;
@@ -60,7 +60,7 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
     )?.label ?? "パレット";
 
   return (
-    <CharacterModeEditorCard className={styles.toolCard}>
+    <SurfaceCard className={styles.toolCard}>
       <div className={styles.headerRow}>
         <span className={styles.title}>分解ツール</span>
         <Badge color="gray" size="2" variant="surface">
@@ -179,6 +179,6 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
           })}
         </PaletteSlotGrid>
       </PaletteControlRow>
-    </CharacterModeEditorCard>
+    </SurfaceCard>
   );
 };

@@ -1,20 +1,11 @@
 import * as O from "fp-ts/Option";
 import { type PointerEvent, type WheelEvent, useRef, useState } from "react";
+import { clamp } from "../../../../shared/clamp";
+import { trySetPointerCapture } from "../../common/logic/pointerCapture";
 
 const SCREEN_MIN_ZOOM_LEVEL = 1;
 const SCREEN_MAX_ZOOM_LEVEL = 8;
 const SCREEN_DEFAULT_ZOOM_LEVEL = 2;
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(max, value));
-
-const trySetPointerCapture = (target: HTMLElement, pointerId: number): void => {
-  try {
-    target.setPointerCapture(pointerId);
-  } catch {
-    // Synthetic pointer events used in tests may not have a capturable pointer.
-  }
-};
 
 interface ViewportAnchor {
   clientX: number;
