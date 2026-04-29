@@ -49,10 +49,10 @@ export const useSpriteCanvas = ({ display, interaction }: UseCanvasParams) => {
     onChange,
     tool,
   } = interaction;
-  const palettes = useProjectState((s) => s.nes.spritePalettes);
+  const palettes = useProjectState((s) => s.palettes.sprite);
   const tile = useProjectState((s) =>
     pipe(
-      getArrayItem(s.sprites, target),
+      getArrayItem(s.spriteTiles, target),
       O.getOrElse(() => FALLBACK_TILE),
     ),
   );

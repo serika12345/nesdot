@@ -7,156 +7,8 @@ import {
   CharacterJsonData,
   useCharacterState,
 } from "../../application/state/characterStore";
-import type {
-  NesProjectState,
-  NesSubPalette,
-} from "../../domain/nes/nesProject";
-import { NES_EMPTY_BACKGROUND_TILE_INDEX } from "../../domain/nes/nesProject";
-import type {
-  ProjectState,
-  SpriteInScreen,
-  SpriteTile,
-} from "../../domain/project/project";
-
-const ColorIndexOfPaletteSchema = z.union([
-  z.literal(0),
-  z.literal(1),
-  z.literal(2),
-  z.literal(3),
-]);
-
-const PaletteIndexSchema = z.union([
-  z.literal(0),
-  z.literal(1),
-  z.literal(2),
-  z.literal(3),
-]);
-
-const NesColorIndexSchema = z.number().int().min(0).max(63);
-
-const Palette4ColorsSchema = z.tuple([
-  NesColorIndexSchema,
-  NesColorIndexSchema,
-  NesColorIndexSchema,
-  NesColorIndexSchema,
-]);
-
-const PixelRowSchema = z.array(ColorIndexOfPaletteSchema).length(8);
-const SpritePixelsSchema = z.array(PixelRowSchema);
-
-const SpriteTileSchema = z
-  .object({
-    width: z.literal(8),
-    height: z.union([z.literal(8), z.literal(16)]),
-    paletteIndex: PaletteIndexSchema,
-    pixels: SpritePixelsSchema,
-  })
-  .superRefine((value, ctx) => {
-    if (value.pixels.length !== value.height) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "SpriteTile pixels length must match height",
-      });
-    }
-  });
-
-const SpriteInScreenSchema = SpriteTileSchema.extend({
-  x: z.number().int(),
-  y: z.number().int(),
-  spriteIndex: z.number().int(),
-  priority: z.enum(["front", "behindBg"]),
-  flipH: z.boolean(),
-  flipV: z.boolean(),
-});
-
-const ScreenSchema = z.object({
-  width: z.literal(256),
-  height: z.literal(240),
-  sprites: z.array(SpriteInScreenSchema),
-});
-
-const PatternTableSelectSchema = z.union([z.literal(0), z.literal(1)]);
-
-const NesNameTableSchema = z.object({
-  widthTiles: z.literal(32),
-  heightTiles: z.literal(30),
-  tileIndices: z
-    .array(z.number().int().min(NES_EMPTY_BACKGROUND_TILE_INDEX).max(255))
-    .length(960),
-});
-
-const NesAttributeTableSchema = z.object({
-  widthBytes: z.literal(8),
-  heightBytes: z.literal(8),
-  bytes: z.array(z.number().int().min(0).max(255)).length(64),
-});
-
-const OamSpriteEntrySchema = z.object({
-  y: z.number().int(),
-  tileIndex: z.number().int().min(0).max(255),
-  attributeByte: z.number().int().min(0).max(255),
-  x: z.number().int(),
-});
-
-const PpuControlStateSchema = z.object({
-  spriteSize: z.union([z.literal(8), z.literal(16)]),
-  backgroundPatternTable: PatternTableSelectSchema,
-  spritePatternTable: PatternTableSelectSchema,
-});
-
-const NesProjectStateSchema = z.object({
-  chrBytes: z.array(z.number().int().min(0).max(255)).length(4096),
-  nameTable: NesNameTableSchema,
-  attributeTable: NesAttributeTableSchema,
-  universalBackgroundColor: z.number().int().min(0).max(63),
-  backgroundPalettes: z.tuple([
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-  ]),
-  spritePalettes: z.tuple([
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-    Palette4ColorsSchema,
-  ]),
-  oam: z.array(OamSpriteEntrySchema).length(64),
-  ppuControl: PpuControlStateSchema,
-});
-
-const ProjectStateSchema = z
-  .object({
-    spriteSize: z.union([z.literal(8), z.literal(16)]),
-    screen: ScreenSchema,
-    sprites: z.array(SpriteTileSchema).length(64),
-    nes: NesProjectStateSchema,
-    _hydrated: z.boolean().optional(),
-  })
-  .superRefine((value, ctx) => {
-    if (value.nes.ppuControl.spriteSize !== value.spriteSize) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "ProjectState spriteSize must match NES ppuControl spriteSize",
-      });
-    }
-
-    if (value.sprites.some((sprite) => sprite.height !== value.spriteSize)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "ProjectState sprites must match project spriteSize",
-      });
-    }
-
-    if (
-      value.screen.sprites.some((sprite) => sprite.height !== value.spriteSize)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Screen sprites must match project spriteSize",
-      });
-    }
-  });
+import type { ProjectStateV2 } from "../../domain/project/projectV2";
+import { ProjectStateV2Schema } from "../../domain/project/projectV2Schema";
 
 const CharacterSpriteSchema = z.object({
   spriteIndex: z.number().int().min(0).max(63),
@@ -176,100 +28,23 @@ const CharacterJsonDataSchema = z.object({
   selectedCharacterId: z.string().optional(),
 });
 
-const ProjectImportSchema = ProjectStateSchema.extend({
+const ProjectImportSchema = ProjectStateV2Schema.extend({
   characters: CharacterJsonDataSchema.optional(),
 });
 
 const OpenDialogSelectedSchema = z.union([z.string(), z.array(z.string())]);
 
-const normalizeSpriteTile = (
-  sprite: z.infer<typeof SpriteTileSchema>,
-): SpriteTile => ({
-  width: 8,
-  height: sprite.height,
-  paletteIndex: sprite.paletteIndex,
-  pixels: sprite.pixels,
-});
-
-const normalizeSpriteInScreen = (
-  sprite: z.infer<typeof SpriteInScreenSchema>,
-): SpriteInScreen => ({
-  ...normalizeSpriteTile(sprite),
-  x: sprite.x,
-  y: sprite.y,
-  spriteIndex: sprite.spriteIndex,
-  priority: sprite.priority,
-  flipH: sprite.flipH,
-  flipV: sprite.flipV,
-});
-
-const normalizeNesSubPalette = (
-  palette: z.infer<typeof Palette4ColorsSchema>,
-): NesSubPalette => [palette[0], palette[1], palette[2], palette[3]];
-
-const normalizeNesProjectState = (
-  nes: z.infer<typeof NesProjectStateSchema>,
-): NesProjectState => ({
-  chrBytes: nes.chrBytes,
-  nameTable: {
-    widthTiles: 32,
-    heightTiles: 30,
-    tileIndices: nes.nameTable.tileIndices,
-  },
-  attributeTable: {
-    widthBytes: 8,
-    heightBytes: 8,
-    bytes: nes.attributeTable.bytes,
-  },
-  universalBackgroundColor: nes.universalBackgroundColor,
-  backgroundPalettes: [
-    normalizeNesSubPalette(nes.backgroundPalettes[0]),
-    normalizeNesSubPalette(nes.backgroundPalettes[1]),
-    normalizeNesSubPalette(nes.backgroundPalettes[2]),
-    normalizeNesSubPalette(nes.backgroundPalettes[3]),
-  ],
-  spritePalettes: [
-    normalizeNesSubPalette(nes.spritePalettes[0]),
-    normalizeNesSubPalette(nes.spritePalettes[1]),
-    normalizeNesSubPalette(nes.spritePalettes[2]),
-    normalizeNesSubPalette(nes.spritePalettes[3]),
-  ],
-  oam: nes.oam.map((entry) => ({
-    x: entry.x,
-    y: entry.y,
-    tileIndex: entry.tileIndex,
-    attributeByte: entry.attributeByte,
-  })),
-  ppuControl: {
-    spriteSize: nes.ppuControl.spriteSize,
-    backgroundPatternTable: nes.ppuControl.backgroundPatternTable,
-    spritePatternTable: nes.ppuControl.spritePatternTable,
-  },
-});
-
 const normalizeProjectState = (
-  state: z.infer<typeof ProjectStateSchema>,
-): ProjectState => {
-  const normalizedNes = normalizeNesProjectState(state.nes);
-  const baseState: ProjectState = {
-    spriteSize: state.spriteSize,
-    screen: {
-      width: 256,
-      height: 240,
-      sprites: state.screen.sprites.map(normalizeSpriteInScreen),
-    },
-    sprites: state.sprites.map(normalizeSpriteTile),
-    nes: {
-      ...normalizedNes,
-      ppuControl: {
-        ...normalizedNes.ppuControl,
-        spriteSize: state.spriteSize,
-      },
-    },
-  };
-
-  return baseState;
-};
+  state: z.infer<typeof ProjectImportSchema>,
+): ProjectStateV2 => ({
+  formatVersion: state.formatVersion,
+  spriteSize: state.spriteSize,
+  spriteTiles: state.spriteTiles,
+  backgroundTiles: state.backgroundTiles,
+  screen: state.screen,
+  palettes: state.palettes,
+  ppuControl: state.ppuControl,
+});
 
 const normalizeCharacterJsonData = (
   characters: z.infer<typeof CharacterJsonDataSchema>,
@@ -285,7 +60,7 @@ const normalizeCharacterJsonData = (
 });
 
 interface ParsedProjectImport {
-  projectState: ProjectState;
+  projectState: ProjectStateV2;
   characterData: CharacterJsonData;
 }
 
@@ -414,7 +189,7 @@ export default function useImportImage() {
   };
 
   const importJSON = async (
-    onImport: (data: ProjectState) => void,
+    onImport: (data: ProjectStateV2) => void,
   ): Promise<boolean> => {
     const nativeResult = await readJsonWithNativeDialog();
 

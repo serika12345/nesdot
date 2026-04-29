@@ -1,8 +1,8 @@
 import * as O from "fp-ts/Option";
 import { useCallback } from "react";
 import {
+  type ProjectStoreState,
   type ProjectSpriteSize,
-  type ProjectState,
   useProjectState,
 } from "../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
@@ -12,8 +12,8 @@ export interface SpriteModeLibraryPanelState {
   activeSprite: number;
   handleSpriteSelect: (spriteIndex: number) => void;
   projectSpriteSize: ProjectSpriteSize;
-  spritePalettes: ProjectState["nes"]["spritePalettes"];
-  sprites: ProjectState["sprites"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
+  sprites: ProjectStoreState["spriteTiles"];
 }
 
 /**
@@ -31,8 +31,8 @@ export const useSpriteModeLibraryPanelState =
       (state) => state.setSpriteModeActiveSprite,
     );
     const projectSpriteSize = useProjectState((state) => state.spriteSize);
-    const spritePalettes = useProjectState((state) => state.nes.spritePalettes);
-    const sprites = useProjectState((state) => state.sprites);
+    const spritePalettes = useProjectState((state) => state.palettes.sprite);
+    const sprites = useProjectState((state) => state.spriteTiles);
 
     const handleSpriteSelect = useCallback(
       (spriteIndex: number): void => {

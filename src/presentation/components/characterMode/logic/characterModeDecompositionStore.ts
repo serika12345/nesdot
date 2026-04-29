@@ -13,7 +13,6 @@ import {
   type CharacterDecompositionPixel,
   type CharacterDecompositionRegion,
 } from "../../../../domain/characters/characterDecomposition";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import { CHARACTER_MODE_STAGE_LIMITS } from "./characterModeConstants";
 import { selectActiveSet } from "./characterModeSelectors";
 import { useCharacterModeStageStore } from "./characterModeStageStore";
@@ -256,7 +255,7 @@ export const useCharacterModeDecompositionStore =
               canvas: decompositionCanvas,
               regions: [...decompositionRegions],
               spriteSize: projectState.spriteSize,
-              sprites: projectState.sprites,
+              sprites: projectState.spriteTiles,
             });
 
             if (E.isLeft(result)) {
@@ -279,9 +278,8 @@ export const useCharacterModeDecompositionStore =
             };
 
             useProjectState.setState({
-              sprites: result.right.sprites,
+              spriteTiles: result.right.sprites,
               screen: nextScreen,
-              nes: mergeScreenIntoNesOam(projectState.nes, nextScreen),
             });
 
             useCharacterState.setState((state) => ({

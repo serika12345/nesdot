@@ -95,7 +95,7 @@ export const useCharacterModeDecompositionBridge = (
   const decompositionCanvas = useCharacterModeDecompositionStore(
     (s) => s.decompositionCanvas,
   );
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
 
   // ---------------------------------------------------------------------------
   // Effect — paint decomposition pixels onto DOM canvas

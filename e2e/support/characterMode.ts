@@ -29,7 +29,7 @@ export const seedDiagonalSprite = async (page: Page): Promise<void> => {
     const { useProjectState } = await import(projectStoreModulePath);
 
     const current = useProjectState.getState();
-    const nextSprites = current.sprites.map((sprite, spriteIndex) =>
+    const nextSpriteTiles = current.spriteTiles.map((sprite, spriteIndex) =>
       spriteIndex === 0
         ? {
             ...sprite,
@@ -44,7 +44,7 @@ export const seedDiagonalSprite = async (page: Page): Promise<void> => {
 
     useProjectState.setState({
       ...current,
-      sprites: nextSprites,
+      spriteTiles: nextSpriteTiles,
     });
   });
 };

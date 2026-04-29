@@ -5,7 +5,7 @@ import {
   type ProjectStoreState,
   useProjectState,
 } from "../../../../application/state/projectStore";
-import { createDefaultProjectState } from "../../../../domain/project/project";
+import { createDefaultProjectStateV2 } from "../../../../domain/project/projectV2";
 import { makeTile } from "../../../../domain/tiles/utils";
 import { createSpriteModeProjectActions } from "./spriteModeProjectActions";
 
@@ -15,12 +15,12 @@ const createProjectStateWithSprite = (
   paletteIndex: PaletteIndex,
   spriteSize: 8 | 16,
 ): ProjectStoreState => {
-  const baseState = createDefaultProjectState(spriteSize);
+  const baseState = createDefaultProjectStateV2(spriteSize);
   const sprite = makeTile(spriteSize, paletteIndex, fill);
 
   return {
     ...baseState,
-    sprites: baseState.sprites.map((tile, index) =>
+    spriteTiles: baseState.spriteTiles.map((tile, index) =>
       index === spriteIndex ? sprite : tile,
     ),
   };

@@ -64,9 +64,9 @@ describe("BgModeScreen", () => {
 
     useProjectState.setState({
       ...initialProjectState,
-      nes: {
-        ...initialProjectState.nes,
-        backgroundPalettes,
+      palettes: {
+        ...initialProjectState.palettes,
+        background: backgroundPalettes,
         universalBackgroundColor: 0,
       },
     });

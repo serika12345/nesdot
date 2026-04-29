@@ -1,13 +1,13 @@
 import { useCallback, useState } from "react";
 import {
   type ColorIndexOfPalette,
+  type ProjectStoreState,
   useProjectState,
 } from "../../../../application/state/projectStore";
 import {
   type NesBackgroundPalettes,
   type NesColorIndex,
   type NesPaletteIndex,
-  type NesProjectState,
   type NesSubPalette,
 } from "../../../../domain/nes/nesProject";
 import { nesIndexToCssHex } from "../../../../domain/nes/palette";
@@ -71,20 +71,20 @@ export interface PalettePickerState {
  * 共通 editor から見た配色一貫性を維持するため、両 palette を同じ slot で更新します。
  */
 export const applyPalettePickerColorSelection = (
-  nes: NesProjectState,
+  palettes: ProjectStoreState["palettes"],
   activePalette: NesPaletteIndex,
   activeSlot: ColorIndexOfPalette,
   nextColorIndex: NesColorIndex,
-): NesProjectState => ({
-  ...nes,
-  backgroundPalettes: replaceSelectedPalette(
-    nes.backgroundPalettes,
+): ProjectStoreState["palettes"] => ({
+  ...palettes,
+  background: replaceSelectedPalette(
+    palettes.background,
     activePalette,
     activeSlot,
     nextColorIndex,
   ),
-  spritePalettes: replaceSelectedPalette(
-    nes.spritePalettes,
+  sprite: replaceSelectedPalette(
+    palettes.sprite,
     activePalette,
     activeSlot,
     nextColorIndex,
@@ -96,7 +96,7 @@ export const applyPalettePickerColorSelection = (
  * component は描画だけに保ち、palette 同期の責務はこの hook に閉じ込めます。
  */
 export const usePalettePickerState = (): PalettePickerState => {
-  const palettes = useProjectState((state) => state.nes.backgroundPalettes);
+  const palettes = useProjectState((state) => state.palettes.background);
   const [activePalette, setActivePalette] = useState<NesPaletteIndex>(0);
   const [activeSlot, setActiveSlot] = useState<ColorIndexOfPalette>(1);
 
@@ -118,8 +118,8 @@ export const usePalettePickerState = (): PalettePickerState => {
   const handleColorSelect = useCallback(
     (nextColorIndex: NesColorIndex): void => {
       useProjectState.setState((state) => ({
-        nes: applyPalettePickerColorSelection(
-          state.nes,
+        palettes: applyPalettePickerColorSelection(
+          state.palettes,
           activePalette,
           activeSlot,
           nextColorIndex,

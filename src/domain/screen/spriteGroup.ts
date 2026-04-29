@@ -13,7 +13,7 @@ interface GroupBounds {
  * グループ移動やプレビューで必要になる占有範囲を、欠番を無視しながら集計する意図があります。
  */
 export const getGroupBounds = (
-  sprites: SpriteInScreen[],
+  sprites: ReadonlyArray<SpriteInScreen>,
   selectedIndices: Set<number>,
 ): GroupBounds => {
   return Array.from(selectedIndices).reduce<GroupBounds>(
@@ -45,7 +45,7 @@ export const getGroupBounds = (
  * 未選択要素は保持したまま、グループ移動後の新しい配列を不変更新で返します。
  */
 export const moveGroupByDelta = (
-  sprites: SpriteInScreen[],
+  sprites: ReadonlyArray<SpriteInScreen>,
   selectedIndices: Set<number>,
   deltaX: number,
   deltaY: number,
@@ -68,7 +68,7 @@ export const moveGroupByDelta = (
  * 実際に状態を更新する前に、境界外へのはみ出しを安全側で止めるための検証関数です。
  */
 export const isValidGroupMovement = (
-  sprites: SpriteInScreen[],
+  sprites: ReadonlyArray<SpriteInScreen>,
   selectedIndices: Set<number>,
   deltaX: number,
   deltaY: number,

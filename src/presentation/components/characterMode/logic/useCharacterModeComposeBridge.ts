@@ -73,7 +73,7 @@ const resolveLibraryDragState = (
   );
   const stageRectOption = getStageRect();
   const tileOption = O.fromNullable(
-    useProjectState.getState().sprites[spriteIndex],
+    useProjectState.getState().spriteTiles[spriteIndex],
   );
 
   if (O.isNone(stageRectOption) || O.isNone(tileOption)) {
@@ -164,8 +164,8 @@ export const useCharacterModeComposeBridge = (
 
   const characterSets = useCharacterState((s) => s.characterSets);
   const selectedCharacterId = useCharacterState((s) => s.selectedCharacterId);
-  const sprites = useProjectState((s) => s.sprites);
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const sprites = useProjectState((s) => s.spriteTiles);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
   const stageWidth = useCharacterModeStageStore((s) => s.stageWidth);
   const stageHeight = useCharacterModeStageStore((s) => s.stageHeight);
   const stageZoomLevel = useCharacterModeStageStore((s) => s.stageZoomLevel);

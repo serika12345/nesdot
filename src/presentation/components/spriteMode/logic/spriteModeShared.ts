@@ -9,7 +9,6 @@ import {
   useProjectState,
 } from "../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import { makeTile } from "../../../../domain/tiles/utils";
 import { getArrayItem } from "../../../../shared/arrayAccess";
 
@@ -17,8 +16,8 @@ const createSpriteModeProjectUpdate = (
   state: ProjectStoreState,
   tile: SpriteTile,
   index: number,
-): Pick<ProjectStoreState, "nes" | "screen" | "sprites"> => {
-  const nextSprites = state.sprites.map((sprite, spriteIndex) =>
+): Pick<ProjectStoreState, "screen" | "spriteTiles"> => {
+  const nextSpriteTiles = state.spriteTiles.map((sprite, spriteIndex) =>
     spriteIndex === index ? tile : sprite,
   );
   const nextScreen = {
@@ -31,9 +30,8 @@ const createSpriteModeProjectUpdate = (
   };
 
   return {
-    sprites: nextSprites,
+    spriteTiles: nextSpriteTiles,
     screen: nextScreen,
-    nes: mergeScreenIntoNesOam(state.nes, nextScreen),
   };
 };
 
@@ -71,7 +69,7 @@ export const useSpriteModeActiveTile = (): SpriteTile => {
     (state) => state.spriteMode.activeSprite,
   );
   const projectSpriteSize = useProjectState((state) => state.spriteSize);
-  const sprites = useProjectState((state) => state.sprites);
+  const sprites = useProjectState((state) => state.spriteTiles);
 
   return useMemo(
     () =>

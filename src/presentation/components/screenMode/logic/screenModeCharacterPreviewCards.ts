@@ -1,14 +1,12 @@
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import {
-  type ProjectStoreState,
-  type SpriteTile,
-} from "../../../../application/state/projectStore";
+import { type SpriteTile } from "../../../../application/state/projectStore";
 import {
   buildCharacterPreviewHexGrid,
   type CharacterSet,
 } from "../../../../domain/characters/characterSet";
+import { type NesSpritePalettes } from "../../../../domain/nes/nesProject";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
 
@@ -117,7 +115,7 @@ const normalizeCharacterSetForPreview = (
 
 const resolveCharacterPreviewGrid = (params: {
   characterSet: CharacterSet;
-  spritePalettes: ProjectStoreState["nes"]["spritePalettes"];
+  spritePalettes: NesSpritePalettes;
   sprites: ReadonlyArray<SpriteTile>;
 }): O.Option<ReadonlyArray<ReadonlyArray<string>>> =>
   pipe(
@@ -126,7 +124,7 @@ const resolveCharacterPreviewGrid = (params: {
       pipe(
         buildCharacterPreviewHexGrid(normalizedCharacterSet, {
           palettes: params.spritePalettes,
-          sprites: [...params.sprites],
+          sprites: params.sprites,
           transparentHex: PREVIEW_TRANSPARENT_HEX,
         }),
         E.match(
@@ -139,7 +137,7 @@ const resolveCharacterPreviewGrid = (params: {
 
 export const createScreenModeCharacterPreviewCards = (params: {
   characterSets: ReadonlyArray<CharacterSet>;
-  spritePalettes: ProjectStoreState["nes"]["spritePalettes"];
+  spritePalettes: NesSpritePalettes;
   sprites: ReadonlyArray<SpriteTile>;
 }): ReadonlyArray<ScreenModeCharacterPreviewCard> =>
   params.characterSets.map((characterSet) => ({

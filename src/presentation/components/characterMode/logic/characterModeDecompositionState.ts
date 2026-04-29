@@ -7,8 +7,8 @@ import type {
 } from "../../../../domain/characters/characterDecomposition";
 import { type CharacterSet } from "../../../../domain/characters/characterSet";
 import {
+  type ProjectStoreState,
   useProjectState,
-  type ProjectState,
 } from "../../../../application/state/projectStore";
 import {
   selectDecompositionCanvasCursor,
@@ -47,7 +47,7 @@ export const useCharacterModeDecompositionPalette = (): Readonly<{
   decompositionPaletteIndex: 0 | 1 | 2 | 3;
   handleDecompositionColorSlotSelect: (slotIndex: 1 | 2 | 3) => void;
   handleDecompositionPaletteSelect: (value: string | number) => void;
-  spritePalettes: ProjectState["nes"]["spritePalettes"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
 }> => {
   const decompositionColorIndex = useCharacterModeDecompositionStore(
     (s) => s.decompositionColorIndex,
@@ -55,7 +55,7 @@ export const useCharacterModeDecompositionPalette = (): Readonly<{
   const decompositionPaletteIndex = useCharacterModeDecompositionStore(
     (s) => s.decompositionPaletteIndex,
   );
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
 
   return {
     decompositionColorIndex,

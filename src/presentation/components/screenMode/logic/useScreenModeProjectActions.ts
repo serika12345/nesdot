@@ -5,7 +5,6 @@ import {
   useProjectState,
   type ProjectStoreState,
 } from "../../../../application/state/projectStore";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import { type FileShareAction } from "../../common/logic/state/fileMenuState";
 import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
@@ -85,16 +84,12 @@ export const useScreenModeProjectActions = ({
       const { importJSON } = await loadImportImageService();
 
       await importJSON((data) => {
-        const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
-        useProjectState.setState({
-          ...data,
-          nes: syncedNes,
-        });
+        useProjectState.setState(data);
         setSelectedSpriteIndex(
           data.screen.sprites.length > 0 ? O.some(0) : O.none,
         );
 
-        const result = scan(data.screen, syncedNes);
+        const result = scan(data.screen);
         if (result.ok === false) {
           alert(
             "インポートしたデータに制約違反があります:\n" +

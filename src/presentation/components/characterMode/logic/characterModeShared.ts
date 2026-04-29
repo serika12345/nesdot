@@ -21,7 +21,7 @@ export const useActiveSet = (): import("fp-ts/Option").Option<CharacterSet> => {
 };
 
 export const useCharacterModeSpritePalettes = () =>
-  useProjectState((state) => state.nes.spritePalettes);
+  useProjectState((state) => state.palettes.sprite);
 
 export const useDecompositionAnalysisDerived =
   (): CharacterDecompositionAnalysis => {
@@ -32,7 +32,7 @@ export const useDecompositionAnalysisDerived =
     const decompositionRegions = useCharacterModeDecompositionStore(
       (s) => s.decompositionRegions,
     );
-    const sprites = useProjectState((s) => s.sprites);
+    const sprites = useProjectState((s) => s.spriteTiles);
     const projectSpriteSize = useProjectState((s) => s.spriteSize);
 
     return useMemo(

@@ -8,24 +8,23 @@
 
 ## 実装の現在地
 
-- 画面プレビューは [../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx](../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、最終的に [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderScreenToHexArray` で描画しています。
+- プロジェクト状態の正本は [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts) の `ProjectStateV2` です。
+- Zustand store は [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) で `ProjectStateV2` を保持します。
+- スプライトタイルは `spriteTiles`、BG タイルは `backgroundTiles`、画面上の背景配置と属性は `screen.background` にあります。
+- NES raw state は保存せず、[../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) が `chrBytes` / `nameTable` / `attributeTable` / `oam` を導出します。
+- 画面プレビューは [../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx](../src/presentation/components/common/ui/canvas/ScreenCanvas.tsx) から [../src/infrastructure/browser/canvas/useScreenCanvas.ts](../src/infrastructure/browser/canvas/useScreenCanvas.ts) を経由し、[../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `renderProjectStateV2ToHexArray` で描画しています。
 - PNG/SVG エクスポートも [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts) の `getHexArrayForScreen` から同じ合成ロジックを使います。
-- 実アプリの正本はまだ legacy の [../src/domain/project/project.ts](../src/domain/project/project.ts) の `ProjectState` です。`screen` は `sprites` だけを持ち、背景は `nes.chrBytes` / `nes.nameTable` / `nes.attributeTable` に残っています。
-- BG 編集モードは [../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts](../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts) の `useBgModeTileEditorState` で `nes.chrBytes` を直接編集します。
-- 画面配置モードの BG タイル配置 / BG 属性編集は [../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts](../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts) の `useScreenModeWorkspaceBackgroundEditingState` で `nes.nameTable` と `nes.attributeTable` を直接更新します。
-- スプライト制約チェックは [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts) の `mergeScreenIntoNesOam` で `screen.sprites` を OAM に写し、[../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) の `scanNesSpriteConstraints` で判定します。
-- 並行して、正規化済みの [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts) / [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts) / [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) も整備されています。ただしこれは主に domain / test 用で、Zustand ストアや import/export の正本にはまだ接続されていません。
+- スプライト制約チェックは [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) の `scanProjectStateV2SpriteConstraints` で、v2 state から導出した OAM 相当の情報を使って判定します。
 
 ## 実装済みの NES 寄り制約
 
 ### 1. 背景は `32x30` の nametable と `16x16` の attribute 領域で扱う
 
-背景描画は `nes.nameTable.tileIndices` と `nes.attributeTable.bytes` を前提にしており、`8x8` タイル配置と `16x16` 単位の背景パレット解決が入っています。
+v2 state では、背景配置は `screen.background.tileIndices`、背景 palette 領域は `screen.background.paletteIndices` で保持します。NES raw state が必要なときだけ projection で `nameTable` と `attributeTable` を組み立てます。
 
-- タイル座標の一次元化は [../src/domain/nes/nesProject.ts](../src/domain/nes/nesProject.ts) の `getNameTableLinearIndex`
-- 属性バイト解決は [../src/domain/nes/nesProject.ts](../src/domain/nes/nesProject.ts) の `getAttributeByteIndex` / `resolveBackgroundPaletteIndex`
-- 画面配置モードの BG タイル更新は [../src/domain/nes/backgroundEditing.ts](../src/domain/nes/backgroundEditing.ts) の `setNameTableTileAtPixel`
-- 画面配置モードの BG 属性更新は [../src/domain/nes/backgroundEditing.ts](../src/domain/nes/backgroundEditing.ts) の `setAttributeTablePaletteAtPixel`
+- タイル座標の一次元化は [../src/domain/screen/backgroundLayout.ts](../src/domain/screen/backgroundLayout.ts)
+- 背景 palette 領域の一次元化と pixel からの解決は [../src/domain/screen/backgroundPalette.ts](../src/domain/screen/backgroundPalette.ts)
+- NES attribute byte への変換は [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts)
 
 未配置セルは [../src/domain/nes/nesProject.ts](../src/domain/nes/nesProject.ts) の `NES_EMPTY_BACKGROUND_TILE_INDEX = -1` で表現しています。
 
@@ -45,31 +44,27 @@
 - `priority === "behindBg"` のときだけ、背景ピクセルが不透明なら背景を優先します
 - `flipH` / `flipV` は [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts) の `resolveSpriteColorIndexAt` で反映済みです
 
-### 4. スプライト座標は OAM 同期時に `Y-1` を反映し、制約チェックは NES 基準で行う
+### 4. スプライト座標は OAM 変換時に `Y-1` を反映し、制約チェックは NES 基準で行う
 
 - [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts) の `toOamEntryFromScreenSprite` が `screen` 座標を OAM へ変換し、`y - 1` と priority / flip bit を attribute byte に詰めます
-- [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) は `64` 枚上限、1 scanline `8` 枚上限、`ppuControl.spriteSize` を使った scanline 判定を実装済みです
+- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts) が `screen.sprites` から OAM projection を導出します
+- [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts) は `64` 枚上限、1 scanline `8` 枚上限、`spriteSize` を使った scanline 判定を実装済みです
 - screen mode では [../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts](../src/presentation/components/screenMode/logic/useScreenModeProjectState.ts) からこの検査結果を UI に出しています
 
-### 5. BG 編集と画面配置 BG 編集は実装済み
+### 5. BG 編集と画面配置 BG 編集は v2 state に接続済み
 
-設計段階では後回しだった BG 編集経路は、現在は最低限の実装が入っています。
-
-- BG 編集モード: `nes.chrBytes` の 256 タイルを直接編集
-- 画面配置モード: `nes.nameTable` へ BG タイル配置、`nes.attributeTable` へ BG 属性ペイント
+- BG 編集モード: `backgroundTiles` の 256 タイルを直接編集
+- 画面配置モード: `screen.background.tileIndices` へ BG タイル配置、`screen.background.paletteIndices` へ BG 属性ペイント
 - どちらも E2E で回帰確認されています
 
-## 並行して整備済みの v2 ドメイン
+## 保存形式
 
-アプリ本体はまだ legacy `ProjectState` ですが、正規化済み v2 に向けた pure function 群はすでにあります。
+プロジェクト JSON は [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts) の `formatVersion: 2` だけを受け付けます。
 
-- [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts): `backgroundTiles` / `screen.background` を持つ正規化 state
-- [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts): v2 JSON schema
-- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts): v2 state から `chrBytes` / `nameTable` / `attributeTable` / `oam` を導出
-- [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts): `renderProjectStateV2ToHexArray`
-- [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts): `scanProjectStateV2SpriteConstraints`
-
-この層は設計検証と test では使われていますが、現時点では UI ストアや import/export の正本ではありません。
+- `spriteTiles` と `backgroundTiles` は編集可能な tile library です
+- `screen.background` と `screen.sprites` は画面配置です
+- `palettes` と `ppuControl` は NES projection に必要な設定です
+- 旧 `sprites` / `nes` 形状の JSON 互換はありません
 
 ## 未実装・未反映の点
 
@@ -83,13 +78,9 @@
 
 ### 3. pattern table bank の実効利用
 
-`ppuControl.backgroundPatternTable` / `spritePatternTable` は state にはありますが、実アプリの `nes.chrBytes` は 4096 byte の単一配列で、renderer も bank 切り替えをまだ使っていません。
+`ppuControl.backgroundPatternTable` / `spritePatternTable` は v2 state にありますが、renderer は bank 切り替えをまだ使っていません。現在の CHR projection は `backgroundTiles` から単一の 4096 byte 相当を組み立てます。
 
-### 4. 背景の正本移行
-
-正規化済み `screen.background` / `backgroundTiles` は domain 側に存在しますが、アプリの store・保存形式・import/export はまだ legacy です。
-
-### 5. 実機タイミング依存の PPU 挙動
+### 4. 実機タイミング依存の PPU 挙動
 
 以下は引き続き対象外です。
 
@@ -102,14 +93,16 @@
 
 ## 次に見るべきファイル
 
+- [../src/application/state/projectStore.ts](../src/application/state/projectStore.ts)
+- [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts)
+- [../src/domain/project/projectV2Schema.ts](../src/domain/project/projectV2Schema.ts)
+- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts)
 - [../src/domain/nes/rendering.ts](../src/domain/nes/rendering.ts)
-- [../src/domain/nes/backgroundEditing.ts](../src/domain/nes/backgroundEditing.ts)
-- [../src/domain/screen/oamSync.ts](../src/domain/screen/oamSync.ts)
+- [../src/domain/screen/backgroundLayout.ts](../src/domain/screen/backgroundLayout.ts)
+- [../src/domain/screen/backgroundPalette.ts](../src/domain/screen/backgroundPalette.ts)
 - [../src/domain/screen/constraints.ts](../src/domain/screen/constraints.ts)
 - [../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts](../src/presentation/components/bgMode/logic/bgModeWorkspaceEditingState.ts)
 - [../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts](../src/presentation/components/screenMode/logic/screenModeWorkspaceBackgroundEditingState.ts)
-- [../src/domain/project/projectV2.ts](../src/domain/project/projectV2.ts)
-- [../src/domain/nes/projection.ts](../src/domain/nes/projection.ts)
 
 ## 参照元
 

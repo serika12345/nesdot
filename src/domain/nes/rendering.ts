@@ -1,7 +1,11 @@
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import type { Screen, SpritePriority, SpriteTile } from "../project/project";
+import type {
+  SpriteInScreen,
+  SpritePriority,
+  SpriteTile,
+} from "../project/project";
 import type { BackgroundTile, ProjectStateV2 } from "../project/projectV2";
 import {
   getNameTableLinearIndex,
@@ -14,6 +18,12 @@ import { NES_PALETTE_HEX } from "./palette";
 import { buildNesProjection } from "./projection";
 
 const FALLBACK_HEX = "#000000";
+
+export interface RenderScreen {
+  width: 256;
+  height: 240;
+  sprites: ReadonlyArray<SpriteInScreen>;
+}
 
 const getHexAt = (index: number): string =>
   pipe(
@@ -90,7 +100,7 @@ export function renderBackgroundTileToHexArray(
  * NES の優先度とパレット解決を反映した最終表示を、プレビューや書き出し用に組み立てます。
  */
 export function renderScreenToHexArray(
-  screen: Screen,
+  screen: RenderScreen,
   nesState: NesProjectState,
 ): string[][] {
   return Array.from({ length: screen.height }, (_, y) =>
@@ -122,7 +132,7 @@ export function renderProjectStateV2ToHexArray(
     {
       width: projectState.screen.width,
       height: projectState.screen.height,
-      sprites: Array.from(projectState.screen.sprites),
+      sprites: projectState.screen.sprites,
     },
     buildNesProjection(projectState),
   );
@@ -196,7 +206,7 @@ const resolveBackgroundPixelAt = (
 };
 
 const resolveSpriteColorIndexAt = (
-  sprite: Screen["sprites"][number],
+  sprite: SpriteInScreen,
   x: number,
   y: number,
 ): O.Option<number> => {
@@ -225,7 +235,7 @@ const resolveSpriteColorIndexAt = (
 };
 
 const resolveSpritePixelAt = (
-  screen: Screen,
+  screen: RenderScreen,
   nesState: NesProjectState,
   x: number,
   y: number,

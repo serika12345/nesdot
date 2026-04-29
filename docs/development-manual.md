@@ -274,17 +274,19 @@ Rust にブレークポイントを張る場合は `Launch Tauri Desktop` を使
 
 [`src/application/state/projectStore.ts`](../src/application/state/projectStore.ts)
 
-- スプライト
-- 画面
-- NES 状態
-- 画面プレビュー用の変換補助
+- スプライトタイル
+- BG タイル
+- 画面配置
+- palette / PPU 設定
+- NES projection と画面プレビュー用の変換補助
 
 を持つ、アプリ中核のストアです。
 
 注意点:
 
-- IndexedDB 永続化の実装は残っています
-- ただし現在の store 定義では `persist(...)` が無効化されており、実運用では JSON 保存 / 復元が中心です
+- ストアの正本は `ProjectStateV2` です
+- NES raw state は保存せず、必要なときに projection として導出します
+- 実運用の保存 / 復元は `formatVersion: 2` のプロジェクト JSON です
 
 #### `useWorkbenchState`
 

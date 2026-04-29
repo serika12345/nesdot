@@ -87,9 +87,7 @@ export const selectProjectSpriteSizeLocked = (
   screenSpriteCount: number,
   characterSets: ReadonlyArray<CharacterSet>,
 ): boolean =>
-  isProjectSpriteSizeLocked([...sprites], screenSpriteCount, [
-    ...characterSets,
-  ]);
+  isProjectSpriteSizeLocked(sprites, screenSpriteCount, characterSets);
 
 /**
  * ライブラリドラッグがステージ上にあるかを判定します。
@@ -187,9 +185,9 @@ export const selectDecompositionAnalysis = (
       }
     : analyzeCharacterDecomposition({
         canvas: decompositionCanvas,
-        regions: [...decompositionRegions],
+        regions: decompositionRegions,
         spriteSize: projectSpriteSize,
-        sprites: [...sprites],
+        sprites,
       });
 
 /**

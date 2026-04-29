@@ -12,7 +12,7 @@ import { type FabricSpriteObjectEntry } from "../types/characterModeInteractionS
  */
 export const createComposeSpriteSource = (
   spriteIndex: number,
-  sprites: SpriteTile[],
+  sprites: ReadonlyArray<SpriteTile>,
   spritePalettes: NesSpritePalettes,
 ): O.Option<HTMLCanvasElement> => {
   if (typeof document === "undefined") {

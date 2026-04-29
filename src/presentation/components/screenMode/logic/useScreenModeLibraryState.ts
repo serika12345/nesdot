@@ -18,10 +18,10 @@ import { type ScreenModeProjectStateResult } from "./useScreenModeProjectState";
 type ScreenModeLibraryStateDependencies = Pick<
   ScreenModeProjectStateResult,
   | "characterSets"
-  | "nes"
   | "scan"
   | "screen"
   | "setScreenAndSyncNes"
+  | "spritePalettes"
   | "sprites"
 > & {
   closeContextMenu: () => void;
@@ -54,12 +54,12 @@ export interface ScreenModeLibraryStateResult {
 export const useScreenModeLibraryState = ({
   characterSets,
   closeContextMenu,
-  nes,
   replaceSelection,
   resolveStagePointFromClient,
   scan,
   screen,
   setScreenAndSyncNes,
+  spritePalettes,
   sprites,
 }: ScreenModeLibraryStateDependencies): ScreenModeLibraryStateResult => {
   const [dragState, setDragState] = React.useState<
@@ -70,10 +70,10 @@ export const useScreenModeLibraryState = ({
     () =>
       createScreenModeCharacterPreviewCards({
         characterSets,
-        spritePalettes: nes.spritePalettes,
+        spritePalettes,
         sprites,
       }),
-    [characterSets, nes.spritePalettes, sprites],
+    [characterSets, spritePalettes, sprites],
   );
 
   const handleDropSprite = React.useCallback(

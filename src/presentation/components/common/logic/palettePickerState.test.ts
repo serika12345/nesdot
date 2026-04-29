@@ -1,30 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultNesProjectState } from "../../../../domain/nes/nesProject";
+import { createDefaultProjectStateV2 } from "../../../../domain/project/projectV2";
 import { applyPalettePickerColorSelection } from "./palettePickerState";
 
 describe("applyPalettePickerColorSelection", () => {
   it("updates the selected slot in both background and sprite palettes", () => {
-    const nes = createDefaultNesProjectState();
+    const palettes = createDefaultProjectStateV2().palettes;
 
-    const nextNes = applyPalettePickerColorSelection(nes, 2, 3, 15);
+    const nextPalettes = applyPalettePickerColorSelection(palettes, 2, 3, 15);
 
-    expect(nextNes.backgroundPalettes[2][3]).toBe(15);
-    expect(nextNes.spritePalettes[2][3]).toBe(15);
-    expect(nextNes.backgroundPalettes[1]).toEqual(nes.backgroundPalettes[1]);
-    expect(nextNes.spritePalettes[0]).toEqual(nes.spritePalettes[0]);
-    expect(nes.backgroundPalettes[2][3]).toBe(34);
-    expect(nes.spritePalettes[2][3]).toBe(34);
+    expect(nextPalettes.background[2][3]).toBe(15);
+    expect(nextPalettes.sprite[2][3]).toBe(15);
+    expect(nextPalettes.background[1]).toEqual(palettes.background[1]);
+    expect(nextPalettes.sprite[0]).toEqual(palettes.sprite[0]);
+    expect(palettes.background[2][3]).toBe(34);
+    expect(palettes.sprite[2][3]).toBe(34);
   });
 
-  it("preserves unrelated nes state fields", () => {
-    const nes = createDefaultNesProjectState();
+  it("preserves unrelated palette state fields", () => {
+    const palettes = createDefaultProjectStateV2().palettes;
 
-    const nextNes = applyPalettePickerColorSelection(nes, 1, 1, 22);
+    const nextPalettes = applyPalettePickerColorSelection(palettes, 1, 1, 22);
 
-    expect(nextNes.chrBytes).toBe(nes.chrBytes);
-    expect(nextNes.nameTable).toBe(nes.nameTable);
-    expect(nextNes.attributeTable).toBe(nes.attributeTable);
-    expect(nextNes.universalBackgroundColor).toBe(nes.universalBackgroundColor);
-    expect(nextNes.ppuControl).toBe(nes.ppuControl);
+    expect(nextPalettes.universalBackgroundColor).toBe(
+      palettes.universalBackgroundColor,
+    );
   });
 });

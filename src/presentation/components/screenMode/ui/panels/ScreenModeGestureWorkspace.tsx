@@ -1,8 +1,6 @@
-import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
-import { decodeBackgroundTileAtIndex } from "../../../../../domain/nes/backgroundEditing";
 import { createEmptyBackgroundTile } from "../../../../../domain/project/projectV2";
 import { type ScreenModeWorkspaceBackgroundEditingStateResult } from "../../logic/screenModeWorkspaceBackgroundEditingState";
 import { useScreenModeContextMenuState } from "../../logic/useScreenModeContextMenuState";
@@ -60,12 +58,12 @@ export const ScreenModeGestureWorkspace: React.FC<
   const libraryController = useScreenModeLibraryState({
     characterSets: projectState.characterSets,
     closeContextMenu: stageController.closeContextMenu,
-    nes: projectState.nes,
     replaceSelection: stageController.replaceSelection,
     resolveStagePointFromClient: stageController.resolveStagePointFromClient,
     scan: projectState.scan,
     screen: projectState.screen,
     setScreenAndSyncNes: projectState.setScreenAndSyncNes,
+    spritePalettes: projectState.spritePalettes,
     sprites: projectState.sprites,
   });
   const closeContextMenu = stageController.closeContextMenu;
@@ -97,15 +95,12 @@ export const ScreenModeGestureWorkspace: React.FC<
       return O.none;
     }
 
-    const decodedTile = decodeBackgroundTileAtIndex(
-      projectState.nes.chrBytes,
-      backgroundEditingState.grabbedTileIndex.value,
-    );
-
     return O.some(
-      E.isRight(decodedTile) ? decodedTile.right : createEmptyBackgroundTile(),
+      projectState.backgroundTiles[
+        backgroundEditingState.grabbedTileIndex.value
+      ] ?? createEmptyBackgroundTile(),
     );
-  }, [backgroundEditingState.grabbedTileIndex, projectState.nes.chrBytes]);
+  }, [backgroundEditingState.grabbedTileIndex, projectState.backgroundTiles]);
 
   const grabbedTilePreview =
     backgroundEditingState.editingTarget === "bgTile" &&
@@ -134,12 +129,12 @@ export const ScreenModeGestureWorkspace: React.FC<
                     preview={{
                       kind: "tile",
                       palette:
-                        projectState.nes.backgroundPalettes[
+                        projectState.backgroundPalettes[
                           backgroundEditingState.activePaletteIndex
                         ],
                       tile: grabbedTilePreview.value,
                       universalBackgroundColor:
-                        projectState.nes.universalBackgroundColor,
+                        projectState.universalBackgroundColor,
                     }}
                     screenZoomLevel={viewportState.screenZoomLevel}
                   />
@@ -237,7 +232,7 @@ export const ScreenModeGestureWorkspace: React.FC<
         >
           <ScreenModeSpriteLibraryPanel
             libraryState={libraryController.libraryState}
-            spritePalettes={projectState.nes.spritePalettes}
+            spritePalettes={projectState.spritePalettes}
             sprites={projectState.sprites}
           />
           <ScreenModeCharacterLibraryPanel
@@ -260,7 +255,7 @@ export const ScreenModeGestureWorkspace: React.FC<
       <ScreenModeGestureContextMenu contextMenuState={contextMenuState} />
       <ScreenModeFloatingPreview
         libraryState={libraryController.libraryState}
-        spritePalettes={projectState.nes.spritePalettes}
+        spritePalettes={projectState.spritePalettes}
         sprites={projectState.sprites}
       />
     </div>

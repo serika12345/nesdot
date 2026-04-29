@@ -18,8 +18,8 @@ import {
 } from "./model/characterEditorModel";
 import { useCharacterState } from "../../../../application/state/characterStore";
 import {
+  type ProjectStoreState,
   useProjectState,
-  type ProjectState,
 } from "../../../../application/state/projectStore";
 import { useActiveSet } from "./characterModeShared";
 import { useCharacterModeComposeStore } from "./characterModeComposeStore";
@@ -172,7 +172,7 @@ export const useCharacterModeSpriteSize = (): Readonly<{
   projectSpriteSizeLocked: boolean;
 }> => {
   const projectSpriteSize = useProjectState((s) => s.spriteSize);
-  const sprites = useProjectState((s) => s.sprites);
+  const sprites = useProjectState((s) => s.spriteTiles);
   const screenSpriteCount = useProjectState((s) => s.screen.sprites.length);
   const characterSets = useCharacterState((s) => s.characterSets);
   const projectSpriteSizeLocked = useMemo(
@@ -192,11 +192,11 @@ export const useCharacterModeSpriteSize = (): Readonly<{
 export const useCharacterModeSpriteLibrary = (): Readonly<{
   draggingSpriteIndex: number;
   isLibraryDraggable: boolean;
-  sprites: ProjectState["sprites"];
-  spritePalettes: ProjectState["nes"]["spritePalettes"];
+  sprites: ProjectStoreState["spriteTiles"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
 }> => {
-  const sprites = useProjectState((s) => s.sprites);
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const sprites = useProjectState((s) => s.spriteTiles);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
   const libraryDragState = useCharacterModeComposeStore(
     (s) => s.libraryDragState,
   );
@@ -347,7 +347,7 @@ export const useCharacterModeViewportPan = (): Readonly<{
 export const useCharacterModeLibraryDragPreview = (): Readonly<{
   getSpriteTile: (
     spriteIndex: number,
-  ) => O.Option<ProjectState["sprites"][number]>;
+  ) => O.Option<ProjectStoreState["spriteTiles"][number]>;
   libraryDragState: O.Option<{
     spriteIndex: number;
     clientX: number;
@@ -356,11 +356,11 @@ export const useCharacterModeLibraryDragPreview = (): Readonly<{
     stageX: number;
     stageY: number;
   }>;
-  spritePalettes: ProjectState["nes"]["spritePalettes"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
   stageScale: number;
 }> => {
-  const sprites = useProjectState((s) => s.sprites);
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const sprites = useProjectState((s) => s.spriteTiles);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
   const libraryDragState = useCharacterModeComposeStore(
     (s) => s.libraryDragState,
   );

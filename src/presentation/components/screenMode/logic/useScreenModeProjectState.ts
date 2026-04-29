@@ -2,7 +2,6 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useMemo } from "react";
 import { useCharacterState } from "../../../../application/state/characterStore";
-import { decodeBackgroundTileAtIndex } from "../../../../domain/nes/backgroundEditing";
 import {
   type ProjectStoreState,
   type Screen,
@@ -10,70 +9,55 @@ import {
   useProjectState,
 } from "../../../../application/state/projectStore";
 import { type CharacterSet } from "../../../../domain/characters/characterSet";
-import * as E from "fp-ts/Either";
-import { scanNesSpriteConstraints } from "../../../../domain/screen/constraints";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
-import {
-  PROJECT_BACKGROUND_TILE_COUNT,
-  createEmptyBackgroundTile,
-  type BackgroundTile,
-} from "../../../../domain/project/projectV2";
+import { scanProjectStateV2SpriteConstraints } from "../../../../domain/screen/constraints";
+import { type BackgroundTile } from "../../../../domain/project/projectV2";
 
-export type ScreenModeScanReport = ReturnType<typeof scanNesSpriteConstraints>;
+export type ScreenModeScanReport = ReturnType<
+  typeof scanProjectStateV2SpriteConstraints
+>;
 
 export interface ScreenModeProjectStateResult {
   screen: Screen;
-  nes: ProjectStoreState["nes"];
-  sprites: SpriteTile[];
+  sprites: ReadonlyArray<SpriteTile>;
+  backgroundTiles: ProjectStoreState["backgroundTiles"];
+  backgroundPalettes: ProjectStoreState["palettes"]["background"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
+  universalBackgroundColor: ProjectStoreState["palettes"]["universalBackgroundColor"];
   spritesOnScreen: Screen["sprites"];
   characterSets: ReadonlyArray<CharacterSet>;
   selectedCharacterId: O.Option<string>;
   activeCharacter: O.Option<CharacterSet>;
   scanReport: ScreenModeScanReport;
   selectCharacterSet: (value: O.Option<string>) => void;
-  scan: (
-    checkeeScreen?: Screen,
-    checkeeNes?: ProjectStoreState["nes"],
-  ) => ScreenModeScanReport;
-  setScreenAndSyncNes: (
-    nextScreen: Screen,
-    nextNes?: ProjectStoreState["nes"],
-  ) => void;
+  scan: (checkeeScreen?: Screen) => ScreenModeScanReport;
+  setScreenAndSyncNes: (nextScreen: Screen) => void;
 }
 
 export interface ScreenModeBackgroundTilePickerState {
-  backgroundPalettes: ProjectStoreState["nes"]["backgroundPalettes"];
-  universalBackgroundColor: ProjectStoreState["nes"]["universalBackgroundColor"];
+  backgroundPalettes: ProjectStoreState["palettes"]["background"];
+  universalBackgroundColor: ProjectStoreState["palettes"]["universalBackgroundColor"];
   visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
 }
 
-const decodeVisibleBackgroundTiles = (
-  chrBytes: ProjectStoreState["nes"]["chrBytes"],
-): ReadonlyArray<BackgroundTile> =>
-  Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) => {
-    const decodedTile = decodeBackgroundTileAtIndex(chrBytes, tileIndex);
-
-    return E.isRight(decodedTile)
-      ? decodedTile.right
-      : createEmptyBackgroundTile();
-  });
-
 const useScreenModeProjectValues = (): Readonly<{
-  nes: ProjectStoreState["nes"];
   screen: Screen;
-  sprites: SpriteTile[];
+  sprites: ReadonlyArray<SpriteTile>;
+  backgroundTiles: ProjectStoreState["backgroundTiles"];
+  backgroundPalettes: ProjectStoreState["palettes"]["background"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
+  universalBackgroundColor: ProjectStoreState["palettes"]["universalBackgroundColor"];
   spritesOnScreen: Screen["sprites"];
 }> => {
-  const screen = useProjectState((state) => state.screen);
-  const nes = useProjectState((state) => state.nes);
-  const sprites = useProjectState((state) => state.sprites);
-  const spritesOnScreen = useProjectState((state) => state.screen.sprites);
+  const projectState = useProjectState();
 
   return {
-    nes,
-    screen,
-    sprites,
-    spritesOnScreen,
+    screen: projectState.screen,
+    sprites: projectState.spriteTiles,
+    backgroundTiles: projectState.backgroundTiles,
+    backgroundPalettes: projectState.palettes.background,
+    spritePalettes: projectState.palettes.sprite,
+    universalBackgroundColor: projectState.palettes.universalBackgroundColor,
+    spritesOnScreen: projectState.screen.sprites,
   };
 };
 
@@ -111,35 +95,23 @@ const useScreenModeCharacterSelectionState = (): Readonly<{
 };
 
 const useScreenModeProjectActions = (): Readonly<{
-  scan: (
-    checkeeScreen?: Screen,
-    checkeeNes?: ProjectStoreState["nes"],
-  ) => ScreenModeScanReport;
-  setScreenAndSyncNes: (
-    nextScreen: Screen,
-    nextNes?: ProjectStoreState["nes"],
-  ) => void;
+  scan: (checkeeScreen?: Screen) => ScreenModeScanReport;
+  setScreenAndSyncNes: (nextScreen: Screen) => void;
 }> => {
   const scan = useCallback(
-    (
-      checkeeScreen = useProjectState.getState().screen,
-      checkeeNes = useProjectState.getState().nes,
-    ): ScreenModeScanReport =>
-      scanNesSpriteConstraints(
-        mergeScreenIntoNesOam(checkeeNes, checkeeScreen),
-      ),
+    (checkeeScreen = useProjectState.getState().screen): ScreenModeScanReport =>
+      scanProjectStateV2SpriteConstraints({
+        ...useProjectState.getState(),
+        screen: checkeeScreen,
+      }),
     [],
   );
 
-  const setScreenAndSyncNes = useCallback(
-    (nextScreen: Screen, nextNes = useProjectState.getState().nes): void => {
-      useProjectState.setState({
-        screen: nextScreen,
-        nes: mergeScreenIntoNesOam(nextNes, nextScreen),
-      });
-    },
-    [],
-  );
+  const setScreenAndSyncNes = useCallback((nextScreen: Screen): void => {
+    useProjectState.setState({
+      screen: nextScreen,
+    });
+  }, []);
 
   return {
     scan,
@@ -152,8 +124,15 @@ const useScreenModeProjectActions = (): Readonly<{
  * Zustand と character store から読む値、制約スキャン、NES 同期をここに閉じ込めます。
  */
 export const useScreenModeProjectState = (): ScreenModeProjectStateResult => {
-  const { nes, screen, sprites, spritesOnScreen } =
-    useScreenModeProjectValues();
+  const {
+    backgroundPalettes,
+    backgroundTiles,
+    screen,
+    spritePalettes,
+    sprites,
+    spritesOnScreen,
+    universalBackgroundColor,
+  } = useScreenModeProjectValues();
   const {
     activeCharacter,
     characterSets,
@@ -161,12 +140,15 @@ export const useScreenModeProjectState = (): ScreenModeProjectStateResult => {
     selectCharacterSet,
   } = useScreenModeCharacterSelectionState();
   const { scan, setScreenAndSyncNes } = useScreenModeProjectActions();
-  const scanReport = useMemo(() => scan(screen, nes), [nes, scan, screen]);
+  const scanReport = useMemo(() => scan(screen), [scan, screen]);
 
   return {
     screen,
-    nes,
     sprites,
+    backgroundTiles,
+    backgroundPalettes,
+    spritePalettes,
+    universalBackgroundColor,
     spritesOnScreen,
     characterSets,
     selectedCharacterId,
@@ -185,16 +167,13 @@ export const useScreenModeProjectState = (): ScreenModeProjectStateResult => {
 export const useScreenModeBackgroundTilePickerState =
   (): ScreenModeBackgroundTilePickerState => {
     const backgroundPalettes = useProjectState(
-      (state) => state.nes.backgroundPalettes,
+      (state) => state.palettes.background,
     );
-    const chrBytes = useProjectState((state) => state.nes.chrBytes);
+    const visibleBackgroundTiles = useProjectState(
+      (state) => state.backgroundTiles,
+    );
     const universalBackgroundColor = useProjectState(
-      (state) => state.nes.universalBackgroundColor,
-    );
-
-    const visibleBackgroundTiles = useMemo(
-      () => decodeVisibleBackgroundTiles(chrBytes),
-      [chrBytes],
+      (state) => state.palettes.universalBackgroundColor,
     );
 
     return {

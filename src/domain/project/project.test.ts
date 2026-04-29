@@ -1,22 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultProjectState } from "./project";
+import { createDefaultProjectStateV2 } from "./projectV2";
 
 describe("project", () => {
   it("creates an 8x8 project by default", () => {
-    const state = createDefaultProjectState();
+    const state = createDefaultProjectStateV2();
 
     expect(state.spriteSize).toBe(8);
-    expect(state.nes.ppuControl.spriteSize).toBe(8);
-    expect(state.sprites).toHaveLength(64);
-    expect(state.sprites.every((sprite) => sprite.height === 8)).toBe(true);
+    expect(state.spriteTiles).toHaveLength(64);
+    expect(state.spriteTiles.every((sprite) => sprite.height === 8)).toBe(true);
+    expect(state.screen.background.tileIndices).toHaveLength(960);
+    expect(state.screen.background.paletteIndices).toHaveLength(240);
+    expect(state.backgroundTiles).toHaveLength(256);
   });
 
   it("creates an 8x16 project when requested", () => {
-    const state = createDefaultProjectState(16);
+    const state = createDefaultProjectStateV2(16);
 
     expect(state.spriteSize).toBe(16);
-    expect(state.nes.ppuControl.spriteSize).toBe(16);
-    expect(state.sprites).toHaveLength(64);
-    expect(state.sprites.every((sprite) => sprite.height === 16)).toBe(true);
+    expect(state.spriteTiles).toHaveLength(64);
+    expect(state.spriteTiles.every((sprite) => sprite.height === 16)).toBe(
+      true,
+    );
   });
 });

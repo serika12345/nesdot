@@ -9,9 +9,9 @@ const isSpriteTileEmpty = (pixels: number[][]): boolean =>
  * 既存データが存在する状態でサイズ変更して壊れるのを防ぐため、利用済み資産の有無をまとめて見ます。
  */
 export const isProjectSpriteSizeLocked = (
-  sprites: SpriteTile[],
+  sprites: ReadonlyArray<SpriteTile>,
   screenSpriteCount: number,
-  characterSets: CharacterSet[],
+  characterSets: ReadonlyArray<CharacterSet>,
 ): boolean =>
   screenSpriteCount > 0 ||
   sprites.some((sprite) => isSpriteTileEmpty(sprite.pixels) === false) ||

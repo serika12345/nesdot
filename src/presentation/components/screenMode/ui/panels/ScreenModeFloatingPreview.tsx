@@ -12,7 +12,7 @@ import styles from "./ScreenModeFloatingPreview.module.css";
 interface ScreenModeFloatingPreviewProps {
   libraryState: ScreenModeLibraryPresentationState;
   sprites: ScreenModeProjectStateResult["sprites"];
-  spritePalettes: ScreenModeProjectStateResult["nes"]["spritePalettes"];
+  spritePalettes: ScreenModeProjectStateResult["spritePalettes"];
 }
 
 export const ScreenModeFloatingPreview: React.FC<

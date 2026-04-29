@@ -3,8 +3,8 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import { useMemo } from "react";
 import {
+  type ProjectStoreState,
   useProjectState,
-  type ProjectState,
 } from "../../../../application/state/projectStore";
 import {
   buildCharacterPreviewHexGrid,
@@ -28,8 +28,8 @@ const createCharacterModeProjectActions = (params: {
   exportCharacterJson: ReturnType<typeof useExportImage>["exportCharacterJson"];
   exportPng: ReturnType<typeof useExportImage>["exportPng"];
   exportSvgSimple: ReturnType<typeof useExportImage>["exportSvgSimple"];
-  spritePalettes: ProjectState["nes"]["spritePalettes"];
-  sprites: ProjectState["sprites"];
+  spritePalettes: ProjectStoreState["palettes"]["sprite"];
+  sprites: ProjectStoreState["spriteTiles"];
 }): ReadonlyArray<FileShareAction> =>
   pipe(
     params.activeSet,
@@ -108,8 +108,8 @@ export const useCharacterModeProjectActions = (): Readonly<{
   projectActions: ReadonlyArray<FileShareAction>;
 }> => {
   const activeSet = useActiveSet();
-  const sprites = useProjectState((s) => s.sprites);
-  const spritePalettes = useProjectState((s) => s.nes.spritePalettes);
+  const sprites = useProjectState((s) => s.spriteTiles);
+  const spritePalettes = useProjectState((s) => s.palettes.sprite);
   const { exportPng, exportSvgSimple, exportCharacterJson } = useExportImage();
   const projectActions = useMemo(
     () =>

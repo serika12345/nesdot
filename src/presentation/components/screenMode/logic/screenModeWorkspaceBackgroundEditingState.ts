@@ -2,13 +2,15 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { useProjectState } from "../../../../application/state/projectStore";
-import {
-  setAttributeTablePaletteAtPixel,
-  setNameTableTileAtPixel,
-} from "../../../../domain/nes/backgroundEditing";
 import { type PaletteIndex } from "../../../../domain/project/project";
-import { getScreenBackgroundTilePlacementFromPixel } from "../../../../domain/screen/backgroundLayout";
-import { getScreenBackgroundPalettePlacementFromPixel } from "../../../../domain/screen/backgroundPalette";
+import {
+  getScreenBackgroundTilePlacementFromPixel,
+  placeScreenBackgroundTileAtPixel,
+} from "../../../../domain/screen/backgroundLayout";
+import {
+  getScreenBackgroundPalettePlacementFromPixel,
+  setScreenBackgroundPaletteAtPixel,
+} from "../../../../domain/screen/backgroundPalette";
 
 type ScreenModeBackgroundEditingTarget = "sprite" | "bgTile" | "bgPalette";
 type ScreenModeBackgroundPickerMode = "bgTile" | "bgPalette";
@@ -195,21 +197,21 @@ export const useScreenModeWorkspaceBackgroundEditingState =
       }
 
       const currentState = useProjectState.getState();
-      const nextNameTable = setNameTableTileAtPixel(
-        currentState.nes.nameTable,
+      const nextBackground = placeScreenBackgroundTileAtPixel(
+        currentState.screen.background,
         cursorOverlay.value.x,
         cursorOverlay.value.y,
         grabbedTileIndex.value,
       );
 
-      if (E.isLeft(nextNameTable)) {
+      if (E.isLeft(nextBackground)) {
         return;
       }
 
       useProjectState.setState({
-        nes: {
-          ...currentState.nes,
-          nameTable: nextNameTable.right,
+        screen: {
+          ...currentState.screen,
+          background: nextBackground.right,
         },
       });
 
@@ -236,21 +238,21 @@ export const useScreenModeWorkspaceBackgroundEditingState =
         }
 
         const currentState = useProjectState.getState();
-        const nextAttributeTable = setAttributeTablePaletteAtPixel(
-          currentState.nes.attributeTable,
+        const nextBackground = setScreenBackgroundPaletteAtPixel(
+          currentState.screen.background,
           position.x,
           position.y,
           activePaletteIndex,
         );
 
-        if (E.isLeft(nextAttributeTable)) {
+        if (E.isLeft(nextBackground)) {
           return;
         }
 
         useProjectState.setState({
-          nes: {
-            ...currentState.nes,
-            attributeTable: nextAttributeTable.right,
+          screen: {
+            ...currentState.screen,
+            background: nextBackground.right,
           },
         });
       },
@@ -274,21 +276,21 @@ export const useScreenModeWorkspaceBackgroundEditingState =
         setIsPaletteStrokeActive(true);
 
         const currentState = useProjectState.getState();
-        const nextAttributeTable = setAttributeTablePaletteAtPixel(
-          currentState.nes.attributeTable,
+        const nextBackground = setScreenBackgroundPaletteAtPixel(
+          currentState.screen.background,
           position.x,
           position.y,
           activePaletteIndex,
         );
 
-        if (E.isLeft(nextAttributeTable)) {
+        if (E.isLeft(nextBackground)) {
           return;
         }
 
         useProjectState.setState({
-          nes: {
-            ...currentState.nes,
-            attributeTable: nextAttributeTable.right,
+          screen: {
+            ...currentState.screen,
+            background: nextBackground.right,
           },
         });
       },

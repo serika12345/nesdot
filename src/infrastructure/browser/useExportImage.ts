@@ -12,9 +12,9 @@ import { nesIndexToCssHex } from "../../domain/nes/palette";
 import {
   ColorIndexOfPalette,
   PaletteIndex,
-  ProjectState,
   SpriteTile,
 } from "../../domain/project/project";
+import type { ProjectStateV2 } from "../../domain/project/projectV2";
 import { getArrayItem, getMatrixItem } from "../../shared/arrayAccess";
 
 type FileFilter = {
@@ -292,18 +292,19 @@ export default function useExportImage() {
     URL.revokeObjectURL(url);
   };
 
-  const exportJSON = async (
-    projectState: ProjectState & { _hydrated?: boolean },
-  ) => {
+  const exportJSON = async (projectState: ProjectStateV2) => {
     const characterJson = toCharacterJsonData({
       characterSets: useCharacterState.getState().characterSets,
       selectedCharacterId: useCharacterState.getState().selectedCharacterId,
     });
-    const exportedProjectState: ProjectState = {
+    const exportedProjectState: ProjectStateV2 = {
+      formatVersion: projectState.formatVersion,
       spriteSize: projectState.spriteSize,
+      spriteTiles: projectState.spriteTiles,
+      backgroundTiles: projectState.backgroundTiles,
       screen: projectState.screen,
-      sprites: projectState.sprites,
-      nes: projectState.nes,
+      palettes: projectState.palettes,
+      ppuControl: projectState.ppuControl,
     };
     const json = JSON.stringify({
       ...exportedProjectState,

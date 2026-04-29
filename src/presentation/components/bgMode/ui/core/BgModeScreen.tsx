@@ -72,10 +72,10 @@ export const BgModeScreen: React.FC = () => {
   const setTool = useWorkbenchState((state) => state.setBgModeTool);
   const tool = useWorkbenchState((state) => state.bgMode.tool);
   const backgroundPalettes = useProjectState(
-    (state) => state.nes.backgroundPalettes,
+    (state) => state.palettes.background,
   );
   const universalBackgroundColor = useProjectState(
-    (state) => state.nes.universalBackgroundColor,
+    (state) => state.palettes.universalBackgroundColor,
   );
   const {
     handleFlushPaint,

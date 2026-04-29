@@ -18,7 +18,7 @@ import styles from "./ScreenModeLibraryPanels.module.css";
 interface ScreenModeSpriteLibraryPanelProps {
   libraryState: ScreenModeLibraryPresentationState;
   sprites: ScreenModeProjectStateResult["sprites"];
-  spritePalettes: ScreenModeProjectStateResult["nes"]["spritePalettes"];
+  spritePalettes: ScreenModeProjectStateResult["spritePalettes"];
 }
 
 export const ScreenModeSpriteLibraryPanel: React.FC<

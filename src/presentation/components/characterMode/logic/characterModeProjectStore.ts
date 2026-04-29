@@ -6,7 +6,6 @@ import {
   type ProjectSpriteSize,
 } from "../../../../application/state/projectStore";
 import { createEmptySpriteTile } from "../../../../domain/project/project";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import { selectActiveSet } from "./characterModeSelectors";
 import { useCharacterModeComposeStore } from "./characterModeComposeStore";
 import { useCharacterModeDecompositionStore } from "./characterModeDecompositionStore";
@@ -86,7 +85,7 @@ export const useCharacterModeProjectStore =
       const characterState = useCharacterState.getState();
       const projectState = useProjectState.getState();
       const locked = isProjectSpriteSizeLocked(
-        projectState.sprites,
+        projectState.spriteTiles,
         projectState.screen.sprites.length,
         characterState.characterSets,
       );
@@ -95,29 +94,18 @@ export const useCharacterModeProjectStore =
         return;
       }
 
-      const nextSprites = projectState.sprites.map((sprite) =>
+      const nextSprites = projectState.spriteTiles.map((sprite) =>
         createEmptySpriteTile(nextSpriteSize, sprite.paletteIndex),
       );
       const nextScreen = {
         ...projectState.screen,
         sprites: [],
       };
-      const nextNes = mergeScreenIntoNesOam(
-        {
-          ...projectState.nes,
-          ppuControl: {
-            ...projectState.nes.ppuControl,
-            spriteSize: nextSpriteSize,
-          },
-        },
-        nextScreen,
-      );
 
       useProjectState.setState({
         spriteSize: nextSpriteSize,
-        sprites: nextSprites,
+        spriteTiles: nextSprites,
         screen: nextScreen,
-        nes: nextNes,
       });
 
       useCharacterModeComposeStore.getState().clearSelectionAndDrag();

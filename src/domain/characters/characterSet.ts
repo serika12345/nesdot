@@ -28,11 +28,11 @@ export interface CharacterSet {
 interface ExpandCharacterInput {
   baseX: number;
   baseY: number;
-  sprites: SpriteTile[];
+  sprites: ReadonlyArray<SpriteTile>;
 }
 
 interface BuildCharacterPreviewInput {
-  sprites: SpriteTile[];
+  sprites: ReadonlyArray<SpriteTile>;
   palettes: NesSpritePalettes;
   transparentHex: string;
 }

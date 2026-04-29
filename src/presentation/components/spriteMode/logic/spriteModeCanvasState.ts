@@ -28,7 +28,7 @@ export interface SpriteModePaletteSlotsState {
   activeSlot: ColorIndexOfPalette;
   handlePaletteChange: (index: string) => void;
   handlePaletteClick: (slot: number) => void;
-  palettes: ProjectStoreState["nes"]["spritePalettes"];
+  palettes: ProjectStoreState["palettes"]["sprite"];
 }
 
 export interface SpriteModeToolMenuState {
@@ -91,7 +91,7 @@ export const useSpriteModeCanvasPanelState = (): SpriteModeCanvasPanelState => {
   );
   const setTool = useWorkbenchState((state) => state.setSpriteModeTool);
   const tool = useWorkbenchState((state) => state.spriteMode.tool);
-  const palettes = useProjectState((state) => state.nes.spritePalettes);
+  const palettes = useProjectState((state) => state.palettes.sprite);
   const activeTile = useSpriteModeActiveTile();
   const handleTileChange = useSpriteModeTileChangeAction();
 

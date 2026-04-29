@@ -9,7 +9,6 @@ import {
   useProjectState,
 } from "../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
-import { mergeScreenIntoNesOam } from "../../../../domain/screen/oamSync";
 import useExportImage from "../../../../infrastructure/browser/useExportImage";
 import { getArrayItem } from "../../../../shared/arrayAccess";
 import { type FileShareAction } from "../../common/logic/state/fileMenuState";
@@ -61,7 +60,7 @@ export const createSpriteModeProjectActions = ({
       const projectState = getProjectState();
       const tile = resolveSpriteModeTile(
         projectState.spriteSize,
-        projectState.sprites,
+        projectState.spriteTiles,
         activeSprite,
         activePalette,
       );
@@ -78,7 +77,7 @@ export const createSpriteModeProjectActions = ({
       const projectState = getProjectState();
       const tile = resolveSpriteModeTile(
         projectState.spriteSize,
-        projectState.sprites,
+        projectState.spriteTiles,
         activeSprite,
         activePalette,
       );
@@ -95,7 +94,7 @@ export const createSpriteModeProjectActions = ({
       const projectState = getProjectState();
       const tile = resolveSpriteModeTile(
         projectState.spriteSize,
-        projectState.sprites,
+        projectState.spriteTiles,
         activeSprite,
         activePalette,
       );
@@ -134,13 +133,9 @@ export const useSpriteModeProjectActions =
         const { importJSON } = await loadImportImageService();
 
         await importJSON((data) => {
-          const syncedNes = mergeScreenIntoNesOam(data.nes, data.screen);
-          useProjectState.setState({
-            ...data,
-            nes: syncedNes,
-          });
+          useProjectState.setState(data);
           const nextPalette = pipe(
-            getArrayItem(data.sprites, activeSprite),
+            getArrayItem(data.spriteTiles, activeSprite),
             O.match(
               (): PaletteIndex => 0,
               (sprite): PaletteIndex => sprite.paletteIndex,

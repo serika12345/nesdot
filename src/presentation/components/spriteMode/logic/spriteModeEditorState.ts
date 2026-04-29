@@ -26,7 +26,7 @@ export interface SpriteModeSelectionFieldsState {
   activeSprite: number;
   handlePaletteChange: (index: string) => void;
   handleSpriteChange: (index: string) => void;
-  palettes: ProjectStoreState["nes"]["spritePalettes"];
+  palettes: ProjectStoreState["palettes"]["sprite"];
 }
 
 export interface SpriteModeEditorPanelState {
@@ -50,8 +50,8 @@ export const useSpriteModeEditorPanelState = (): SpriteModeEditorPanelState => {
   const setActiveSprite = useWorkbenchState(
     (state) => state.setSpriteModeActiveSprite,
   );
-  const palettes = useProjectState((state) => state.nes.spritePalettes);
-  const sprites = useProjectState((state) => state.sprites);
+  const palettes = useProjectState((state) => state.palettes.sprite);
+  const sprites = useProjectState((state) => state.spriteTiles);
   const projectSpriteSize = useProjectState((state) => state.spriteSize);
   const activeTile = useSpriteModeActiveTile();
   const handleTileChange = useSpriteModeTileChangeAction();

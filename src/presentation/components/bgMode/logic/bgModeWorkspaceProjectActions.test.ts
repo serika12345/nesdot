@@ -5,9 +5,10 @@ import {
   type PaletteIndex,
   type ProjectStoreState,
 } from "../../../../application/state/projectStore";
-import { createDefaultProjectState } from "../../../../domain/project/project";
+import { type NesColorIndex } from "../../../../domain/nes/nesProject";
 import {
   createEmptyBackgroundTile,
+  createDefaultProjectStateV2,
   type BackgroundTile,
 } from "../../../../domain/project/projectV2";
 import { createBgModeWorkspaceProjectActions } from "./bgModeWorkspaceProjectActions";
@@ -27,24 +28,24 @@ const setBackgroundTilePixel = (
 });
 
 const createProjectStateWithBackgroundPalette = (
-  universalBackgroundColor: ProjectStoreState["nes"]["universalBackgroundColor"],
+  universalBackgroundColor: NesColorIndex,
   paletteIndex: PaletteIndex,
-  palette: [number, number, number, number],
+  palette: ProjectStoreState["palettes"]["background"][PaletteIndex],
 ): ProjectStoreState => {
-  const baseState = createDefaultProjectState();
-  const backgroundPalettes: ProjectStoreState["nes"]["backgroundPalettes"] = [
-    paletteIndex === 0 ? palette : baseState.nes.backgroundPalettes[0],
-    paletteIndex === 1 ? palette : baseState.nes.backgroundPalettes[1],
-    paletteIndex === 2 ? palette : baseState.nes.backgroundPalettes[2],
-    paletteIndex === 3 ? palette : baseState.nes.backgroundPalettes[3],
+  const baseState = createDefaultProjectStateV2();
+  const backgroundPalettes: ProjectStoreState["palettes"]["background"] = [
+    paletteIndex === 0 ? palette : baseState.palettes.background[0],
+    paletteIndex === 1 ? palette : baseState.palettes.background[1],
+    paletteIndex === 2 ? palette : baseState.palettes.background[2],
+    paletteIndex === 3 ? palette : baseState.palettes.background[3],
   ];
 
   return {
     ...baseState,
-    nes: {
-      ...baseState.nes,
+    palettes: {
+      ...baseState.palettes,
       universalBackgroundColor,
-      backgroundPalettes,
+      background: backgroundPalettes,
     },
   };
 };

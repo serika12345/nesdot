@@ -56,9 +56,9 @@ export interface CharacterDecompositionAnalysis {
 
 interface CharacterDecompositionInput {
   canvas: CharacterDecompositionCanvas;
-  regions: CharacterDecompositionRegion[];
+  regions: ReadonlyArray<CharacterDecompositionRegion>;
   spriteSize: ProjectSpriteSize;
-  sprites: SpriteTile[];
+  sprites: ReadonlyArray<SpriteTile>;
 }
 
 interface PlannedSpriteTile {

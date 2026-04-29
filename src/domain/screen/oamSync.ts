@@ -1,5 +1,5 @@
-import { NesProjectState, OamSpriteEntry } from "../nes/nesProject";
-import { Screen, SpriteInScreen } from "../project/project";
+import { type OamSpriteEntry } from "../nes/nesProject";
+import { type SpriteInScreen } from "../project/project";
 
 const toPriorityBit = (priority: SpriteInScreen["priority"]): number =>
   priority === "behindBg" ? 0b0010_0000 : 0;
@@ -25,16 +25,4 @@ export const toOamEntryFromScreenSprite = (
     toPriorityBit(sprite.priority) |
     toFlipHBit(sprite.flipH) |
     toFlipVBit(sprite.flipV),
-});
-
-/**
- * スクリーン上のスプライト一覧を NES 状態の OAM へ反映します。
- * 画面編集結果と NES 側の実機表現を同期し、両者の食い違いを防ぐための関数です。
- */
-export const mergeScreenIntoNesOam = (
-  nesState: NesProjectState,
-  screen: Screen,
-): NesProjectState => ({
-  ...nesState,
-  oam: screen.sprites.map(toOamEntryFromScreenSprite),
 });

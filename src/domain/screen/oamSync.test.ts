@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createDefaultNesProjectState } from "../nes/nesProject";
-import { Screen, SpriteInScreen } from "../project/project";
-import { mergeScreenIntoNesOam, toOamEntryFromScreenSprite } from "./oamSync";
+import { type SpriteInScreen } from "../project/project";
+import { toOamEntryFromScreenSprite } from "./oamSync";
 
 const createSprite = (overrides: Partial<SpriteInScreen>): SpriteInScreen => ({
   width: 8,
@@ -15,12 +14,6 @@ const createSprite = (overrides: Partial<SpriteInScreen>): SpriteInScreen => ({
   flipH: false,
   flipV: false,
   ...overrides,
-});
-
-const createScreen = (sprites: SpriteInScreen[]): Screen => ({
-  width: 256,
-  height: 240,
-  sprites,
 });
 
 describe("toOamEntryFromScreenSprite", () => {
@@ -57,32 +50,5 @@ describe("toOamEntryFromScreenSprite", () => {
       tileIndex: 56,
       attributeByte: 226,
     });
-  });
-});
-
-describe("mergeScreenIntoNesOam", () => {
-  it("replaces nes.oam with entries derived from screen sprites", () => {
-    const nes = createDefaultNesProjectState();
-    const screen = createScreen([
-      createSprite({ x: 1, y: 10, spriteIndex: 3, paletteIndex: 1 }),
-      createSprite({ x: 2, y: 20, spriteIndex: 4, paletteIndex: 3 }),
-    ]);
-
-    const merged = mergeScreenIntoNesOam(nes, screen);
-
-    expect(merged.oam).toEqual([
-      { x: 1, y: 9, tileIndex: 3, attributeByte: 1 },
-      { x: 2, y: 19, tileIndex: 4, attributeByte: 3 },
-    ]);
-  });
-
-  it("keeps non-OAM NES fields unchanged", () => {
-    const nes = createDefaultNesProjectState();
-    const screen = createScreen([]);
-
-    const merged = mergeScreenIntoNesOam(nes, screen);
-
-    expect(merged.ppuControl).toEqual(nes.ppuControl);
-    expect(merged.backgroundPalettes).toEqual(nes.backgroundPalettes);
   });
 });

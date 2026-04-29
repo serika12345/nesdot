@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { getMatrixItem } from "../../shared/arrayAccess";
 import {
   ColorIndexOfPalette,
-  Screen,
   SpriteInScreen,
   SpriteTile,
 } from "../project/project";
@@ -24,6 +23,7 @@ import { buildNesProjection } from "./projection";
 import {
   renderBackgroundTileToHexArray,
   renderProjectStateV2ToHexArray,
+  type RenderScreen,
   renderScreenToHexArray,
   renderSpriteTileToHexArray,
 } from "./rendering";
@@ -55,7 +55,7 @@ function createBackgroundTile(fill: ColorIndexOfPalette = 0): BackgroundTile {
   };
 }
 
-function createScreen(sprites: SpriteInScreen[]): Screen {
+function createScreen(sprites: SpriteInScreen[]): RenderScreen {
   return {
     width: 256,
     height: 240,

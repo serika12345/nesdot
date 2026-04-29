@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { beforeEach, describe, expect, it } from "vitest";
-import { createDefaultProjectState } from "../../domain/project/project";
+import { createDefaultProjectStateV2 } from "../../domain/project/projectV2";
 import { useCharacterState } from "./characterStore";
 import { useProjectState } from "./projectStore";
 import {
@@ -18,13 +18,7 @@ const flushMicrotasks = async (): Promise<void> => {
 };
 
 const resetStores = (): void => {
-  useProjectState.setState(
-    {
-      ...createDefaultProjectState(),
-      _hydrated: false,
-    },
-    true,
-  );
+  useProjectState.setState(createDefaultProjectStateV2(), true);
 
   useCharacterState.setState({
     characterSets: [],
@@ -44,17 +38,21 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 12,
       },
     }));
 
     await flushMicrotasks();
 
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(12);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      12,
+    );
     expect(undoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(0);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      0,
+    );
 
     stopTracking();
   });
@@ -64,8 +62,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 9,
       },
     }));
@@ -83,12 +81,16 @@ describe("undoHistory", () => {
 
     await flushMicrotasks();
 
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(9);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      9,
+    );
     expect(useCharacterState.getState().characterSets).toHaveLength(1);
 
     expect(undoLatestGlobalChange()).toBe(true);
 
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(0);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      0,
+    );
     expect(useCharacterState.getState().characterSets).toEqual([]);
     expect(O.isNone(useCharacterState.getState().selectedCharacterId)).toBe(
       true,
@@ -106,8 +108,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 3,
       },
     }));
@@ -127,8 +129,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 6,
       },
     }));
@@ -137,8 +139,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 14,
       },
     }));
@@ -147,9 +149,13 @@ describe("undoHistory", () => {
 
     endGlobalUndoPointerInteraction();
 
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(14);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      14,
+    );
     expect(undoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(0);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      0,
+    );
     expect(undoLatestGlobalChange()).toBe(false);
 
     stopTracking();
@@ -162,8 +168,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 7,
       },
     }));
@@ -174,21 +180,27 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 11,
       },
     }));
 
     await flushMicrotasks();
 
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(11);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      11,
+    );
 
     expect(undoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(7);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      7,
+    );
 
     expect(undoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(0);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      0,
+    );
 
     stopTracking();
   });
@@ -198,8 +210,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 22,
       },
     }));
@@ -207,10 +219,14 @@ describe("undoHistory", () => {
     await flushMicrotasks();
 
     expect(undoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(0);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      0,
+    );
 
     expect(redoLatestGlobalChange()).toBe(true);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(22);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      22,
+    );
 
     stopTracking();
   });
@@ -220,8 +236,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 18,
       },
     }));
@@ -232,8 +248,8 @@ describe("undoHistory", () => {
 
     useProjectState.setState((state) => ({
       ...state,
-      nes: {
-        ...state.nes,
+      palettes: {
+        ...state.palettes,
         universalBackgroundColor: 4,
       },
     }));
@@ -241,7 +257,9 @@ describe("undoHistory", () => {
     await flushMicrotasks();
 
     expect(redoLatestGlobalChange()).toBe(false);
-    expect(useProjectState.getState().nes.universalBackgroundColor).toBe(4);
+    expect(useProjectState.getState().palettes.universalBackgroundColor).toBe(
+      4,
+    );
 
     stopTracking();
   });

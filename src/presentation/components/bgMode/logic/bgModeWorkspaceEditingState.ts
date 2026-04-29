@@ -1,4 +1,3 @@
-import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import React from "react";
 import {
@@ -7,31 +6,15 @@ import {
 } from "../../../../application/state/projectStore";
 import { useWorkbenchState } from "../../../../application/state/workbenchStore";
 import {
-  decodeBackgroundTileAtIndex,
-  replaceBackgroundTilePixels,
-  type BackgroundTilePixelWrite,
-} from "../../../../domain/nes/backgroundEditing";
-import {
-  PROJECT_BACKGROUND_TILE_COUNT,
   createEmptyBackgroundTile,
   type BackgroundTile,
 } from "../../../../domain/project/projectV2";
 
-const decodeVisibleBackgroundTile = (
-  chrBytes: ReadonlyArray<number>,
-  tileIndex: number,
-): BackgroundTile => {
-  const tile = decodeBackgroundTileAtIndex(chrBytes, tileIndex);
-
-  return E.isRight(tile) ? tile.right : createEmptyBackgroundTile();
-};
-
-const decodeAllBackgroundTiles = (
-  chrBytes: ReadonlyArray<number>,
-): ReadonlyArray<BackgroundTile> =>
-  Array.from({ length: PROJECT_BACKGROUND_TILE_COUNT }, (_, tileIndex) =>
-    decodeVisibleBackgroundTile(chrBytes, tileIndex),
-  );
+interface BackgroundTilePixelWrite {
+  nextColorIndex: ColorIndexOfPalette;
+  pixelX: number;
+  pixelY: number;
+}
 
 const replaceVisibleBackgroundTileAtIndex = (
   tiles: ReadonlyArray<BackgroundTile>,
@@ -39,6 +22,30 @@ const replaceVisibleBackgroundTileAtIndex = (
   nextTile: BackgroundTile,
 ): ReadonlyArray<BackgroundTile> =>
   tiles.map((tile, index) => (index === tileIndex ? nextTile : tile));
+
+const applyBackgroundTilePixelWrites = (
+  tile: BackgroundTile,
+  writes: ReadonlyArray<BackgroundTilePixelWrite>,
+): BackgroundTile => ({
+  ...tile,
+  pixels: tile.pixels.map((row, pixelY) =>
+    row.map((colorIndex, pixelX) => {
+      const matchingWrite = O.fromNullable(
+        writes.find((write) =>
+          isSamePixelTarget(write, {
+            nextColorIndex: colorIndex,
+            pixelX,
+            pixelY,
+          }),
+        ),
+      );
+
+      return O.isSome(matchingWrite)
+        ? matchingWrite.value.nextColorIndex
+        : colorIndex;
+    }),
+  ),
+});
 
 const EMPTY_BACKGROUND_TILE_PIXEL_WRITES: ReadonlyArray<BackgroundTilePixelWrite> =
   [];
@@ -67,14 +74,14 @@ export const resolveBgModePaintColorIndex = (
 ): ColorIndexOfPalette => (tool === "eraser" ? 0 : activeSlot);
 
 export const useBgModeSelectedTile = (): BackgroundTile => {
-  const chrBytes = useProjectState((state) => state.nes.chrBytes);
+  const backgroundTiles = useProjectState((state) => state.backgroundTiles);
   const selectedTileIndex = useWorkbenchState(
     (state) => state.bgMode.selectedTileIndex,
   );
 
   return React.useMemo(
-    () => decodeVisibleBackgroundTile(chrBytes, selectedTileIndex),
-    [chrBytes, selectedTileIndex],
+    () => backgroundTiles[selectedTileIndex] ?? createEmptyBackgroundTile(),
+    [backgroundTiles, selectedTileIndex],
   );
 };
 
@@ -84,33 +91,19 @@ export const useBgModeTileEditorState = (): Readonly<{
   selectedTile: BackgroundTile;
   visibleBackgroundTiles: ReadonlyArray<BackgroundTile>;
 }> => {
-  const chrBytes = useProjectState((state) => state.nes.chrBytes);
+  const visibleBackgroundTiles = useProjectState(
+    (state) => state.backgroundTiles,
+  );
   const selectedTileIndex = useWorkbenchState(
     (state) => state.bgMode.selectedTileIndex,
   );
   const tool = useWorkbenchState((state) => state.bgMode.tool);
   const activeSlot = useWorkbenchState((state) => state.bgMode.activeSlot);
-  const visibleBackgroundTilesCacheRef = React.useRef<
-    ReadonlyArray<BackgroundTile>
-  >(decodeAllBackgroundTiles(chrBytes));
-  const cachedChrBytesRef = React.useRef(chrBytes);
   const queuedPaintWritesRef = React.useRef<
     ReadonlyArray<BackgroundTilePixelWrite>
   >(EMPTY_BACKGROUND_TILE_PIXEL_WRITES);
   const queuedPaintTileIndexRef = React.useRef<O.Option<number>>(O.none);
   const scheduledPaintFrameRef = React.useRef<O.Option<number>>(O.none);
-
-  const visibleBackgroundTiles = React.useMemo(() => {
-    if (cachedChrBytesRef.current === chrBytes) {
-      return visibleBackgroundTilesCacheRef.current;
-    }
-
-    const nextTiles = decodeAllBackgroundTiles(chrBytes);
-
-    visibleBackgroundTilesCacheRef.current = nextTiles;
-    cachedChrBytesRef.current = chrBytes;
-    return nextTiles;
-  }, [chrBytes]);
 
   const selectedTile = React.useMemo(
     () =>
@@ -131,34 +124,20 @@ export const useBgModeTileEditorState = (): Readonly<{
     }
 
     const currentState = useProjectState.getState();
-    const nextChrBytes = replaceBackgroundTilePixels(
-      currentState.nes.chrBytes,
-      queuedPaintTileIndex.value,
+    const currentTile =
+      currentState.backgroundTiles[queuedPaintTileIndex.value] ??
+      createEmptyBackgroundTile();
+    const nextVisibleTile = applyBackgroundTilePixelWrites(
+      currentTile,
       queuedPaintWrites,
     );
 
-    if (E.isLeft(nextChrBytes)) {
-      return;
-    }
-
-    const nextVisibleTile = decodeVisibleBackgroundTile(
-      nextChrBytes.right,
-      queuedPaintTileIndex.value,
-    );
-
-    visibleBackgroundTilesCacheRef.current =
-      replaceVisibleBackgroundTileAtIndex(
-        visibleBackgroundTilesCacheRef.current,
+    useProjectState.setState({
+      backgroundTiles: replaceVisibleBackgroundTileAtIndex(
+        currentState.backgroundTiles,
         queuedPaintTileIndex.value,
         nextVisibleTile,
-      );
-    cachedChrBytesRef.current = nextChrBytes.right;
-
-    useProjectState.setState({
-      nes: {
-        ...currentState.nes,
-        chrBytes: nextChrBytes.right,
-      },
+      ),
     });
   }, []);
 
