@@ -1,20 +1,10 @@
-import { Button } from "@radix-ui/themes";
 import React from "react";
 import { mergeClassNames } from "../../../../styleClassNames";
 import styles from "./LibraryPreviewCard.module.css";
 
-const LIBRARY_PREVIEW_CARD_STYLE: React.CSSProperties = {
-  width: "100%",
-  alignItems: "stretch",
-  justifyContent: "flex-start",
-  minHeight: "6rem",
-  padding: "0.75rem",
-  whiteSpace: "normal",
-};
-
 interface LibraryPreviewCardProps extends Omit<
-  React.ComponentProps<typeof Button>,
-  "children" | "color" | "size" | "variant"
+  React.ComponentPropsWithoutRef<"button">,
+  "children" | "style"
 > {
   readonly badge?: React.ReactNode;
   readonly dragging?: boolean;
@@ -38,7 +28,7 @@ export const LibraryPreviewCard = React.forwardRef<
     preview,
     previewFrame,
     selected,
-    style,
+    type = "button",
     ...props
   },
   ref,
@@ -46,7 +36,7 @@ export const LibraryPreviewCard = React.forwardRef<
   const isActive = selected === true || dragging === true;
 
   return (
-    <Button
+    <button
       ref={ref}
       {...props}
       className={mergeClassNames(
@@ -57,16 +47,14 @@ export const LibraryPreviewCard = React.forwardRef<
         typeof className === "string" ? className : false,
       )}
       aria-pressed={selected === true}
-      color={isActive === true ? "teal" : "gray"}
-      size="1"
-      style={{ ...LIBRARY_PREVIEW_CARD_STYLE, ...(style ?? {}) }}
-      variant={isActive === true ? "solid" : "surface"}
+      data-active={isActive === true ? "true" : "false"}
+      type={type}
     >
       <span className={styles.content}>
         <span className={styles.preview}>{preview}</span>
         <span className={styles.label}>{label}</span>
         {badge}
       </span>
-    </Button>
+    </button>
   );
 });
