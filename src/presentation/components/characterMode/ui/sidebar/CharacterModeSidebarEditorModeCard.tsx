@@ -1,5 +1,5 @@
-import * as O from "fp-ts/Option";
 import { Button } from "@radix-ui/themes";
+import * as O from "fp-ts/Option";
 import React from "react";
 import {
   useCharacterModeEditorModeSetting,
@@ -20,10 +20,10 @@ export const CharacterModeSidebarEditorModeCard: React.FC = () => {
       <Button
         type="button"
         aria-label="編集モード 合成"
+        className={styles.fullWidthToggle}
         color={editorMode.editorMode === "compose" ? "teal" : "gray"}
         disabled={isDisabled}
         size="1"
-        style={{ width: "100%" }}
         variant={editorMode.editorMode === "compose" ? "solid" : "outline"}
         onClick={() => editorMode.handleEditorModeChange("compose")}
       >
@@ -32,10 +32,10 @@ export const CharacterModeSidebarEditorModeCard: React.FC = () => {
       <Button
         type="button"
         aria-label="編集モード 分解"
+        className={styles.fullWidthToggle}
         color={editorMode.editorMode === "decompose" ? "teal" : "gray"}
         disabled={isDisabled}
         size="1"
-        style={{ width: "100%" }}
         variant={editorMode.editorMode === "decompose" ? "solid" : "outline"}
         onClick={() => editorMode.handleEditorModeChange("decompose")}
       >

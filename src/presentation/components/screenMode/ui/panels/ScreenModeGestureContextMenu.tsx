@@ -1,9 +1,10 @@
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { type ScreenModeContextMenuStateResult } from "../../logic/useScreenModeContextMenuState";
-import { resolveMenuPosition } from "./ScreenModeGestureWorkspaceShared";
 import styles from "./ScreenModeGestureContextMenu.module.css";
+import { resolveMenuPosition } from "./ScreenModeGestureWorkspaceShared";
 
 interface ScreenModeGestureContextMenuProps {
   contextMenuState: ScreenModeContextMenuStateResult;
@@ -26,9 +27,11 @@ export const ScreenModeGestureContextMenu: React.FC<
       aria-label="スクリーン配置コンテキストメニュー"
       className={styles.menu}
       role="menu"
-      style={{
-        left: contextMenuPosition.value.left,
-        top: contextMenuPosition.value.top,
+      ref={(element) => {
+        applyRuntimeStyle(element, {
+          left: contextMenuPosition.value.left,
+          top: contextMenuPosition.value.top,
+        });
       }}
     >
       <button

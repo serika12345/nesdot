@@ -1,7 +1,8 @@
+import { Badge, Button, TextField } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { Badge, Button, TextField } from "@radix-ui/themes";
 import React from "react";
+import { CHARACTER_MODE_STAGE_LIMITS } from "../../logic/characterModeConstants";
 import {
   useCharacterModeLibraryDragPreview,
   useCharacterModeStageDisplay,
@@ -9,7 +10,6 @@ import {
   useCharacterModeStageZoom,
   useCharacterModeViewportPan,
 } from "../../logic/characterModeEditorState";
-import { CHARACTER_MODE_STAGE_LIMITS } from "../../logic/characterModeConstants";
 import { CharacterModeTilePreview } from "../preview/CharacterModeTilePreview";
 import {
   CharacterStageStatus,
@@ -71,13 +71,13 @@ export const CharacterModeComposePreviewCanvas: React.FC<
         <PreviewControlsRow>
           <StageInputContainer>
             <TextField.Root
+              className={styles.fullWidthField}
               type="number"
               value={stageSize.stageWidth}
               min={CHARACTER_MODE_STAGE_LIMITS.minWidth}
               max={CHARACTER_MODE_STAGE_LIMITS.maxWidth}
               step={8}
               aria-label="プレビューキャンバス幅"
-              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageWidthChange(event.target.value)
               }
@@ -85,13 +85,13 @@ export const CharacterModeComposePreviewCanvas: React.FC<
           </StageInputContainer>
           <StageInputContainer>
             <TextField.Root
+              className={styles.fullWidthField}
               type="number"
               value={stageSize.stageHeight}
               min={CHARACTER_MODE_STAGE_LIMITS.minHeight}
               max={CHARACTER_MODE_STAGE_LIMITS.maxHeight}
               step={8}
               aria-label="プレビューキャンバス高さ"
-              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageHeightChange(event.target.value)
               }

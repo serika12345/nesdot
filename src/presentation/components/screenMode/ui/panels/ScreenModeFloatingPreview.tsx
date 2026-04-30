@@ -2,12 +2,13 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { CharacterModeTilePreview } from "../../../characterMode/ui/preview/CharacterModeTilePreview";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { type ScreenModeLibraryPresentationState } from "../../logic/useScreenModeLibraryState";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
 import { ScreenModeCharacterPreview } from "../preview/ScreenModeCharacterPreview";
 import { CharacterPreviewTiles } from "../primitives/ScreenModePrimitives";
-import { createFloatingDragPreviewStyle } from "./ScreenModeGestureWorkspaceStyle";
 import styles from "./ScreenModeFloatingPreview.module.css";
+import { createFloatingDragPreviewStyle } from "./ScreenModeGestureWorkspaceStyle";
 
 interface ScreenModeFloatingPreviewProps {
   libraryState: ScreenModeLibraryPresentationState;
@@ -48,10 +49,15 @@ export const ScreenModeFloatingPreview: React.FC<
         return (
           <div
             className={styles.card}
-            style={createFloatingDragPreviewStyle(
-              dragState.clientX,
-              dragState.clientY,
-            )}
+            ref={(element) => {
+              applyRuntimeStyle(
+                element,
+                createFloatingDragPreviewStyle(
+                  dragState.clientX,
+                  dragState.clientY,
+                ),
+              );
+            }}
           >
             <div className={styles.stack}>
               {dragState.kind === "sprite" ? (

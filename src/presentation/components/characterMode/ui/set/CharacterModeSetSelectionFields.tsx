@@ -1,6 +1,6 @@
+import { Button, Dialog, Flex, Select, TextField } from "@radix-ui/themes";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import { Button, Dialog, Flex, Select, TextField } from "@radix-ui/themes";
 import React from "react";
 import {
   useCharacterModeSetName,
@@ -164,7 +164,10 @@ export const CharacterModeSetSelectionFields: React.FC = () => {
             setSelection.handleSelectSet(value);
           }}
         >
-          <Select.Trigger aria-label="編集中のセット" style={{ width: "100%" }}>
+          <Select.Trigger
+            aria-label="編集中のセット"
+            className={styles.fullWidthTrigger}
+          >
             {activeSetLabel}
           </Select.Trigger>
           {typeof document !== "undefined" ? (

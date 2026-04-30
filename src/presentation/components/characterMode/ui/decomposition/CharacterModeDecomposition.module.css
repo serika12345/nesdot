@@ -58,6 +58,10 @@
     font: inherit;
   }
 
+  .fullWidthTrigger {
+    width: 100%;
+  }
+
   .slotLabel {
     color: var(--ink-soft);
     font-size: 0.75rem;

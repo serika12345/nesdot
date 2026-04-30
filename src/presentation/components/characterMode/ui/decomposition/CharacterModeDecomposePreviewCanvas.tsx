@@ -88,13 +88,13 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
         <PreviewControlsRow>
           <StageInputContainer>
             <TextField.Root
+              className={styles.fullWidthField}
               type="number"
               value={stageSize.stageWidth}
               min={CHARACTER_MODE_STAGE_LIMITS.minWidth}
               max={CHARACTER_MODE_STAGE_LIMITS.maxWidth}
               step={8}
               aria-label="プレビューキャンバス幅"
-              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageWidthChange(event.target.value)
               }
@@ -102,13 +102,13 @@ export const CharacterModeDecomposePreviewCanvas: React.FC<
           </StageInputContainer>
           <StageInputContainer>
             <TextField.Root
+              className={styles.fullWidthField}
               type="number"
               value={stageSize.stageHeight}
               min={CHARACTER_MODE_STAGE_LIMITS.minHeight}
               max={CHARACTER_MODE_STAGE_LIMITS.maxHeight}
               step={8}
               aria-label="プレビューキャンバス高さ"
-              style={{ width: "100%" }}
               onChange={(event) =>
                 stageSize.handleStageHeightChange(event.target.value)
               }

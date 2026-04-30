@@ -2,6 +2,7 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { ScreenCanvas } from "../../../common/ui/canvas/ScreenCanvas";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { type ScreenModeProjectStateResult } from "../../logic/useScreenModeProjectState";
 import { type ScreenModeStagePresentationState } from "../../logic/useScreenModeStageState";
 import { type ScreenModeViewportStateResult } from "../../logic/useScreenModeViewportState";
@@ -161,6 +162,17 @@ export const ScreenModeStageViewport: React.FC<
     [stageState, stageUiState.backgroundEditing],
   );
 
+  const handleStageRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      stageState.setStageRef(element);
+      applyRuntimeStyle(
+        element,
+        createStageSurfaceStyle(stageWidth, stageHeight, stageState.isDragging),
+      );
+    },
+    [stageHeight, stageState, stageWidth],
+  );
+
   return (
     <div className={styles.root}>
       <PreviewViewport
@@ -180,7 +192,7 @@ export const ScreenModeStageViewport: React.FC<
       >
         <PreviewCanvasWrap>
           <div
-            ref={stageState.setStageRef}
+            ref={handleStageRef}
             aria-label="スクリーン配置ステージ"
             tabIndex={0}
             onContextMenu={handleStageContextMenuWithBackgroundEditing}
@@ -190,11 +202,6 @@ export const ScreenModeStageViewport: React.FC<
             onPointerUp={handleStagePointerEndWithBackgroundEditing}
             onPointerCancel={handleStagePointerEndWithBackgroundEditing}
             onClick={handleStageClick}
-            style={createStageSurfaceStyle(
-              stageWidth,
-              stageHeight,
-              stageState.isDragging,
-            )}
           >
             <ScreenCanvas
               ariaLabel="画面プレビューキャンバス"
@@ -212,15 +219,20 @@ export const ScreenModeStageViewport: React.FC<
                       : ""
                   }`}
                   role="img"
-                  style={createSpriteOutlineStyle(
-                    sprite.x,
-                    sprite.y,
-                    sprite.width,
-                    sprite.height,
-                    viewportState.screenZoomLevel,
-                    stageUiState.displayState.isSpriteOutlineVisible,
-                    stageState.selectedSpriteIndices.has(index),
-                  )}
+                  ref={(element) => {
+                    applyRuntimeStyle(
+                      element,
+                      createSpriteOutlineStyle(
+                        sprite.x,
+                        sprite.y,
+                        sprite.width,
+                        sprite.height,
+                        viewportState.screenZoomLevel,
+                        stageUiState.displayState.isSpriteOutlineVisible,
+                        stageState.selectedSpriteIndices.has(index),
+                      ),
+                    );
+                  }}
                 >
                   {stageUiState.displayState.isSpriteIndexVisible === true ? (
                     <span className={styles.spriteIndex}>{`#${index}`}</span>
@@ -236,13 +248,18 @@ export const ScreenModeStageViewport: React.FC<
                   () => <></>,
                   (rect) => (
                     <div
-                      style={createStageMarqueeStyle(
-                        rect.x,
-                        rect.y,
-                        rect.width,
-                        rect.height,
-                        viewportState.screenZoomLevel,
-                      )}
+                      ref={(element) => {
+                        applyRuntimeStyle(
+                          element,
+                          createStageMarqueeStyle(
+                            rect.x,
+                            rect.y,
+                            rect.width,
+                            rect.height,
+                            viewportState.screenZoomLevel,
+                          ),
+                        );
+                      }}
                     />
                   ),
                 ),

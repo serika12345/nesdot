@@ -1,5 +1,5 @@
-import * as O from "fp-ts/Option";
 import { Button } from "@radix-ui/themes";
+import * as O from "fp-ts/Option";
 import React from "react";
 import {
   useCharacterModeSetSelection,
@@ -20,6 +20,7 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
       <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x8"
+        className={styles.fullWidthToggle}
         color={spriteSize.projectSpriteSize === 8 ? "teal" : "gray"}
         disabled={
           isDisabled ||
@@ -27,7 +28,6 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
             spriteSize.projectSpriteSize !== 8)
         }
         size="1"
-        style={{ width: "100%" }}
         variant={spriteSize.projectSpriteSize === 8 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(8)}
       >
@@ -36,6 +36,7 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
       <Button
         type="button"
         aria-label="プロジェクトスプライトサイズ 8x16"
+        className={styles.fullWidthToggle}
         color={spriteSize.projectSpriteSize === 16 ? "teal" : "gray"}
         disabled={
           isDisabled ||
@@ -43,7 +44,6 @@ export const CharacterModeSidebarSpriteSizeCard: React.FC = () => {
             spriteSize.projectSpriteSize !== 16)
         }
         size="1"
-        style={{ width: "100%" }}
         variant={spriteSize.projectSpriteSize === 16 ? "solid" : "outline"}
         onClick={() => spriteSize.handleProjectSpriteSizeChange(16)}
       >

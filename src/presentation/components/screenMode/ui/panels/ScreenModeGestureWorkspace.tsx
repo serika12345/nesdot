@@ -12,7 +12,7 @@ import { ScreenModeBackgroundPlacementMockOverlay } from "../overlays/ScreenMode
 import { ScreenModeCharacterLibraryPanel } from "./ScreenModeCharacterLibraryPanel";
 import { ScreenModeFloatingPreview } from "./ScreenModeFloatingPreview";
 import { ScreenModeGestureContextMenu } from "./ScreenModeGestureContextMenu";
-import { helperTextStyle } from "./ScreenModeGestureWorkspaceStyle";
+import styles from "./ScreenModeGestureWorkspace.module.css";
 import {
   type ScreenModeGestureWorkspaceBackgroundEditing,
   type ScreenModeGestureWorkspaceDisplayState,
@@ -20,7 +20,6 @@ import {
 import { ScreenModeSpriteLibraryPanel } from "./ScreenModeSpriteLibraryPanel";
 import { ScreenModeStageViewport } from "./ScreenModeStageViewport";
 import { ScreenModeWorkspaceHeader } from "./ScreenModeWorkspaceHeader";
-import styles from "./ScreenModeGestureWorkspace.module.css";
 
 interface ScreenModeGestureWorkspaceProps {
   backgroundEditingState: ScreenModeWorkspaceBackgroundEditingStateResult;
@@ -220,7 +219,7 @@ export const ScreenModeGestureWorkspace: React.FC<
         }}
       />
 
-      <p className={styles.helperText} style={helperTextStyle}>
+      <p className={styles.helperText}>
         スプライト/キャラクタープレビューをドラッグして配置。右クリックで編集メニュー、Shift+クリックで複数選択、ドラッグで移動できます。
       </p>
 

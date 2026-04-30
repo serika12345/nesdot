@@ -1,5 +1,5 @@
-import React from "react";
 import { Button } from "@radix-ui/themes";
+import React from "react";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
   type NesColorIndex,
@@ -72,14 +72,6 @@ const BgModeLibraryTileButtonComponent: React.FC<
     color={tileButtonState.isSelected ? "teal" : "gray"}
     size="1"
     variant={tileButtonState.isSelected ? "solid" : "surface"}
-    style={{
-      width: "100%",
-      alignItems: "stretch",
-      justifyContent: "flex-start",
-      minHeight: "6rem",
-      padding: "0.75rem",
-      whiteSpace: "normal",
-    }}
     aria-label={`#${formatTileNumber(tileButtonState.tileIndex)}`}
     aria-pressed={tileButtonState.isSelected}
     onClick={() => {

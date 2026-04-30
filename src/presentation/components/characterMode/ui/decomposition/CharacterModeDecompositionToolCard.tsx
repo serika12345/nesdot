@@ -2,6 +2,7 @@ import { Badge, Button, Select } from "@radix-ui/themes";
 import React from "react";
 import { nesIndexToCssHex } from "../../../../../domain/nes/palette";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import { applyRuntimeStyle as applyElementRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { DECOMPOSITION_COLOR_SLOTS } from "../../logic/characterModeConstants";
 import {
   useCharacterModeDecompositionPalette,
@@ -24,19 +25,24 @@ type PaletteSlotButtonProps = React.ComponentProps<"button"> & {
 const PaletteSlotButton: React.FC<PaletteSlotButtonProps> = ({
   colorHex,
   selectedState,
-  style,
   ...props
 }) => {
+  const handleButtonRef = React.useCallback(
+    (element: HTMLButtonElement | null) => {
+      applyElementRuntimeStyle(
+        element,
+        createPaletteSlotButtonStyle({}, colorHex, selectedState === true),
+      );
+    },
+    [colorHex, selectedState],
+  );
+
   return (
     <button
       {...props}
+      ref={handleButtonRef}
       className={styles.slotButton}
       type={props.type ?? "button"}
-      style={createPaletteSlotButtonStyle(
-        style ?? {},
-        colorHex,
-        selectedState === true,
-      )}
     />
   );
 };
@@ -128,7 +134,7 @@ export const CharacterModeDecompositionToolCard: React.FC = () => {
           >
             <Select.Trigger
               aria-label="分解描画パレット"
-              style={{ width: "100%" }}
+              className={styles.fullWidthTrigger}
             >
               {activePaletteLabel}
             </Select.Trigger>

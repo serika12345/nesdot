@@ -73,6 +73,38 @@ const uiStyleGuidancePlugin = {
         };
       },
     },
+    "no-jsx-style-prop": {
+      meta: {
+        type: "suggestion",
+        docs: {
+          description:
+            "Disallow the JSX style prop in favor of static styling and semantic component APIs.",
+        },
+        schema: [],
+        messages: {
+          noStyleProp:
+            "Do not use the JSX `style` prop. Express styling through shared components, CSS Modules, semantic props, or validated runtime geometry boundaries instead.",
+        },
+      },
+      create: (context) => {
+        return {
+          JSXAttribute: (node) => {
+            if (node.name.type !== "JSXIdentifier") {
+              return;
+            }
+
+            if (node.name.name !== "style") {
+              return;
+            }
+
+            context.report({
+              node,
+              messageId: "noStyleProp",
+            });
+          },
+        };
+      },
+    },
     "restrict-sx": {
       meta: {
         type: "suggestion",
@@ -395,6 +427,7 @@ const config = [
       "functional/no-throw-statements": "error",
 
       "ui-style-guidance/no-jsx-data-attributes": "error",
+      "ui-style-guidance/no-jsx-style-prop": "error",
       "ui-style-guidance/restrict-sx": "error",
 
       "no-restricted-syntax": [

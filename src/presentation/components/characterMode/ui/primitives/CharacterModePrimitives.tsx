@@ -1,14 +1,16 @@
 import { Button } from "@radix-ui/themes";
 import React from "react";
 import { SurfaceCard } from "../../../common/ui/chrome/SurfaceCard";
+import {
+  applyRuntimeStyle,
+  assignForwardedRef,
+} from "../../../common/ui/runtimeStyle";
 import styles from "./CharacterModePrimitives.module.css";
 import {
-  createCharacterStageViewportStyle,
   createDecompositionCanvasStyle,
   createEmptyTilePreviewStyle,
   createFloatingLibraryPreviewStyle,
   createPixelPreviewCellStyle,
-  createPortalOverlayStyle,
   createPositionedActionMenuStyle,
   createRegionOverlayButtonStyle,
   createStageDragPreviewStyle,
@@ -17,20 +19,44 @@ import {
 
 export type DecompositionTool = "pen" | "eraser" | "region";
 
-type CharacterStageViewportProps = React.HTMLAttributes<HTMLDivElement> & {
+type ClosedHtmlDivProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "className" | "style"
+> & {
+  readonly className?: never;
+  readonly style?: never;
+};
+
+type ClosedDivProps = Omit<
+  React.ComponentProps<"div">,
+  "className" | "style"
+> & {
+  readonly className?: never;
+  readonly style?: never;
+};
+
+type CharacterStageViewportProps = ClosedHtmlDivProps & {
   readonly dragging?: boolean;
 };
 
-type DecompositionCanvasElementProps = React.ComponentProps<"canvas"> & {
+type DecompositionCanvasElementProps = Omit<
+  React.ComponentProps<"canvas">,
+  "style"
+> & {
   readonly cursorStyle: string;
+  readonly style?: never;
 };
 
-type StageDragPreviewProps = React.ComponentProps<"div"> & {
+type StageDragPreviewProps = Omit<React.ComponentProps<"div">, "style"> & {
   readonly previewLeft: number;
   readonly previewTop: number;
+  readonly style?: never;
 };
 
-type RegionOverlayButtonProps = React.ComponentProps<"button"> & {
+type RegionOverlayButtonProps = Omit<
+  React.ComponentProps<"button">,
+  "style"
+> & {
   readonly issueState?: boolean;
   readonly regionHeightPx: number;
   readonly regionLeft: number;
@@ -38,35 +64,52 @@ type RegionOverlayButtonProps = React.ComponentProps<"button"> & {
   readonly regionTop: number;
   readonly selectedState?: boolean;
   readonly toolMode: DecompositionTool;
+  readonly style?: never;
 };
 
-type FloatingLibraryPreviewProps = React.ComponentProps<"div"> & {
+type FloatingLibraryPreviewProps = Omit<
+  React.ComponentProps<"div">,
+  "style"
+> & {
   readonly dragClientX: number;
   readonly dragClientY: number;
+  readonly style?: never;
 };
 
-type PositionedActionMenuProps = React.HTMLAttributes<HTMLDivElement> & {
+type PositionedActionMenuProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "style"
+> & {
   readonly menuLeft: number;
   readonly menuTop: number;
   readonly menuWidth: number;
   readonly ready: boolean;
+  readonly style?: never;
 };
 
-type PositionedActionMenuButtonProps = React.ComponentProps<typeof Button> & {
+type PositionedActionMenuButtonProps = Omit<
+  React.ComponentProps<typeof Button>,
+  "style"
+> & {
   readonly danger?: boolean;
+  readonly style?: never;
 };
 
-type EmptyTilePreviewProps = React.ComponentProps<"div"> & {
+type EmptyTilePreviewProps = Omit<React.ComponentProps<"div">, "style"> & {
   readonly previewHeight: number;
   readonly previewWidth: number;
+  readonly style?: never;
 };
 
-type PixelPreviewCellProps = React.ComponentProps<"div"> & {
+type PixelPreviewCellProps = Omit<React.ComponentProps<"div">, "style"> & {
   readonly colorHex: string;
   readonly pixelSize: number;
+  readonly style?: never;
 };
 
-type StageSurfaceProps = React.ComponentProps<"div"> & {
+type StageEditorCardProps = ClosedHtmlDivProps;
+
+type StageSurfaceProps = ClosedDivProps & {
   readonly activeDrop?: boolean;
   readonly stageHeightPx: number;
   readonly stageScale: number;
@@ -132,15 +175,11 @@ export const CharacterWorkspaceRoot = createLayout(
 
 export const StageEditorCard = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(function StageEditorCard({ className, ...props }, ref) {
-  const baseClassName = styles.stageEditorCard ?? "";
-  const combinedClassName =
-    typeof className === "string" && className.length > 0
-      ? `${baseClassName} ${className}`
-      : baseClassName;
-
-  return <SurfaceCard {...props} ref={ref} className={combinedClassName} />;
+  StageEditorCardProps
+>(function StageEditorCard({ ...props }, ref) {
+  return (
+    <SurfaceCard {...props} ref={ref} className={styles.stageEditorCard} />
+  );
 });
 
 export const PaletteControlRow = createLayout(styles.paletteControlRow ?? "");
@@ -160,26 +199,23 @@ export const SelectedRegionFieldGrid = createLayout(
 export const CharacterStageViewport = React.forwardRef<
   HTMLDivElement,
   CharacterStageViewportProps
->(function CharacterStageViewport(
-  { dragging, className, style, ...props },
-  ref,
-) {
+>(function CharacterStageViewport({ dragging, ...props }, ref) {
   const baseClassName = styles.characterStageViewport ?? "";
   const draggingClassName =
     dragging === true ? (styles.characterStageViewportDragging ?? "") : "";
-  const combinedClassName = [baseClassName, draggingClassName, className]
-    .filter(
-      (value): value is string => typeof value === "string" && value.length > 0,
-    )
-    .join(" ");
+  const combinedClassName =
+    draggingClassName.length > 0
+      ? `${baseClassName} ${draggingClassName}`
+      : baseClassName;
+  const handleViewportRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+    },
+    [ref],
+  );
 
   return (
-    <div
-      {...props}
-      ref={ref}
-      className={combinedClassName}
-      style={createCharacterStageViewportStyle(style ?? {}, dragging === true)}
-    />
+    <div {...props} ref={handleViewportRef} className={combinedClassName} />
   );
 });
 
@@ -203,7 +239,7 @@ export const DecompositionCanvasElement = React.forwardRef<
   HTMLCanvasElement,
   DecompositionCanvasElementProps
 >(function DecompositionCanvasElement(
-  { className, cursorStyle, style, ...props },
+  { className, cursorStyle, ...props },
   ref,
 ) {
   const baseClassName = styles.decompositionCanvasElement ?? "";
@@ -211,28 +247,38 @@ export const DecompositionCanvasElement = React.forwardRef<
     typeof className === "string" && className.length > 0
       ? `${baseClassName} ${className}`
       : baseClassName;
+  const handleCanvasRef = React.useCallback(
+    (element: HTMLCanvasElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createDecompositionCanvasStyle({}, cursorStyle),
+      );
+    },
+    [cursorStyle, ref],
+  );
 
   return (
-    <canvas
-      {...props}
-      ref={ref}
-      className={combinedClassName}
-      style={createDecompositionCanvasStyle(style ?? {}, cursorStyle)}
-    />
+    <canvas {...props} ref={handleCanvasRef} className={combinedClassName} />
   );
 });
 
 export const StageDragPreview = React.forwardRef<
   HTMLDivElement,
   StageDragPreviewProps
->(function StageDragPreview({ previewLeft, previewTop, style, ...props }, ref) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      style={createStageDragPreviewStyle(style ?? {}, previewLeft, previewTop)}
-    />
+>(function StageDragPreview({ previewLeft, previewTop, ...props }, ref) {
+  const handlePreviewRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createStageDragPreviewStyle({}, previewLeft, previewTop),
+      );
+    },
+    [previewLeft, previewTop, ref],
   );
+
+  return <div {...props} ref={handlePreviewRef} />;
 });
 
 export const RegionOverlayButton = React.forwardRef<
@@ -246,7 +292,6 @@ export const RegionOverlayButton = React.forwardRef<
     regionScale,
     regionTop,
     selectedState,
-    style,
     toolMode,
     className,
     ...props
@@ -258,23 +303,41 @@ export const RegionOverlayButton = React.forwardRef<
     typeof className === "string" && className.length > 0
       ? `${baseClassName} ${className}`
       : baseClassName;
+  const handleOverlayRef = React.useCallback(
+    (element: HTMLButtonElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createRegionOverlayButtonStyle(
+          {},
+          regionLeft,
+          regionTop,
+          regionScale,
+          regionHeightPx,
+          issueState === true,
+          selectedState === true,
+          toolMode,
+        ),
+      );
+    },
+    [
+      issueState,
+      ref,
+      regionHeightPx,
+      regionLeft,
+      regionScale,
+      regionTop,
+      selectedState,
+      toolMode,
+    ],
+  );
 
   return (
     <button
       {...props}
-      ref={ref}
+      ref={handleOverlayRef}
       className={combinedClassName}
       type={props.type ?? "button"}
-      style={createRegionOverlayButtonStyle(
-        style ?? {},
-        regionLeft,
-        regionTop,
-        regionScale,
-        regionHeightPx,
-        issueState === true,
-        selectedState === true,
-        toolMode,
-      )}
     />
   );
 });
@@ -283,40 +346,41 @@ export const FloatingLibraryPreview = React.forwardRef<
   HTMLDivElement,
   FloatingLibraryPreviewProps
 >(function FloatingLibraryPreview(
-  { className, dragClientX, dragClientY, style, ...props },
+  { className, dragClientX, dragClientY, ...props },
   ref,
 ) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={className}
-      style={createFloatingLibraryPreviewStyle(
-        style ?? {},
-        dragClientX,
-        dragClientY,
-      )}
-    />
+  const handlePreviewRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createFloatingLibraryPreviewStyle({}, dragClientX, dragClientY),
+      );
+    },
+    [dragClientX, dragClientY, ref],
   );
+
+  return <div {...props} ref={handlePreviewRef} className={className} />;
 });
 
 export const PortalOverlay = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(function PortalOverlay({ className, style, ...props }, ref) {
+>(function PortalOverlay({ className, ...props }, ref) {
   const baseClassName = styles.portalOverlay ?? "";
   const combinedClassName =
     typeof className === "string" && className.length > 0
       ? `${baseClassName} ${className}`
       : baseClassName;
+  const handleOverlayRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+    },
+    [ref],
+  );
 
   return (
-    <div
-      {...props}
-      ref={ref}
-      className={combinedClassName}
-      style={createPortalOverlayStyle(style ?? {})}
-    />
+    <div {...props} ref={handleOverlayRef} className={combinedClassName} />
   );
 });
 
@@ -324,7 +388,7 @@ export const PositionedActionMenu = React.forwardRef<
   HTMLDivElement,
   PositionedActionMenuProps
 >(function PositionedActionMenu(
-  { className, menuLeft, menuTop, menuWidth, ready, style, ...props },
+  { className, menuLeft, menuTop, menuWidth, ready, ...props },
   ref,
 ) {
   const baseClassName = styles.positionedActionMenu ?? "";
@@ -332,21 +396,24 @@ export const PositionedActionMenu = React.forwardRef<
     typeof className === "string" && className.length > 0
       ? `${baseClassName} ${className}`
       : baseClassName;
-
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={combinedClassName}
-      style={createPositionedActionMenuStyle(
-        style ?? {},
-        menuLeft,
-        menuTop,
-        menuWidth,
-        ready,
-      )}
-    />
+  const handleMenuRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createPositionedActionMenuStyle(
+          {},
+          menuLeft,
+          menuTop,
+          menuWidth,
+          ready,
+        ),
+      );
+    },
+    [menuLeft, menuTop, menuWidth, ready, ref],
   );
+
+  return <div {...props} ref={handleMenuRef} className={combinedClassName} />;
 });
 
 export const PositionedActionMenuButton = React.forwardRef<
@@ -357,9 +424,9 @@ export const PositionedActionMenuButton = React.forwardRef<
     <Button
       {...props}
       ref={ref}
+      className={styles.fullWidthBox}
       color={danger === true ? "red" : "gray"}
       size="1"
-      style={{ width: "100%" }}
       variant="surface"
     >
       {props.children}
@@ -371,76 +438,66 @@ export const EmptyTilePreview = React.forwardRef<
   HTMLDivElement,
   EmptyTilePreviewProps
 >(function EmptyTilePreview(
-  { className, previewHeight, previewWidth, style, ...props },
+  { className, previewHeight, previewWidth, ...props },
   ref,
 ) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={className}
-      style={createEmptyTilePreviewStyle(
-        style ?? {},
-        previewWidth,
-        previewHeight,
-      )}
-    />
+  const handlePreviewRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createEmptyTilePreviewStyle({}, previewWidth, previewHeight),
+      );
+    },
+    [previewHeight, previewWidth, ref],
   );
+
+  return <div {...props} ref={handlePreviewRef} className={className} />;
 });
 
 export const PixelPreviewCell = React.forwardRef<
   HTMLDivElement,
   PixelPreviewCellProps
->(function PixelPreviewCell(
-  { className, colorHex, pixelSize, style, ...props },
-  ref,
-) {
-  return (
-    <div
-      {...props}
-      ref={ref}
-      className={className}
-      style={createPixelPreviewCellStyle(style ?? {}, pixelSize, colorHex)}
-    />
+>(function PixelPreviewCell({ className, colorHex, pixelSize, ...props }, ref) {
+  const handleCellRef = React.useCallback(
+    (element: HTMLDivElement | null) => {
+      assignForwardedRef(ref, element);
+      applyRuntimeStyle(
+        element,
+        createPixelPreviewCellStyle({}, pixelSize, colorHex),
+      );
+    },
+    [colorHex, pixelSize, ref],
   );
+
+  return <div {...props} ref={handleCellRef} className={className} />;
 });
 
 export const StageSurface = React.forwardRef<HTMLDivElement, StageSurfaceProps>(
   function StageSurface(
-    {
-      activeDrop,
-      children,
-      className,
-      stageHeightPx,
-      stageScale,
-      stageWidthPx,
-      style,
-      ...props
-    },
+    { activeDrop, children, stageHeightPx, stageScale, stageWidthPx, ...props },
     ref,
   ) {
     const baseClassName = styles.characterStageSurface ?? "";
     const activeDropClassName =
       activeDrop === true ? (styles.characterStageSurfaceActiveDrop ?? "") : "";
-    const combinedClassName = [baseClassName, activeDropClassName, className]
-      .filter(
-        (value): value is string =>
-          typeof value === "string" && value.length > 0,
-      )
-      .join(" ");
+    const combinedClassName =
+      activeDropClassName.length > 0
+        ? `${baseClassName} ${activeDropClassName}`
+        : baseClassName;
+    const handleSurfaceRef = React.useCallback(
+      (element: HTMLDivElement | null) => {
+        assignForwardedRef(ref, element);
+        applyRuntimeStyle(
+          element,
+          createStageSurfaceStyle({}, stageWidthPx, stageHeightPx, stageScale),
+        );
+      },
+      [ref, stageHeightPx, stageScale, stageWidthPx],
+    );
 
     return (
-      <div
-        {...props}
-        ref={ref}
-        className={combinedClassName}
-        style={createStageSurfaceStyle(
-          style ?? {},
-          stageWidthPx,
-          stageHeightPx,
-          stageScale,
-        )}
-      >
+      <div {...props} ref={handleSurfaceRef} className={combinedClassName}>
         {children}
       </div>
     );

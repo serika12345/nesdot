@@ -117,6 +117,10 @@
     width: 10.5rem;
   }
 
+  .fullWidthToggle {
+    width: 100%;
+  }
+
   .floatingPreviewContent {
     display: flex;
     width: 100%;

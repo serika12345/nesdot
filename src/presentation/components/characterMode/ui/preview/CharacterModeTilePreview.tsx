@@ -3,6 +3,7 @@ import React from "react";
 import { type SpriteTile } from "../../../../../application/state/projectStore";
 import { type NesSpritePalettes } from "../../../../../domain/nes/nesProject";
 import { renderSpriteTileToHexArray } from "../../../../../domain/nes/rendering";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { EmptyTilePreview } from "../primitives/CharacterModePrimitives";
 import { tilePreviewCanvasStyle } from "./CharacterModeTilePreviewStyle";
 
@@ -96,6 +97,8 @@ const CharacterModeTilePreviewComponent: React.FC<
       Object.assign(canvasElementRef, {
         current: O.fromNullable(element),
       });
+
+      applyRuntimeStyle(element, tilePreviewCanvasStyle);
     },
     [],
   );
@@ -147,7 +150,6 @@ const CharacterModeTilePreviewComponent: React.FC<
       ref={handleCanvasRef}
       width={previewSize.width}
       height={previewSize.height}
-      style={tilePreviewCanvasStyle}
       aria-hidden="true"
     />
   );

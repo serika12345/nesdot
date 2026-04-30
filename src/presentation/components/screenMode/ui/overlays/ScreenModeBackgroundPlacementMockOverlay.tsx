@@ -5,11 +5,12 @@ import {
 } from "../../../../../domain/nes/nesProject";
 import { type BackgroundTile } from "../../../../../domain/project/project";
 import { BackgroundTilePreview } from "../../../common/ui/preview/BackgroundTilePreview";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
+import styles from "./ScreenModeBackgroundPlacementMockOverlay.module.css";
 import {
   backgroundPlacementOverlayStyle,
   backgroundPlacementPreviewLayerStyle,
 } from "./ScreenModeBackgroundPlacementMockOverlayStyle";
-import styles from "./ScreenModeBackgroundPlacementMockOverlay.module.css";
 
 interface BackgroundPlacementOverlayPlacement {
   height: number;
@@ -52,18 +53,22 @@ export const ScreenModeBackgroundPlacementMockOverlay: React.FC<
       role="img"
       aria-label="BG配置プレビュー"
       className={styles.overlay}
-      style={{
-        ...backgroundPlacementOverlayStyle,
-        left: overlayLeft,
-        top: overlayTop,
-        width: overlayWidth,
-        height: overlayHeight,
+      ref={(element) => {
+        applyRuntimeStyle(element, {
+          ...backgroundPlacementOverlayStyle,
+          left: overlayLeft,
+          top: overlayTop,
+          width: overlayWidth,
+          height: overlayHeight,
+        });
       }}
     >
       {preview.kind === "tile" ? (
         <div
           className={styles.previewLayer}
-          style={backgroundPlacementPreviewLayerStyle}
+          ref={(element) => {
+            applyRuntimeStyle(element, backgroundPlacementPreviewLayerStyle);
+          }}
         >
           <BackgroundTilePreview
             ariaLabel="BG配置タイルプレビューキャンバス"

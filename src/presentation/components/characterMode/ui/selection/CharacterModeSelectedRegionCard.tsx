@@ -202,6 +202,7 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
         )}
 
         <Button
+          className={styles.fullWidthAction}
           color="teal"
           variant="solid"
           disabled={
@@ -210,7 +211,6 @@ export const CharacterModeSelectedRegionCard: React.FC = () => {
             decompositionOverview.decompositionAnalysis.canApply === false
           }
           size="1"
-          style={{ width: "100%" }}
           onClick={handleApplyDecomposition}
         >
           分解して現在のセットへ反映

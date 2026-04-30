@@ -2,6 +2,7 @@ import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import React from "react";
 import { EmptyTilePreview } from "../../../characterMode/ui/primitives/CharacterModePrimitives";
+import { applyRuntimeStyle } from "../../../common/ui/runtimeStyle";
 import { createCharacterPreviewCanvasStyle } from "./ScreenModeCharacterPreviewStyle";
 
 const PREVIEW_TRANSPARENT_HEX = "#00000000";
@@ -120,8 +121,21 @@ export const ScreenModeCharacterPreview: React.FC<
       Object.assign(canvasElementRef, {
         current: O.fromNullable(element),
       });
+
+      pipe(
+        previewMetrics,
+        O.map((metrics) => {
+          applyRuntimeStyle(
+            element,
+            createCharacterPreviewCanvasStyle(
+              metrics.displayWidth,
+              metrics.displayHeight,
+            ),
+          );
+        }),
+      );
     },
-    [],
+    [previewMetrics],
   );
 
   React.useEffect(() => {
@@ -162,10 +176,6 @@ export const ScreenModeCharacterPreview: React.FC<
       ref={handleCanvasRef}
       width={previewMetrics.value.canvasWidth}
       height={previewMetrics.value.canvasHeight}
-      style={createCharacterPreviewCanvasStyle(
-        previewMetrics.value.displayWidth,
-        previewMetrics.value.displayHeight,
-      )}
       aria-hidden="true"
     />
   );

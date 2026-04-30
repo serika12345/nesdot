@@ -17,4 +17,8 @@
   .dialogField {
     padding-top: 0.25rem;
   }
+
+  .fullWidthTrigger {
+    width: 100%;
+  }
 }

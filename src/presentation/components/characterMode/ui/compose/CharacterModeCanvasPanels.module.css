@@ -1,4 +1,9 @@
 @layer components {
+  .fullWidthField {
+    width: 100%;
+    min-width: 0;
+  }
+
   .headerRow {
     display: flex;
     align-items: center;
