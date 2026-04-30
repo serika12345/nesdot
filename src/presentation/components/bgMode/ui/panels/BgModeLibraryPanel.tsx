@@ -1,4 +1,3 @@
-import { Button } from "@radix-ui/themes";
 import React from "react";
 import { type PaletteIndex } from "../../../../../application/state/projectStore";
 import {
@@ -65,33 +64,36 @@ const areSameBgModeLibraryTileButtonProps = (
 
 const BgModeLibraryTileButtonComponent: React.FC<
   BgModeLibraryTileButtonProps
-> = ({ handleSelectTile, tileButtonState }) => (
-  <Button
-    className={styles.tileButton}
-    type="button"
-    color={tileButtonState.isSelected ? "teal" : "gray"}
-    size="1"
-    variant={tileButtonState.isSelected ? "solid" : "surface"}
-    aria-label={`#${formatTileNumber(tileButtonState.tileIndex)}`}
-    aria-pressed={tileButtonState.isSelected}
-    onClick={() => {
-      handleSelectTile(tileButtonState.tileIndex);
-    }}
-  >
-    <span className={styles.tileButtonContent}>
-      <BackgroundTilePreview
-        scale={6}
-        tile={tileButtonState.tile}
-        palette={resolveActivePalette(
-          tileButtonState.backgroundPalettes,
-          tileButtonState.activePaletteIndex,
-        )}
-        universalBackgroundColor={tileButtonState.universalBackgroundColor}
-      />
-      <span>{`#${formatTileNumber(tileButtonState.tileIndex)}`}</span>
-    </span>
-  </Button>
-);
+> = ({ handleSelectTile, tileButtonState }) => {
+  const buttonClassName = tileButtonState.isSelected
+    ? `${styles.tileButton} ${styles.tileButtonActive}`
+    : styles.tileButton;
+
+  return (
+    <button
+      className={buttonClassName}
+      type="button"
+      aria-label={`#${formatTileNumber(tileButtonState.tileIndex)}`}
+      aria-pressed={tileButtonState.isSelected}
+      onClick={() => {
+        handleSelectTile(tileButtonState.tileIndex);
+      }}
+    >
+      <span className={styles.tileButtonContent}>
+        <BackgroundTilePreview
+          scale={6}
+          tile={tileButtonState.tile}
+          palette={resolveActivePalette(
+            tileButtonState.backgroundPalettes,
+            tileButtonState.activePaletteIndex,
+          )}
+          universalBackgroundColor={tileButtonState.universalBackgroundColor}
+        />
+        <span>{`#${formatTileNumber(tileButtonState.tileIndex)}`}</span>
+      </span>
+    </button>
+  );
+};
 
 const BgModeLibraryTileButton = React.memo(
   BgModeLibraryTileButtonComponent,

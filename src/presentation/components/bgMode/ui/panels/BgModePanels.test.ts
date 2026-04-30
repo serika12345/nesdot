@@ -49,7 +49,7 @@ const createBackgroundTile = (): BackgroundTile => ({
 });
 
 describe("BgModePanels", () => {
-  it("renders the library panel without legacy tool-button wrapper classes", () => {
+  it("renders the library panel with static tile buttons", () => {
     const markup = renderToStaticMarkup(
       React.createElement(BgModeLibraryPanel, {
         libraryPanelState: {
@@ -65,8 +65,9 @@ describe("BgModePanels", () => {
 
     expect(markup).toContain("BG編集");
     expect(markup).toContain("preview");
-    expect(markup).toContain("rt-variant-solid");
+    expect(markup).toContain('aria-pressed="true"');
     expect(markup).not.toContain("app-tool-button");
+    expect(markup).not.toContain("rt-BaseButton");
   });
 
   it("renders the editor panel overlay without legacy collapse wrapper classes", () => {
