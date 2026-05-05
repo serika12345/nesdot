@@ -75,9 +75,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgzNzNERjBFMUFGQjNDNwpSV1RIczYvaDhEMDNDRU1Kc0NNYjJiRGlLWXhDTnVsQUxMeUJtelg2SHE2WWZOVzQyb3NVRHE0cAo=",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU5QUZDNTRFNjZDODE3QUIKUldTckY4aG1Uc1d2V2ZYOVpxajB1WGhjRGVCanZSWFlnck1McGZjc3NnZktObmlNdkQ5T3paTHIK",
       "endpoints": [
-        "https://github.com/paseri3739/nesdot/releases/latest/download/latest.json"
+        "https://github.com/serika12345/nesdot/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
